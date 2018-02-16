@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block head %}
+    {{ super() }}
+    <link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
+{% endblock %}
+{% set active_page = "account_list" %}
+
+{% block title %}パスワード変更 - {% endblock %}
+{% block page_header %}パスワード変更{% endblock %}
+{% block page_description %}{% endblock %}
+{% block breadcrumb %}
+    <li><a href="{{ url_for('index.index') }}">トップ</a></li>
+    <li class="active">パスワード変更</li>
+{% endblock %}
+
+{% block page_content %}
+<section class="content">
+    <div class="box box-primary">
+        <div class="box-header with-border">
+            <h3 class="box-title">{{ user.user_name }} さん</h3>
+        </div>
+        <form method="POST" role="form" action="{{ url_for('account.pwdchg', next=next_url) }}">
+            {{ form.csrf_token }}
+            <div class="box-body">
+                <div class="row">
+                    <div class="form-group col-md-3">
+                        {{ form.password.label }}
+                        {{ form.password(class="form-control") }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-md-3">
+                        {{ form.confirm.label }}
+                        {{ form.confirm(class="form-control") }}
+                    </div>
+                </div>
+            </div>
+            <div class="box-footer">
+                <button type="button" class="btn btn-default" onclick="location.href='{{ next_url }}'">キャンセル</button>
+                {{ form.submit(class="btn btn-primary") }}
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}
+

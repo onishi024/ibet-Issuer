@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<!--
+This is a starter template page. Use this page to start your new project from
+scratch. This page gets rid of all links and provides the needed markup only.
+-->
+<html>
+<head>
+  {% block head %}
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>{% block title %}{% endblock %}ibet:issuer</title>
+  <!-- Tell the browser to be responsive to screen width -->
+  <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+  <link rel="stylesheet" href="/static/adminlte/bower_components/bootstrap/dist/css/bootstrap.min.css">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="/static/adminlte/bower_components/font-awesome/css/font-awesome.min.css">
+  <!-- Ionicons -->
+  <link rel="stylesheet" href="/static/adminlte/bower_components/Ionicons/css/ionicons.min.css">
+  <!-- Theme style -->
+  <link rel="stylesheet" href="/static/adminlte/dist/css/AdminLTE.min.css">
+  <!-- AdminLTE Skins. We have chosen the skin-blue for this starter
+        page. However, you can choose any other skin. Make sure you
+        apply the skin class to the body tag so the changes take effect. -->
+  <link rel="stylesheet" href="/static/adminlte/dist/css/skins/skin-blue-light.css">
+
+  <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+  <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+  <!-- Google Font -->
+  <link rel="stylesheet" href="/static/css/font.css">
+  <!-- noty -->
+  <link rel="stylesheet" href="/static/js/noty-3.1.4/lib/noty.css">
+  <style>
+body {
+    font-family:-apple-system, NotoSansJP-DemiLight, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", "ヒラギノ角ゴ ProN W3", Meiryo, sans-serif;
+}
+h1,h2,h3,h4,h5,h6,.h1,.h2,.h3,.h4,.h5,.h6 {
+    font-family:-apple-system, NotoSansJP-DemiLight, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", "ヒラギノ角ゴ ProN W3", Meiryo, sans-serif;
+}
+/*
+.navbar-nav > .user-menu > .dropdown-menu > li.user-header {
+  height: 100px;
+  padding: 10px;
+  text-align: center;
+}
+*/
+  </style>
+  {% endblock %}
+</head>
+<!--
+BODY TAG OPTIONS:
+=================
+Apply one or more of the following classes to get the
+desired effect
+|---------------------------------------------------------|
+| SKINS         | skin-blue                               |
+|               | skin-black                              |
+|               | skin-purple                             |
+|               | skin-yellow                             |
+|               | skin-red                                |
+|               | skin-green                              |
+|---------------------------------------------------------|
+|LAYOUT OPTIONS | fixed                                   |
+|               | layout-boxed                            |
+|               | layout-top-nav                          |
+|               | sidebar-collapse                        |
+|               | sidebar-mini                            |
+|---------------------------------------------------------|
+-->
+<body class="hold-transition skin-blue-light sidebar-mini">
+<div class="wrapper">
+
+  <!-- Main Header -->
+  <header class="main-header">
+
+    <!-- Logo -->
+    <a href="{{ url_for('index.index') }}" class="logo">
+      <!-- mini logo for sidebar mini 50x50 pixels -->
+      <span class="logo-mini"><img src="/static/img/logo_header.png" width="30px" height="30px" style="vertical-align:text-bottom" alt="icon"></span>
+      <!-- logo for regular state and mobile devices -->
+      <span class="logo-lg"><img src="/static/img/logo_header.png" width="30px" height="30px" style="vertical-align:text-bottom" alt="icon"> ibet:issuer</span>
+    </a>
+
+    <!-- Header Navbar -->
+    <nav class="navbar navbar-static-top" role="navigation">
+      <!-- Sidebar toggle button-->
+      <a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button">
+        <span class="sr-only">Toggle navigation</span>
+      </a>
+      <!-- Navbar Right Menu -->
+      <div class="navbar-custom-menu">
+        <ul class="nav navbar-nav">
+          <li class="dropdown user user-menu">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+              <span class="hidden-xs">{{ current_user.user_name }} さん</span>
+            </a>
+            <ul class="dropdown-menu">
+              <li class="user-header">
+                <!-- http://icons.iconarchive.com/icons/custom-icon-design/silky-line-user/128/user-icon.png -->
+                {% if current_user.icon %}
+                <img src="data:image/png;base64,{{ current_user.icon | img_convert }}" class="img-circle" alt="User Image">
+                {% else %}
+                <img src="/static/img/user-icon.png" class="img-circle" alt="User Image">
+                {% endif %}
+                <p>
+                  {{ current_user.login_id }}
+                  <small>{{ current_user.email }}</small>
+                </p>
+              </li>
+              <!-- Menu Body -->
+              <li class="user-body">
+                <div class="row">
+                  <div class="col-md-6 text-center">
+                    <a href="{{ url_for('account.edit_current', next=request.path) }}" class="btn btn-default btn-block btn-sm">アカウント管理</a>
+                  </div>
+                  <div class="col-md-6 text-center">
+                    <a href="{{ url_for('account.pwdchg', next=request.path) }}" class="btn btn-default btn-block btn-sm">パスワード変更</a>
+                  </div>
+                </div>
+                <!-- /.row -->
+              </li>
+              <!-- Menu Footer-->
+              <li class="user-footer">
+                <div class="pull-right">
+                  <a href="{{ url_for('auth.logout') }}" class="btn btn-default">ログアウト</a>
+                </div>
+              </li>
+            </ul>
+          </li>
+          <!-- Control Sidebar Toggle Button -->
+        </ul>
+      </div>
+    </nav>
+  </header>
+  <!-- Left side column. contains the logo and sidebar -->
+  <aside class="main-sidebar">
+
+    <!-- sidebar: style can be found in sidebar.less -->
+    <section class="sidebar">
+
+      <!-- Sidebar Menu -->
+      <ul class="sidebar-menu" data-widget="tree">
+        {% set active_page = active_page|default('index') -%}
+        <li class="header">メニュー</li>
+        {% set navigation_menu = config['NAVI_MENU_USER'] %}
+        {% for main_id, main_icon, main_caption, sub_menus in navigation_menu %}
+            <li class="{% if active_page.startswith(main_id) %}active treeview{% else %}treeview{% endif %}">
+                <a href="#"><i class="{{ main_icon }}"></i> <span>{{ main_caption|e }}</span>
+                    <span class="pull-right-container">
+                        <i class="fa fa-angle-left pull-right"></i>
+                    </span>
+                </a>
+                <ul class="treeview-menu">
+                    {% for sub_id, sub_icon, sub_caption, url_name in sub_menus %}
+                        <li{% if sub_id == active_page %} class="active"{% endif %}><a href="{{ url_for(url_name) }}"><i class="{{ sub_icon }}"></i> {{ sub_caption|e }}</a></li>
+                    {% endfor %}
+                </ul>
+            </li>
+        {% endfor %}
+        {% if current_user.is_anonymous or current_user.role.name == 'admin' %}
+            <li class="header">管理者メニュー</li>
+            {% set navigation_menu = config['NAVI_MENU_ADMIN'] %}
+            {% for main_id, main_icon, main_caption, sub_menus in navigation_menu %}
+                <li class="{% if active_page.startswith(main_id) %}active treeview{% else %}treeview{% endif %}">
+                    <a href="#"><i class="{{ main_icon }}"></i> <span>{{ main_caption|e }}</span>
+                        <span class="pull-right-container">
+                            <i class="fa fa-angle-left pull-right"></i>
+                        </span>
+                    </a>
+                    <ul class="treeview-menu">
+                        {% for sub_id, sub_icon, sub_caption, url_name in sub_menus %}
+                            <li{% if sub_id == active_page %} class="active"{% endif %}><a href="{{ url_for(url_name) }}"><i class="{{ sub_icon }}"></i> {{ sub_caption|e }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </li>
+            {% endfor %}
+        {% endif %}
+      </ul>
+      <!-- /.sidebar-menu -->
+    </section>
+    <!-- /.sidebar -->
+  </aside>
+
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+        <!-- Content Header (Page header) -->
+        <section class="content-header">
+            <h1>
+                {% block page_header %}Page Header{% endblock %}
+                <small>{% block page_description %}Optional description{% endblock %}</small>
+            </h1>
+            <ol class="breadcrumb">
+                {% block breadcrumb %}
+                    <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
+                    <li class="active">Dashboard</li>
+                {% endblock %}
+            </ol>
+            {% with confirms = get_flashed_messages(category_filter=["confirm"]) %}
+                {% if confirms %}
+                    {% for confirm in confirms %}
+                        <br>
+                        <div class="alert alert-info">
+                            <button type="button" class="close" data-dismiss="alert">&times;</button>
+                            {{ confirm }}
+                        </div>
+                        <br>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            {#
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        {% if category != "error" %}
+                            <div class="alert alert-{{ category }}">
+                                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                                {{ message }}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            {% with errors = get_flashed_messages(category_filter=["error"]) %}
+                {% if errors %}
+                    <div class="alert alert-error">
+                        <button type="button" class="close" data-dismiss="alert">&times;</button>
+                        <ul>
+                        {% for error in errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+            {% endwith %}
+            #}
+        </section>
+
+        <!-- Main content -->
+        <section class="content container-fluid">
+            {% block page_content %}
+            {% endblock %}
+        </section>
+        <!-- /.content -->
+    </div>
+    <!-- /.content-wrapper -->
+
+  <!-- /.control-sidebar -->
+  <!-- Add the sidebar's background. This div must be placed
+  immediately after the control sidebar -->
+  <div class="control-sidebar-bg"></div>
+</div>
+<!-- ./wrapper -->
+
+<!-- REQUIRED JS SCRIPTS -->
+
+{% block required_js %}
+<!-- jQuery 3 -->
+<script src="/static/adminlte/bower_components/jquery/dist/jquery.min.js"></script>
+<!-- Bootstrap 3.3.7 -->
+<script src="/static/adminlte/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+<!-- AdminLTE App -->
+<script src="/static/adminlte/dist/js/adminlte.js"></script>
+<script type="text/javascript">
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip()
+    })
+</script>
+<!-- noty -->
+<script src="/static/js/noty-3.1.4/lib/noty.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    {% if not category in ["confirm", "error"] %}
+                        new Noty({
+                            type: '{{ category }}',
+                            layout: 'topCenter',
+                            text: '{{ message }}',
+                            theme: 'relax',
+                            timeout: 3000,
+                        }).show();
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        {% with errors = get_flashed_messages(category_filter=["error"]) %}
+            {% if errors %}
+                {% for error in errors %}
+                    new Noty({
+                        type: 'error',
+                        layout: 'topRight',
+                        text: '{{ error }}',
+                        theme: 'relax',
+                    }).show();
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    });
+</script>
+{% endblock %}
+
+<!-- Optionally, you can add Slimscroll and FastClick plugins.
+     Both of these plugins are recommended to enhance the
+     user experience. -->
+</body>
+</html>

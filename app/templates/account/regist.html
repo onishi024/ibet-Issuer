@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block head %}
+  {{ super() }}
+  <!-- DataTables -->
+  <link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
+{% endblock %}
+{% set active_page = "account_regist" %}
+
+{% block title %}アカウント追加 - {% endblock %}
+{% block page_header %}アカウント追加{% endblock %}
+{% block page_description %}{% endblock %}
+{% block breadcrumb %}
+    <li><a href="{{ url_for('index.index') }}">トップ</a></li>
+    <li class="active">アカウント追加</li>
+{% endblock %}
+
+{% block page_content %}
+<section class="content">
+    <div class="box box-primary">
+        <form class="form-horizontal" method="POST" role="form" action="{{ url_for('account.regist') }}" enctype="multipart/form-data">
+            {{ form.csrf_token }}
+            <div class="box-body">
+                <div class="form-group">
+                    {{ form.login_id.label(class="col-md-2") }}
+                    <div class="col-md-3">
+                        {{ form.login_id(class="form-control") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.user_name.label(class="col-md-2") }}
+                    <div class="col-md-3">
+                        {{ form.user_name(class="form-control") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.icon.label(class="col-md-2") }}
+                     <div class="col-md-6">
+                         <label class="btn btn-sm btn-primary">アイコンを選択...{{ form.icon(style="display: none;") }}</label>
+                         <button id="iconreset" type="button" class="btn btn-sm btn-default" disabled>リセット</button>
+                     </div>
+                </div>
+                <div class="form-group">
+                    <div id="preview" class="col-md-6 col-md-offset-2">
+                        <img src="/static/img/user-icon.png" class="img-circle img-thumbnail" width="75" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.role.label(class="col-md-2") }}
+                    <div class="col-md-2">
+                        {{ form.role(class="form-control") }}
+                    </div>
+                </div>
+            </div>
+            <div class="box-footer">
+                <!--<button type="button" onclick="history.back()">キャンセル</button>-->
+                <button type="button" class="btn btn-default" onclick="location.href='{{ url_for("account.list") }}'">キャンセル</button>
+                {{ form.submit(class="btn btn-primary") }}
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}
+
+{% block required_js %}
+{{ super() }}
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#iconreset').click(function(){
+            $preview = $("#preview");
+            $preview.empty();
+            $preview.append($('<img>').attr({
+                src: "/static/img/user-icon.png",
+                class: "img-circle img-thumbnail",
+                width: "75",
+            }));
+            // リセットでformのfile(#icon)フィールドをクリア
+            $('#icon').replaceWith($('#icon').clone(true));
+            // 下はchrome対策
+            $('#icon').val('');
+        });
+        $('form').on('change', 'input[type="file"]', function(e) {
+            var file = e.target.files[0],
+                reader = new FileReader(),
+                $preview = $("#preview");
+                t = this;
+
+            if(file.type.indexOf("image") < 0){
+                return false;
+            }
+
+            reader.onload = (function(file) {
+                return function(e) {
+                    $preview.empty();
+                    $preview.append($('<img>').attr({
+                        src: e.target.result,
+                        class: "img-circle img-thumbnail",
+                        width: "75",
+                        id: "preview",
+                        title: file.name
+                    }));
+                    $("#iconreset").prop("disabled", false);
+                };
+            })(file);
+
+            reader.readAsDataURL(file);
+        });
+    });
+</script>
+{% endblock %}

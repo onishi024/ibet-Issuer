@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block head %}
+  {{ super() }}
+  <!-- DataTables -->
+  <link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
+{% endblock %}
+{% set active_page = "account_list" %}
+
+{% block title %}アカウント一覧 - {% endblock %}
+{% block page_header %}アカウント一覧{% endblock %}
+{% block page_description %}{% endblock %}
+{% block breadcrumb %}
+    <li><a href="{{ url_for('index.index') }}">トップ</a></li>
+    <li class="active">アカウント一覧</li>
+{% endblock %}
+
+{% block page_content %}
+<section class="content">
+    <div class="box">
+	<div class="box-header">
+	    <h3 class="box-title"></h3>
+            <div class="pull-right box-tools">
+                <button id="apiregist" class="btn btn-danger" type="button" onClick="location.href='{{ url_for("account.regist") }}'">追加 <i class="fa fa-plus-circle"></i></button>
+            </div>
+	</div>
+	<div class="box-body">
+	    <table id="data_table" class="table table-bordered table-hover">
+		<thead>
+		    <tr>
+			<th style="width: 200px">ログインID</th>
+			<th>ユーザー名</th>
+			<th style="width: 100px">ロール名</th>
+			<th style="width: 150px">更新日時</th>
+			<th style="width: 150px">登録日時</th>
+		    </tr>
+		</thead>
+		<tbody>
+		{% for user in users %}
+    <tr>
+			<td><a href="{{ url_for('account.edit', id=user.id) }}">{{ user.login_id }}</a></td>
+			<td>{{ user.user_name }}</td>
+			<td>{{ user.role.name }}</td>
+			<td align="center">{{ user.modified | format_date }}</td>
+			<td align="center">{{ user.created | format_date }}</td>
+    </tr>
+		{% endfor %}
+		</tbody>
+	    </table>
+	</div>
+    </div>
+</section><!-- /.content -->
+{% endblock %}
+
+{% block required_js %}
+{{ super() }}
+<!-- DataTables -->
+<script src="/static/adminlte/bower_components/datatables.net/js/jquery.dataTables.min.js"></script>
+<script src="/static/adminlte/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+<!-- SlimScroll -->
+<script src="/static/adminlte/bower_components/jquery-slimscroll/jquery.slimscroll.min.js"></script>
+<!-- FastClick -->
+<script src="/static/adminlte/bower_components/fastclick/lib/fastclick.js"></script>
+<!-- AdminLTE for demo purposes -->
+<script src="/static/adminlte/dist/js/demo.js"></script>
+<script>
+  $(function () {
+    $('#data_table').DataTable({
+      'paging'      : true,
+      'lengthChange': true,
+      'searching'   : true,
+      'ordering'    : true,
+      'info'        : true,
+      'autoWidth'   : true,
+      'pagingType': "full_numbers",
+      'language': {
+          'info': "_TOTAL_ 件中 _START_ 〜 _END_ 件目",
+          'lengthMenu': "表示件数 _MENU_ 件",
+          'search': "検索:",
+          'paginate': {
+              'first': "最初へ",
+              'previous': "前へ",
+              'next': "次へ",
+              'last': "最後へ",
+          }
+      },
+    })
+  })
+</script>
+{% endblock %}

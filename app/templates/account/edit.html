@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block head %}
+    {{ super() }}
+    <link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
+{% endblock %}
+{% set active_page = "account_list" %}
+
+{% block title %}アカウント編集 - {% endblock %}
+{% block page_header %}アカウント編集{% endblock %}
+{% block page_description %}{% endblock %}
+{% block breadcrumb %}
+    <li><a href="{{ url_for('index.index') }}">トップ</a></li>
+    <li><a href="{{ url_for('account.list') }}">アカウント一覧</a></li>
+    <li class="active">アカウント編集</li>
+{% endblock %}
+
+{% block page_content %}
+<section class="content">
+    <div class="box box-primary">
+        <div class="box-header with-border">
+            <h3 class="box-title">{{ user.user_name }} さん</h3>
+        </div>
+        <form class="form-horizontal" method="POST" role="form" action="{{ url_for('account.edit_current', next=next_url) }}" enctype="multipart/form-data">
+            {{ form.csrf_token }}
+            <div class="box-body">
+                <div class="form-group">
+                    {{ form.login_id.label(class="col-md-2") }}
+                    <div class="col-md-3">
+                        {{ form.login_id(class="form-control") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.user_name.label(class="col-md-2") }}
+                    <div class="col-md-3">
+                        {{ form.user_name(class="form-control") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.icon.label(class="col-md-2") }}
+                    <div class="col-md-6">
+                        <label class="btn btn-sm btn-primary">アイコンを選択...{{ form.icon(style="display: none;") }}</label>
+                        <button id="iconreset" type="button" class="btn btn-sm btn-default" disabled>リセット</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div id="preview" class="col-md-6 col-md-offset-2">
+                        {% if form.icon.data %}
+                            <img src="data:image/png;base64,{{ form.icon.data | img_convert }}" class="img-circle img-thumbnail" width="75" />
+                        {% else %}
+                            <img src="/static/img/user-icon.png" class="img-circle img-thumbnail" width="75" />
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-7 col-md-offset-2">
+                    {% if form.icon.data %}
+                        <input id="iconclear" type="checkbox" name="iconclear" />アイコン削除
+                    {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="box-footer">
+                <button type="button" class="btn btn-default" onclick="location.href='{{ next_url }}'">キャンセル</button>
+                {{ form.submit(class="btn btn-primary") }}
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}
+
+{% block required_js %}
+{{ super() }}
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#iconreset').click(function(){
+            $preview = $("#preview");
+            $preview.empty();
+            $preview.append($('<img>').attr({
+                {% if form.icon.data %}
+                    src: "data:image/png;base64,{{ form.icon.data | img_convert }}",
+                    class: "img-circle img-thumbnail",
+                {% else %}
+                    src: "/static/img/user-icon.png",
+                    class: "img-circle img-thumbnail",
+                {% endif %}
+                width: "75"
+            }));
+            // リセットでformのfile(#icon)フィールドをクリア
+            $('#icon').replaceWith($('#icon').clone(true));
+            // 下はchrome対策
+            $('#icon').val('');
+            $("#iconclear").prop("disabled", false);
+        });
+        $('form').on('change', 'input[type="file"]', function(e) {
+            var file = e.target.files[0],
+                reader = new FileReader(),
+                $preview = $("#preview");
+                t = this;
+
+            if(file.type.indexOf("image") < 0){
+                return false;
+            }
+
+            reader.onload = (function(file) {
+                return function(e) {
+                    $preview.empty();
+                    $preview.append($('<img>').attr({
+                        src: e.target.result,
+                        class: "img-circle img-thumbnail",
+                        width: "75",
+                        id: "preview",
+                        title: file.name
+                    }));
+                    $("#iconreset").prop("disabled", false);
+                    $("#iconclear").iCheck('uncheck');
+                    $("#iconclear").prop("disabled", true);
+                };
+            })(file);
+
+            reader.readAsDataURL(file);
+        });
+    });
+</script>
+{% endblock %}

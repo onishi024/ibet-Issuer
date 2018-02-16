@@ -1,0 +1,19 @@
+{% extends "base_error.html" %}
+
+{% block title %}Internal Server Error {% endblock %}
+
+{% block page_content %}
+<section class="content">
+    <div class="pad margin no-print">
+        <div class="callout callout-warning" style="margin-bottom: 0!important;">
+            <h4><i class="fa fa-danger"></i> 500 error</h4>
+            Internal Server Error
+        </div>
+    </div>
+    <div class="login-logo">
+        <h4><a href="{{ url_for('index.index') }}">ibet:issuer</a></h4>
+    </div>
+</section>
+{% endblock %}
+{% extends "base.html" %}
+

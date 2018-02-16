@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block head %}
+  {{ super() }}
+  <!-- DataTables -->
+  <link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
+{% endblock %}
+{% set active_page = "token_issue" %}
+
+{% block title %}債券新規発行 - {% endblock %}
+{% block page_header %}債券新規発行{% endblock %}
+{% block page_description %}{% endblock %}
+{% block breadcrumb %}
+    <li><a href="{{ url_for('index.index') }}">トップ</a></li>
+    <li class="active">債券新規発行</li>
+{% endblock %}
+
+{% block page_content %}
+<section class="content">
+    <div class="box box-primary">
+        <form class="form-horizontal" method="POST" role="form" action="{{ url_for('token.issue') }}">
+            {{ form.csrf_token }}
+            <div class="box-header">
+              <h3 class="box-title">発行条件</h3>
+            </div>
+            <div class="box-body">
+                <div class="form-group">
+                    {{ form.total_supply.label(class="col-md-2") }}
+                    <div class="col-md-4">
+                        {{ form.total_supply(class="form-control") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.token_name.label(class="col-md-2") }}
+                    <div class="col-md-4">
+                        {{ form.token_name(class="form-control") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.token_symbol.label(class="col-md-2") }}
+                    <div class="col-md-4">
+                        {{ form.token_symbol(class="form-control") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.token_decimals.label(class="col-md-2") }}
+                    <div class="col-md-4">
+                        {{ form.token_decimals(class="form-control") }}
+                    </div>
+                </div>
+            </div>
+            <div class="box-footer">
+                <!--<button type="button" onclick="history.back()">キャンセル</button>-->
+                <button type="button" class="btn btn-default" onclick="location.href='{{ url_for("token.list") }}'">キャンセル</button>
+                {{ form.submit(class="btn btn-primary") }}
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}
+
+{% block required_js %}
+{{ super() }}
+{% endblock %}

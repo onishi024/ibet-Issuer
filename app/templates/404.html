@@ -1,0 +1,18 @@
+{% extends "base_error.html" %}
+
+{% block title %}Page Not Found {% endblock %}
+
+{% block page_content %}
+<section class="content">
+    <div class="pad margin no-print">
+        <div class="callout callout-warning" style="margin-bottom: 0!important;">
+            <h4><i class="fa fa-warning"></i> 404 error</h4>
+            お探しのページが見つかりません。
+        </div>
+    </div>
+    <div class="login-logo">
+        <h4><a href="{{ url_for('index.index') }}">ibet:issuer</a></h4>
+    </div>
+</section>
+{% endblock %}
+
