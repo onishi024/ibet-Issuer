@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block head %}
+  {{ super() }}
+  <!-- DataTables -->
+  <link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
+{% endblock %}
+{% set active_page = "token_list" %}
+
+{% block title %}債券詳細設定 - {% endblock %}
+{% block page_header %}債券詳細設定{% endblock %}
+{% block page_description %}{% endblock %}
+{% block breadcrumb %}
+    <li><a href="{{ url_for('index.index') }}">トップ</a></li>
+    <li class="active">債券詳細設定</li>
+{% endblock %}
+
+{% block page_content %}
+<section class="content">
+    <div class="box box-primary">
+        <div class="box-header with-border">
+            <h3 class="box-title">設定</h3>
+            <div class="pull-right box-tools">
+                <button id="release" class="btn btn-warning" type="button">公開 <i class="fa fa-arrow-circle-right"></i></button>
+                <button id="redemption" class="btn btn-danger" type="button">償還 <i class="fa fa-arrow-circle-right"></i></button>
+            </div>
+        </div>
+        <form class="form-horizontal" method="POST" role="form" action="{{ url_for('token.setting', token_address=form.token_address.data) }}">
+            {{ form.csrf_token }}
+            <div class="box-body">
+                <div class="form-group">
+                    {{ form.token_name.label(class="col-md-2") }}
+                    <div class="col-md-3">
+                        {{ form.token_name(class="form-control") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.total_supply.label(class="col-md-2") }}
+                    <div class="col-md-3">
+                        {{ form.total_supply(class="form-control") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.token_symbol.label(class="col-md-2") }}
+                    <div class="col-md-3">
+                        {{ form.token_symbol(class="form-control") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.token_decimals.label(class="col-md-2") }}
+                    <div class="col-md-3">
+                        {{ form.token_decimals(class="form-control") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.image_small.label(class="col-md-2") }}
+                    <div class="col-md-3">
+                        {{ form.image_small(class="form-control") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.image_medium.label(class="col-md-2") }}
+                    <div class="col-md-3">
+                        {{ form.image_medium(class="form-control") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.image_large.label(class="col-md-2") }}
+                    <div class="col-md-3">
+                        {{ form.image_large(class="form-control") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.abi.label(class="col-md-2") }}
+                    <div class="col-md-10">
+                        {{ form.abi(class="form-control", disabled=True) }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.bytecode.label(class="col-md-2") }}
+                    <div class="col-md-10">
+                        {{ form.bytecode(class="form-control", disabled=True) }}
+                    </div>
+                </div>
+            </div>
+            <div class="box-footer">
+                <button type="button" class="btn btn-default" onclick="location.href= '{{ url_for("token.list") }}'">キャンセル</button>
+                {{ form.submit(class="btn btn-primary") }}
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}
+
+{% block required_js %}
+{{ super() }}
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#release').click(function(){
+            if (confirm('この商品をウォレット向けに公開します。よろしいですか？')) {
+                var $form = $('<form/>',
+                    {'action': "{{ url_for('token.release') }}", 'method': 'POST'}
+                );
+                $form.append($('<input/>',
+                    {'type': 'hidden', 'name': 'token_address', 'value': '{{ form.token_address.data }}'}
+                ));
+                $form.appendTo(document.body);
+                $form.submit();
+            } else {
+                return false;
+            }
+        });
+    });
+</script>
+
+{% endblock %}

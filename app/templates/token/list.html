@@ -33,10 +33,10 @@
   		<tbody>
   		{% for token in tokens %}
       　<tr>
-    			<td><a href=""></a>{{ token.name }}</td>
+    			<td><a href="{{ url_for('token.setting', token_address=token.token_address) }}">{{ token.name }}</a></td>
     			<td>{{ token.symbol }}</td>
     			<td align="center">{{ token.created | format_date }}</td>
-          <td align="center">{{ token.tx_hash }}</td>
+          <td>{{ token.tx_hash }}</td>
         </tr>
   		{% endfor %}
   		</tbody>
