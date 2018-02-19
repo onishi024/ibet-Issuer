@@ -33,7 +33,11 @@
   		<tbody>
   		{% for token in tokens %}
       　<tr>
+          {% if token.token_address != None %}
     			<td><a href="{{ url_for('token.setting', token_address=token.token_address) }}">{{ token.name }}</a></td>
+          {% else %}
+          <td>{{ token.name }}</td>
+          {% endif %}
     			<td>{{ token.symbol }}</td>
     			<td align="center">{{ token.created | format_date }}</td>
           <td>{{ token.tx_hash }}</td>

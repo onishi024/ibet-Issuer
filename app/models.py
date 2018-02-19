@@ -54,9 +54,9 @@ class Token(db.Model):
     tx_hash = db.Column(db.String(128), nullable=False)
     admin_address = db.Column(db.String(64), nullable=True)
     token_address = db.Column(db.String(64), nullable=True)
-    abi = db.Column(db.String(5024), nullable=True)
-    bytecode = db.Column(db.String(5024), nullable=False)
-    bytecode_runtime = db.Column(db.String(5024), nullable=False)
+    abi = db.Column(db.String(15360), nullable=False)
+    bytecode = db.Column(db.String(15360), nullable=False)
+    bytecode_runtime = db.Column(db.String(15360), nullable=False)
     created = db.Column(db.DateTime, nullable=False, default=datetime.now)
     modified = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
 

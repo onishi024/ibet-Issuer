@@ -11,7 +11,6 @@ class IssueTokenForm(Form):
     total_supply = IntegerField("総発行量", validators=[Required('総発行量は必須です。')])
     token_name = StringField("商品名", validators=[Required('商品名は必須です。')])
     token_symbol = StringField("略称", validators=[Required('略称は必須です。')])
-    token_decimals = IntegerField("単位", validators=[Required('単位は必須です。')])
     submit = SubmitField('新規発行')
 
     def __init__(self, issue_token=None, *args, **kwargs):
@@ -23,7 +22,6 @@ class TokenSettingForm(Form):
     total_supply = IntegerField("総発行量", validators=[Required('総発行量は必須です。')])
     token_name = StringField("商品名", validators=[Required('商品名は必須です。')])
     token_symbol = StringField("略称", validators=[Required('略称は必須です。')])
-    token_decimals = IntegerField("単位", validators=[Required('単位は必須です。')])
     image_small = StringField("トークン画像（小）", validators=[])
     image_medium = StringField("トークン画像（中）", validators=[])
     image_large = StringField("トークン画像（大）", validators=[])
