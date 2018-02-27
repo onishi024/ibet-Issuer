@@ -23,24 +23,96 @@
               <h3 class="box-title">発行条件</h3>
             </div>
             <div class="box-body">
-                <div class="form-group">
-                    {{ form.total_supply.label(class="col-md-2") }}
-                    <div class="col-md-4">
-                        {{ form.total_supply(class="form-control") }}
-                    </div>
-                </div>
-                <div class="form-group">
-                    {{ form.token_name.label(class="col-md-2") }}
-                    <div class="col-md-4">
-                        {{ form.token_name(class="form-control") }}
-                    </div>
-                </div>
-                <div class="form-group">
-                    {{ form.token_symbol.label(class="col-md-2") }}
-                    <div class="col-md-4">
-                        {{ form.token_symbol(class="form-control") }}
-                    </div>
-                </div>
+              <div class="form-group">
+                  {{ form.name.label(class="col-md-2") }}
+                  <div class="col-md-4">
+                      {{ form.name(class="form-control") }}
+                  </div>
+              </div>
+              <div class="form-group">
+                  {{ form.symbol.label(class="col-md-2") }}
+                  <div class="col-md-4">
+                      {{ form.symbol(class="form-control") }}
+                  </div>
+              </div>
+              <div class="form-group">
+                  {{ form.totalSupply.label(class="col-md-2") }}
+                  <div class="col-md-4">
+                      {{ form.totalSupply(class="form-control") }}
+                  </div>
+              </div>
+              <div class="form-group">
+                  {{ form.faceValue.label(class="col-md-2") }}
+                  <div class="col-md-4">
+                      {{ form.faceValue(class="form-control") }}
+                  </div>
+              </div>
+              <div class="form-group">
+                  {{ form.interestRate.label(class="col-md-2") }}
+                  <div class="col-md-4">
+                      {{ form.interestRate(class="form-control") }}
+                  </div>
+              </div>
+              <div class="form-group">
+                  {{ form.interestPaymentDate1.label(class="col-md-2") }}
+                  <div class="col-md-4">
+                      {{ form.interestPaymentDate1(class="form-control") }}
+                  </div>
+              </div>
+              <div class="form-group">
+                  {{ form.interestPaymentDate2.label(class="col-md-2") }}
+                  <div class="col-md-4">
+                      {{ form.interestPaymentDate2(class="form-control") }}
+                  </div>
+              </div>
+              <div class="form-group">
+                  {{ form.redemptionDate.label(class="col-md-2") }}
+                  <div class="col-md-4">
+                      {{ form.redemptionDate(class="form-control") }}
+                  </div>
+              </div>
+              <div class="form-group">
+                  {{ form.redemptionAmount.label(class="col-md-2") }}
+                  <div class="col-md-4">
+                      {{ form.redemptionAmount(class="form-control") }}
+                  </div>
+              </div>
+              <div class="form-group">
+                  {{ form.returnDate.label(class="col-md-2") }}
+                  <div class="col-md-4">
+                      {{ form.returnDate(class="form-control") }}
+                  </div>
+              </div>
+              <div class="form-group">
+                  {{ form.returnAmount.label(class="col-md-2") }}
+                  <div class="col-md-8">
+                      {{ form.returnAmount(class="form-control") }}
+                  </div>
+              </div>
+              <div class="form-group">
+                  {{ form.purpose.label(class="col-md-2") }}
+                  <div class="col-md-8">
+                      {{ form.purpose(class="form-control") }}
+                  </div>
+              </div>
+              <div class="form-group">
+                  {{ form.image_small.label(class="col-md-2") }}
+                  <div class="col-md-8">
+                      {{ form.image_small(class="form-control") }}
+                  </div>
+              </div>
+              <div class="form-group">
+                  {{ form.image_medium.label(class="col-md-2") }}
+                  <div class="col-md-8">
+                      {{ form.image_medium(class="form-control") }}
+                  </div>
+              </div>
+              <div class="form-group">
+                  {{ form.image_large.label(class="col-md-2") }}
+                  <div class="col-md-8">
+                      {{ form.image_large(class="form-control") }}
+                  </div>
+              </div>
             </div>
             <div class="box-footer">
                 <!--<button type="button" onclick="history.back()">キャンセル</button>-->
