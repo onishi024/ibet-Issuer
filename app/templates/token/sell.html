@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block head %}
+  {{ super() }}
+  <!-- DataTables -->
+  <link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
+{% endblock %}
+{% set active_page = "token_position" %}
+
+{% block title %}債券新規募集 - {% endblock %}
+{% block page_header %}新規募集{% endblock %}
+{% block page_description %}{% endblock %}
+{% block breadcrumb %}
+    <li><a href="{{ url_for('index.index') }}">トップ</a></li>
+    <li class="active">債券新規募集</li>
+{% endblock %}
+
+{% block page_content %}
+<section class="content">
+    <div class="box box-primary">
+        <div class="box-header with-border">
+            <h3 class="box-title">募集</h3>
+        </div>
+        <form class="form-horizontal" method="POST" role="form" action="{{ url_for('token.sell', token_address=form.token_address.data) }}">
+            {{ form.csrf_token }}
+            <div class="box-body">
+                <div class="form-group">
+                    {{ form.name.label(class="col-md-2") }}
+                    <div class="col-md-3">
+                        {{ form.name.data }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.symbol.label(class="col-md-2") }}
+                    <div class="col-md-3">
+                        {{ form.symbol.data }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.totalSupply.label(class="col-md-2") }}
+                    <div class="col-md-3">
+                        {{ form.totalSupply.data }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.faceValue.label(class="col-md-2") }}
+                    <div class="col-md-4">
+                        {{ form.faceValue.data }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.interestRate.label(class="col-md-2") }}
+                    <div class="col-md-4">
+                        {{ form.interestRate.data }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.interestPaymentDate1.label(class="col-md-2") }}
+                    <div class="col-md-4">
+                        {{ form.interestPaymentDate1.data }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.interestPaymentDate2.label(class="col-md-2") }}
+                    <div class="col-md-4">
+                        {{ form.interestPaymentDate2.data }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.redemptionDate.label(class="col-md-2") }}
+                    <div class="col-md-4">
+                        {{ form.redemptionDate.data }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.redemptionAmount.label(class="col-md-2") }}
+                    <div class="col-md-4">
+                        {{ form.redemptionAmount.data }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.returnDate.label(class="col-md-2") }}
+                    <div class="col-md-4">
+                        {{ form.returnDate.data }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.returnAmount.label(class="col-md-2") }}
+                    <div class="col-md-8">
+                        {{ form.returnAmount.data }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.purpose.label(class="col-md-2") }}
+                    <div class="col-md-8">
+                        {{ form.purpose.data }}
+                    </div>
+                </div>
+                <br>
+                <div class="form-group">
+                    {{ form.sellPrice.label(class="col-md-2") }}
+                    <div class="col-md-4">
+                        {{ form.sellPrice(class="form-control") }}
+                    </div>
+                </div>
+                <br>
+            </div>
+            <div class="box-footer">
+                <button type="button" class="btn btn-default" onclick="location.href= '{{ url_for("token.positions") }}'">キャンセル</button>
+                {{ form.submit(class="btn btn-primary") }}
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}
+
+{% block required_js %}
+{{ super() }}
+{% endblock %}

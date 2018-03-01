@@ -19,7 +19,12 @@ while True:
     for row in token_unprocessed:
         tx_hash = row['tx_hash']
         tx_hash_hex = '0x' + tx_hash[2:]
-        tx_receipt = web3.eth.getTransactionReceipt(tx_hash_hex)
+        
+        try:
+            tx_receipt = web3.eth.getTransactionReceipt(tx_hash_hex)
+        except:
+            continue
+
         if tx_receipt is not None :
             # ブロックの状態を確認して、コントラクトアドレスが登録されているかを確認する。
             if 'contractAddress' in tx_receipt.keys():

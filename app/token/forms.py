@@ -53,3 +53,26 @@ class TokenSettingForm(Form):
     def __init__(self, token_setting=None, *args, **kwargs):
         super(TokenSettingForm, self).__init__(*args, **kwargs)
         self.token_setting = token_setting
+
+class SellTokenForm(Form):
+    token_address = StringField("トークンアドレス", validators=[])
+    name = StringField("商品名", validators=[])
+    symbol = StringField("略称", validators=[])
+    totalSupply = IntegerField("総発行量", validators=[])
+    faceValue = IntegerField("額面", validators=[])
+    interestRate = IntegerField("金利", validators=[])
+    interestPaymentDate1 = StringField("利払日１", validators=[])
+    interestPaymentDate2 = StringField("利払日２", validators=[])
+    redemptionDate = StringField("償還日", validators=[])
+    redemptionAmount = IntegerField("償還金額", validators=[])
+    returnDate = StringField("リターン実施日", validators=[])
+    returnAmount = StringField("リターン内容", validators=[])
+    purpose = StringField("発行目的", validators=[])
+    abi = TextAreaField("インターフェース", validators=[])
+    bytecode = TextAreaField("バイトコード", validators=[])
+    sellPrice = IntegerField("売出価格", validators=[Required('売出価格は必須です。')])
+    submit = SubmitField('募集開始')
+
+    def __init__(self, sell_token=None, *args, **kwargs):
+        super(SellTokenForm, self).__init__(*args, **kwargs)
+        self.sell_token = sell_token
