@@ -270,7 +270,6 @@ def sell(token_address):
             agent_address = to_checksum_address(Config.AGENT_ADDRESS)
 
             deposit_gas = TokenContract.estimateGas().transfer(token_exchange_address, balance)
-            print(deposit_gas)
 
             deposit_txid = TokenContract.functions.transfer(token_exchange_address, balance).transact(
                 {'from':owner, 'gas':deposit_gas}
@@ -295,7 +294,6 @@ def sell(token_address):
             )
 
             sell_gas = ExchangeContract.estimateGas().createOrder(token_address, balance, form.sellPrice.data, False, agent_address)
-            print(sell_gas)
 
             sell_txid = ExchangeContract.functions.createOrder(token_address, balance, form.sellPrice.data, False, agent_address).transact(
                 {'from':owner, 'gas':sell_gas}
