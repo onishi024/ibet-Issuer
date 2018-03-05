@@ -2,7 +2,9 @@
 import secrets
 import datetime
 import json
+import time
 from base64 import b64encode
+
 from flask import Flask, request, redirect, url_for, flash, session
 from flask_restful import Resource, Api
 from flask import render_template
@@ -276,17 +278,16 @@ def sell(token_address):
             )
 
             count = 0
+            deposit_tx_receipt = None
             while True:
                 try:
                     deposit_tx_receipt = web3.eth.getTransactionReceipt(deposit_txid)
                 except:
-                    continue
+                    time.sleep(1)
 
+                count += 1
                 if deposit_tx_receipt is not None or count > 30:
                     break
-                else:
-                    count += 1
-                    time.sleep(1)
 
             ExchangeContract = web3.eth.contract(
                 address = token_exchange_address,
