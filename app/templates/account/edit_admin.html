@@ -16,7 +16,7 @@
 
 {% block page_content %}
 <section class="content">
-    <div class="box box-primary">
+    <div class="box box-default">
         <div class="box-header with-border">
             <h3 class="box-title">{{ user.user_name }} さん</h3>
             <div class="pull-right box-tools">
@@ -44,7 +44,7 @@
                 <div class="form-group">
                     {{ form.icon.label(class="col-md-2") }}
                     <div class="col-md-6">
-                        <label class="btn btn-sm btn-primary">アイコンを選択...{{ form.icon(style="display: none;") }}</label>
+                        <label class="btn btn-sm btn-success">アイコンを選択...{{ form.icon(style="display: none;") }}</label>
                         <button id="iconreset" type="button" class="btn btn-sm btn-default" disabled>リセット</button>
                     </div>
                 </div>
@@ -74,7 +74,7 @@
             <div class="box-footer">
                 <!--<button type="button" onclick="history.back()">キャンセル</button>-->
                 <button type="button" class="btn btn-default" onclick="location.href='{{ url_for("account.list") }}'">キャンセル</button>
-                {{ form.submit(class="btn btn-primary") }}
+                {{ form.submit(class="btn btn-success") }}
             </div>
         </form>
     </div>

@@ -68,7 +68,7 @@ h1,h2,h3,h4,h5,h6,.h1,.h2,.h3,.h4,.h5,.h6 {
 #}
 <div class="login-box">
   <div class="login-logo">
-    <img src="/static/img/logo.png" width="40%" height="40%" class="user-image" alt="icon">
+    <img src="/static/img/ibet-logo-white@2x.png" width="60%" height="60%" class="user-image" alt="icon">
   </div>
   <!-- /.login-logo -->
   <div class="login-box-body">
@@ -83,7 +83,7 @@ h1,h2,h3,h4,h5,h6,.h1,.h2,.h3,.h4,.h5,.h6 {
       </div>
       <div class="row">
         <div class="col-md-6 pull-right">
-          <button type="submit" id="submit" class="btn btn-primary btn-block btn-flat">ログイン</button>
+          <button type="submit" id="submit" class="btn btn-success btn-block btn-flat">ログイン</button>
         </div>
         <!-- /.col -->
       </div>
@@ -119,10 +119,10 @@ h1,h2,h3,h4,h5,h6,.h1,.h2,.h3,.h4,.h5,.h6 {
                 {% for category, message in messages %}
                     {% if category != "error" %}
                         new Noty({
-                            type: 'info',
+                            type: 'success',
                             layout: 'top',
                             text: '{{ message }}',
-                            theme: 'relax',
+                            theme: 'bootstrap-v3',
                             timeout: 3000,
                         }).show();
                     {% endif %}
@@ -136,7 +136,7 @@ h1,h2,h3,h4,h5,h6,.h1,.h2,.h3,.h4,.h5,.h6 {
                         type: 'error',
                         layout: 'topRight',
                         text: '{{ error }}',
-                        theme: 'relax',
+                        theme: 'bootstrap-v3',
                     }).show();
                 {% endfor %}
             {% endif %}

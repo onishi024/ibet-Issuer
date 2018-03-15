@@ -21,7 +21,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
   <!-- AdminLTE Skins. We have chosen the skin-blue for this starter
         page. However, you can choose any other skin. Make sure you
         apply the skin class to the body tag so the changes take effect. -->
-  <link rel="stylesheet" href="/static/adminlte/dist/css/skins/skin-blue-light.css">
+  <link rel="stylesheet" href="/static/adminlte/dist/css/skins/skin-green-light.css">
 
   <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
   <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -35,19 +35,12 @@ scratch. This page gets rid of all links and provides the needed markup only.
   <!-- noty -->
   <link rel="stylesheet" href="/static/js/noty-3.1.4/lib/noty.css">
   <style>
-body {
-    font-family:-apple-system, NotoSansJP-DemiLight, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", "ヒラギノ角ゴ ProN W3", Meiryo, sans-serif;
-}
-h1,h2,h3,h4,h5,h6,.h1,.h2,.h3,.h4,.h5,.h6 {
-    font-family:-apple-system, NotoSansJP-DemiLight, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", "ヒラギノ角ゴ ProN W3", Meiryo, sans-serif;
-}
-/*
-.navbar-nav > .user-menu > .dropdown-menu > li.user-header {
-  height: 100px;
-  padding: 10px;
-  text-align: center;
-}
-*/
+    body {
+        font-family:-apple-system, NotoSansJP-DemiLight, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", "ヒラギノ角ゴ ProN W3", Meiryo, sans-serif;
+    }
+    h1,h2,h3,h4,h5,h6,.h1,.h2,.h3,.h4,.h5,.h6 {
+        font-family:-apple-system, NotoSansJP-DemiLight, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", "ヒラギノ角ゴ ProN W3", Meiryo, sans-serif;
+    }
   </style>
   {% endblock %}
 </head>
@@ -71,7 +64,7 @@ desired effect
 |               | sidebar-mini                            |
 |---------------------------------------------------------|
 -->
-<body class="hold-transition skin-blue-light sidebar-mini">
+<body class="hold-transition skin-green-light sidebar-mini">
 <div class="wrapper">
 
   <!-- Main Header -->
@@ -80,9 +73,9 @@ desired effect
     <!-- Logo -->
     <a href="{{ url_for('index.index') }}" class="logo">
       <!-- mini logo for sidebar mini 50x50 pixels -->
-      <span class="logo-mini"><img src="/static/img/logo_header.png" width="30px" height="30px" style="vertical-align:text-bottom" alt="icon"></span>
+      <span class="logo-mini"><img src="/static/img/ibet-logo-white.png" width="30px" height="30px" style="vertical-align:text-bottom" alt="icon"></span>
       <!-- logo for regular state and mobile devices -->
-      <span class="logo-lg"><img src="/static/img/logo_header.png" width="30px" height="30px" style="vertical-align:text-bottom" alt="icon"> ibet:issuer</span>
+      <span class="logo-lg"><img src="/static/img/ibet-logo-white.png" width="30px" height="30px" style="vertical-align:text-bottom" alt="icon"> ibet:issuer</span>
     </a>
 
     <!-- Header Navbar -->
@@ -281,7 +274,7 @@ desired effect
                             type: '{{ category }}',
                             layout: 'topCenter',
                             text: '{{ message }}',
-                            theme: 'relax',
+                            theme: 'bootstrap-v3',
                             timeout: 3000,
                         }).show();
                     {% endif %}
@@ -295,7 +288,7 @@ desired effect
                         type: 'error',
                         layout: 'topRight',
                         text: '{{ error }}',
-                        theme: 'relax',
+                        theme: 'bootstrap-v3',
                     }).show();
                 {% endfor %}
             {% endif %}

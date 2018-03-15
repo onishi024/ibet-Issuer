@@ -40,7 +40,7 @@
       			<td>{{ position.symbol }}</td>
             <td>{{ position.totalSupply }}</td>
             <td>{{ position.balance }}</td>
-            <td align="center"><button type="button" class="btn btn-primary" onclick="location.href= '{{ url_for("token.sell", token_address=position.token_address) }}'">募集開始</button></td>
+            <td align="center"><button type="button" class="btn btn-success" onclick="location.href= '{{ url_for("token.sell", token_address=position.token_address) }}'">募集開始</button></td>
           </tr>
     		{% endfor %}
     		</tbody>
