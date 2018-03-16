@@ -156,8 +156,9 @@ def release():
         abi = list_contract_abi
     )
 
+    gas = ListContract.estimateGas().register(token_address, 'IbetStraightBond')
     register_txid = ListContract.functions.register(token_address, 'IbetStraightBond').transact(
-        {'from':web3.eth.accounts[0], 'gas':3000000}
+        {'from':web3.eth.accounts[0], 'gas':gas}
     )
 
     flash('公開中です。公開開始までに数分程かかることがあります。', 'success')
@@ -199,7 +200,7 @@ def issue():
             ]
 
             tx_hash = TokenContract.deploy(
-                transaction={'from':web3.eth.accounts[0], 'gas':5000000},
+                transaction={'from':Config.ETH_ACCOUNT, 'gas':4000000},
                 args=arguments
             ).hex()
 
