@@ -127,7 +127,7 @@ def release():
     list_contract_address = Config.TOKEN_LIST_CONTRACT_ADDRESS
     list_contract_abi = json.loads(Config.TOKEN_LIST_CONTRACT_ABI)
 
-    web3.personal.unlockAccount(web3.eth.accounts[0],"password",1000)
+    web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
 
     ListContract = web3.eth.contract(
         address = list_contract_address,
@@ -149,7 +149,7 @@ def issue():
     form = IssueTokenForm()
     if request.method == 'POST':
         if form.validate():
-            web3.personal.unlockAccount(web3.eth.accounts[0],"password",1000)
+            web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
 
             abi = json.loads(Config.IBET_SB_CONTRACT_ABI)
             bytecode = Config.IBET_SB_CONTRACT_BYTECODE
@@ -265,7 +265,7 @@ def sell(token_address):
 
     if request.method == 'POST':
         if form.validate():
-            web3.personal.unlockAccount(owner,"password",1000)
+            web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
 
             token_exchange_address = to_checksum_address(Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS)
             token_exchange_abi = Config.IBET_SB_EXCHANGE_CONTRACT_ABI
