@@ -4,7 +4,8 @@ import time
 import sqlalchemy as sa
 from web3 import Web3
 
-web3 = Web3(Web3.HTTPProvider('http://localhost:8545'))
+WEB3_HTTP_PROVIDER = os.environ.get('WEB3_HTTP_PROVIDER') or 'http://localhost:8545'
+web3 = Web3(Web3.HTTPProvider(WEB3_HTTP_PROVIDER))
 
 URI = os.environ.get('DATABASE_URL') or 'postgresql://issueruser:issuerpass@localhost:5432/issuerdb'
 engine = sa.create_engine(URI, echo=False)

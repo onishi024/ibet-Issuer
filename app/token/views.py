@@ -28,7 +28,7 @@ from config import Config
 from logging import getLogger
 logger = getLogger('api')
 
-web3 = Web3(Web3.HTTPProvider('http://localhost:8545'))
+web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
 
 #+++++++++++++++++++++++++++++++
 # Utils
