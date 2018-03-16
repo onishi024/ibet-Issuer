@@ -1,7 +1,8 @@
 # -*- coding:utf-8 -*-
 from flask_wtf import FlaskForm as Form
 
-from wtforms import IntegerField, StringField, TextAreaField, PasswordField, SubmitField, HiddenField, SelectField, PasswordField, FileField
+from wtforms import IntegerField, StringField, TextAreaField, \
+    SubmitField, DateField
 from wtforms.validators import Required, Email, EqualTo, Length, Regexp
 from wtforms import ValidationError
 from ..models import Role, User
@@ -20,9 +21,6 @@ class IssueTokenForm(Form):
     returnDate = StringField("リターン実施日", validators=[])
     returnAmount = TextAreaField("リターン内容", validators=[])
     purpose = TextAreaField("発行目的", validators=[Required('発行目的は必須です。')])
-    image_small = StringField("トークン画像（小）URL", validators=[])
-    image_medium = StringField("トークン画像（中）URL", validators=[])
-    image_large = StringField("トークン画像（大）URL", validators=[])
     submit = SubmitField('新規発行')
 
     def __init__(self, issue_token=None, *args, **kwargs):
@@ -41,11 +39,11 @@ class TokenSettingForm(Form):
     redemptionDate = StringField("償還日", validators=[Required('償還日は必須です。')])
     redemptionAmount = IntegerField("償還金額", validators=[Required('償還金額は必須です。')])
     returnDate = StringField("リターン実施日", validators=[])
-    returnAmount = StringField("リターン内容", validators=[])
-    purpose = StringField("発行目的", validators=[Required('発行目的は必須です。')])
-    image_small = StringField("トークン画像（小）URL", validators=[])
-    image_medium = StringField("トークン画像（中）URL", validators=[])
-    image_large = StringField("トークン画像（大）URL", validators=[])
+    returnAmount = TextAreaField("リターン内容", validators=[])
+    purpose = TextAreaField("発行目的", validators=[Required('発行目的は必須です。')])
+    image_small = StringField("商品画像（小）URL", validators=[])
+    image_medium = StringField("商品画像（中）URL", validators=[])
+    image_large = StringField("商品画像（大）URL", validators=[])
     abi = TextAreaField("インターフェース", validators=[Required('ABIは必須です。')])
     bytecode = TextAreaField("バイトコード", validators=[Required('バイトコードは必須です。')])
     submit = SubmitField('設定変更')

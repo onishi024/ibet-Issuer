@@ -56,19 +56,24 @@
               <div class="form-group">
                   {{ form.interestPaymentDate1.label(class="col-md-2") }}
                   <div class="col-md-4">
-                      {{ form.interestPaymentDate1(class="form-control") }}
+                      {{ form.interestPaymentDate1(class="form-control", placeholder="MMDD（例： 3/31 → 0331）") }}
                   </div>
               </div>
               <div class="form-group">
                   {{ form.interestPaymentDate2.label(class="col-md-2") }}
                   <div class="col-md-4">
-                      {{ form.interestPaymentDate2(class="form-control") }}
+                      {{ form.interestPaymentDate2(class="form-control", placeholder="MMDD（例： 9/30 → 0930）") }}
                   </div>
               </div>
               <div class="form-group">
                   {{ form.redemptionDate.label(class="col-md-2") }}
                   <div class="col-md-4">
-                      {{ form.redemptionDate(class="form-control") }}
+                      <div class="input-group date">
+                          <div class="input-group-addon">
+                              <i class="fa fa-calendar"></i>
+                          </div>
+                          {{ form.redemptionDate(class="form-control pull-right", id="datepicker") }}
+                      </div>
                   </div>
               </div>
               <div class="form-group">
@@ -80,7 +85,12 @@
               <div class="form-group">
                   {{ form.returnDate.label(class="col-md-2") }}
                   <div class="col-md-4">
-                      {{ form.returnDate(class="form-control") }}
+                      <div class="input-group date">
+                          <div class="input-group-addon">
+                              <i class="fa fa-calendar"></i>
+                          </div>
+                          {{ form.returnDate(class="form-control pull-right", id="datepicker") }}
+                      </div>
                   </div>
               </div>
               <div class="form-group">
@@ -95,27 +105,8 @@
                       {{ form.purpose(class="form-control") }}
                   </div>
               </div>
-              <div class="form-group">
-                  {{ form.image_small.label(class="col-md-2") }}
-                  <div class="col-md-8">
-                      {{ form.image_small(class="form-control") }}
-                  </div>
-              </div>
-              <div class="form-group">
-                  {{ form.image_medium.label(class="col-md-2") }}
-                  <div class="col-md-8">
-                      {{ form.image_medium(class="form-control") }}
-                  </div>
-              </div>
-              <div class="form-group">
-                  {{ form.image_large.label(class="col-md-2") }}
-                  <div class="col-md-8">
-                      {{ form.image_large(class="form-control") }}
-                  </div>
-              </div>
             </div>
             <div class="box-footer">
-                <!--<button type="button" onclick="history.back()">キャンセル</button>-->
                 <button type="button" class="btn btn-default" onclick="location.href='{{ url_for("token.list") }}'">キャンセル</button>
                 {{ form.submit(class="btn btn-success") }}
             </div>
@@ -126,4 +117,29 @@
 
 {% block required_js %}
 {{ super() }}
+<script type="text/javascript" src="/static/adminlte/bower_components/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js"></script>
+<script type="text/javascript" src="/static/js/bootstrap-timepicker.min.js"></script>
+<script type="text/javascript">
+  $.fn.datepicker.dates['ja'] = {
+      days: ["日曜日", "月曜日", "火曜日", "水曜日", "木曜日", "金曜日", "土曜日"],
+      daysShort: ["日", "月", "火", "水", "木", "金", "土"],
+      daysMin: ["日", "月", "火", "水", "木", "金", "土"],
+      months: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"],
+      monthsShort: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"],
+      today: "今日",
+      clear: "Clear",
+      format: "yyyy/mm/dd",
+      titleFormat: "yyyy年 MM",
+      weekStart: 0
+  };
+  //Date picker
+  $('[id="datepicker"]').datepicker({
+      language: 'ja',
+      format: 'yyyymmdd',
+      todayHighlight: true,
+      autoclose: true,
+      orientation: "bottom right",
+      todayBtn: true
+  });
+</script>
 {% endblock %}
