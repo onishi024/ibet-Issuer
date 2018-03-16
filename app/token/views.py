@@ -94,10 +94,32 @@ def setting(token_address):
     returnDate = TokenContract.functions.returnDate().call()
     returnAmount = TokenContract.functions.returnAmount().call()
     purpose = TokenContract.functions.purpose().call()
+    image_small = TokenContract.functions.getImageURL(0).call()
+    image_medium = TokenContract.functions.getImageURL(1).call()
+    image_large = TokenContract.functions.getImageURL(2).call()
 
     form = TokenSettingForm()
+
     if request.method == 'POST':
-        pass
+        web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
+        if form.image_small.data != '':
+            gas = TokenContract.estimateGas().setImageURL(0, form.image_small.data)
+            txid_small = TokenContract.functions.setImageURL(0, form.image_small.data).transact(
+                {'from':Config.ETH_ACCOUNT, 'gas':gas}
+            )
+        if form.image_medium.data != '':
+            gas = TokenContract.estimateGas().setImageURL(1, form.image_medium.data)
+            txid_medium = TokenContract.functions.setImageURL(1, form.image_medium.data).transact(
+                {'from':Config.ETH_ACCOUNT, 'gas':gas}
+            )
+        if form.image_large.data != '':
+            gas = TokenContract.estimateGas().setImageURL(2, form.image_large.data)
+            txid = TokenContract.functions.setImageURL(2, form.image_large.data).transact(
+                {'from':Config.ETH_ACCOUNT, 'gas':gas}
+            )
+
+        flash('設定変更を受け付けました。変更完了までに数分程かかることがあります。', 'success')
+        return redirect(url_for('.list'))
     else: # GET
         form.token_address.data = token.token_address
         form.name.data = name
@@ -112,9 +134,9 @@ def setting(token_address):
         form.returnDate.data = returnDate
         form.returnAmount.data = returnAmount
         form.purpose.data = purpose
-        form.image_small.data = None
-        form.image_medium.data = None
-        form.image_large.data = None
+        form.image_small.data = image_small
+        form.image_medium.data = image_medium
+        form.image_large.data = image_large
         form.abi.data = token.abi
         form.bytecode.data = token.bytecode
         return render_template('token/setting.html', form=form)
