@@ -158,7 +158,7 @@ def release():
 
     gas = ListContract.estimateGas().register(token_address, 'IbetStraightBond')
     register_txid = ListContract.functions.register(token_address, 'IbetStraightBond').transact(
-        {'from':web3.eth.accounts[0], 'gas':gas}
+        {'from':Config.ETH_ACCOUNT, 'gas':gas}
     )
 
     flash('公開中です。公開開始までに数分程かかることがあります。', 'success')
@@ -283,7 +283,7 @@ def sell(token_address):
     returnAmount = TokenContract.functions.returnAmount().call()
     purpose = TokenContract.functions.purpose().call()
 
-    owner = to_checksum_address(web3.eth.accounts[0])
+    owner = to_checksum_address(Config.ETH_ACCOUNT)
     balance = TokenContract.functions.balanceOf(owner).call()
 
     if request.method == 'POST':
