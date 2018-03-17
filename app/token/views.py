@@ -73,7 +73,7 @@ def list():
 @token.route('/setting/<string:token_address>', methods=['GET', 'POST'])
 @login_required
 def setting(token_address):
-    logger.info('token.token_address')
+    logger.info('token.setting')
     token = Token.query.filter(Token.token_address==token_address).first()
     token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
 
@@ -144,6 +144,7 @@ def setting(token_address):
 @token.route('/release', methods=['POST'])
 @login_required
 def release():
+    logger.info('token.release')
     token_address = request.form.get('token_address')
 
     list_contract_address = Config.TOKEN_LIST_CONTRACT_ADDRESS
@@ -164,11 +165,35 @@ def release():
     flash('公開中です。公開開始までに数分程かかることがあります。', 'success')
     return redirect(url_for('.setting', token_address=token_address))
 
+@token.route('/redeem', methods=['POST'])
+@login_required
+def redeem():
+    logger.info('token.redeem')
+
+    token_address = request.form.get('token_address')
+
+    token = Token.query.filter(Token.token_address==token_address).first()
+    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+
+    TokenContract = web3.eth.contract(
+        address= token.token_address,
+        abi = token_abi
+    )
+
+    web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
+
+    gas = TokenContract.estimateGas().redeem()
+    txid = TokenContract.functions.redeem().transact(
+        {'from':Config.ETH_ACCOUNT, 'gas':gas}
+    )
+
+    flash('償還処理中です。完了までに数分程かかることがあります。', 'success')
+    return redirect(url_for('.setting', token_address=token_address))
 
 @token.route('/issue', methods=['GET', 'POST'])
 @login_required
 def issue():
-    logger.info('issue')
+    logger.info('token.issue')
     form = IssueTokenForm()
     if request.method == 'POST':
         if form.validate():
