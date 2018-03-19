@@ -6,51 +6,43 @@
 {% endblock %}
 {% set active_page = "token_list" %}
 
-{% block title %}発行済債券一覧 - {% endblock %}
-{% block page_header %}発行済債券一覧{% endblock %}
+{% block title %}債券保有者一覧 - {% endblock %}
+{% block page_header %}債券保有者一覧{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
     <li><a href="{{ url_for('index.index') }}">トップ</a></li>
-    <li class="active">発行済債券一覧</li>
+    <li class="active">債券保有者一覧</li>
 {% endblock %}
 
 {% block page_content %}
 <section class="content">
   <div class="box box-default">
     <div class="box-header">
-      <h3 class="box-title">債券一覧</h3>
+      <h3 class="box-title">保有者一覧</h3>
     </div>
     <div class="box-body">
   	  <table id="data_table" class="table table-bordered table-hover">
-  		<thead>
-  		  <tr>
-    			<th style="width: 200px">名称</th>
-    			<th style="width: 100px">略称</th>
-    			<th style="width: 150px">登録日時</th>
-          <th>受付ID</th>
-          <th></th>
-    		</tr>
-  		</thead>
-  		<tbody>
-  		{% for token in tokens %}
-      　<tr>
-          {% if token.token_address != None %}
-    			<td><a href="{{ url_for('token.setting', token_address=token.token_address) }}">{{ token.name }}</a></td>
-          {% else %}
-          <td>{{ token.name }}</td>
-          {% endif %}
-    			<td>{{ token.symbol }}</td>
-    			<td align="center">{{ token.created | format_date }}</td>
-          <td>{{ token.tx_hash }}</td>
-          {% if token.token_address != None %}
-    			<td><a href="{{ url_for('token.holders', token_address=token.token_address) }}">保有者一覧</a></td>
-          {% else %}
-          <td></td>
-          {% endif %}
-        </tr>
-  		{% endfor %}
-  		</tbody>
-  	    </table>
+    		<thead>
+    		  <tr>
+            <th>アドレス</th>
+      			<th>氏名</th>
+            <th>保有数量</th>
+            <th>注文中数量</th>
+            <th></th>
+      		</tr>
+    		</thead>
+    		<tbody>
+    		{% for holder in holders %}
+        　<tr>
+            <td>{{ holder.account_address }}</td>
+            <td>{{ holder.name }}</td>
+            <td>{{ holder.balance }}</td>
+            <td>{{ holder.commitment }}</td>
+            <td>詳細</td>
+          </tr>
+    		{% endfor %}
+    		</tbody>
+  	  </table>
   	</div>
   </div>
 </section>

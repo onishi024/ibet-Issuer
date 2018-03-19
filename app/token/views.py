@@ -3,7 +3,13 @@ import secrets
 import datetime
 import json
 import time
+import base64
 from base64 import b64encode
+
+from Crypto.PublicKey import RSA
+from Crypto.Cipher import PKCS1_v1_5
+from Crypto.Hash import SHA
+from Crypto import Random
 
 from flask import Flask, request, redirect, url_for, flash, session
 from flask_restful import Resource, Api
@@ -69,6 +75,82 @@ def list():
 
     return render_template('token/list.html', tokens=token_list)
 
+@token.route('/holders/<string:token_address>', methods=['GET'])
+@login_required
+def holders(token_address):
+    logger.info('holders')
+
+    key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
+    dsize = SHA.digest_size
+    sentinel = Random.new().read(15+dsize)
+    cipher = PKCS1_v1_5.new(key)
+
+    # Token Contrace
+    token = Token.query.filter(Token.token_address==token_address).first()
+    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+
+    TokenContract = web3.eth.contract(
+        address= token_address,
+        abi = token_abi
+    )
+
+    # Exchange Contract
+    token_exchange_address = to_checksum_address(Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS)
+    token_exchange_abi = Config.IBET_SB_EXCHANGE_CONTRACT_ABI
+    ExchangeContract = web3.eth.contract(
+        address = token_exchange_address,
+        abi = token_exchange_abi
+    )
+
+    # PersonalInfo Contract
+    personalinfo_address = to_checksum_address(Config.PERSONAL_INFO_CONTRACT_ADDRESS)
+    personalinfo_abi = Config.PERSONAL_INFO_CONTRACT_ABI
+    PersonalInfoContract = web3.eth.contract(
+        address = personalinfo_address,
+        abi = personalinfo_abi
+    )
+
+    # 残高を保有している可能性のあるアドレスを抽出する
+    holders_temp = []
+    holders_temp.append(TokenContract.functions.owner().call())
+
+    event_filter = TokenContract.eventFilter(
+        'Transfer', {
+            'filter':{},
+            'fromBlock':'earliest'
+        }
+    )
+    entries = event_filter.get_all_entries()
+    for entry in entries:
+        holders_temp.append(entry['args']['to'])
+
+    # 残高（balance）、または注文中の残高（commitment）が存在する情報を抽出
+    holders = []
+    for account_address in holders_temp:
+        balance = TokenContract.functions.balanceOf(account_address).call()
+        commitment = ExchangeContract.functions.\
+            commitments(account_address,token_address).call()
+        if balance > 0 or commitment > 0:
+            token_owner = TokenContract.functions.owner().call()
+            encrypted_info = PersonalInfoContract.functions.\
+                personal_info(account_address, token_owner).call()[2]
+            if encrypted_info == '':
+                name = ''
+            else:
+                ciphertext = base64.decodestring(encrypted_info.encode('utf-8'))
+                message = cipher.decrypt(ciphertext, sentinel)
+                personal_info_json = json.loads(message[:-dsize])
+                name = personal_info_json['name']
+
+            holder = {
+                'account_address':account_address,
+                'name':name,
+                'balance':balance,
+                'commitment':commitment,
+            }
+            holders.append(holder)
+
+    return render_template('token/holders.html', holders=holders)
 
 @token.route('/setting/<string:token_address>', methods=['GET', 'POST'])
 @login_required
