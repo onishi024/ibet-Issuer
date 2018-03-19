@@ -80,10 +80,14 @@ def list():
 def holders(token_address):
     logger.info('holders')
 
-    key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
-    dsize = SHA.digest_size
-    sentinel = Random.new().read(15+dsize)
-    cipher = PKCS1_v1_5.new(key)
+    cipher = None
+    try:
+        key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
+        dsize = SHA.digest_size
+        sentinel = Random.new().read(15+dsize)
+        cipher = PKCS1_v1_5.new(key)
+    except:
+        pass
 
     # Token Contrace
     token = Token.query.filter(Token.token_address==token_address).first()
@@ -134,7 +138,7 @@ def holders(token_address):
             token_owner = TokenContract.functions.owner().call()
             encrypted_info = PersonalInfoContract.functions.\
                 personal_info(account_address, token_owner).call()[2]
-            if encrypted_info == '':
+            if encrypted_info == '' or cipher == None:
                 name = ''
             else:
                 ciphertext = base64.decodestring(encrypted_info.encode('utf-8'))
