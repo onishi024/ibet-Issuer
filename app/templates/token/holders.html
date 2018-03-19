@@ -11,6 +11,7 @@
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
     <li><a href="{{ url_for('index.index') }}">トップ</a></li>
+    <li><a href="{{ url_for('token.list') }}">発行済債券一覧</a></li>
     <li class="active">債券保有者一覧</li>
 {% endblock %}
 
@@ -18,13 +19,13 @@
 <section class="content">
   <div class="box box-default">
     <div class="box-header">
-      <h3 class="box-title">保有者一覧</h3>
+      <h3 class="box-title">【{{ token_name }}】 保有者一覧</h3>
     </div>
     <div class="box-body">
   	  <table id="data_table" class="table table-bordered table-hover">
     		<thead>
     		  <tr>
-            <th>アドレス</th>
+            <th style="width: 200px">アカウントアドレス</th>
       			<th>氏名</th>
             <th>保有数量</th>
             <th>注文中数量</th>
@@ -38,7 +39,7 @@
             <td>{{ holder.name }}</td>
             <td>{{ holder.balance }}</td>
             <td>{{ holder.commitment }}</td>
-            <td>詳細</td>
+            <td><a href="{{ url_for('token.holder', token_address=token_address, account_address=holder.account_address) }}">保有者情報詳細</a></td>
           </tr>
     		{% endfor %}
     		</tbody>

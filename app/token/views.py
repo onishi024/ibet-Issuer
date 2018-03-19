@@ -89,7 +89,7 @@ def holders(token_address):
     except:
         pass
 
-    # Token Contrace
+    # Token Contract
     token = Token.query.filter(Token.token_address==token_address).first()
     token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
 
@@ -128,6 +128,9 @@ def holders(token_address):
     for entry in entries:
         holders_temp.append(entry['args']['to'])
 
+    token_owner = TokenContract.functions.owner().call()
+    token_name = TokenContract.functions.name().call()
+
     # 残高（balance）、または注文中の残高（commitment）が存在する情報を抽出
     holders = []
     for account_address in holders_temp:
@@ -135,7 +138,6 @@ def holders(token_address):
         commitment = ExchangeContract.functions.\
             commitments(account_address,token_address).call()
         if balance > 0 or commitment > 0:
-            token_owner = TokenContract.functions.owner().call()
             encrypted_info = PersonalInfoContract.functions.\
                 personal_info(account_address, token_owner).call()[2]
             if encrypted_info == '' or cipher == None:
@@ -154,7 +156,70 @@ def holders(token_address):
             }
             holders.append(holder)
 
-    return render_template('token/holders.html', holders=holders)
+    return render_template('token/holders.html', \
+        holders=holders, token_address=token_address, token_name=token_name)
+
+@token.route('/holder/<string:token_address>/<string:account_address>', methods=['GET'])
+@login_required
+def holder(token_address, account_address):
+    logger.info('holder')
+
+    cipher = None
+    try:
+        key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
+        dsize = SHA.digest_size
+        sentinel = Random.new().read(15+dsize)
+        cipher = PKCS1_v1_5.new(key)
+    except:
+        pass
+
+    # Token Contract
+    token = Token.query.filter(Token.token_address==token_address).first()
+    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+    TokenContract = web3.eth.contract(
+        address= token_address,
+        abi = token_abi
+    )
+
+    # PersonalInfo Contract
+    personalinfo_address = to_checksum_address(Config.PERSONAL_INFO_CONTRACT_ADDRESS)
+    personalinfo_abi = Config.PERSONAL_INFO_CONTRACT_ABI
+    PersonalInfoContract = web3.eth.contract(
+        address = personalinfo_address,
+        abi = personalinfo_abi
+    )
+
+    personal_info = {
+        "name":"--",
+        "address":{
+            "postal_code":"--",
+            "prefecture":"--",
+            "city":"--",
+            "address1":"--",
+            "address2":"--"
+        },
+        "bank_account":{
+            "bank_name": "--",
+            "branch_office": "--",
+            "account_type": "--",
+            "account_number": "--",
+            "account_holder": "--"
+        }
+    }
+
+    token_owner = TokenContract.functions.owner().call()
+
+    encrypted_info = PersonalInfoContract.functions.\
+        personal_info(account_address, token_owner).call()[2]
+
+    if encrypted_info == '' or cipher == None:
+        pass
+    else:
+        ciphertext = base64.decodestring(encrypted_info.encode('utf-8'))
+        message = cipher.decrypt(ciphertext, sentinel)
+        personal_info = json.loads(message[:-dsize])
+
+    return render_template('token/holder.html', personal_info=personal_info, token_address=token_address)
 
 @token.route('/setting/<string:token_address>', methods=['GET', 'POST'])
 @login_required
