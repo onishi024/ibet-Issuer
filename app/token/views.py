@@ -290,7 +290,7 @@ def setting(token_address):
         form.image_large.data = image_large
         form.abi.data = token.abi
         form.bytecode.data = token.bytecode
-        return render_template('token/setting.html', form=form)
+        return render_template('token/setting.html', form=form, token_address=token_address)
 
 @token.route('/release', methods=['POST'])
 @login_required
