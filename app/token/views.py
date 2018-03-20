@@ -27,7 +27,7 @@ from sqlalchemy import desc
 from . import token
 from .. import db
 from ..models import Role, User, Token
-from .forms import IssueTokenForm, TokenSettingForm, SellTokenForm
+from .forms import IssueTokenForm, TokenSettingForm, SellTokenForm, RequestSignatureForm
 from ..decorators import admin_required
 from config import Config
 
@@ -291,6 +291,49 @@ def setting(token_address):
         form.abi.data = token.abi
         form.bytecode.data = token.bytecode
         return render_template('token/setting.html', form=form, token_address=token_address)
+
+@token.route('/request_signature/<string:token_address>', methods=['GET','POST'])
+@login_required
+def request_signature(token_address):
+    logger.info('token.request_signature')
+
+    token = Token.query.filter(Token.token_address==token_address).first()
+    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+
+    TokenContract = web3.eth.contract(
+        address= token.token_address,
+        abi = token_abi
+    )
+
+    web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
+
+    form = RequestSignatureForm()
+
+    if request.method == 'POST':
+        if form.validate():
+            if not Web3.isAddress(form.signer.data):
+                flash('有効なアドレスではありません。','error')
+                return render_template('token/request_signature.html', form=form)
+
+            try:
+                gas = TokenContract.estimateGas().\
+                    requestSignature(to_checksum_address(form.signer.data))
+                txid = TokenContract.functions.\
+                    requestSignature(to_checksum_address(form.signer.data)).\
+                    transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
+            except ValueError:
+                flash('処理に失敗しました。', 'error')
+                return render_template('token/request_signature.html', form=form)
+
+            flash('認定依頼を受け付けました。', 'success')
+            return redirect(url_for('.setting', token_address=token_address))
+        else:
+            flash_errors(form)
+            return render_template('token/request_signature.html', form=form)
+    else: #GET
+        form.token_address.data = token_address
+        form.signer.data = ''
+        return render_template('token/request_signature.html', form=form)
 
 @token.route('/release', methods=['POST'])
 @login_required

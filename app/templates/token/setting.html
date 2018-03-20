@@ -20,8 +20,9 @@
         <div class="box-header with-border">
             <h3 class="box-title">設定　<small>{{ token_address }}</small></h3>
             <div class="pull-right box-tools">
-                <button id="release" class="btn btn-warning" type="button">公開 <i class="fa fa-arrow-circle-right"></i></button>
-                <button id="redeem" class="btn btn-danger" type="button">償還 <i class="fa fa-arrow-circle-right"></i></button>
+              <button type="button" class="btn btn-success" style="width: 100px" onclick="location.href='{{ url_for("token.request_signature", token_address=token_address)}}'">認定依頼 <i class="fa fa-arrow-circle-right"></i></button>
+              <button id="release" class="btn btn-warning" type="button" style="width: 100px">公開 <i class="fa fa-arrow-circle-right"></i></button>
+              <button id="redeem" class="btn btn-danger" type="button" style="width: 100px">償還 <i class="fa fa-arrow-circle-right"></i></button>
             </div>
         </div>
         <form class="form-horizontal" method="POST" role="form" action="{{ url_for('token.setting', token_address=form.token_address.data) }}">

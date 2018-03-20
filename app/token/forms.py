@@ -2,7 +2,7 @@
 from flask_wtf import FlaskForm as Form
 
 from wtforms import IntegerField, StringField, TextAreaField, \
-    SubmitField, DateField
+    SubmitField, DateField, HiddenField
 from wtforms.validators import Required, Email, EqualTo, Length, Regexp
 from wtforms import ValidationError
 from ..models import Role, User
@@ -74,3 +74,12 @@ class SellTokenForm(Form):
     def __init__(self, sell_token=None, *args, **kwargs):
         super(SellTokenForm, self).__init__(*args, **kwargs)
         self.sell_token = sell_token
+
+class RequestSignatureForm(Form):
+    token_address = HiddenField("トークンアドレス", validators=[Required('トークンアドレスは必須です。')])
+    signer = StringField("認定者", validators=[Required('認定者は必須です。')])
+    submit = SubmitField('認定依頼')
+
+    def __init__(self, request_signature=None, *args, **kwargs):
+        super(RequestSignatureForm, self).__init__(*args, **kwargs)
+        self.request_signature = request_signature
