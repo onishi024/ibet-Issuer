@@ -308,10 +308,13 @@ def release():
         abi = list_contract_abi
     )
 
-    gas = ListContract.estimateGas().register(token_address, 'IbetStraightBond')
-    register_txid = ListContract.functions.register(token_address, 'IbetStraightBond').transact(
-        {'from':Config.ETH_ACCOUNT, 'gas':gas}
-    )
+    try:
+        gas = ListContract.estimateGas().register(token_address, 'IbetStraightBond')
+        register_txid = ListContract.functions.register(token_address, 'IbetStraightBond').\
+            transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
+    except ValueError:
+        flash('既に公開されています。', 'error')
+        return redirect(url_for('.setting', token_address=token_address))
 
     flash('公開中です。公開開始までに数分程かかることがあります。', 'success')
     return redirect(url_for('.setting', token_address=token_address))
@@ -333,10 +336,13 @@ def redeem():
 
     web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
 
-    gas = TokenContract.estimateGas().redeem()
-    txid = TokenContract.functions.redeem().transact(
-        {'from':Config.ETH_ACCOUNT, 'gas':gas}
-    )
+    try:
+        gas = TokenContract.estimateGas().redeem()
+        txid = TokenContract.functions.redeem().\
+            transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
+    except ValueError:
+        flash('償還処理に失敗しました。', 'error')
+        return redirect(url_for('.setting', token_address=token_address))
 
     flash('償還処理中です。完了までに数分程かかることがあります。', 'success')
     return redirect(url_for('.setting', token_address=token_address))
