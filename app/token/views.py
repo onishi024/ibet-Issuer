@@ -347,7 +347,7 @@ def release():
     web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
 
     ListContract = web3.eth.contract(
-        address = list_contract_address,
+        address = to_checksum_address(list_contract_address),
         abi = list_contract_abi
     )
 
@@ -373,7 +373,7 @@ def redeem():
     token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
 
     TokenContract = web3.eth.contract(
-        address= token.token_address,
+        address= to_checksum_address(token.token_address),
         abi = token_abi
     )
 
