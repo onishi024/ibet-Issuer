@@ -513,46 +513,69 @@ def sell(token_address):
 
     if request.method == 'POST':
         if form.validate():
-            web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
-
-            token_exchange_address = to_checksum_address(Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS)
-            token_exchange_abi = Config.IBET_SB_EXCHANGE_CONTRACT_ABI
-            agent_address = to_checksum_address(Config.AGENT_ADDRESS)
-
-            deposit_gas = TokenContract.estimateGas().transfer(token_exchange_address, balance)
-
-            deposit_txid = TokenContract.functions.transfer(token_exchange_address, balance).transact(
-                {'from':owner, 'gas':deposit_gas}
+            # PersonalInfo Contract
+            personalinfo_address = to_checksum_address(Config.PERSONAL_INFO_CONTRACT_ADDRESS)
+            personalinfo_abi = Config.PERSONAL_INFO_CONTRACT_ABI
+            PersonalInfoContract = web3.eth.contract(
+                address = personalinfo_address,
+                abi = personalinfo_abi
             )
 
-            count = 0
-            deposit_tx_receipt = None
-            while True:
-                try:
-                    deposit_tx_receipt = web3.eth.getTransactionReceipt(deposit_txid)
-                except:
-                    time.sleep(1)
-
-                count += 1
-                if deposit_tx_receipt is not None or count > 30:
-                    break
-
-            ExchangeContract = web3.eth.contract(
-                address = token_exchange_address,
-                abi = token_exchange_abi
+            # WhiteList Contract
+            whitelist_address = to_checksum_address(Config.WHITE_LIST_CONTRACT_ADDRESS)
+            whitelist_abi = Config.WHITE_LIST_CONTRACT_ABI
+            WhiteListContract = web3.eth.contract(
+                address = whitelist_address,
+                abi = whitelist_abi
             )
 
-            sell_gas = ExchangeContract.estimateGas().createOrder(token_address, balance, form.sellPrice.data, False, agent_address)
+            eth_account = to_checksum_address(Config.ETH_ACCOUNT)
+            agent_account = to_checksum_address(Config.AGENT_ADDRESS)
 
-            sell_txid = ExchangeContract.functions.createOrder(token_address, balance, form.sellPrice.data, False, agent_address).transact(
-                {'from':owner, 'gas':sell_gas}
-            )
+            if PersonalInfoContract.functions.isRegistered(eth_account,eth_account).call() == False:
+                flash('法人名、所在地の情報が未登録です。', 'error')
+                return redirect(url_for('.sell', token_address=token_address))
+            elif WhiteListContract.functions.isRegistered(eth_account, agent_account).call() == False:
+                flash('金融機関の情報が未登録です。', 'error')
+                return redirect(url_for('.sell', token_address=token_address))
+            else:
+                web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
+                token_exchange_address = to_checksum_address(Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS)
+                token_exchange_abi = Config.IBET_SB_EXCHANGE_CONTRACT_ABI
+                agent_address = to_checksum_address(Config.AGENT_ADDRESS)
 
-            flash('新規募集を受け付けました。募集開始までに数分程かかることがあります。', 'success')
-            return redirect(url_for('.positions'))
+                deposit_gas = TokenContract.estimateGas().transfer(token_exchange_address, balance)
+                deposit_txid = TokenContract.functions.transfer(token_exchange_address, balance).\
+                    transact({'from':owner, 'gas':deposit_gas})
+
+                count = 0
+                deposit_tx_receipt = None
+                while True:
+                    try:
+                        deposit_tx_receipt = web3.eth.getTransactionReceipt(deposit_txid)
+                    except:
+                        time.sleep(1)
+                    count += 1
+                    if deposit_tx_receipt is not None or count > 30:
+                        break
+
+                ExchangeContract = web3.eth.contract(
+                    address = token_exchange_address,
+                    abi = token_exchange_abi
+                )
+                sell_gas = ExchangeContract.estimateGas().\
+                    createOrder(token_address, balance, form.sellPrice.data, False, agent_address)
+                sell_txid = ExchangeContract.functions.\
+                    createOrder(token_address, balance, form.sellPrice.data, False, agent_address).\
+                    transact({'from':owner, 'gas':sell_gas})
+
+                flash('新規募集を受け付けました。募集開始までに数分程かかることがあります。', 'success')
+                return redirect(url_for('.positions'))
+
         else:
             flash_errors(form)
-            return render_template('token/sell.html', form=form)
+            return redirect(url_for('.sell', token_address=token_address))
+
     else: # GET
         form.token_address.data = token.token_address
         form.name.data = name
