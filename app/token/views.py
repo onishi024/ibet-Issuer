@@ -7,9 +7,7 @@ import base64
 from base64 import b64encode
 
 from Crypto.PublicKey import RSA
-from Crypto.Cipher import PKCS1_v1_5
-from Crypto.Hash import SHA
-from Crypto import Random
+from Crypto.Cipher import PKCS1_OAEP
 
 from flask import Flask, request, redirect, url_for, flash, session
 from flask_restful import Resource, Api
@@ -83,9 +81,7 @@ def holders(token_address):
     cipher = None
     try:
         key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
-        dsize = SHA.digest_size
-        sentinel = Random.new().read(15+dsize)
-        cipher = PKCS1_v1_5.new(key)
+        cipher = PKCS1_OAEP.new(key)
     except:
         pass
 
@@ -144,8 +140,8 @@ def holders(token_address):
                 name = ''
             else:
                 ciphertext = base64.decodestring(encrypted_info.encode('utf-8'))
-                message = cipher.decrypt(ciphertext, sentinel)
-                personal_info_json = json.loads(message[:-dsize])
+                message = cipher.decrypt(ciphertext)
+                personal_info_json = json.loads(message)
                 name = personal_info_json['name']
 
             holder = {
@@ -167,9 +163,7 @@ def holder(token_address, account_address):
     cipher = None
     try:
         key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
-        dsize = SHA.digest_size
-        sentinel = Random.new().read(15+dsize)
-        cipher = PKCS1_v1_5.new(key)
+        cipher = PKCS1_OAEP.new(key)
     except:
         pass
 
@@ -216,8 +210,8 @@ def holder(token_address, account_address):
         pass
     else:
         ciphertext = base64.decodestring(encrypted_info.encode('utf-8'))
-        message = cipher.decrypt(ciphertext, sentinel)
-        personal_info = json.loads(message[:-dsize])
+        message = cipher.decrypt(ciphertext)
+        personal_info = json.loads(message)
 
     return render_template('token/holder.html', personal_info=personal_info, token_address=token_address)
 
