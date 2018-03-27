@@ -26,9 +26,9 @@ class Config:
 
     NAVI_MENU_USER = [
         ('token', 'glyphicon glyphicon-list-alt', '債券発行管理', [
-            ('token_list', 'fa fa-ticket', '発行済債券一覧', 'token.list'),
-            ('token_issue', 'fa fa-ticket', '債券新規発行', 'token.issue'),
-            ('token_position', 'fa fa-ticket', '債券募集', 'token.positions'),
+            ('token_list', 'fa fa-list', '発行済債券一覧', 'token.list'),
+            ('token_issue', 'fa fa-plus-square-o', '債券新規発行', 'token.issue'),
+            ('token_position', 'fa fa-yen', '債券募集', 'token.positions'),
         ]),
     ]
 
