@@ -70,3 +70,19 @@ class Token(db.Model):
     @classmethod
     def get_id(cls):
         return Token.id
+
+class Certification(db.Model):
+    __tablename__ = 'certification'
+    id = db.Column(db.Integer, primary_key=True)
+    token_address = db.Column(db.String(64), nullable=True)
+    signer = db.Column(db.String(64), nullable=True)
+    created = db.Column(db.DateTime, nullable=False, default=datetime.now)
+    modified = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
+
+    def __repr__(self):
+        return "<Certification(token_address='%s',signer='%s')>" % \
+            (self.token_address, self.signer)
+
+    @classmethod
+    def get_id(cls):
+        return Certification.id

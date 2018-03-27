@@ -24,7 +24,7 @@ from sqlalchemy import desc
 
 from . import token
 from .. import db
-from ..models import Role, User, Token
+from ..models import Role, User, Token, Certification
 from .forms import IssueTokenForm, TokenSettingForm, SellTokenForm, RequestSignatureForm
 from ..decorators import admin_required
 from config import Config
@@ -305,25 +305,44 @@ def request_signature(token_address):
 
     if request.method == 'POST':
         if form.validate():
+
+            # 指定した認定者のアドレスが有効なアドレスであるかどうかをチェックする
             if not Web3.isAddress(form.signer.data):
                 flash('有効なアドレスではありません。','error')
                 return render_template('token/request_signature.html', form=form)
 
+            signer_address = to_checksum_address(form.signer.data)
+
+            # DBに既に情報が登録されている場合はエラーを返す
+            if Certification.query.filter(
+                Certification.token_address==token_address,
+                Certification.signer==signer_address).count() > 0:
+                flash('既に情報が登録されています。', 'error')
+                return render_template('token/request_signature.html', form=form)
+
+            # コントラクトに情報を登録する
             try:
-                gas = TokenContract.estimateGas().\
-                    requestSignature(to_checksum_address(form.signer.data))
+                gas = TokenContract.estimateGas().requestSignature(signer_address)
                 txid = TokenContract.functions.\
-                    requestSignature(to_checksum_address(form.signer.data)).\
+                    requestSignature(signer_address).\
                     transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
             except ValueError:
                 flash('処理に失敗しました。', 'error')
                 return render_template('token/request_signature.html', form=form)
 
+            # DBに情報を登録する
+            certification = Certification()
+            certification.token_address = token_address
+            certification.signer = signer_address
+            db.session.add(certification)
+
             flash('認定依頼を受け付けました。', 'success')
             return redirect(url_for('.setting', token_address=token_address))
-        else:
+
+        else: # Validation Error
             flash_errors(form)
             return render_template('token/request_signature.html', form=form)
+
     else: #GET
         form.token_address.data = token_address
         form.signer.data = ''
