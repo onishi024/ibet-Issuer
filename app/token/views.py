@@ -49,26 +49,71 @@ def flash_errors(form):
 @login_required
 def list():
     logger.info('list')
+
+    # 発行済トークンの情報をDBから取得する
     tokens = Token.query.all()
+
     token_list = []
     for row in tokens:
-        if row.token_address != None:
-            MyContract = web3.eth.contract(
+        is_redeemed = False
+        is_signed = False
+
+        # トークンがデプロイ済みの場合、トークン情報を取得する
+        if row.token_address == None:
+            name = '<処理中>'
+            symbol = '<処理中>'
+        else:
+            # Token-Contractへの接続
+            TokenContract = web3.eth.contract(
                 address=row.token_address,
                 abi = json.loads(
                     row.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
             )
-            name = MyContract.functions.name().call()
-            symbol = MyContract.functions.symbol().call()
-        else:
-            name = '<処理中>'
-            symbol = '<処理中>'
+
+            # Token-Contractから情報を取得する
+            name = TokenContract.functions.name().call()
+            symbol = TokenContract.functions.symbol().call()
+
+            # 償還（Redeem）のイベント情報を検索する
+            event_filter_redeem = TokenContract.eventFilter(
+                'Redeem', {
+                    'filter':{},
+                    'fromBlock':'earliest'
+                }
+            )
+            try:
+                entries_redeem = event_filter_redeem.get_all_entries()
+            except:
+                entries_redeem = []
+
+            if len(entries_redeem) > 0:
+                is_redeemed = True
+
+            # 第三者認定（Sign）のイベント情報を検索する
+            event_filter_sign = TokenContract.eventFilter(
+                'Sign', {
+                    'filter':{},
+                    'fromBlock':'earliest'
+                }
+            )
+            try:
+                entries_sign = event_filter_sign.get_all_entries()
+            except:
+                entries_sign = []
+
+            for entry in entries_sign:
+                if TokenContract.functions.\
+                    signatures(to_checksum_address(entry['args']['signer'])).call() == 2:
+                    is_signed = True
+
         token_list.append({
             'name':name,
             'symbol':symbol,
             'created':row.created,
             'tx_hash':row.tx_hash,
-            'token_address':row.token_address
+            'token_address':row.token_address,
+            'is_redeemed':is_redeemed,
+            'is_signed':is_signed
         })
 
     return render_template('token/list.html', tokens=token_list)
@@ -460,7 +505,6 @@ def issue():
     else: # GET
         return render_template('token/issue.html', form=form)
 
-
 @token.route('/positions', methods=['GET'])
 @login_required
 def positions():
@@ -492,7 +536,6 @@ def positions():
                 })
 
     return render_template('token/positions.html', position_list=position_list)
-
 
 @token.route('/sell/<string:token_address>', methods=['GET', 'POST'])
 @login_required
@@ -607,7 +650,6 @@ def sell(token_address):
         form.bytecode.data = token.bytecode
         form.sellPrice.data = None
         return render_template('token/sell.html', form=form)
-
 
 @token.route('/PermissionDenied', methods=['GET', 'POST'])
 @login_required

@@ -24,10 +24,12 @@
   	  <table id="data_table" class="table table-bordered table-hover">
   		<thead>
   		  <tr>
-    			<th style="width: 200px">名称</th>
-    			<th style="width: 100px">略称</th>
-    			<th style="width: 150px">登録日時</th>
+    			<th>名称</th>
+    			<th>略称</th>
+    			<th>登録日時</th>
           <th>受付ID</th>
+          <th style="width: 50px">償還</th>
+          <th style="width: 50px">第三者認定</th>
           <th></th>
     		</tr>
   		</thead>
@@ -39,14 +41,29 @@
           {% else %}
           <td>{{ token.name }}</td>
           {% endif %}
-    			<td>{{ token.symbol }}</td>
+
+          <td>{{ token.symbol }}</td>
     			<td align="center">{{ token.created | format_date }}</td>
-          <td>{{ token.tx_hash }}</td>
+          <td><small>{{ token.tx_hash }}</small></td>
+
+          {% if token.is_redeemed == true %}
+          <td align="center"><span class="badge">償還済</span></td>
+          {% else %}
+          <td align="center">--</td>
+          {% endif %}
+
+          {% if token.is_signed == true %}
+          <td align="center"><span class="badge">認定済</span></td>
+          {% else %}
+          <td align="center">--</td>
+          {% endif %}
+
           {% if token.token_address != None %}
     			<td><a href="{{ url_for('token.holders', token_address=token.token_address) }}">保有者一覧</a></td>
           {% else %}
           <td></td>
           {% endif %}
+
         </tr>
   		{% endfor %}
   		</tbody>
