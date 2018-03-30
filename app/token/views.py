@@ -169,12 +169,17 @@ def holders(token_address):
     for entry in entries:
         holders_temp.append(entry['args']['to'])
 
+    holders_uniq = []
+    for x in holders_temp:
+        if x not in holders_uniq:
+            holders_uniq.append(x)
+
     token_owner = TokenContract.functions.owner().call()
     token_name = TokenContract.functions.name().call()
 
     # 残高（balance）、または注文中の残高（commitment）が存在する情報を抽出
     holders = []
-    for account_address in holders_temp:
+    for account_address in holders_uniq:
         balance = TokenContract.functions.balanceOf(account_address).call()
         commitment = ExchangeContract.functions.\
             commitments(account_address,token_address).call()
