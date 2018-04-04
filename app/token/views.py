@@ -169,6 +169,7 @@ def holders(token_address):
     for entry in entries:
         holders_temp.append(entry['args']['to'])
 
+    # 口座リストをユニークにする
     holders_uniq = []
     for x in holders_temp:
         if x not in holders_uniq:
@@ -282,8 +283,18 @@ def setting(token_address):
     totalSupply = TokenContract.functions.totalSupply().call()
     faceValue = TokenContract.functions.faceValue().call()
     interestRate = TokenContract.functions.interestRate().call()
-    interestPaymentDate1 = TokenContract.functions.interestPaymentDate1().call()
-    interestPaymentDate2 = TokenContract.functions.interestPaymentDate2().call()
+
+    interestPaymentDate_string = TokenContract.functions.interestPaymentDate().call()
+    interestPaymentDate = json.loads(
+        interestPaymentDate_string.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+
+    interestPaymentDate1 = ''
+    interestPaymentDate2 = ''
+    if 'interestPaymentDate1' in interestPaymentDate:
+        interestPaymentDate1 = interestPaymentDate['interestPaymentDate1']
+    if 'interestPaymentDate2' in interestPaymentDate:
+        interestPaymentDate2 = interestPaymentDate['interestPaymentDate2']
+
     redemptionDate = TokenContract.functions.redemptionDate().call()
     redemptionAmount = TokenContract.functions.redemptionAmount().call()
     returnDate = TokenContract.functions.returnDate().call()
@@ -472,14 +483,20 @@ def issue():
                 bytecode_runtime = bytecode_runtime,
             )
 
+            interestPaymentDate = {
+                'interestPaymentDate1': form.interestPaymentDate1.data,
+                'interestPaymentDate2': form.interestPaymentDate2.data
+            }
+
+            interestPaymentDate_string = json.dumps(interestPaymentDate)
+
             arguments = [
                 form.name.data,
                 form.symbol.data,
                 form.totalSupply.data,
                 form.faceValue.data,
                 form.interestRate.data,
-                form.interestPaymentDate1.data,
-                form.interestPaymentDate2.data,
+                interestPaymentDate_string,
                 form.redemptionDate.data,
                 form.redemptionAmount.data,
                 form.returnDate.data,
@@ -561,8 +578,18 @@ def sell(token_address):
     totalSupply = TokenContract.functions.totalSupply().call()
     faceValue = TokenContract.functions.faceValue().call()
     interestRate = TokenContract.functions.interestRate().call()
-    interestPaymentDate1 = TokenContract.functions.interestPaymentDate1().call()
-    interestPaymentDate2 = TokenContract.functions.interestPaymentDate2().call()
+
+    interestPaymentDate_string = TokenContract.functions.interestPaymentDate().call()
+    interestPaymentDate = json.loads(
+        interestPaymentDate_string.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+
+    interestPaymentDate1 = ''
+    interestPaymentDate2 = ''
+    if 'interestPaymentDate1' in interestPaymentDate:
+        interestPaymentDate1 = interestPaymentDate['interestPaymentDate1']
+    if 'interestPaymentDate2' in interestPaymentDate:
+        interestPaymentDate2 = interestPaymentDate['interestPaymentDate2']
+
     redemptionDate = TokenContract.functions.redemptionDate().call()
     redemptionAmount = TokenContract.functions.redemptionAmount().call()
     returnDate = TokenContract.functions.returnDate().call()
