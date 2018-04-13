@@ -587,7 +587,7 @@ def positions():
 
             # 拘束数量がゼロよりも大きい場合、募集中のステータスを返す
             on_sale = False
-            if commitment > 0:
+            if balance == 0:
                 on_sale = True
 
             # 残高がゼロよりも大きい場合、または募集中のステータスの場合、リストを返す
