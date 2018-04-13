@@ -24,12 +24,13 @@
   	  <table id="data_table" class="table table-bordered table-hover">
     		<thead>
     		  <tr>
-            <th style="width: 250px">アドレス</th>
-      			<th style="width: 200px">名称</th>
-      			<th style="width: 100px">略称</th>
-      			<th style="width: 150px">総発行量</th>
-            <th style="width: 150px">残高</th>
-            <th style="width: 100px"></th>
+            <th style="width: 100px">アドレス</th>
+      			<th>名称</th>
+      			<th>略称</th>
+      			<th style="width: 100px">総発行量</th>
+            <th style="width: 100px">残高</th>
+            <th style="width: 100px">注文中</th>
+            <th></th>
       		</tr>
     		</thead>
     		<tbody>
@@ -40,7 +41,12 @@
       			<td>{{ position.symbol }}</td>
             <td>{{ position.totalSupply }}</td>
             <td>{{ position.balance }}</td>
-            <td align="center"><button type="button" class="btn btn-success" onclick="location.href= '{{ url_for("token.sell", token_address=position.token_address) }}'">募集開始</button></td>
+            <td>{{ position.commitment }}</td>
+            {% if position.on_sale != True %}
+              <td align="center"><button type="button" class="btn btn-success" onclick="location.href= '{{ url_for("token.sell", token_address=position.token_address) }}'">募集開始</button></td>
+            {% else %}
+              <td align="center"><button type="button" class="btn btn-danger" onclick="location.href= '{{ url_for("token.cancel_order", order_id=position.order_id) }}'">募集停止</button></td>
+            {% endif %}
           </tr>
     		{% endfor %}
     		</tbody>

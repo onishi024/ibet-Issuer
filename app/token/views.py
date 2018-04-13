@@ -25,7 +25,7 @@ from sqlalchemy import desc
 from . import token
 from .. import db
 from ..models import Role, User, Token, Certification
-from .forms import IssueTokenForm, TokenSettingForm, SellTokenForm, RequestSignatureForm
+from .forms import IssueTokenForm, TokenSettingForm, SellTokenForm, CancelOrderForm, RequestSignatureForm
 from ..decorators import admin_required
 from config import Config
 
@@ -531,10 +531,23 @@ def issue():
 @login_required
 def positions():
     logger.info('positions')
+
+    # 自社が発行したトークンの一覧を取得
     tokens = Token.query.all()
+
+    # Exchangeコントラクトに接続
+    token_exchange_address = to_checksum_address(Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS)
+    token_exchange_abi = Config.IBET_SB_EXCHANGE_CONTRACT_ABI
+    ExchangeContract = web3.eth.contract(
+        address = token_exchange_address,
+        abi = token_exchange_abi
+    )
+
     position_list = []
     for row in tokens:
         if row.token_address != None:
+
+            # Tokenコントラクトに接続
             TokenContract = web3.eth.contract(
                 address=row.token_address,
                 abi = json.loads(
@@ -542,9 +555,43 @@ def positions():
             )
 
             owner = to_checksum_address(row.admin_address)
+
+            # 自身が保有している預かりの残高を取得
             balance = TokenContract.functions.balanceOf(owner).call()
 
-            if balance > 0 :
+            # 注文中数量を取得する
+            commitment = ExchangeContract.functions.\
+                commitments(owner, row.token_address).call()
+
+            # 新規注文（NewOrder）のイベント情報を検索する
+            event_filter = ExchangeContract.eventFilter(
+                'NewOrder', {
+                    'filter':{
+                        'tokenAddress':row.token_address,
+                        'accountAddress':owner
+                    },
+                    'fromBlock':'earliest'
+                }
+            )
+
+            try:
+                entries = event_filter.get_all_entries()
+                # キャンセル済みではない注文の注文IDを取得する
+                for entry in entries:
+                    order_id = dict(entry['args'])['orderId']
+                    is_canceled = ExchangeContract.functions.orderBook(order_id).call()[6]
+                    if is_canceled == False:
+                        break
+            except:
+                continue
+
+            # 拘束数量がゼロよりも大きい場合、募集中のステータスを返す
+            on_sale = False
+            if commitment > 0:
+                on_sale = True
+
+            # 残高がゼロよりも大きい場合、または募集中のステータスの場合、リストを返す
+            if balance > 0 or on_sale == True:
                 name = TokenContract.functions.name().call()
                 symbol = TokenContract.functions.symbol().call()
                 totalSupply = TokenContract.functions.totalSupply().call()
@@ -555,6 +602,9 @@ def positions():
                     'totalSupply':totalSupply,
                     'balance':balance,
                     'created':row.created,
+                    'commitment':commitment,
+                    'on_sale':on_sale,
+                    'order_id':order_id,
                 })
 
     return render_template('token/positions.html', position_list=position_list)
@@ -682,6 +732,65 @@ def sell(token_address):
         form.bytecode.data = token.bytecode
         form.sellPrice.data = None
         return render_template('token/sell.html', form=form)
+
+####################################################
+# 債券募集停止
+####################################################
+@token.route('/cancel_order/<int:order_id>', methods=['GET', 'POST'])
+@login_required
+def cancel_order(order_id):
+    logger.info('cancel_order')
+    form = CancelOrderForm()
+
+    # Exchangeコントラクトに接続
+    token_exchange_address = to_checksum_address(Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS)
+    token_exchange_abi = Config.IBET_SB_EXCHANGE_CONTRACT_ABI
+    ExchangeContract = web3.eth.contract(
+        address = token_exchange_address,
+        abi = token_exchange_abi
+    )
+
+    # 注文情報を取得する
+    orderBook = ExchangeContract.functions.orderBook(order_id).call()
+    token_address = orderBook[1]
+    amount = orderBook[2]
+    price = orderBook[3]
+
+    # トークンのABIを取得する
+    token = Token.query.filter(Token.token_address==token_address).first()
+    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+
+    # トークンコントラクトに接続する
+    TokenContract = web3.eth.contract(
+        address= to_checksum_address(token_address),
+        abi = token_abi
+    )
+
+    # トークンの商品名、略称、総発行量を取得する
+    name = TokenContract.functions.name().call()
+    symbol = TokenContract.functions.symbol().call()
+    totalSupply = TokenContract.functions.totalSupply().call()
+
+    if request.method == 'POST':
+        if form.validate():
+            web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
+            gas = ExchangeContract.estimateGas().cancelOrder(order_id)
+            txid = ExchangeContract.functions.cancelOrder(order_id).\
+                transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
+            flash('募集停止処理を受け付けました。停止されるまでに数分程かかることがあります。', 'success')
+            return redirect(url_for('.positions'))
+        else:
+            flash_errors(form)
+            return redirect(url_for('.cancel_order', order_id=order_id))
+    else: # GET
+        form.order_id.data = order_id
+        form.token_address.data = token_address
+        form.name.data = name
+        form.symbol.data = symbol
+        form.totalSupply.data = totalSupply
+        form.amount.data = amount
+        form.price.data = price
+        return render_template('token/cancel_order.html', form=form)
 
 @token.route('/PermissionDenied', methods=['GET', 'POST'])
 @login_required
