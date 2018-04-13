@@ -559,7 +559,7 @@ def positions():
             # 自身が保有している預かりの残高を取得
             balance = TokenContract.functions.balanceOf(owner).call()
 
-            # 注文中数量を取得する
+            # 拘束中数量を取得する
             commitment = ExchangeContract.functions.\
                 commitments(owner, row.token_address).call()
 
@@ -578,10 +578,10 @@ def positions():
                 entries = event_filter.get_all_entries()
                 # キャンセル済みではない注文の注文IDを取得する
                 for entry in entries:
-                    order_id = dict(entry['args'])['orderId']
-                    is_canceled = ExchangeContract.functions.orderBook(order_id).call()[6]
-                    if is_canceled == False:
-                        break
+                    order_id_tmp = dict(entry['args'])['orderId']
+                    canceled = ExchangeContract.functions.orderBook(order_id_tmp).call()[6]
+                    if canceled == False:
+                        order_id = order_id_tmp
             except:
                 continue
 
