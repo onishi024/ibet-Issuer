@@ -574,6 +574,7 @@ def positions():
                 }
             )
 
+            order_id = 0
             try:
                 entries = event_filter.get_all_entries()
                 # キャンセル済みではない注文の注文IDを取得する
