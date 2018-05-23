@@ -104,6 +104,7 @@ class TestingConfig(Config):
     TESTING = True
     LOGIN_DISABLED = True
     SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL') or 'postgresql://issueruser:issuerpass@localhost:5432/issuerdb_test'
+    WTF_CSRF_ENABLED = False
 
 # seleniumのテストの際にFlaskを起動する時にのみ必要(そうしないとログイン画面が出てこない)
 class SeleniumConfig(TestingConfig):
