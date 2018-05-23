@@ -1,9 +1,6 @@
 # -*- coding:utf-8 -*-
 import pytest
-import datetime
-from flask import url_for
 
-from app.account import views, forms
 from .conftest import TestBase
 
 @pytest.mark.usefixtures("account")
