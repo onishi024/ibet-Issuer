@@ -3,7 +3,6 @@ import pytest
 
 from .conftest import TestBase
 
-@pytest.mark.usefixtures("account")
 class TestAccountRegist(TestBase):
 
     target_url = '/account/regist'
