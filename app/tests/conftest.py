@@ -79,17 +79,6 @@ def db_setup(request, db):
 
     request.addfinalizer(teardown)
 
-@pytest.fixture(scope="class")
-def account(request, db):
-    print('    <class start>')
-    #init_login_user(db)
-
-    def teardown():
-        #db.session.remove()
-        print('    <class end>')
-
-    request.addfinalizer(teardown)
-
 class TestBase(object):
     data = None
 
