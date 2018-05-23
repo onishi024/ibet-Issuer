@@ -32,7 +32,8 @@ import pytest
 @manager.option('-s', dest='s_opt', action="store_true", help='pytest -s option add.', default=False, required=False)
 @manager.option('-m', '--module', dest='module', help='can specify module.', default=None, required=False)
 @manager.option('--cov', dest='cov', action="store_true", help='coverage mode on.', default=False, required=False)
-def test(s_opt, module, cov):
+@manager.option('--pdb', dest='pdb', action="store_true", help='debug mode on.', default=False, required=False)
+def test(s_opt, module, cov, pdb):
     """ Runs pytest """
     pytest_args = []
     if s_opt:
@@ -40,6 +41,8 @@ def test(s_opt, module, cov):
     if cov:
         pytest_args.append("--cov")
         pytest_args.append("--cov-report=html")
+    if pdb:
+        pytest_args.append("--pdb")
     if module is None:
         pytest_args.append("app/tests/")
     else:

@@ -12,7 +12,8 @@ pip install -r requirements.txt
 必要に応じてプロキシオプションや証明書オプションを追加して実行してください。
 
 - DBテーブルの構築  
-事前にデータベースを作成しておいてください。（例：aidb）
+事前にデータベースを作成しておいてください。（例：issuerdb）
+
 ```bash
 cd tmr-issuer
 python manage.py db init
@@ -35,25 +36,11 @@ python manage.py runserver -h 0.0.0.0
 あとは http://XXX.XXX.XXX.XXX:5000/ で接続してください。
 
 ## テスト実行について
-### pytest（バックエンド）
-```bash
-cd tmr-issuer
-python manage.py test -s -m back_end
-```
-### pytest + selenium（フロントエンド）
-seleniumテストドライバーであるchromedriverをDLして  
-tmr-issuer/app/tests/下に配置してください。  
-- 先にibet:issuerを起動しておきます。
+### pytest
 
 ```bash
 cd tmr-issuer
-export FLASK_CONFIG=selenium
-python manage.py runserver -h 0.0.0.0
+python manage.py test
 ```
-- seleniumテストを実行します。
 
-```bash
-cd tmr-issuer
-python manage.py test -s -m front_end
-```
 testのオプションについては`python manage.py test --help`で確認してください。
