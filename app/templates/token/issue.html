@@ -54,18 +54,14 @@
                   </div>
               </div>
               <div class="form-group">
-                {% for paydate in form.interestPaymentDate %}
-                    {{ paydate.label(class="col-md-2") }}
+                    {{ form.interestPaymentDate1.label(class="col-md-2") }}
                     <div class="col-md-2">
-                        {{ paydate(class="form-control", placeholder="MMDD（例： 3/31 → 0331）") }}
+                        {{ form.interestPaymentDate1(class="form-control", placeholder="MMDD（例： 3/31 → 0331）") }}
                     </div>
-                {% endfor %}
-              </div>
-              <div class="form-group">
-                  {{ form.interestPaymentDate2.label(class="col-md-2") }}
-                  <div class="col-md-4">
-                      {{ form.interestPaymentDate2(class="form-control", placeholder="MMDD（例： 9/30 → 0930）") }}
-                  </div>
+                    {{ form.interestPaymentDate2.label(class="col-md-2") }}
+                    <div class="col-md-2">
+                        {{ form.interestPaymentDate2(class="form-control")}}
+                    </div>
               </div>
               <div class="form-group">
                   {{ form.redemptionDate.label(class="col-md-2") }}
