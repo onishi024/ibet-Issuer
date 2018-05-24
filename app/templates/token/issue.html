@@ -59,6 +59,9 @@
                     <div class="col-md-4">
                         {{ form.interestPaymentDate1(class="form-control", placeholder="MMDD（例：3/31 → 0331）") }}
                     </div>
+                    <div class="col-md-4">
+                        <button type="button" class="btn btn-default" onclick="addPayDate()">利払日追加</button>
+                    </div>
               </div>
               <div class="form-group" id="interestPaymentDate2" style="display: none;">
                     {{ form.interestPaymentDate2.label(class="col-md-2") }}
@@ -203,5 +206,20 @@
       orientation: "bottom right",
       todayBtn: true
   });
+  var pay_date_count = 2;
+  function addPayDate() {
+    if(pay_date_count <= 12) {
+        $('#interestPaymentDate' + pay_date_count).show();
+        pay_date_count++;
+    } else {
+        new Noty({
+            type: 'error',
+            layout: 'topCenter',
+            text: '利払日は12ヶ月分まで登録できます。',
+            theme: 'bootstrap-v3',
+            timeout: 3000,
+        }).show();  
+    }
+  }
 </script>
 {% endblock %}
