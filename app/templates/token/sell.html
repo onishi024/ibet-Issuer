@@ -20,17 +20,15 @@
         <div class="box-header with-border">
             <h3 class="box-title">募集</h3>
         </div>
-        <table id="data_table" class="table table-bordered table-hover">
-            <tbody>
-                <tr>
-                    <td>form.name.label</td><td>{{ form.name.data }}</td>
-                </tr>
-            </tbody>
-        </table>
-        <form class="form-horizontal" method="POST" role="form" action="{{ url_for('token.sell', token_address=form.token_address.data) }}">
-            {{ form.csrf_token }}
-            <div class="box-body">
-                <div class="form-group">
+        <div class="box-body">
+            <table id="data_table" class="table table-bordered table-hover">
+                <tbody>
+                    <tr>
+                        <td>{{ form.name.label }}</td><td>{{ form.name.data }}</td>
+                    </tr>
+                </tbody>
+            </table>
+                <!-- <div class="form-group">
                     {{ form.name.label(class="col-md-2") }}
                     <div class="col-md-3">
                         {{ form.name.data }}
@@ -188,8 +186,10 @@
                     <div class="col-md-8">
                         {{ form.purpose.data }}
                     </div>
-                </div>
+                </div> -->
                 <br>
+            <form class="form-horizontal" method="POST" role="form" action="{{ url_for('token.sell', token_address=form.token_address.data) }}">
+                {{ form.csrf_token }}
                 <div class="form-group">
                     {{ form.sellPrice.label(class="col-md-2") }}
                     <div class="col-md-4">
@@ -197,12 +197,12 @@
                     </div>
                 </div>
                 <br>
-            </div>
-            <div class="box-footer">
-                <button type="button" class="btn btn-default" onclick="location.href= '{{ url_for("token.positions") }}'">キャンセル</button>
-                {{ form.submit(class="btn btn-success") }}
-            </div>
-        </form>
+                </div>
+                <div class="box-footer">
+                    <button type="button" class="btn btn-default" onclick="location.href= '{{ url_for("token.positions") }}'">キャンセル</button>
+                    {{ form.submit(class="btn btn-success") }}
+                </div>
+            </form>
     </div>
 </section>
 {% endblock %}
