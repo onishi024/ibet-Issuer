@@ -20,6 +20,13 @@
         <div class="box-header with-border">
             <h3 class="box-title">募集</h3>
         </div>
+        <table id="data_table" class="table table-bordered table-hover">
+            <tbody>
+                <tr>
+                    <td>form.name.label</td><td>{{ form.name.data }}</td>
+                </tr>
+            </tbody>
+        </table>
         <form class="form-horizontal" method="POST" role="form" action="{{ url_for('token.sell', token_address=form.token_address.data) }}">
             {{ form.csrf_token }}
             <div class="box-body">

@@ -645,13 +645,6 @@ def sell(token_address):
     interestPaymentDate = json.loads(
         interestPaymentDate_string.replace("'", '"').replace('True', 'true').replace('False', 'false'))
 
-    # interestPaymentDate1 = ''
-    # interestPaymentDate2 = ''
-    # if 'interestPaymentDate1' in interestPaymentDate:
-    #     interestPaymentDate1 = interestPaymentDate['interestPaymentDate1']
-    # if 'interestPaymentDate2' in interestPaymentDate:
-    #     interestPaymentDate2 = interestPaymentDate['interestPaymentDate2']
-
     redemptionDate = TokenContract.functions.redemptionDate().call()
     redemptionAmount = TokenContract.functions.redemptionAmount().call()
     returnDate = TokenContract.functions.returnDate().call()
