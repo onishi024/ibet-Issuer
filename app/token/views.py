@@ -485,7 +485,17 @@ def issue():
 
             interestPaymentDate = {
                 'interestPaymentDate1': form.interestPaymentDate1.data,
-                'interestPaymentDate2': form.interestPaymentDate2.data
+                'interestPaymentDate2': form.interestPaymentDate2.data,
+                'interestPaymentDate3': form.interestPaymentDate3.data,
+                'interestPaymentDate4': form.interestPaymentDate4.data,
+                'interestPaymentDate5': form.interestPaymentDate5.data,
+                'interestPaymentDate6': form.interestPaymentDate6.data,
+                'interestPaymentDate7': form.interestPaymentDate7.data,
+                'interestPaymentDate8': form.interestPaymentDate8.data,
+                'interestPaymentDate9': form.interestPaymentDate9.data,
+                'interestPaymentDate10': form.interestPaymentDate10.data,
+                'interestPaymentDate11': form.interestPaymentDate11.data,
+                'interestPaymentDate12': form.interestPaymentDate12.data
             }
 
             interestPaymentDate_string = json.dumps(interestPaymentDate)
