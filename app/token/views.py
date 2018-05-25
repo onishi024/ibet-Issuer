@@ -128,6 +128,7 @@ def holders(token_address):
         key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
         cipher = PKCS1_OAEP.new(key)
     except:
+        traceback.print_exc()
         pass
 
     # Token Contract
