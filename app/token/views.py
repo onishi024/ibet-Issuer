@@ -289,13 +289,6 @@ def setting(token_address):
     interestPaymentDate = json.loads(
         interestPaymentDate_string.replace("'", '"').replace('True', 'true').replace('False', 'false'))
 
-    interestPaymentDate1 = ''
-    interestPaymentDate2 = ''
-    if 'interestPaymentDate1' in interestPaymentDate:
-        interestPaymentDate1 = interestPaymentDate['interestPaymentDate1']
-    if 'interestPaymentDate2' in interestPaymentDate:
-        interestPaymentDate2 = interestPaymentDate['interestPaymentDate2']
-
     redemptionDate = TokenContract.functions.redemptionDate().call()
     redemptionAmount = TokenContract.functions.redemptionAmount().call()
     returnDate = TokenContract.functions.returnDate().call()
@@ -334,8 +327,18 @@ def setting(token_address):
         form.totalSupply.data = totalSupply
         form.faceValue.data = faceValue
         form.interestRate.data = interestRate
-        form.interestPaymentDate1.data = interestPaymentDate1
-        form.interestPaymentDate2.data = interestPaymentDate2
+        form.interestPaymentDate1.data = interestPaymentDate['interestPaymentDate1']
+        form.interestPaymentDate2.data = interestPaymentDate['interestPaymentDate2']
+        form.interestPaymentDate3.data = interestPaymentDate['interestPaymentDate3']
+        form.interestPaymentDate4.data = interestPaymentDate['interestPaymentDate4']
+        form.interestPaymentDate5.data = interestPaymentDate['interestPaymentDate5']
+        form.interestPaymentDate6.data = interestPaymentDate['interestPaymentDate6']
+        form.interestPaymentDate7.data = interestPaymentDate['interestPaymentDate7']
+        form.interestPaymentDate8.data = interestPaymentDate['interestPaymentDate8']
+        form.interestPaymentDate9.data = interestPaymentDate['interestPaymentDate9']
+        form.interestPaymentDate10.data = interestPaymentDate['interestPaymentDate10']
+        form.interestPaymentDate11.data = interestPaymentDate['interestPaymentDate11']
+        form.interestPaymentDate12.data = interestPaymentDate['interestPaymentDate12']
         form.redemptionDate.data = redemptionDate
         form.redemptionAmount.data = redemptionAmount
         form.returnDate.data = returnDate
