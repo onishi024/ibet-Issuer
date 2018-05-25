@@ -88,7 +88,7 @@ class SellTokenForm(Form):
     purpose = StringField("発行目的", validators=[])
     abi = TextAreaField("インターフェース", validators=[])
     bytecode = TextAreaField("バイトコード", validators=[])
-    sellPrice = IntegerField("売出価格", validators=[Required('売出価格は必須です。')])
+    sellPrice = IntegerField("売出価格（額面当たり）", validators=[Required('売出価格は必須です。')])
     submit = SubmitField('募集開始')
 
     def __init__(self, sell_token=None, *args, **kwargs):
