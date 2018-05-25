@@ -20,6 +20,26 @@
         <div class="box-header with-border">
             <h3 class="box-title">募集</h3>
         </div>
+        <form class="form-horizontal" method="POST" role="form" action="{{ url_for('token.sell', token_address=form.token_address.data) }}">
+            {{ form.csrf_token }}
+            <div class="box-body">
+                <div class="form-group">
+                    {{ form.sellPrice.label(class="col-md-2") }}
+                    <div class="col-md-4">
+                        {{ form.sellPrice(class="form-control") }}
+                    </div>
+                </div>
+            </div>
+            <div class="box-footer">
+                <button type="button" class="btn btn-default" onclick="location.href= '{{ url_for("token.positions") }}'">キャンセル</button>
+                {{ form.submit(class="btn btn-success") }}
+            </div>
+        </form>
+    </div>
+    <div class="box box-default">
+        <div class="box-header with-border">
+            <h3 class="box-title">債券詳細</h3>
+        </div>
         <div class="box-body">
             <table id="data_table" class="table table-bordered table-hover">
                 <tbody>
@@ -63,21 +83,7 @@
                     </tr>
                 </tbody>
             </table>
-            <form class="form-horizontal" method="POST" role="form" action="{{ url_for('token.sell', token_address=form.token_address.data) }}">
-                {{ form.csrf_token }}
-                <div class="form-group">
-                    {{ form.sellPrice.label(class="col-md-2") }}
-                    <div class="col-md-4">
-                        {{ form.sellPrice(class="form-control") }}
-                    </div>
-                </div>
-                <br>
-                </div>
-                <div class="box-footer">
-                    <button type="button" class="btn btn-default" onclick="location.href= '{{ url_for("token.positions") }}'">キャンセル</button>
-                    {{ form.submit(class="btn btn-success") }}
-                </div>
-            </form>
+        </div>
     </div>
 </section>
 {% endblock %}
