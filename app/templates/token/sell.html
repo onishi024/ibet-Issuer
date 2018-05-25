@@ -25,169 +25,54 @@
                 <tbody>
                     <tr>
                         <td>{{ form.name.label }}</td><td>{{ form.name.data }}</td>
+                        <td>{{ form.symbol.label }}</td><td>{{ form.symbol.data }}</td>
+                        <td>{{ form.totalSupply.label }}</td><td>{{ form.totalSupply.data }}</td>
+                        <td>{{ form.faceValue.label }}</td><td>{{ form.faceValue.data }}</td>
+                        <td>{{ form.interestRate.label }}</td><td>{{ form.interestRate.data }}</td>
+                        {% if form.interestPaymentDate1.data != '' %}
+                            <td>{{ form.interestPaymentDate1.label }}</td><td>{{ form.interestPaymentDate1.data }}</td>
+                        {% endif %}
+                        {% if form.interestPaymentDate2.data != '' %}
+                            <td>{{ form.interestPaymentDate2.label }}</td><td>{{ form.interestPaymentDate2.data }}</td>
+                        {% endif %}
+                        {% if form.interestPaymentDate3.data != '' %}
+                            <td>{{ form.interestPaymentDate3.label }}</td><td>{{ form.interestPaymentDate3.data }}</td>
+                        {% endif %}
+                        {% if form.interestPaymentDate4.data != '' %}
+                            <td>{{ form.interestPaymentDate4.label }}</td><td>{{ form.interestPaymentDate4.data }}</td>
+                        {% endif %}
+                        {% if form.interestPaymentDate5.data != '' %}
+                            <td>{{ form.interestPaymentDate5.label }}</td><td>{{ form.interestPaymentDate5.data }}</td>
+                        {% endif %}
+                        {% if form.interestPaymentDate6.data != '' %}
+                            <td>{{ form.interestPaymentDate6.label }}</td><td>{{ form.interestPaymentDate6.data }}</td>
+                        {% endif %}
+                        {% if form.interestPaymentDate7.data != '' %}
+                            <td>{{ form.interestPaymentDate7.label }}</td><td>{{ form.interestPaymentDate7.data }}</td>
+                        {% endif %}
+                        {% if form.interestPaymentDate8.data != '' %}
+                            <td>{{ form.interestPaymentDate8.label }}</td><td>{{ form.interestPaymentDate8.data }}</td>
+                        {% endif %}
+                        {% if form.interestPaymentDate9.data != '' %}
+                            <td>{{ form.interestPaymentDate9.label }}</td><td>{{ form.interestPaymentDate9.data }}</td>
+                        {% endif %}
+                        {% if form.interestPaymentDate10.data != '' %}
+                            <td>{{ form.interestPaymentDate10.label }}</td><td>{{ form.interestPaymentDate10.data }}</td>
+                        {% endif %}
+                        {% if form.interestPaymentDate11.data != '' %}
+                            <td>{{ form.interestPaymentDate11.label }}</td><td>{{ form.interestPaymentDate11.data }}</td>
+                        {% endif %}
+                        {% if form.interestPaymentDate12.data != '' %}
+                            <td>{{ form.interestPaymentDate12.label }}</td><td>{{ form.interestPaymentDate12.data }}</td>
+                        {% endif %}
+                        <td>{{ form.redemptionDate.label }}</td><td>{{ form.redemptionDate.data }}</td>
+                        <td>{{ form.redemptionAmount.label }}</td><td>{{ form.redemptionAmount.data }}</td>
+                        <td>{{ form.returnDate.label }}</td><td>{{ form.returnDate.data }}</td>
+                        <td>{{ form.returnAmount.label }}</td><td>{{ form.returnAmount.data }}</td>
+                        <td>{{ form.purpose.label }}</td><td>{{ form.purpose.data }}</td>
                     </tr>
                 </tbody>
             </table>
-                <!-- <div class="form-group">
-                    {{ form.name.label(class="col-md-2") }}
-                    <div class="col-md-3">
-                        {{ form.name.data }}
-                    </div>
-                </div>
-                <div class="form-group">
-                    {{ form.symbol.label(class="col-md-2") }}
-                    <div class="col-md-3">
-                        {{ form.symbol.data }}
-                    </div>
-                </div>
-                <div class="form-group">
-                    {{ form.totalSupply.label(class="col-md-2") }}
-                    <div class="col-md-3">
-                        {{ form.totalSupply.data }}
-                    </div>
-                </div>
-                <div class="form-group">
-                    {{ form.faceValue.label(class="col-md-2") }}
-                    <div class="col-md-4">
-                        {{ form.faceValue.data }}
-                    </div>
-                </div>
-                <div class="form-group">
-                    {{ form.interestRate.label(class="col-md-2") }}
-                    <div class="col-md-4">
-                        {{ form.interestRate.data }}
-                    </div>
-                </div>
-
-
-                {% if form.interestPaymentDate1.data != '' %}
-                    <div class="form-group">
-                        {{ form.interestPaymentDate1.label(class="col-md-2") }}
-                        <div class="col-md-4">
-                            {{ form.interestPaymentDate1.data }}
-                        </div>
-                    </div>
-                {% endif %}
-                {% if form.interestPaymentDate2.data != '' %}
-                    <div class="form-group">
-                        {{ form.interestPaymentDate2.label(class="col-md-2") }}
-                        <div class="col-md-4">
-                            {{ form.interestPaymentDate2.data }}
-                        </div>
-                    </div>
-                {% endif %}
-                {% if form.interestPaymentDate3.data != '' %}
-                    <div class="form-group">
-                        {{ form.interestPaymentDate3.label(class="col-md-2") }}
-                        <div class="col-md-4">
-                            {{ form.interestPaymentDate3.data }}
-                        </div>
-                    </div>
-                {% endif %}
-                {% if form.interestPaymentDate4.data != '' %}
-                    <div class="form-group">
-                        {{ form.interestPaymentDate4.label(class="col-md-2") }}
-                        <div class="col-md-4">
-                            {{ form.interestPaymentDate4.data }}
-                        </div>
-                    </div>
-                {% endif %}
-                {% if form.interestPaymentDate5.data != '' %}
-                    <div class="form-group">
-                        {{ form.interestPaymentDate5.label(class="col-md-2") }}
-                        <div class="col-md-4">
-                            {{ form.interestPaymentDate5.data }}
-                        </div>
-                    </div>
-                {% endif %}
-                {% if form.interestPaymentDate6.data != '' %}
-                    <div class="form-group">
-                        {{ form.interestPaymentDate6.label(class="col-md-2") }}
-                        <div class="col-md-4">
-                            {{ form.interestPaymentDate6.data }}
-                        </div>
-                    </div>
-                {% endif %}
-                {% if form.interestPaymentDate7.data != '' %}
-                    <div class="form-group">
-                        {{ form.interestPaymentDate7.label(class="col-md-2") }}
-                        <div class="col-md-4">
-                            {{ form.interestPaymentDate7.data }}
-                        </div>
-                    </div>
-                {% endif %}
-                {% if form.interestPaymentDate8.data != '' %}
-                    <div class="form-group">
-                        {{ form.interestPaymentDate8.label(class="col-md-2") }}
-                        <div class="col-md-4">
-                            {{ form.interestPaymentDate8.data }}
-                        </div>
-                    </div>
-                {% endif %}
-                {% if form.interestPaymentDate9.data != '' %}
-                    <div class="form-group">
-                        {{ form.interestPaymentDate9.label(class="col-md-2") }}
-                        <div class="col-md-4">
-                            {{ form.interestPaymentDate9.data }}
-                        </div>
-                    </div>
-                {% endif %}
-                {% if form.interestPaymentDate10.data != '' %}
-                    <div class="form-group">
-                        {{ form.interestPaymentDate10.label(class="col-md-2") }}
-                        <div class="col-md-4">
-                            {{ form.interestPaymentDate10.data }}
-                        </div>
-                    </div>
-                {% endif %}
-                {% if form.interestPaymentDate11.data != '' %}
-                    <div class="form-group">
-                        {{ form.interestPaymentDate11.label(class="col-md-2") }}
-                        <div class="col-md-4">
-                            {{ form.interestPaymentDate11.data }}
-                        </div>
-                    </div>
-                {% endif %}
-                {% if form.interestPaymentDate12.data != '' %}
-                    <div class="form-group">
-                        {{ form.interestPaymentDate12.label(class="col-md-2") }}
-                        <div class="col-md-4">
-                            {{ form.interestPaymentDate12.data }}
-                        </div>
-                    </div>
-                {% endif %}
-
-                <div class="form-group">
-                    {{ form.redemptionDate.label(class="col-md-2") }}
-                    <div class="col-md-4">
-                        {{ form.redemptionDate.data }}
-                    </div>
-                </div>
-                <div class="form-group">
-                    {{ form.redemptionAmount.label(class="col-md-2") }}
-                    <div class="col-md-4">
-                        {{ form.redemptionAmount.data }}
-                    </div>
-                </div>
-                <div class="form-group">
-                    {{ form.returnDate.label(class="col-md-2") }}
-                    <div class="col-md-4">
-                        {{ form.returnDate.data }}
-                    </div>
-                </div>
-                <div class="form-group">
-                    {{ form.returnAmount.label(class="col-md-2") }}
-                    <div class="col-md-8">
-                        {{ form.returnAmount.data }}
-                    </div>
-                </div>
-                <div class="form-group">
-                    {{ form.purpose.label(class="col-md-2") }}
-                    <div class="col-md-8">
-                        {{ form.purpose.data }}
-                    </div>
-                </div> -->
-                <br>
             <form class="form-horizontal" method="POST" role="form" action="{{ url_for('token.sell', token_address=form.token_address.data) }}">
                 {{ form.csrf_token }}
                 <div class="form-group">
