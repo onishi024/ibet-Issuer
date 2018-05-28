@@ -4,4 +4,4 @@ source ~/.bash_profile
 cd /app/tmr-issuer
 
 # test
-pytest
+python manage.py test
