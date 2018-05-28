@@ -60,8 +60,8 @@ class Config:
 
     WEB3_HTTP_PROVIDER = os.environ.get('WEB3_HTTP_PROVIDER') or 'http://localhost:8545'
 
-    #web3 = Web3(Web3.HTTPProvider(WEB3_HTTP_PROVIDER))
-    ETH_ACCOUNT = os.environ.get('ETH_ACCOUNT') #or web3.eth.accounts[0]
+    web3 = Web3(Web3.HTTPProvider(WEB3_HTTP_PROVIDER))
+    ETH_ACCOUNT = os.environ.get('ETH_ACCOUNT') or web3.eth.accounts[0]
     ETH_ACCOUNT_PASSWORD = os.environ.get('ETH_ACCOUNT_PASSWORD')
 
     # TokenList-Contract
