@@ -194,9 +194,12 @@ def holders(token_address):
                 name = ''
             else:
                 ciphertext = base64.decodestring(encrypted_info.encode('utf-8'))
-                message = cipher.decrypt(ciphertext)
-                personal_info_json = json.loads(message)
-                name = personal_info_json['name']
+                try:
+                    message = cipher.decrypt(ciphertext)
+                    personal_info_json = json.loads(message)
+                    name = personal_info_json['name']
+                except:
+                    name = ''
 
             holder = {
                 'account_address':account_address,
@@ -264,8 +267,11 @@ def holder(token_address, account_address):
         pass
     else:
         ciphertext = base64.decodestring(encrypted_info.encode('utf-8'))
-        message = cipher.decrypt(ciphertext)
-        personal_info = json.loads(message)
+        try:
+            message = cipher.decrypt(ciphertext)
+            personal_info = json.loads(message)
+        except:
+            pass
 
     return render_template('token/holder.html', personal_info=personal_info, token_address=token_address)
 
