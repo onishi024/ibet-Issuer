@@ -3,7 +3,6 @@ from flask import render_template, request, jsonify
 from flask_login import login_required
 from .index import index_blueprint
 
-logging.basicConfig(level=logging.DEBUG)
 from logging import getLogger
 logger = getLogger('api')
 
