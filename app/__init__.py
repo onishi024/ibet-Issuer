@@ -3,7 +3,6 @@ from flask import Flask
 from flask_mail import Mail
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
-from raven.contrib.flask import Sentry
 from config import config
 from . import errors
 
@@ -24,7 +23,6 @@ def create_app(config_name):
     mail.init_app(app)
     db.init_app(app)
     login_manager.init_app(app)
-    sentry.init_app(app)
 
     # logging
     from logging import getLogger

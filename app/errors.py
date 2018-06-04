@@ -4,7 +4,8 @@ from flask_login import login_required
 from .index import index_blueprint
 
 logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger('errors')
+from logging import getLogger
+logger = getLogger('api')
 
 @index_blueprint.app_errorhandler(403)
 def forbidden(e):
@@ -26,6 +27,7 @@ def page_not_found(e):
 
 @index_blueprint.app_errorhandler(500)
 def internal_server_error(e):
+    logger.exception(e)
     if request.accept_mimetypes.accept_json and not request.accept_mimetypes.accept_html:
         response = jsonify({'error': 'internal server error'})
         response.status_code = 500

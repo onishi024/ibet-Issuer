@@ -68,4 +68,3 @@ web3==4.2.1
 websockets==4.0.1
 Werkzeug==0.14.1
 WTForms==2.1
-raven-6.9.0
