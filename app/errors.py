@@ -1,4 +1,3 @@
-import logging
 from flask import render_template, request, jsonify
 from flask_login import login_required
 from .index import index_blueprint
