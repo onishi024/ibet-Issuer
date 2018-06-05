@@ -44,9 +44,9 @@ def flash_errors(form):
         for error in errors:
             flash(error, 'error')
 
-#+++++++++++++++++++++++++++++++
-# Views
-#+++++++++++++++++++++++++++++++
+####################################################
+# 発行済債券一覧
+####################################################
 @token.route('/tokenlist', methods=['GET'])
 @login_required
 def list():
@@ -120,6 +120,9 @@ def list():
 
     return render_template('token/list.html', tokens=token_list)
 
+####################################################
+# 債券保有者一覧
+####################################################
 @token.route('/holders/<string:token_address>', methods=['GET'])
 @login_required
 def holders(token_address):
@@ -212,6 +215,9 @@ def holders(token_address):
     return render_template('token/holders.html', \
         holders=holders, token_address=token_address, token_name=token_name)
 
+####################################################
+# 債券保有者詳細
+####################################################
 @token.route('/holder/<string:token_address>/<string:account_address>', methods=['GET'])
 @login_required
 def holder(token_address, account_address):
@@ -275,6 +281,9 @@ def holder(token_address, account_address):
 
     return render_template('token/holder.html', personal_info=personal_info, token_address=token_address)
 
+####################################################
+# 債券設定
+####################################################
 @token.route('/setting/<string:token_address>', methods=['GET', 'POST'])
 @login_required
 def setting(token_address):
@@ -359,6 +368,9 @@ def setting(token_address):
         form.bytecode.data = token.bytecode
         return render_template('token/setting.html', form=form, token_address=token_address)
 
+####################################################
+# 認定申請
+####################################################
 @token.route('/request_signature/<string:token_address>', methods=['GET','POST'])
 @login_required
 def request_signature(token_address):
@@ -421,6 +433,9 @@ def request_signature(token_address):
         form.signer.data = ''
         return render_template('token/request_signature.html', form=form)
 
+####################################################
+# 債券公開
+####################################################
 @token.route('/release', methods=['POST'])
 @login_required
 def release():
@@ -448,6 +463,9 @@ def release():
     flash('公開中です。公開開始までに数分程かかることがあります。', 'success')
     return redirect(url_for('.setting', token_address=token_address))
 
+####################################################
+# 債券償還
+####################################################
 @token.route('/redeem', methods=['POST'])
 @login_required
 def redeem():
@@ -476,6 +494,9 @@ def redeem():
     flash('償還処理中です。完了までに数分程かかることがあります。', 'success')
     return redirect(url_for('.setting', token_address=token_address))
 
+####################################################
+# 債券新規発行
+####################################################
 @token.route('/issue', methods=['GET', 'POST'])
 @login_required
 def issue():
@@ -549,6 +570,9 @@ def issue():
     else: # GET
         return render_template('token/issue.html', form=form)
 
+####################################################
+# 保有債券一覧
+####################################################
 @token.route('/positions', methods=['GET'])
 @login_required
 def positions():
@@ -632,6 +656,9 @@ def positions():
 
     return render_template('token/positions.html', position_list=position_list)
 
+####################################################
+# 債券売出
+####################################################
 @token.route('/sell/<string:token_address>', methods=['GET', 'POST'])
 @login_required
 def sell(token_address):
@@ -760,7 +787,7 @@ def sell(token_address):
         return render_template('token/sell.html', form=form)
 
 ####################################################
-# 債券募集停止
+# 債券売出停止
 ####################################################
 @token.route('/cancel_order/<int:order_id>', methods=['GET', 'POST'])
 @login_required
@@ -820,6 +847,9 @@ def cancel_order(order_id):
         form.price.data = price
         return render_template('token/cancel_order.html', form=form)
 
+####################################################
+# 権限エラー
+####################################################
 @token.route('/PermissionDenied', methods=['GET', 'POST'])
 @login_required
 def permissionDenied():
