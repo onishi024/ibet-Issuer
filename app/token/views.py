@@ -300,7 +300,7 @@ def setting(token_address):
     symbol = TokenContract.functions.symbol().call()
     totalSupply = TokenContract.functions.totalSupply().call()
     faceValue = TokenContract.functions.faceValue().call()
-    interestRate = TokenContract.functions.interestRate().call()
+    interestRate = TokenContract.functions.interestRate().call() * 0.001
 
     interestPaymentDate_string = TokenContract.functions.interestPaymentDate().call()
     interestPaymentDate = json.loads(
@@ -538,7 +538,7 @@ def issue():
                 form.symbol.data,
                 form.totalSupply.data,
                 form.faceValue.data,
-                form.interestRate.data,
+                int(form.interestRate.data * 1000),
                 interestPaymentDate_string,
                 form.redemptionDate.data,
                 form.redemptionAmount.data,
@@ -677,7 +677,7 @@ def sell(token_address):
     symbol = TokenContract.functions.symbol().call()
     totalSupply = TokenContract.functions.totalSupply().call()
     faceValue = TokenContract.functions.faceValue().call()
-    interestRate = TokenContract.functions.interestRate().call()
+    interestRate = TokenContract.functions.interestRate().call() * 0.001
 
     interestPaymentDate_string = TokenContract.functions.interestPaymentDate().call()
     interestPaymentDate = json.loads(
