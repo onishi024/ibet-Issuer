@@ -796,6 +796,7 @@ def cancel_order(order_id):
     name = TokenContract.functions.name().call()
     symbol = TokenContract.functions.symbol().call()
     totalSupply = TokenContract.functions.totalSupply().call()
+    faceValue = TokenContract.functions.faceValue().call()
 
     if request.method == 'POST':
         if form.validate():
@@ -815,6 +816,7 @@ def cancel_order(order_id):
         form.symbol.data = symbol
         form.totalSupply.data = totalSupply
         form.amount.data = amount
+        form.faceValue.data = faceValue
         form.price.data = price
         return render_template('token/cancel_order.html', form=form)
 
