@@ -39,10 +39,12 @@ RUN apt-get update -q \
 # remove unnessesory package files
 RUN apt clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-RUN git clone https://github.com/pyenv/pyenv.git /home/apl/.pyenv
-RUN chown -R apl:apl /home/apl
-
 # install pyenv
+RUN git clone https://github.com/pyenv/pyenv.git \
+ && mkdir -p /home/apl \
+ && mv /pyenv /home/apl/.pyenv/ \
+ && chown -R apl:apl /home/apl
+
 USER apl
 RUN echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~apl/.bash_profile \
  && echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~apl/.bash_profile \
@@ -55,20 +57,26 @@ RUN . ~/.bash_profile \
  && pyenv global 3.6.2 \
  && pip install --upgrade pip
 
-# requirements
+# requirements 1
 COPY requirements.txt /app/requirements.txt
 RUN . ~/.bash_profile \
  && pip install -r /app/requirements.txt
 
+# pyethereum
+USER root
+RUN git clone https://github.com/ethereum/pyethereum/ \
+    && rm pyethereum/.python-version \
+    && chown -R apl:apl pyethereum
+USER apl
+RUN . ~/.bash_profile \
+ && cd pyethereum \
+ && python setup.py install
+
 # app
 USER root
-COPY . /app/tmr-issuer
+COPY . /app/tmr-issuer/
 RUN chown -R apl:apl /app/tmr-issuer && \
     chmod 755 /app/tmr-issuer
+
 USER apl
-COPY run.sh /app/
-
-EXPOSE 5000
-
-CMD /app/run.sh
-
+CMD /app/tmr-issuer/app/tests/qa.sh
