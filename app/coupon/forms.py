@@ -13,6 +13,9 @@ class IssueCouponForm(Form):
     totalSupply = IntegerField("総発行量", validators=[Required('総発行量は必須です。')])
     redemptionDate = StringField("有効期限", validators=[])
     returnAmount = TextAreaField("リターン内容", validators=[])
+    image_small = StringField("商品画像（小）URL", validators=[])
+    image_medium = StringField("商品画像（中）URL", validators=[])
+    image_large = StringField("商品画像（大）URL", validators=[])
     submit = SubmitField('新規発行')
 
     def __init__(self, issue_coupon=None, *args, **kwargs):
