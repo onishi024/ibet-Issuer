@@ -344,8 +344,7 @@ def setting(token_address):
         form.totalSupply.data = totalSupply
         form.faceValue.data = faceValue
         form.interestRate.data = interestRate
-        if 'interestPaymentDate1' in interestPaymentDate:
-            form.interestPaymentDate1.data = interestPaymentDate['interestPaymentDate1']
+        form.interestPaymentDate1.data =  interestPaymentDate['interestPaymentDate1'] if 'interestPaymentDate1' in interestPaymentDate else "",
         if 'interestPaymentDate2' in interestPaymentDate:
             form.interestPaymentDate2.data = interestPaymentDate['interestPaymentDate2']
         if 'interestPaymentDate3' in interestPaymentDate:
