@@ -94,7 +94,7 @@ def issue():
                 form.totalSupply.data,
                 0, # 額面
                 0, # 利率
-                "", # 利払日
+                json.dumps({}), # 利払日
                 form.redemptionDate.data,
                 0, # 償還金額
                 "", # リターン実施日
