@@ -69,9 +69,9 @@ def transfer():
             )
 
             flash('設定変更を受け付けました。変更完了までに数分程かかることがあります。', 'success')
-            return render_template('account/bankinfo.html', form=form)
+            return render_template('coupon/transfer.html', form=form)
         else:
             flash_errors(form)
-            return render_template('account/bankinfo.html', form=form)
+            return render_template('coupon/transfer.html', form=form)
     else: # GET
         return render_template('coupon/transfer.html', form=form)
