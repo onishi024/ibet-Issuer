@@ -344,7 +344,8 @@ def setting(token_address):
         form.totalSupply.data = totalSupply
         form.faceValue.data = faceValue
         form.interestRate.data = interestRate
-        form.interestPaymentDate1.data =  interestPaymentDate['interestPaymentDate1'] if 'interestPaymentDate1' in interestPaymentDate else "",
+        if 'interestPaymentDate1' in interestPaymentDate:
+            form.interestPaymentDate1.data = interestPaymentDate['interestPaymentDate1']
         if 'interestPaymentDate2' in interestPaymentDate:
             form.interestPaymentDate2.data = interestPaymentDate['interestPaymentDate2']
         if 'interestPaymentDate3' in interestPaymentDate:
@@ -777,28 +778,52 @@ def sell(token_address):
         form.interestRate.data = interestRate
         if 'interestPaymentDate1' in interestPaymentDate:
             form.interestPaymentDate1.data = interestPaymentDate['interestPaymentDate1']
+        else:
+            form.interestPaymentDate1.data = ""
         if 'interestPaymentDate2' in interestPaymentDate:
             form.interestPaymentDate2.data = interestPaymentDate['interestPaymentDate2']
+        else:
+            form.interestPaymentDate2.data = ""
         if 'interestPaymentDate3' in interestPaymentDate:
             form.interestPaymentDate3.data = interestPaymentDate['interestPaymentDate3']
+        else:
+            form.interestPaymentDate3.data = ""
         if 'interestPaymentDate4' in interestPaymentDate:
             form.interestPaymentDate4.data = interestPaymentDate['interestPaymentDate4']
+        else:
+            form.interestPaymentDate5.data = ""
         if 'interestPaymentDate5' in interestPaymentDate:
             form.interestPaymentDate5.data = interestPaymentDate['interestPaymentDate5']
+        else:
+            form.interestPaymentDate5.data = ""
         if 'interestPaymentDate6' in interestPaymentDate:
             form.interestPaymentDate6.data = interestPaymentDate['interestPaymentDate6']
+        else:
+            form.interestPaymentDate6.data = ""
         if 'interestPaymentDate7' in interestPaymentDate:
             form.interestPaymentDate7.data = interestPaymentDate['interestPaymentDate7']
+        else:
+            form.interestPaymentDate7.data = ""
         if 'interestPaymentDate8' in interestPaymentDate:
             form.interestPaymentDate8.data = interestPaymentDate['interestPaymentDate8']
+        else:
+            form.interestPaymentDate8.data = ""
         if 'interestPaymentDate9' in interestPaymentDate:
             form.interestPaymentDate9.data = interestPaymentDate['interestPaymentDate9']
+        else:
+            form.interestPaymentDate9.data = ""
         if 'interestPaymentDate10' in interestPaymentDate:
             form.interestPaymentDate10.data = interestPaymentDate['interestPaymentDate10']
+        else:
+            form.interestPaymentDate10.data = ""
         if 'interestPaymentDate11' in interestPaymentDate:
             form.interestPaymentDate11.data = interestPaymentDate['interestPaymentDate11']
+        else:
+            form.interestPaymentDate11.data = ""
         if 'interestPaymentDate12' in interestPaymentDate:
             form.interestPaymentDate12.data = interestPaymentDate['interestPaymentDate12']
+        else:
+            form.interestPaymentDate12.data = ""
         form.redemptionDate.data = redemptionDate
         form.redemptionAmount.data = redemptionAmount
         form.returnDate.data = returnDate
