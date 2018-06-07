@@ -54,7 +54,7 @@ def transfer():
     form = TransferCouponForm()
     if request.method == 'POST':
         if form.validate():
-            token = Token.query.filter(Token.token_address==form.tokenAddress).first()
+            token = Token.query.filter(Token.token_address==form.tokenAddress.data).first()
             token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
 
             TokenContract = web3.eth.contract(
@@ -63,8 +63,8 @@ def transfer():
             )
 
             web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
-            gas = TokenContract.estimateGas().transfer(to_checksum_address(form.sendAddress), form.sendAmount)
-            TokenContract.functions.transfer(to_checksum_address(form.sendAddress), form.sendAmount).transact(
+            gas = TokenContract.estimateGas().transfer(to_checksum_address(form.sendAddress.data), form.sendAmount.data)
+            TokenContract.functions.transfer(to_checksum_address(form.sendAddress.data), form.sendAmount.data).transact(
                 {'from':Config.ETH_ACCOUNT, 'gas':gas}
             )
 
