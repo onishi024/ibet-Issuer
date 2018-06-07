@@ -45,7 +45,7 @@ def flash_errors(form):
             flash(error, 'error')
 
 ####################################################
-# 発行済債券一覧
+# クーポン割当
 ####################################################
 @coupon.route('/transfer', methods=['GET', 'POST'])
 @login_required
@@ -54,7 +54,21 @@ def transfer():
     form = TransferCouponForm()
     if request.method == 'POST':
         if form.validate():
-            flash('登録完了しました。', 'success')
+            token = Token.query.filter(Token.token_address==form.tokenAddress).first()
+            token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+
+            TokenContract = web3.eth.contract(
+                address= token.token_address,
+                abi = token_abi
+            )
+
+            web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
+            gas = TokenContract.estimateGas().transfer(to_checksum_address(form.sendAddress), form.sendAmount)
+            TokenContract.functions.transfer(to_checksum_address(form.sendAddress), form.sendAmount).transact(
+                {'from':Config.ETH_ACCOUNT, 'gas':gas}
+            )
+
+            flash('設定変更を受け付けました。変更完了までに数分程かかることがあります。', 'success')
             return render_template('account/bankinfo.html', form=form)
         else:
             flash_errors(form)
