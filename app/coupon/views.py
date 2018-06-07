@@ -73,9 +73,9 @@ def issue():
             return render_template('coupon/transfer.html', form=form)
         else:
             flash_errors(form)
-            return render_template('coupon/transfer.html', form=form)
+            return render_template('coupon/issue.html', form=form)
     else: # GET
-        return render_template('coupon/transfer.html', form=form)
+        return render_template('coupon/issue.html', form=form)
 
 # クーポン割当
 @coupon.route('/transfer', methods=['GET', 'POST'])
