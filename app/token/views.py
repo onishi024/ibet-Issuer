@@ -556,6 +556,7 @@ def issue():
                 form.redemptionAmount.data,
                 form.returnDate.data,
                 form.returnAmount.data,
+                form.purpose.data,
                 form.purpose.data
             ]
 

@@ -100,6 +100,7 @@ def issue():
                 "", # リターン実施日
                 form.returnAmount.data,
                 "", # 発行目的
+                "" # メモ
             ]
             tx_hash = TokenContract.deploy(
                 transaction={'from':Config.ETH_ACCOUNT, 'gas':4000000},
