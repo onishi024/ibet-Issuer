@@ -141,7 +141,7 @@ def issue():
                             {'from':Config.ETH_ACCOUNT, 'gas':gas}
                         )
             flash('新規発行を受け付けました。発行完了までに数分程かかることがあります。', 'success')
-            return render_template('coupon/issue.html', form=form)
+            return redirect(url_for('..token/tokenlist'))
         else:
             flash_errors(form)
             return render_template('coupon/issue.html', form=form)
