@@ -25,6 +25,7 @@ from sqlalchemy import desc
 from . import coupon
 from .. import db
 from ..models import Role, User, Token, Certification
+from .forms import *
 from ..decorators import admin_required
 from config import Config
 
@@ -46,7 +47,17 @@ def flash_errors(form):
 ####################################################
 # 発行済債券一覧
 ####################################################
-@coupon.route('/transfer', methods=['POST', 'GET'])
+@coupon.route('/transfer', methods=['GET', 'POST'])
 @login_required
 def transfer():
     logger.info('coupon/transfer')
+    form = TransferCouponForm()
+    if request.method == 'POST':
+        if form.validate():
+            flash('登録完了しました。', 'success')
+            return render_template('account/bankinfo.html', form=form)
+        else:
+            flash_errors(form)
+            return render_template('account/bankinfo.html', form=form)
+    else: # GET
+        return render_template('coupon/transfer.html', form=form)
