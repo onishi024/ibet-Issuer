@@ -791,7 +791,7 @@ def sell(token_address):
         if 'interestPaymentDate4' in interestPaymentDate:
             form.interestPaymentDate4.data = interestPaymentDate['interestPaymentDate4']
         else:
-            form.interestPaymentDate5.data = ""
+            form.interestPaymentDate4.data = ""
         if 'interestPaymentDate5' in interestPaymentDate:
             form.interestPaymentDate5.data = interestPaymentDate['interestPaymentDate5']
         else:
