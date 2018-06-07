@@ -42,6 +42,9 @@ def create_app(config_name):
     from .token import token as token_blueprint
     app.register_blueprint(token_blueprint)
 
+    from .coupon import coupon as coupon_blueprint
+    app.register_blueprint(coupon_blueprint)
+
     from .auth import auth as auth_blueprint
     app.register_blueprint(auth_blueprint, url_prefix='/auth')
 

@@ -30,6 +30,9 @@ class Config:
             ('token_issue', 'fa fa-plus-square-o', '債券新規発行', 'token.issue'),
             ('token_position', 'fa fa-yen', '債券募集管理', 'token.positions'),
         ]),
+        ('coupon', 'glyphicon glyphicon-list-alt', 'クーポン発行管理', [
+            ('coupon_transfer', 'fa fa-list', 'クーポン割当', 'coupon.transfer')
+        ]),
     ]
 
     NAVI_MENU_ADMIN = [
