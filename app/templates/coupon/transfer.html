@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block head %}
+    {{ super() }}
+    <link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
+{% endblock %}
+{% set active_page = "coupon_transfer" %}
+
+{% block title %}クーポン割当 - {% endblock %}
+{% block page_header %}クーポン割当{% endblock %}
+{% block page_description %}{% endblock %}
+{% block breadcrumb %}
+    <li><a href="{{ url_for('index.index') }}">トップ</a></li>
+    <li class="active">クーポン割当</li>
+{% endblock %}
+
+{% block page_content %}
+<section class="content">
+    <div class="box box-default">
+        <div class="box-header with-border">
+            <h3 class="box-title">クーポン割当</h3>
+        </div>
+        <form class="form-horizontal" method="POST" role="form" action="{{ url_for('coupon.transfer') }}">
+            {{ form.csrf_token }}
+            <div class="box-body">
+                <div class="form-group">
+                    {{ form.tokenAddress.label(class="col-md-2") }}
+                    <div class="col-md-4">
+                        {{ form.tokenAddress(class="form-control") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.sendAddress.label(class="col-md-2") }}
+                    <div class="col-md-4">
+                        {{ form.sendAddress(class="form-control") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.sendAmount.label(class="col-md-2") }}
+                    <div class="col-md-4">
+                        {{ form.sendAmount(class="form-control") }}
+                    </div>
+                </div>
+            </div>
+            <div class="box-footer">
+                {{ form.submit(class="btn btn-success") }}
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}
+
+{% block required_js %}
+{{ super() }}
+{% endblock %}
