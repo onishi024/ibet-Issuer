@@ -158,19 +158,33 @@ def transfer():
         if form.validate():
             token = Token.query.filter(Token.token_address==form.tokenAddress.data).first()
             token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
-
+            token_exchange_address = to_checksum_address(Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS)
+            token_exchange_abi = Config.IBET_SB_EXCHANGE_CONTRACT_ABI
+            owner = to_checksum_address(Config.ETH_ACCOUNT)
+            to_address = form.sendAddress.data
+            amount = form.sendAmount.data
             TokenContract = web3.eth.contract(
                 address= token.token_address,
                 abi = token_abi
             )
-
-            web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
-            gas = TokenContract.estimateGas().transfer(to_checksum_address(form.sendAddress.data), form.sendAmount.data)
-            TokenContract.functions.transfer(to_checksum_address(form.sendAddress.data), form.sendAmount.data).transact(
-                {'from':Config.ETH_ACCOUNT, 'gas':gas}
-            )
-
-            flash('設定変更を受け付けました。変更完了までに数分程かかることがあります。', 'success')
+            web3.personal.unlockAccount(owner,Config.ETH_ACCOUNT_PASSWORD,1000)
+            # 取引所コントラクトへトークン送信
+            deposit_gas = TokenContract.estimateGas().transfer(token_exchange_address, amount)
+            deposit_txid = TokenContract.functions.transfer(token_exchange_address, amount).\
+                        transact({'from':owner, 'gas':deposit_gas})
+            tx_receipt = wait_transaction_receipt(deposit_txid)
+            if tx_receipt is not None:
+                # 取引所コントラクトのtransferで送信相手へ送信
+                ExchangeContract = web3.eth.contract(
+                    address = token_exchange_address,
+                    abi = token_exchange_abi
+                )
+                transfer_gas = ExchangeContract.estimateGas().\
+                    transfer(token_address, to_address, amount)
+                transfer_txid = ExchangeContract.functions.\
+                    transfer(token_address, to_address, amount).\
+                    transact({'from':owner, 'gas':transfer_gas})
+            flash('送信を受け付けました。送信完了までに数分程かかることがあります。', 'success')
             return render_template('coupon/transfer.html', form=form)
         else:
             flash_errors(form)
