@@ -31,6 +31,7 @@ class Config:
             ('token_position', 'fa fa-yen', '債券募集管理', 'token.positions'),
         ]),
         ('coupon', 'glyphicon glyphicon-list-alt', 'クーポン発行管理', [
+            ('coupon_issue', 'fa fa-list', 'クーポン発行', 'coupon.issue'),
             ('coupon_transfer', 'fa fa-list', 'クーポン割当', 'coupon.transfer')
         ]),
     ]

@@ -45,8 +45,39 @@ def flash_errors(form):
             flash(error, 'error')
 
 ####################################################
-# クーポン割当
+# クーポン
 ####################################################
+# クーポン発行
+@coupon.route('/issue', methods=['GET', 'POST'])
+@login_required
+def issue():
+    logger.info('coupon/issue')
+    form = IssueCouponForm()
+    if request.method == 'POST':
+        if form.validate():
+            token = Token.query.filter(Token.token_address==form.tokenAddress.data).first()
+            token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+
+            TokenContract = web3.eth.contract(
+                address= token.token_address,
+                abi = token_abi
+            )
+
+            web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
+            gas = TokenContract.estimateGas().transfer(to_checksum_address(form.sendAddress.data), form.sendAmount.data)
+            TokenContract.functions.transfer(to_checksum_address(form.sendAddress.data), form.sendAmount.data).transact(
+                {'from':Config.ETH_ACCOUNT, 'gas':gas}
+            )
+
+            flash('設定変更を受け付けました。変更完了までに数分程かかることがあります。', 'success')
+            return render_template('coupon/transfer.html', form=form)
+        else:
+            flash_errors(form)
+            return render_template('coupon/transfer.html', form=form)
+    else: # GET
+        return render_template('coupon/transfer.html', form=form)
+
+# クーポン割当
 @coupon.route('/transfer', methods=['GET', 'POST'])
 @login_required
 def transfer():
