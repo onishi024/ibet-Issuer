@@ -344,18 +344,30 @@ def setting(token_address):
         form.totalSupply.data = totalSupply
         form.faceValue.data = faceValue
         form.interestRate.data = interestRate
-        form.interestPaymentDate1.data = interestPaymentDate['interestPaymentDate1']
-        form.interestPaymentDate2.data = interestPaymentDate['interestPaymentDate2']
-        form.interestPaymentDate3.data = interestPaymentDate['interestPaymentDate3']
-        form.interestPaymentDate4.data = interestPaymentDate['interestPaymentDate4']
-        form.interestPaymentDate5.data = interestPaymentDate['interestPaymentDate5']
-        form.interestPaymentDate6.data = interestPaymentDate['interestPaymentDate6']
-        form.interestPaymentDate7.data = interestPaymentDate['interestPaymentDate7']
-        form.interestPaymentDate8.data = interestPaymentDate['interestPaymentDate8']
-        form.interestPaymentDate9.data = interestPaymentDate['interestPaymentDate9']
-        form.interestPaymentDate10.data = interestPaymentDate['interestPaymentDate10']
-        form.interestPaymentDate11.data = interestPaymentDate['interestPaymentDate11']
-        form.interestPaymentDate12.data = interestPaymentDate['interestPaymentDate12']
+        if 'interestPaymentDate1' in interestPaymentDate:
+            form.interestPaymentDate1.data = interestPaymentDate['interestPaymentDate1']
+        if 'interestPaymentDate2' in interestPaymentDate:
+            form.interestPaymentDate2.data = interestPaymentDate['interestPaymentDate2']
+        if 'interestPaymentDate3' in interestPaymentDate:
+            form.interestPaymentDate3.data = interestPaymentDate['interestPaymentDate3']
+        if 'interestPaymentDate4' in interestPaymentDate:
+            form.interestPaymentDate4.data = interestPaymentDate['interestPaymentDate4']
+        if 'interestPaymentDate5' in interestPaymentDate:
+            form.interestPaymentDate5.data = interestPaymentDate['interestPaymentDate5']
+        if 'interestPaymentDate6' in interestPaymentDate:
+            form.interestPaymentDate6.data = interestPaymentDate['interestPaymentDate6']
+        if 'interestPaymentDate7' in interestPaymentDate:
+            form.interestPaymentDate7.data = interestPaymentDate['interestPaymentDate7']
+        if 'interestPaymentDate8' in interestPaymentDate:
+            form.interestPaymentDate8.data = interestPaymentDate['interestPaymentDate8']
+        if 'interestPaymentDate9' in interestPaymentDate:
+            form.interestPaymentDate9.data = interestPaymentDate['interestPaymentDate9']
+        if 'interestPaymentDate10' in interestPaymentDate:
+            form.interestPaymentDate10.data = interestPaymentDate['interestPaymentDate10']
+        if 'interestPaymentDate11' in interestPaymentDate:
+            form.interestPaymentDate11.data = interestPaymentDate['interestPaymentDate11']
+        if 'interestPaymentDate12' in interestPaymentDate:
+            form.interestPaymentDate12.data = interestPaymentDate['interestPaymentDate12']
         form.redemptionDate.data = redemptionDate
         form.redemptionAmount.data = redemptionAmount
         form.returnDate.data = returnDate
@@ -764,18 +776,30 @@ def sell(token_address):
         form.totalSupply.data = totalSupply
         form.faceValue.data = faceValue
         form.interestRate.data = interestRate
-        form.interestPaymentDate1.data = interestPaymentDate['interestPaymentDate1']
-        form.interestPaymentDate2.data = interestPaymentDate['interestPaymentDate2']
-        form.interestPaymentDate3.data = interestPaymentDate['interestPaymentDate3']
-        form.interestPaymentDate4.data = interestPaymentDate['interestPaymentDate4']
-        form.interestPaymentDate5.data = interestPaymentDate['interestPaymentDate5']
-        form.interestPaymentDate6.data = interestPaymentDate['interestPaymentDate6']
-        form.interestPaymentDate7.data = interestPaymentDate['interestPaymentDate7']
-        form.interestPaymentDate8.data = interestPaymentDate['interestPaymentDate8']
-        form.interestPaymentDate9.data = interestPaymentDate['interestPaymentDate9']
-        form.interestPaymentDate10.data = interestPaymentDate['interestPaymentDate10']
-        form.interestPaymentDate11.data = interestPaymentDate['interestPaymentDate11']
-        form.interestPaymentDate12.data = interestPaymentDate['interestPaymentDate12']
+        if 'interestPaymentDate1' in interestPaymentDate:
+            form.interestPaymentDate1.data = interestPaymentDate['interestPaymentDate1']
+        if 'interestPaymentDate2' in interestPaymentDate:
+            form.interestPaymentDate2.data = interestPaymentDate['interestPaymentDate2']
+        if 'interestPaymentDate3' in interestPaymentDate:
+            form.interestPaymentDate3.data = interestPaymentDate['interestPaymentDate3']
+        if 'interestPaymentDate4' in interestPaymentDate:
+            form.interestPaymentDate4.data = interestPaymentDate['interestPaymentDate4']
+        if 'interestPaymentDate5' in interestPaymentDate:
+            form.interestPaymentDate5.data = interestPaymentDate['interestPaymentDate5']
+        if 'interestPaymentDate6' in interestPaymentDate:
+            form.interestPaymentDate6.data = interestPaymentDate['interestPaymentDate6']
+        if 'interestPaymentDate7' in interestPaymentDate:
+            form.interestPaymentDate7.data = interestPaymentDate['interestPaymentDate7']
+        if 'interestPaymentDate8' in interestPaymentDate:
+            form.interestPaymentDate8.data = interestPaymentDate['interestPaymentDate8']
+        if 'interestPaymentDate9' in interestPaymentDate:
+            form.interestPaymentDate9.data = interestPaymentDate['interestPaymentDate9']
+        if 'interestPaymentDate10' in interestPaymentDate:
+            form.interestPaymentDate10.data = interestPaymentDate['interestPaymentDate10']
+        if 'interestPaymentDate11' in interestPaymentDate:
+            form.interestPaymentDate11.data = interestPaymentDate['interestPaymentDate11']
+        if 'interestPaymentDate12' in interestPaymentDate:
+            form.interestPaymentDate12.data = interestPaymentDate['interestPaymentDate12']
         form.redemptionDate.data = redemptionDate
         form.redemptionAmount.data = redemptionAmount
         form.returnDate.data = returnDate
