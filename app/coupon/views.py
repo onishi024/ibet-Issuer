@@ -180,11 +180,11 @@ def transfer():
                     abi = token_exchange_abi
                 )
                 transfer_gas = ExchangeContract.estimateGas().\
-                    transfer(token_address, to_address, amount)
+                    transfer(token.token_address, to_address, amount)
                 transfer_txid = ExchangeContract.functions.\
-                    transfer(token_address, to_address, amount).\
+                    transfer(token.token_address, to_address, amount).\
                     transact({'from':owner, 'gas':transfer_gas})
-            flash('送信を受け付けました。送信完了までに数分程かかることがあります。', 'success')
+            flash('処理を受け付けました。割当完了までに数分程かかることがあります。', 'success')
             return render_template('coupon/transfer.html', form=form)
         else:
             flash_errors(form)
