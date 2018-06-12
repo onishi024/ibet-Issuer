@@ -2,7 +2,6 @@
 import pytest
 import os
 import time
-import sqlalchemy as sa
 
 from .conftest import TestBase
 from .account_config import eth_account

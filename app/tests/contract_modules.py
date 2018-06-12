@@ -285,7 +285,7 @@ def processorIssueEvent():
         tx_hash_hex = '0x' + tx_hash[2:]
         
         try:
-            tx_receipt = web3.eth.getTransactionReceipt(tx_hash_hex)
+            tx_receipt = wait_transaction_receipt(tx_hash_hex)
         except:
             continue
 
