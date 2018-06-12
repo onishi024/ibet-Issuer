@@ -297,10 +297,6 @@ def processorIssueEvent(db):
                     contract_address = tx_receipt['contractAddress']
 
                     # 登録済みトークン情報に発行者のアドレスと、トークンアドレスの登録を行う。
-                    query_tokens = "update tokens " + \
-                        "set admin_address = \'" + admin_address + "\' , " + \
-                        "token_address = \'" + contract_address + "\' " + \
-                        "where tx_hash = \'" + tx_hash + "\'"
-                    engine.execute(query_tokens)
-
-                    print("issued --> " + contract_address)
+                    token.admin_address = admin_address
+                    token.contract_address = contract_address
+                    db.session.add(token)
