@@ -35,7 +35,6 @@ class TestWhiteList(TestBase):
     # ＜正常系1_2＞
     # 新規発行　→　発行済債券一覧の参照(1件) →　詳細画面
     def test_normal_1_2(self, app, db, shared_contract):
-        
         client = self.client_with_admin_login(app)
         # 新規発行
         response = client.post(
@@ -68,24 +67,18 @@ class TestWhiteList(TestBase):
         )
         assert response.status_code == 302
 
-        # 5秒待機
+        # 10秒待機
         time.sleep(10)
-
-        # 一覧
-        response = client.get(self.url_tokenlist)
-
-        logger.info(response.data)
-        
-
-        assert response.status_code == 200
-        assert '<title>発行済債券一覧'.encode('utf-8') in response.data
-        assert 'テスト債券'.encode('utf-8') in response.data
-        assert 'BOND'.encode('utf-8') in response.data
 
         # 設定画面
         token = Token.query.filter(Token.id==1).first()
         response = client.get(self.url_setting + token.token_address)
+        logger.info(response.data)
+        
         assert response.status_code == 200
+        assert '<title>債券詳細設定'.encode('utf-8') in response.data
+        assert 'テスト債券'.encode('utf-8') in response.data
+        assert 'BOND'.encode('utf-8') in response.data
 
 
 
