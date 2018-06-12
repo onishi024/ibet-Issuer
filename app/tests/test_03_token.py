@@ -103,3 +103,14 @@ class TestToken(TestBase):
             assert '商品券をプレゼント'.encode('utf-8') in response.data
             assert '新商品の開発資金として利用。'.encode('utf-8') in response.data
             assert 'メモ'.encode('utf-8') in response.data
+
+
+    # ＜正常系1_3＞
+    # 発行済債券一覧の参照(1件)
+    def test_normal_1_3(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
+        response = client.get(self.url_tokenlist)
+        assert response.status_code == 200
+        assert '<title>発行済債券一覧'.encode('utf-8') in response.data
+        assert 'テスト債券'.encode('utf-8') in response.data
+        assert 'BOND'.encode('utf-8') in response.data
