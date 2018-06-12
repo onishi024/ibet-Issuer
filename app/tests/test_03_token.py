@@ -68,7 +68,7 @@ class TestToken(TestBase):
         assert response.status_code == 302
 
         # 5秒待機
-        time.sleep(5)
+        time.sleep(15)
 
         # DB登録処理
         processorIssueEvent()
@@ -76,7 +76,7 @@ class TestToken(TestBase):
         # 設定画面
         tokens = Token.query.all()
         for token in tokens:
-            logger.info(token)
+            logger.info(token.id)
             logger.info(token.token_address)
             response = client.get(self.url_setting + token.token_address)
             logger.info(response.data)
