@@ -2,6 +2,7 @@
 import time
 import json
 import os
+import sqlalchemy as sa
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 from eth_utils import to_checksum_address
