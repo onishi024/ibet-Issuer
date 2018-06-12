@@ -26,6 +26,10 @@ class TestToken(TestBase):
         # Config設定は1_1で全て実施
         Config.ETH_ACCOUNT = eth_account['issuer']['account_address']
         Config.ETH_ACCOUNT_PASSWORD = eth_account['issuer']['password']
+        Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS = shared_contract['IbetStraightBondExchange']['address']
+        Config.WHITE_LIST_CONTRACT_ADDRESS = shared_contract['WhiteList']['address']
+        Config.TOKEN_LIST_CONTRACT_ADDRESS = shared_contract['TokenList']['address']
+        Config.PERSONAL_INFO_CONTRACT_ADDRESS = shared_contract['PersonalInfo']['address']
 
         client = self.client_with_admin_login(app)
         response = client.get(self.url_tokenlist)
