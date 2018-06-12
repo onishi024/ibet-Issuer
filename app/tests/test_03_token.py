@@ -21,7 +21,11 @@ class TestWhiteList(TestBase):
 
     # ＜正常系1_1＞
     # 発行済債券一覧の参照(0件)
-    def test_normal_1_1(self, app, shared_contract):      
+    def test_normal_1_1(self, app, shared_contract):
+        # Config設定は1_1で全て実施
+        Config.ETH_ACCOUNT = eth_account['issuer']['account_address']
+        Config.ETH_ACCOUNT_PASSWORD = eth_account['issuer']['password']
+
         client = self.client_with_admin_login(app)
         response = client.get(self.url_tokenlist)
         assert response.status_code == 200
@@ -30,7 +34,8 @@ class TestWhiteList(TestBase):
 
     # ＜正常系1_2＞
     # 新規発行　→　発行済債券一覧の参照(1件) →　詳細画面
-    def test_normal_1_2(self, app, db):
+    def test_normal_1_2(self, app, db, shared_contract):
+        
         client = self.client_with_admin_login(app)
         # 新規発行
         response = client.post(
