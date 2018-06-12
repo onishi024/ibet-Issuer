@@ -71,9 +71,9 @@ class TestWhiteList(TestBase):
         time.sleep(10)
 
         # 設定画面
-        token = Token.query.filter(Token.id==1).first()
-        logger.info(token.token_address)
-        response = client.get(self.url_setting + token.token_address)
+        tokens = Token.query.all()
+        logger.info(tokens[0].token_address)
+        response = client.get(self.url_setting + tokens[0].token_address)
         logger.info(response.data)
         
         assert response.status_code == 200
