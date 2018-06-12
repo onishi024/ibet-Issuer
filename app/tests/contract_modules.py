@@ -285,6 +285,7 @@ def processorIssueEvent():
     for row in token_unprocessed:
         tx_hash = row['tx_hash']
         tx_hash_hex = '0x' + tx_hash[2:]
+        logger.info(tx_hash_hex)
         
         try:
             tx_receipt = wait_transaction_receipt(tx_hash_hex)
