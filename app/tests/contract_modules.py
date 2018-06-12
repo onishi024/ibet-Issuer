@@ -277,7 +277,7 @@ def wait_transaction_receipt(tx_hash):
 
 # 発行済みトークンのアドレスをDBへ登録
 def processorIssueEvent():
-        # コントラクトアドレスが登録されていないTokenの一覧を抽出
+    # コントラクトアドレスが登録されていないTokenの一覧を抽出
     token_unprocessed = engine.execute(
         "select * from tokens where token_address IS NULL"
     )
@@ -285,6 +285,7 @@ def processorIssueEvent():
     logger.info(token_unprocessed)
 
     for row in token_unprocessed:
+        logger.info("aaaaa11111")
         tx_hash = row['tx_hash']
         tx_hash_hex = '0x' + tx_hash[2:]
         logger.info(tx_hash_hex)
