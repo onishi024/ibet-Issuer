@@ -10,6 +10,8 @@ from eth_utils import to_checksum_address
 from config import Config
 from .account_config import eth_account
 from .contract_config import IbetStraightBond, PersonalInfo, TokenList
+from logging import getLogger
+logger = getLogger('api')
 
 URI = os.environ.get('TEST_DATABASE_URL')
 engine = sa.create_engine(URI, echo=False)
@@ -288,7 +290,7 @@ def processorIssueEvent():
             tx_receipt = wait_transaction_receipt(tx_hash_hex)
         except:
             continue
-
+        logger.info(tx_receipt)
         if tx_receipt is not None :
             # ブロックの状態を確認して、コントラクトアドレスが登録されているかを確認する。
             if 'contractAddress' in tx_receipt.keys():
