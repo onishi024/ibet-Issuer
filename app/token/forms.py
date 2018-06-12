@@ -31,6 +31,7 @@ class IssueTokenForm(Form):
     returnDate = StringField("リターン実施日", validators=[])
     returnAmount = TextAreaField("リターン内容", validators=[])
     purpose = TextAreaField("発行目的", validators=[Required('発行目的は必須です。')])
+    memo = TextAreaField("メモ", validators=[Required('メモは必須です。')])
     submit = SubmitField('新規発行')
 
     def __init__(self, issue_token=None, *args, **kwargs):
@@ -61,6 +62,7 @@ class TokenSettingForm(Form):
     returnDate = StringField("リターン実施日", validators=[])
     returnAmount = TextAreaField("リターン内容", validators=[])
     purpose = TextAreaField("発行目的", validators=[Required('発行目的は必須です。')])
+    memo = TextAreaField("メモ", validators=[Required('メモは必須です。')])
     image_small = StringField("商品画像（小）URL", validators=[])
     image_medium = StringField("商品画像（中）URL", validators=[])
     image_large = StringField("商品画像（大）URL", validators=[])
@@ -96,6 +98,7 @@ class SellTokenForm(Form):
     returnDate = StringField("リターン実施日", validators=[])
     returnAmount = StringField("リターン内容", validators=[])
     purpose = StringField("発行目的", validators=[])
+    memo = TextAreaField("メモ", validators=[])
     abi = TextAreaField("インターフェース", validators=[])
     bytecode = TextAreaField("バイトコード", validators=[])
     sellPrice = IntegerField("売出価格（額面当り）", validators=[Required('売出価格は必須です。')])

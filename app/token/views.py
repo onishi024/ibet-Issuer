@@ -311,6 +311,7 @@ def setting(token_address):
     returnDate = TokenContract.functions.returnDate().call()
     returnAmount = TokenContract.functions.returnAmount().call()
     purpose = TokenContract.functions.purpose().call()
+    memo = TokenContract.functions.memo().call()
     image_small = TokenContract.functions.getImageURL(0).call()
     image_medium = TokenContract.functions.getImageURL(1).call()
     image_large = TokenContract.functions.getImageURL(2).call()
@@ -373,6 +374,7 @@ def setting(token_address):
         form.returnDate.data = returnDate
         form.returnAmount.data = returnAmount
         form.purpose.data = purpose
+        form.memo.data = memo
         form.image_small.data = image_small
         form.image_medium.data = image_medium
         form.image_large.data = image_large
@@ -557,7 +559,7 @@ def issue():
                 form.returnDate.data,
                 form.returnAmount.data,
                 form.purpose.data,
-                form.purpose.data
+                form.memo.data
             ]
 
             tx_hash = TokenContract.deploy(
@@ -701,6 +703,7 @@ def sell(token_address):
     returnDate = TokenContract.functions.returnDate().call()
     returnAmount = TokenContract.functions.returnAmount().call()
     purpose = TokenContract.functions.purpose().call()
+    memo = TokenContract.functions.memo().call()
 
     owner = to_checksum_address(Config.ETH_ACCOUNT)
     balance = TokenContract.functions.balanceOf(owner).call()
@@ -830,6 +833,7 @@ def sell(token_address):
         form.returnDate.data = returnDate
         form.returnAmount.data = returnAmount
         form.purpose.data = purpose
+        form.memo.data = memo
         form.abi.data = token.abi
         form.bytecode.data = token.bytecode
         form.sellPrice.data = None
