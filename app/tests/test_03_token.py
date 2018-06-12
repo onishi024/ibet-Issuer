@@ -21,7 +21,7 @@ class TestWhiteList(TestBase):
 
     # ＜正常系1_1＞
     # 発行済債券一覧の参照(0件)
-    def test_normal_1_1(self, app):      
+    def test_normal_1_1(self, app, shared_contract):      
         client = self.client_with_admin_login(app)
         response = client.get(self.url_tokenlist)
         assert response.status_code == 200
