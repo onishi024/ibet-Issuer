@@ -73,6 +73,10 @@ class TestWhiteList(TestBase):
 
         # 一覧
         response = client.get(self.url_tokenlist)
+
+        logger.info(response.data)
+        
+
         assert response.status_code == 200
         assert '<title>発行済債券一覧'.encode('utf-8') in response.data
         assert 'テスト債券'.encode('utf-8') in response.data
