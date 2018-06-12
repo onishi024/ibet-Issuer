@@ -298,5 +298,6 @@ def processorIssueEvent(db):
 
                     # 登録済みトークン情報に発行者のアドレスと、トークンアドレスの登録を行う。
                     token.admin_address = admin_address
-                    token.contract_address = contract_address
+                    token.token_address = contract_address
                     db.session.add(token)
+                    logger.info(contract_address)
