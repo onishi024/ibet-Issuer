@@ -588,7 +588,7 @@ def issue():
                 transaction={'from':Config.ETH_ACCOUNT, 'gas':4000000},
                 args=arguments
             ).hex()
-            tx_hash = wait_transaction_receipt(tx_hash)
+            tx_res = wait_transaction_receipt(tx_hash)
 
             token = Token()
             token.template_id = 1
@@ -599,7 +599,6 @@ def issue():
             token.bytecode = bytecode
             token.bytecode_runtime = bytecode_runtime
             db.session.add(token)
-
 
             flash('新規発行を受け付けました。発行完了までに数分程かかることがあります。', 'success')
             return redirect(url_for('.list'))
