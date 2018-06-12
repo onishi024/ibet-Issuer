@@ -76,7 +76,6 @@ class TestToken(TestBase):
         # 設定画面
         token = Token.query.get(1)
         response = client.get(self.url_setting + token.token_address)
-        logger.info(response.data)
     
         assert response.status_code == 200
         assert '<title>債券詳細設定'.encode('utf-8') in response.data
@@ -113,3 +112,25 @@ class TestToken(TestBase):
         assert '<title>発行済債券一覧'.encode('utf-8') in response.data
         assert 'テスト債券'.encode('utf-8') in response.data
         assert 'BOND'.encode('utf-8') in response.data
+
+
+    # ＜エラー系2_1＞
+    # 債券新規発行（必須エラー）
+    def test_normal_2_1(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
+        # 新規発行
+        response = client.post(
+            self.url_issue,
+            data={
+            }
+        )
+        assert response.status_code == 200
+        assert '<title>債券新規発行'.encode('utf-8') in response.data
+        assert '商品名は必須です。'.encode('utf-8') in response.data
+        assert '略称は必須です。'.encode('utf-8') in response.data
+        assert '総発行量は必須です。'.encode('utf-8') in response.data
+        assert '額面は必須です。'.encode('utf-8') in response.data
+        assert '金利は必須です。'.encode('utf-8') in response.data
+        assert '償還日は必須です。'.encode('utf-8') in response.data
+        assert '償還金額は必須です。'.encode('utf-8') in response.data
+        assert '発行目的は必須です。'.encode('utf-8') in response.data

@@ -31,7 +31,7 @@ class IssueTokenForm(Form):
     returnDate = StringField("リターン実施日", validators=[])
     returnAmount = TextAreaField("リターン内容", validators=[])
     purpose = TextAreaField("発行目的", validators=[Required('発行目的は必須です。')])
-    memo = TextAreaField("メモ", validators=[Required('メモは必須です。')])
+    memo = TextAreaField("メモ", validators=[])
     submit = SubmitField('新規発行')
 
     def __init__(self, issue_token=None, *args, **kwargs):
@@ -62,7 +62,7 @@ class TokenSettingForm(Form):
     returnDate = StringField("リターン実施日", validators=[])
     returnAmount = TextAreaField("リターン内容", validators=[])
     purpose = TextAreaField("発行目的", validators=[Required('発行目的は必須です。')])
-    memo = TextAreaField("メモ", validators=[Required('メモは必須です。')])
+    memo = TextAreaField("メモ", validators=[])
     image_small = StringField("商品画像（小）URL", validators=[])
     image_medium = StringField("商品画像（中）URL", validators=[])
     image_large = StringField("商品画像（大）URL", validators=[])
