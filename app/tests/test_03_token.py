@@ -74,35 +74,34 @@ class TestToken(TestBase):
         processorIssueEvent(db)
 
         # 設定画面
-        tokens = Token.query.all()
-        for token in tokens:
-            response = client.get(self.url_setting + token.token_address)
-            logger.info(response.data)
-        
-            assert response.status_code == 200
-            assert '<title>債券詳細設定'.encode('utf-8') in response.data
-            assert 'テスト債券'.encode('utf-8') in response.data
-            assert 'BOND'.encode('utf-8') in response.data
-            assert '1000000'.encode('utf-8') in response.data
-            assert '1000'.encode('utf-8') in response.data
-            assert '0101'.encode('utf-8') in response.data
-            assert '0201'.encode('utf-8') in response.data
-            assert '0301'.encode('utf-8') in response.data
-            assert '0401'.encode('utf-8') in response.data
-            assert '0501'.encode('utf-8') in response.data
-            assert '0601'.encode('utf-8') in response.data
-            assert '0701'.encode('utf-8') in response.data
-            assert '0801'.encode('utf-8') in response.data
-            assert '0901'.encode('utf-8') in response.data
-            assert  '1001'.encode('utf-8') in response.data
-            assert '1101'.encode('utf-8') in response.data
-            assert '1201'.encode('utf-8') in response.data
-            assert '20191231'.encode('utf-8') in response.data
-            assert '10000'.encode('utf-8') in response.data
-            assert '20191231'.encode('utf-8') in response.data
-            assert '商品券をプレゼント'.encode('utf-8') in response.data
-            assert '新商品の開発資金として利用。'.encode('utf-8') in response.data
-            assert 'メモ'.encode('utf-8') in response.data
+        token = Token.query.get(1)
+        response = client.get(self.url_setting + token.token_address)
+        logger.info(response.data)
+    
+        assert response.status_code == 200
+        assert '<title>債券詳細設定'.encode('utf-8') in response.data
+        assert 'テスト債券'.encode('utf-8') in response.data
+        assert 'BOND'.encode('utf-8') in response.data
+        assert '1000000'.encode('utf-8') in response.data
+        assert '1000'.encode('utf-8') in response.data
+        assert '0101'.encode('utf-8') in response.data
+        assert '0201'.encode('utf-8') in response.data
+        assert '0301'.encode('utf-8') in response.data
+        assert '0401'.encode('utf-8') in response.data
+        assert '0501'.encode('utf-8') in response.data
+        assert '0601'.encode('utf-8') in response.data
+        assert '0701'.encode('utf-8') in response.data
+        assert '0801'.encode('utf-8') in response.data
+        assert '0901'.encode('utf-8') in response.data
+        assert  '1001'.encode('utf-8') in response.data
+        assert '1101'.encode('utf-8') in response.data
+        assert '1201'.encode('utf-8') in response.data
+        assert '20191231'.encode('utf-8') in response.data
+        assert '10000'.encode('utf-8') in response.data
+        assert '20191231'.encode('utf-8') in response.data
+        assert '商品券をプレゼント'.encode('utf-8') in response.data
+        assert '新商品の開発資金として利用。'.encode('utf-8') in response.data
+        assert 'メモ'.encode('utf-8') in response.data
 
 
     # ＜正常系1_3＞
