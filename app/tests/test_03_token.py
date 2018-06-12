@@ -7,6 +7,7 @@ from .conftest import TestBase
 from .account_config import eth_account
 from config import Config
 from .contract_modules import register_only_whitelist
+from ..models import Token
 
 from logging import getLogger
 logger = getLogger('api')
@@ -16,10 +17,11 @@ class TestWhiteList(TestBase):
     trader_encrypted_info = 'Upu+PwVJUYV30KMTrrDwEHTT/u6Px+5VdRWx+FZdKuJ/36TvIBJEsyf4bv/dgZwcOoBztWQnQ71Cf55fBkopqjpHm7YJpeRnEdqRVwOc44PynVdcZeQvWizU867ub5QUh/coG5ftCB5ln3UcunEMbxmOLpjnTmNSRdIz0iWdYU/gxFuHNVxexTgSpvhUp4R7QrY/mBp5g6reYILCjy9wabJ8i7iSEOjP5szmtmCDIqhBnidtmoVxfgDGUDYpL3HU8HmfDIwCc+YuUORS3LSBVWshEK9EO89flghnI/wozsh7vntcGXKfNkVkfwZx9C0q878+Ep+p6pFpU4HMGbjTEtFsozEjZT22wAMfMDZOoBOsrURM0PGom6bJ/zfrAKr9oAWgjvBkaYLknxagwOosVLQH/QF31mlQyFScXJEISsi023S7l/nDJ3DVPS8ejghWgvAUcfwOSA7Vt9fS2KLUTUbd+RTd4FL9uks+A3rm0yL2Jc/Px4fpbnENBrenqSyBl1sYw7JLvvfut/hz6qUiOswoy2G0tZszKGo9nZiOMkmAr5sv2xh4M380uG8KOf3PaZXm6elFPqCOilHAZpQfydA1y1M7QgVIa+WkO53HevVUn9iqk/u6q5x3xA3HgneiZFGXWCzJwnV+GMkR0ILGbugkP5bl/nlji/grev40jEdWlVy2tazHwh+2fH6QBTWfiTVvrPTcprWy0GAjqAwPyCuCkMcjr9invpkuwaI7BugbAyWA8o1ANv35hinVnNtpgbesJjHxJWlbE7x4Ph+Big2W5o+DdZpnIYFtBOi6YdB50lvemFcktFUewCRzzB5cO3wgkvpxkgPGpy3mq0GSB7gJqmJ28RVjjOyNCmbVsl0V3Sgq3YhpfIyeoFZ8YQCz+m8QXXEDUeLdkms2yKmaIYZqinXgRNxaQdwdgxbYYyamf9Ena3E+KeLuHSOq3xtupgHopv2Y6c1/hBznKy6gVJVbfEMYRWYqUM7KYLZahcaLvFP8YuD7nTx7r6tKH6OaQi12FO+Pnk98kvG66VWM+i/AlWvNSI+3Cx50sDW5BF7Rl9DNB59AfX7Ur7Pdn7lfDTy6fDLqGs+LtmYUOtt8YlL6mAmH1x7pV5nF+01CnaShAC430cQyBB2vngs/p4FS654z0dIkEZ6YLSCIBIJpNYJY2oGOixNTrG+4lECKyQ0HY4AmtXnH5iqgS9/NCcLHHBWiqIXQgCQ5sCUVTIe0cHu6fWLrDtAlBncrX/6gEix0N/O6OQHfVx3veHRYGMJ1ZIM25gqI/ccgz9IyKtG//8zGqruvt6y8e6xJ7yh3OnSHPbNmLd8hcY9Ti2gQnMbKe2hDFQJehLRawNG8Yujd0H3ROnypEaCF2m7hKy23w3vmeVnPMM6xYshCsjXInjjiXn8xLof5NUA9Ea8d2U/3DaGPm4Xgt9VV0hilTKAKRQsSSG9YBrg6iGI6IKnka3tD7iKOvsBahZstNw4xEn7NifYPatCJjHDKaSqeqrdS9U9T0ClnG4iD5U8ufIEtvHKewDMOpVD6KW/lszilrziA6hSUyVPBx/p/VHhhAXXJ8ISvk+TLrpRvUukE4CtwqE/rdryeBvYM7XKqnqV72zOlirnlx2iiaQWm6XfSGdfjaUt2J5VSbwHv5lv534CCWrqBC7V/X9KISx1UV0regXvOtOen2UV2xshEv2ljrWjGPFY='
     url_tokenlist = '/token/tokenlist' # 発行済債券一覧
     url_issue = '/token/issue' # 債券新規発行
+    url_setting = '/token/setting/' # 設定画面
 
     # ＜正常系1_1＞
     # 発行済債券一覧の参照(0件)
-    def test_normal_1_1(self, app, shared_contract):      
+    def test_normal_1_1(self, app):      
         client = self.client_with_admin_login(app)
         response = client.get(self.url_tokenlist)
         assert response.status_code == 200
@@ -27,8 +29,8 @@ class TestWhiteList(TestBase):
         assert 'データが存在しません'.encode('utf-8') in response.data
 
     # ＜正常系1_2＞
-    # 新規発行　→　発行済債券一覧の参照(1件)
-    def test_normal_1_2(self, app, shared_contract):
+    # 新規発行　→　発行済債券一覧の参照(1件) →　詳細画面
+    def test_normal_1_2(self, app, db):
         client = self.client_with_admin_login(app)
         # 新規発行
         response = client.post(
@@ -64,7 +66,18 @@ class TestWhiteList(TestBase):
         # 2秒待機
         time.sleep(2)
 
+        # 一覧
         response = client.get(self.url_tokenlist)
         assert response.status_code == 200
         assert '<title>発行済債券一覧'.encode('utf-8') in response.data
-        assert 'データが存在しません'.encode('utf-8') in response.data
+        assert 'テスト債券</a>'.encode('utf-8') in response.data
+        assert '<td>BOND</td>'.encode('utf-8') in response.data
+        assert '<td>BOND</td>'.encode('utf-8') in response.data
+
+        # 設定画面
+        token = Token.query.filter(Token.id==1).first()
+        response = client.get(self.url_setting + token.token_address)
+        assert response.status_code == 200
+
+
+
