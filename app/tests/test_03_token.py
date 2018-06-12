@@ -72,6 +72,7 @@ class TestWhiteList(TestBase):
 
         # 設定画面
         tokens = Token.query.all()
+        logger.info(tokens)
         logger.info(tokens[0].token_address)
         response = client.get(self.url_setting + tokens[0].token_address)
         logger.info(response.data)
