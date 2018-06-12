@@ -71,7 +71,7 @@ class TestToken(TestBase):
         time.sleep(15)
 
         # DB登録処理
-        processorIssueEvent()
+        processorIssueEvent(db)
 
         # 設定画面
         tokens = Token.query.all()
