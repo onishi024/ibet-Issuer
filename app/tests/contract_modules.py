@@ -280,16 +280,12 @@ def processorIssueEvent(db):
     tokens = Token.query.all()
     for token in tokens:
         if token.token_address is None:
-            logger.info("aaaaa11111")
             tx_hash = token.tx_hash
             tx_hash_hex = '0x' + tx_hash[2:]
-            logger.info(tx_hash_hex)
-            
             try:
                 tx_receipt = wait_transaction_receipt(tx_hash_hex)
             except:
                 continue
-            logger.info(tx_receipt)
             if tx_receipt is not None :
                 # ブロックの状態を確認して、コントラクトアドレスが登録されているかを確認する。
                 if 'contractAddress' in tx_receipt.keys():
@@ -300,4 +296,3 @@ def processorIssueEvent(db):
                     token.admin_address = admin_address
                     token.token_address = contract_address
                     db.session.add(token)
-                    logger.info(contract_address)
