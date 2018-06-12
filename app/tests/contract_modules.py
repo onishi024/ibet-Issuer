@@ -281,7 +281,7 @@ def processorIssueEvent(db):
     for token in tokens:
         if token.token_address is None:
             logger.info("aaaaa11111")
-            tx_hash = token['tx_hash']
+            tx_hash = token.tx_hash
             tx_hash_hex = '0x' + tx_hash[2:]
             logger.info(tx_hash_hex)
             
