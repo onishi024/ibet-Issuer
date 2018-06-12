@@ -72,15 +72,16 @@ class TestWhiteList(TestBase):
 
         # 設定画面
         tokens = Token.query.all()
-        logger.info(tokens)
-        logger.info(tokens[0].token_address)
-        response = client.get(self.url_setting + tokens[0].token_address)
-        logger.info(response.data)
+        for token in tokens:
+            logger.info(token)
+            logger.info(token.token_address)
+            response = client.get(self.url_setting + token.token_address)
+            logger.info(response.data)
         
-        assert response.status_code == 200
-        assert '<title>債券詳細設定'.encode('utf-8') in response.data
-        assert 'テスト債券'.encode('utf-8') in response.data
-        assert 'BOND'.encode('utf-8') in response.data
+            assert response.status_code == 200
+            assert '<title>債券詳細設定'.encode('utf-8') in response.data
+            assert 'テスト債券'.encode('utf-8') in response.data
+            assert 'BOND'.encode('utf-8') in response.data
 
-
+            break
 
