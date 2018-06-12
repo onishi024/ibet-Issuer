@@ -63,8 +63,8 @@ class TestWhiteList(TestBase):
         )
         assert response.status_code == 302
 
-        # 5秒待機
-        time.sleep(5)
+        # 2秒待機
+        time.sleep(2)
 
         # 一覧
         response = client.get(self.url_tokenlist)
