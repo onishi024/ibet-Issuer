@@ -281,6 +281,8 @@ def processorIssueEvent():
     token_unprocessed = engine.execute(
         "select * from tokens where token_address IS NULL"
     )
+    logger.info("aaaaa")
+    logger.info(token_unprocessed)
 
     for row in token_unprocessed:
         tx_hash = row['tx_hash']
