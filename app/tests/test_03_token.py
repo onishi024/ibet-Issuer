@@ -67,8 +67,8 @@ class TestToken(TestBase):
         )
         assert response.status_code == 302
 
-        # 5秒待機
-        time.sleep(15)
+        # 2秒待機
+        time.sleep(2)
 
         # DB登録処理
         processorIssueEvent(db)
