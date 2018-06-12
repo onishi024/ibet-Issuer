@@ -20,9 +20,9 @@ class TestToken(TestBase):
     url_issue = '/token/issue' # 債券新規発行
     url_setting = '/token/setting/' # 設定画面
 
-    # ＜正常系1_1＞
+    # ＜正常系1＞
     # 発行済債券一覧の参照(0件)
-    def test_normal_1_1(self, app, shared_contract):
+    def test_normal_1(self, app, shared_contract):
         # Config設定は1_1で全て実施
         Config.ETH_ACCOUNT = eth_account['issuer']['account_address']
         Config.ETH_ACCOUNT_PASSWORD = eth_account['issuer']['password']
@@ -34,9 +34,9 @@ class TestToken(TestBase):
         assert 'データが存在しません'.encode('utf-8') in response.data
 
 
-    # ＜正常系1_2＞
+    # ＜正常系2＞
     # 保有債券一覧(0件)
-    def test_normal_1_2(self, app, shared_contract):
+    def test_normal_2(self, app, shared_contract):
         client = self.client_with_admin_login(app)
         response = client.get(self.url_positions)
         assert response.status_code == 200
@@ -44,9 +44,9 @@ class TestToken(TestBase):
         assert 'データが存在しません'.encode('utf-8') in response.data
 
 
-    # ＜正常系1_3＞
+    # ＜正常系3＞
     # 新規発行　→　DB登録処理 →　詳細画面
-    def test_normal_1_3(self, app, db, shared_contract):
+    def test_normal_3(self, app, db, shared_contract):
         client = self.client_with_admin_login(app)
         # 新規発行
         response = client.post(
@@ -115,9 +115,9 @@ class TestToken(TestBase):
         assert 'メモ'.encode('utf-8') in response.data
 
 
-    # ＜正常系1_4＞
+    # ＜正常系4＞
     # 発行済債券一覧の参照(1件)
-    def test_normal_1_4(self, app, shared_contract):
+    def test_normal_4(self, app, shared_contract):
         client = self.client_with_admin_login(app)
         response = client.get(self.url_tokenlist)
         assert response.status_code == 200
@@ -126,9 +126,9 @@ class TestToken(TestBase):
         assert 'BOND'.encode('utf-8') in response.data
 
 
-    # ＜正常系1_5＞
+    # ＜正常系5＞
     # 保有債券一覧(1件)
-    def test_normal_1_5(self, app, shared_contract):
+    def test_normal_5(self, app, shared_contract):
         client = self.client_with_admin_login(app)
         response = client.get(self.url_positions)
         assert response.status_code == 200
