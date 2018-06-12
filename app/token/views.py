@@ -588,7 +588,6 @@ def issue():
                 transaction={'from':Config.ETH_ACCOUNT, 'gas':4000000},
                 args=arguments
             ).hex()
-            tx_res = wait_transaction_receipt(tx_hash)
 
             token = Token()
             token.template_id = 1
