@@ -342,6 +342,10 @@ class TestToken(TestBase):
         assert 'ｶﾌﾞｼｷｶﾞｲｼﾔｹﾂｻｲﾀﾞｲｺｳ'.encode('utf-8') in response.data
 
 
+    # ＜正常系13＞
+    # 債券保有者詳細
+    def test_normal_13(self, app, shared_contract):
+        token = Token.query.get(1)
 
 
 
