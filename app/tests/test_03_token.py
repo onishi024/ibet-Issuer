@@ -393,7 +393,30 @@ class TestToken(TestBase):
         assert 'BOND'.encode('utf-8') in response.data
         assert '認定済'.encode('utf-8') in response.data
 
+    # ＜正常系15＞
+    # 償還実施　→　発行済債券一覧で確認
+    def test_normal_15(self, app, shared_contract):
+        token = Token.query.get(1)
+        client = self.client_with_admin_login(app)
+        response = client.post(
+            self.url_redeem,
+            data={
+                'token_address': token.token_address
+            }
+        )
+        assert response.status_code == 302
 
+        # 待機
+        time.sleep(2)
+
+        # 発行済債券一覧
+        client = self.client_with_admin_login(app)
+        response = client.get(self.url_tokenlist)
+        assert response.status_code == 200
+        assert '<title>発行済債券一覧'.encode('utf-8') in response.data
+        assert 'テスト債券'.encode('utf-8') in response.data
+        assert 'BOND'.encode('utf-8') in response.data
+        assert '償還済'.encode('utf-8') in response.data
 
     #############################################################################
     # エラー系
