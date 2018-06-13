@@ -19,6 +19,7 @@ class TestToken(TestBase):
     url_positions = '/token/positions' # 保有債券一覧 
     url_issue = '/token/issue' # 債券新規発行
     url_setting = '/token/setting/' # 設定画面
+    url_sell = 'token/sell' # 募集画面
 
     # ＜正常系1＞
     # 発行済債券一覧の参照(0件)
@@ -26,6 +27,7 @@ class TestToken(TestBase):
         # Config設定は1_1で全て実施
         Config.ETH_ACCOUNT = eth_account['issuer']['account_address']
         Config.ETH_ACCOUNT_PASSWORD = eth_account['issuer']['password']
+        Config.AGENT_ADDRESS = eth_account['agent']['account_address']
         Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS = shared_contract['IbetStraightBondExchange']['address']
         Config.WHITE_LIST_CONTRACT_ADDRESS = shared_contract['WhiteList']['address']
         Config.TOKEN_LIST_CONTRACT_ADDRESS = shared_contract['TokenList']['address']
@@ -37,7 +39,6 @@ class TestToken(TestBase):
         assert '<title>発行済債券一覧'.encode('utf-8') in response.data
         assert 'データが存在しません'.encode('utf-8') in response.data
 
-
     # ＜正常系2＞
     # 保有債券一覧(0件)
     def test_normal_2(self, app, shared_contract):
@@ -46,7 +47,6 @@ class TestToken(TestBase):
         assert response.status_code == 200
         assert '<title>保有債券一覧'.encode('utf-8') in response.data
         assert 'データが存在しません'.encode('utf-8') in response.data
-
 
     # ＜正常系3＞
     # 新規発行　→　DB登録処理 →　詳細画面
@@ -108,7 +108,7 @@ class TestToken(TestBase):
         assert '0701'.encode('utf-8') in response.data
         assert '0801'.encode('utf-8') in response.data
         assert '0901'.encode('utf-8') in response.data
-        assert  '1001'.encode('utf-8') in response.data
+        assert '1001'.encode('utf-8') in response.data
         assert '1101'.encode('utf-8') in response.data
         assert '1201'.encode('utf-8') in response.data
         assert '20191231'.encode('utf-8') in response.data
@@ -117,7 +117,6 @@ class TestToken(TestBase):
         assert '商品券をプレゼント'.encode('utf-8') in response.data
         assert '新商品の開発資金として利用。'.encode('utf-8') in response.data
         assert 'メモ'.encode('utf-8') in response.data
-
 
     # ＜正常系4＞
     # 発行済債券一覧の参照(1件)
@@ -129,7 +128,6 @@ class TestToken(TestBase):
         assert 'テスト債券'.encode('utf-8') in response.data
         assert 'BOND'.encode('utf-8') in response.data
 
-
     # ＜正常系5＞
     # 保有債券一覧(1件)
     def test_normal_5(self, app, shared_contract):
@@ -139,6 +137,60 @@ class TestToken(TestBase):
         assert '<title>保有債券一覧'.encode('utf-8') in response.data
         assert 'テスト債券'.encode('utf-8') in response.data
         assert 'BOND'.encode('utf-8') in response.data
+
+    # ＜正常系6＞
+    # 新規募集画面の参照
+    def test_normal_6(self, app, shared_contract):
+        token = Token.query.get(1)
+        url_sell = self.url_sell + token.token_address
+        response = client.get(url_sell)
+        assert response.status_code == 200
+        assert '<title>新規募集'.encode('utf-8') in response.data
+        assert 'テスト債券'.encode('utf-8') in response.data
+        assert 'BOND'.encode('utf-8') in response.data
+        assert '1000000'.encode('utf-8') in response.data
+        assert '1000'.encode('utf-8') in response.data
+        assert '0101'.encode('utf-8') in response.data
+        assert '0201'.encode('utf-8') in response.data
+        assert '0301'.encode('utf-8') in response.data
+        assert '0401'.encode('utf-8') in response.data
+        assert '0501'.encode('utf-8') in response.data
+        assert '0601'.encode('utf-8') in response.data
+        assert '0701'.encode('utf-8') in response.data
+        assert '0801'.encode('utf-8') in response.data
+        assert '0901'.encode('utf-8') in response.data
+        assert '1001'.encode('utf-8') in response.data
+        assert '1101'.encode('utf-8') in response.data
+        assert '1201'.encode('utf-8') in response.data
+        assert '20191231'.encode('utf-8') in response.data
+        assert '10000'.encode('utf-8') in response.data
+        assert '20191231'.encode('utf-8') in response.data
+        assert '商品券をプレゼント'.encode('utf-8') in response.data
+        assert '新商品の開発資金として利用。'.encode('utf-8') in response.data
+        assert 'メモ'.encode('utf-8') in response.data
+
+    # ＜正常系7＞
+    # 募集 →　一覧で募集済みになっていること
+    def test_normal_7(self, app, shared_contract):
+        token = Token.query.get(1)
+        url_sell = self.url_sell + token.token_address
+        # 募集
+        response = client.post(
+            self.url_sell,
+            data={
+                'sellPrice': 100,
+            }
+        )
+        assert response.status_code == 302
+
+        # 保有債券一覧
+        response = client.get(self.url_positions)
+        assert response.status_code == 200
+        assert '<title>保有債券一覧'.encode('utf-8') in response.data
+        assert 'テスト債券'.encode('utf-8') in response.data
+        assert 'BOND'.encode('utf-8') in response.data
+        assert '募集停止'.encode('utf-8') in response.data
+
 
 
 
