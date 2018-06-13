@@ -175,10 +175,11 @@ class TestToken(TestBase):
     # 募集 → 一覧で募集済みになっていること
     def test_normal_7(self, app, shared_contract):
         client = self.client_with_admin_login(app)
+        url_sell = self.url_sell + token.token_address
         token = Token.query.get(1)
         # 募集
         response = client.post(
-            self.url_sell + token.token_address,
+            url_sell,
             data={
                 'sellPrice': 100,
             }
@@ -188,11 +189,12 @@ class TestToken(TestBase):
         response = client.get(self.url_positions)
         assert response.status_code == 200
         assert '法人名、所在地の情報が未登録です。'.encode('utf-8') in response.data
+        
         # personalinfo登録
         register_personalinfo(eth_account['issuer'], shared_contract['PersonalInfo'], self.issuer_encrypted_info)
         # 募集
         response = client.post(
-            self.url_sell + token.token_address,
+            url_sell,
             data={
                 'sellPrice': 100,
             }
@@ -202,11 +204,12 @@ class TestToken(TestBase):
         response = client.get(self.url_positions)
         assert response.status_code == 200
         assert '金融機関の情報が未登録です。'.encode('utf-8') in response.data
+        
         # whitelist登録
         register_whitelist(eth_account['issuer'], shared_contract['WhiteList'], self.issuer_encrypted_info)
         # 募集
         response = client.post(
-            self.url_sell + token.token_address,
+            url_sell,
             data={
                 'sellPrice': 100,
             }
