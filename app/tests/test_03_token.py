@@ -232,6 +232,7 @@ class TestToken(TestBase):
     # ＜正常系8＞
     # 募集停止 → 保有債券一覧で確認
     def test_normal_8(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
         response = client.post(
             self.url_cancel_order + '0',
         )
