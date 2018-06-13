@@ -142,11 +142,10 @@ class TestToken(TestBase):
     # 新規募集画面の参照
     def test_normal_6(self, app, shared_contract):
         token = Token.query.get(1)
-        url_sell = self.url_sell + token.token_address
         client = self.client_with_admin_login(app)
-        response = client.get(url_sell)
+        response = client.get(self.url_sell + token.token_address)
         assert response.status_code == 200
-        assert '<title>新規募集'.encode('utf-8') in response.data
+        assert '<title>債券新規募集'.encode('utf-8') in response.data
         assert 'テスト債券'.encode('utf-8') in response.data
         assert 'BOND'.encode('utf-8') in response.data
         assert '1000000'.encode('utf-8') in response.data
@@ -174,11 +173,10 @@ class TestToken(TestBase):
     # 募集 →　一覧で募集済みになっていること
     def test_normal_7(self, app, shared_contract):
         token = Token.query.get(1)
-        url_sell = self.url_sell + token.token_address
         # 募集
         client = self.client_with_admin_login(app)
         response = client.post(
-            self.url_sell,
+            self.url_sell + token.token_address,
             data={
                 'sellPrice': 100,
             }
