@@ -217,7 +217,7 @@ class TestToken(TestBase):
         )
         assert response.status_code == 302
 
-        # 待機
+        # 待機（募集には時間がかかる）
         time.sleep(5)
 
         # 保有債券一覧
@@ -229,16 +229,9 @@ class TestToken(TestBase):
         assert 'BOND'.encode('utf-8') in response.data
         assert '募集停止'.encode('utf-8') in response.data
 
-
     # ＜正常系8＞
     # 募集停止 → 保有債券一覧で確認
     def test_normal_8(self, app, shared_contract):
-        client = self.client_with_admin_login(app)
-        response = client.get(self.url_positions)
-        logger.info(response.data)
-
-
-
         response = client.post(
             self.url_cancel_order + '0',
         )
@@ -255,8 +248,34 @@ class TestToken(TestBase):
         assert 'BOND'.encode('utf-8') in response.data
         assert '募集開始'.encode('utf-8') in response.data
 
+    # ＜正常系9＞
+    # 募集設定　画像URL登録 → 詳細画面で確認
+    def test_normal_9(self, app, shared_contract):
+        token = Token.query.get(1)
+        url_setting = self.url_setting + token.token_address
+        client = self.client_with_admin_login(app)
+        # 募集設定
+        response = client.post(
+            url_setting,
+            data={
+                'image_small': 'https://test.com/image_small.jpg',
+                'image_medium': 'https://test.com/image_medium.jpg',
+                'image_large': 'https://test.com/image_large.jpg',
+            }
+        )
+        assert response.status_code == 302
 
+        # 待機
+        time.sleep(6)
 
+        # 債券詳細設定
+        response = client.get(url_setting)
+        assert response.status_code == 200
+        assert '<title>債券詳細設定'.encode('utf-8') in response.data
+        assert 'テスト債券'.encode('utf-8') in response.data
+        assert 'https://test.com/image_small.jpg'.encode('utf-8') in response.data
+        assert 'https://test.com/image_medium.jpg'.encode('utf-8') in response.data
+        assert 'https://test.com/image_large.jpg'.encode('utf-8') in response.data
 
 
     #############################################################################
