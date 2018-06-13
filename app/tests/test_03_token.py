@@ -176,8 +176,8 @@ class TestToken(TestBase):
     # 募集 → 保有債券一覧で確認
     def test_normal_7(self, app, shared_contract):
         client = self.client_with_admin_login(app)
-        url_sell = self.url_sell + token.token_address
         token = Token.query.get(1)
+        url_sell = self.url_sell + token.token_address
         # 募集
         response = client.post(
             url_sell,
