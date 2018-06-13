@@ -21,6 +21,7 @@ class TestToken(TestBase):
     url_setting = '/token/setting/' # 設定画面
     url_sell = 'token/sell/' # 募集画面
     url_cancel_order = 'token/cancel_order/' # 募集停止
+    url_release = 'token/release' # リリース
 
     # ＜正常系1＞
     # 発行済債券一覧の参照(0件)
@@ -277,6 +278,29 @@ class TestToken(TestBase):
         assert 'https://test.com/image_small.jpg'.encode('utf-8') in response.data
         assert 'https://test.com/image_medium.jpg'.encode('utf-8') in response.data
         assert 'https://test.com/image_large.jpg'.encode('utf-8') in response.data
+
+    # ＜正常系10＞
+    # 公開
+    def test_normal_10(self, app, shared_contract):
+        token = Token.query.get(1)
+        client = self.client_with_admin_login(app)
+        response = client.post(
+            url_release,
+            data={
+                'token_address': token.token_address
+            }
+        )
+        assert response.status_code == 302
+
+        # 待機
+        time.sleep(2)
+
+        url_setting = self.url_setting + token.token_address
+        # 債券詳細設定
+        response = client.get(url_setting)
+        assert response.status_code == 200
+        assert '<title>債券詳細設定'.encode('utf-8') in response.data
+        assert '公開中です。公開開始までに数分程かかることがあります。'.encode('utf-8') in response.data
 
 
     #############################################################################
