@@ -251,7 +251,6 @@ def get_token_list_length(token_list):
     list_length = ListContract.functions.getListLength().call()
     return list_length
 
-
 # トークン数取得
 def get_token_list(token_list, token_address):
     ListContract = web3.eth.contract(
@@ -261,6 +260,20 @@ def get_token_list(token_list, token_address):
     token = ListContract.functions.getTokenByAddress(token_address).call()
     return token
 
+# 認定実施
+def exec_sign(token_address, token_abi, invoker):
+    web3.eth.defaultAccount = invoker['account_address']
+    web3.personal.unlockAccount(invoker['account_address'],
+                                invoker['password'])
+
+    token_abi = json.loads(token_abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+    TokenContract = web3.eth.contract(
+        address = token_address,
+        abi = token_abi
+    )
+    tx_hash = TokenContract.functions.sign().\
+        transact({'from':invoker['account_address'], 'gas':4000000})
+    tx = wait_transaction_receipt(tx_hash)
 
 # 認定区分を取得
 def get_signature(token_address, token_abi, signer_address):

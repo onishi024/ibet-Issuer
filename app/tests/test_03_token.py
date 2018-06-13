@@ -25,7 +25,7 @@ class TestToken(TestBase):
     url_holders = 'token/holders/' # 債券保有者一覧
     url_holder = 'token/holder/' # 債券保有者詳細 
     url_signature = 'token/request_signature/' # 認定依頼
-
+    url_redeem = 'token/redeem' # 償還
 
     # ＜正常系1＞
     # 発行済債券一覧の参照(0件)
@@ -342,7 +342,6 @@ class TestToken(TestBase):
         assert '普通'.encode('utf-8') in response.data
         assert 'ｶﾌﾞｼｷｶﾞｲｼﾔｹﾂｻｲﾀﾞｲｺｳ'.encode('utf-8') in response.data
 
-
     # ＜正常系13＞
     # 認定依頼
     def test_normal_13(self, app, shared_contract):
@@ -377,6 +376,22 @@ class TestToken(TestBase):
         # 債券トークンのsignatureが1になっていること
         val = get_signature(token.token_address, token.abi, eth_account['agent']['account_address'])
         assert val == 1
+
+    # ＜正常系14＞
+    # 認定実施　→　発行済債券一覧で確認
+    def test_normal_14(self, app, shared_contract):
+        # 認定実施
+        token = Token.query.get(1)
+        exec_sign(token.token_address, token.abi, eth_account['agent'])
+
+        # 発行済債券一覧
+        client = self.client_with_admin_login(app)
+        response = client.get(self.url_tokenlist)
+        assert response.status_code == 200
+        assert '<title>発行済債券一覧'.encode('utf-8') in response.data
+        assert 'テスト債券'.encode('utf-8') in response.data
+        assert 'BOND'.encode('utf-8') in response.data
+        assert '認定済'.encode('utf-8') in response.data
 
 
 
