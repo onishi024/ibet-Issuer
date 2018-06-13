@@ -884,6 +884,12 @@ def cancel_order(order_id):
     amount = orderBook[2]
     price = orderBook[3]
 
+    logger.info(orderBook)
+    logger.info(token_address)
+    logger.info(amount)
+    logger.info(price)
+
+
     # トークンのABIを取得する
     token = Token.query.filter(Token.token_address==token_address).first()
     token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
