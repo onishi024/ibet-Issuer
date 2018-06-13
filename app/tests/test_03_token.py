@@ -376,10 +376,6 @@ class TestToken(TestBase):
 
         # 債券トークンのsignatureが1になっていること
         val = get_signature(token.token_address, token.abi, eth_account['agent']['account_address'])
-        TokenContract = self.web3.eth.contract(
-            address = token.token_address,
-            abi = token.abi
-        )
         assert val == 1
 
 

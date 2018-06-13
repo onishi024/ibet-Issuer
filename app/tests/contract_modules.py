@@ -264,6 +264,7 @@ def get_token_list(token_list, token_address):
 
 # 認定区分を取得
 def get_signature(token_address, token_abi, signer_address):
+    token_abi = json.loads(token_abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
     TokenContract = web3.eth.contract(
         address = token_address,
         abi = token_abi
