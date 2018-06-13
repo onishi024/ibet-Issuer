@@ -33,8 +33,8 @@ class TestToken(TestBase):
         Config.TOKEN_LIST_CONTRACT_ADDRESS = shared_contract['TokenList']['address']
         Config.PERSONAL_INFO_CONTRACT_ADDRESS = shared_contract['PersonalInfo']['address']
         # 各コントラクトの登録
-        register_whitelist(eth_account['issuer'], shared_contract['WhiteList'], issuer_encrypted_info)
-        register_personalinfo(eth_account['issuer'], shared_contract['PersonalInfo'], issuer_encrypted_info)
+        register_whitelist(eth_account['issuer'], shared_contract['WhiteList'], self.issuer_encrypted_info)
+        register_personalinfo(eth_account['issuer'], shared_contract['PersonalInfo'], self.issuer_encrypted_info)
         
         # 発行済債券一覧
         client = self.client_with_admin_login(app)
