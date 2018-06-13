@@ -22,6 +22,8 @@ class TestToken(TestBase):
     url_sell = 'token/sell/' # 募集画面
     url_cancel_order = 'token/cancel_order/' # 募集停止
     url_release = 'token/release' # リリース
+    url_holders = 'token/holders/' # 債券保有者一覧
+
 
     # ＜正常系1＞
     # 発行済債券一覧の参照(0件)
@@ -34,7 +36,7 @@ class TestToken(TestBase):
         Config.WHITE_LIST_CONTRACT_ADDRESS = shared_contract['WhiteList']['address']
         Config.TOKEN_LIST_CONTRACT_ADDRESS = shared_contract['TokenList']['address']
         Config.PERSONAL_INFO_CONTRACT_ADDRESS = shared_contract['PersonalInfo']['address']
-        
+
         # 発行済債券一覧
         client = self.client_with_admin_login(app)
         response = client.get(self.url_tokenlist)
@@ -305,6 +307,22 @@ class TestToken(TestBase):
         # tokenが登録されているか確認
         res_token = get_token_list(shared_contract['TokenList'], token.token_address)
         assert res_token[0] == token.token_address
+
+    # ＜正常系11＞
+    # 債券保有者一覧
+    def test_normal_11(self, app, shared_contract):
+        token = Token.query.get(1)
+        client = self.client_with_admin_login(app)
+        response = client.get(self.url_holders + token.token_address)
+
+        assert response.status_code == 200
+        assert '<title>債券保有者一覧'.encode('utf-8') in response.data
+        assert eth_account['issuer']['account_address'].encode('utf-8') in response.data
+        assert '株式会社DEMO'.encode('utf-8') in response.data
+        assert '1000000'.encode('utf-8') in response.data
+
+
+
 
 
     #############################################################################
