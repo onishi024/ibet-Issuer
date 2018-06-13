@@ -285,7 +285,7 @@ class TestToken(TestBase):
         token = Token.query.get(1)
         client = self.client_with_admin_login(app)
         response = client.post(
-            url_release,
+            self.url_release,
             data={
                 'token_address': token.token_address
             }
