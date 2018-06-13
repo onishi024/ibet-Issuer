@@ -218,7 +218,7 @@ class TestToken(TestBase):
         assert response.status_code == 302
 
         # 待機
-        time.sleep(2)
+        time.sleep(5)
 
         # 保有債券一覧
         response = client.get(self.url_positions)
@@ -240,7 +240,7 @@ class TestToken(TestBase):
 
 
         response = client.post(
-            self.url_cancel_order + '1',
+            self.url_cancel_order + '0',
         )
         assert response.status_code == 302
 
