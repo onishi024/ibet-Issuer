@@ -432,9 +432,12 @@ class TestToken(TestBase):
         # 認定依頼
         response = client.post(
             url_signature,
+            data={
+                'token_address': token.token_address,
+            }
+
         )
         assert response.status_code == 200
-        assert 'トークンアドレスは必須です。'.encode('utf-8') in response.data
         assert '認定者は必須です。'.encode('utf-8') in response.data
 
 
