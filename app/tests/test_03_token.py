@@ -457,3 +457,22 @@ class TestToken(TestBase):
         )
         assert response.status_code == 200
         assert '有効なアドレスではありません。'.encode('utf-8') in response.data
+
+
+    # ＜エラー系5＞
+    # 認定（認定依頼がすでに登録されている）
+    def test_error_5(self, app, shared_contract):
+        token = Token.query.get(1)
+        url_signature = self.url_signature + token.token_address
+        client = self.client_with_admin_login(app)
+        # 認定依頼
+        response = client.post(
+            url_signature,
+            data={
+                'token_address': token.token_address,
+                'signer': eth_account['agent']['account_address']
+            }
+        )
+        assert response.status_code == 200
+        assert '既に情報が登録されています。'.encode('utf-8') in response.data
+
