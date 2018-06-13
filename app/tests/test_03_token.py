@@ -345,7 +345,7 @@ class TestToken(TestBase):
     # ＜正常系13＞
     # 債券保有者詳細
     def test_normal_13(self, app, shared_contract):
-        token = Token.query.get(1)
+        client = self.client_with_admin_login(app)
 
 
 
