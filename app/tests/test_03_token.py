@@ -19,7 +19,7 @@ class TestToken(TestBase):
     url_positions = '/token/positions' # 保有債券一覧 
     url_issue = '/token/issue' # 債券新規発行
     url_setting = '/token/setting/' # 設定画面
-    url_sell = 'token/sell' # 募集画面
+    url_sell = 'token/sell/' # 募集画面
 
     # ＜正常系1＞
     # 発行済債券一覧の参照(0件)
