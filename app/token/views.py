@@ -44,6 +44,28 @@ def flash_errors(form):
         for error in errors:
             flash(error, 'error')
 
+
+# トランザクションがブロックに取り込まれるまで待つ
+# 10秒以上経過した場合は失敗とみなす（Falseを返す）
+def wait_transaction_receipt(tx_hash):
+    count = 0
+    tx = None
+
+    while True:
+        time.sleep(0.1)
+        try:
+            tx = web3.eth.getTransactionReceipt(tx_hash)
+        except:
+            continue
+
+        count += 1
+        if tx is not None:
+            break
+        elif count > 120:
+            raise Exception
+
+    return tx
+
 ####################################################
 # 発行済債券一覧
 ####################################################
@@ -311,6 +333,7 @@ def setting(token_address):
     returnDate = TokenContract.functions.returnDate().call()
     returnAmount = TokenContract.functions.returnAmount().call()
     purpose = TokenContract.functions.purpose().call()
+    memo = TokenContract.functions.memo().call()
     image_small = TokenContract.functions.getImageURL(0).call()
     image_medium = TokenContract.functions.getImageURL(1).call()
     image_large = TokenContract.functions.getImageURL(2).call()
@@ -373,6 +396,7 @@ def setting(token_address):
         form.returnDate.data = returnDate
         form.returnAmount.data = returnAmount
         form.purpose.data = purpose
+        form.memo.data = memo
         form.image_small.data = image_small
         form.image_medium.data = image_medium
         form.image_large.data = image_large
@@ -557,7 +581,7 @@ def issue():
                 form.returnDate.data,
                 form.returnAmount.data,
                 form.purpose.data,
-                form.purpose.data
+                form.memo.data
             ]
 
             tx_hash = TokenContract.deploy(
@@ -701,6 +725,7 @@ def sell(token_address):
     returnDate = TokenContract.functions.returnDate().call()
     returnAmount = TokenContract.functions.returnAmount().call()
     purpose = TokenContract.functions.purpose().call()
+    memo = TokenContract.functions.memo().call()
 
     owner = to_checksum_address(Config.ETH_ACCOUNT)
     balance = TokenContract.functions.balanceOf(owner).call()
@@ -830,6 +855,7 @@ def sell(token_address):
         form.returnDate.data = returnDate
         form.returnAmount.data = returnAmount
         form.purpose.data = purpose
+        form.memo.data = memo
         form.abi.data = token.abi
         form.bytecode.data = token.bytecode
         form.sellPrice.data = None

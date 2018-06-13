@@ -29,13 +29,16 @@ manager.add_command("shell", Shell(make_context=make_shell_context))
 manager.add_command('db', MigrateCommand)
 
 import pytest
+@manager.option('-v', dest='v_opt', action="store_true", help='pytest -v option add.', default=False, required=False)
 @manager.option('-s', dest='s_opt', action="store_true", help='pytest -s option add.', default=False, required=False)
 @manager.option('-m', '--module', dest='module', help='can specify module.', default=None, required=False)
 @manager.option('--cov', dest='cov', action="store_true", help='coverage mode on.', default=False, required=False)
 @manager.option('--pdb', dest='pdb', action="store_true", help='debug mode on.', default=False, required=False)
-def test(s_opt, module, cov, pdb):
+def test(v_opt, s_opt, module, cov, pdb):
     """ Runs pytest """
     pytest_args = []
+    if v_opt:
+        pytest_args.append("-v")
     if s_opt:
         pytest_args.append("-s")
     if cov:
