@@ -24,6 +24,7 @@ class TestToken(TestBase):
     url_release = 'token/release' # リリース
     url_holders = 'token/holders/' # 債券保有者一覧
     url_holder = 'token/holder/' # 債券保有者詳細 
+    url_signature = 'token/request_signature/' # 認定依頼
 
 
     # ＜正常系1＞
@@ -343,9 +344,41 @@ class TestToken(TestBase):
 
 
     # ＜正常系13＞
-    # 債券保有者詳細
+    # 認定依頼
     def test_normal_13(self, app, shared_contract):
+        token = Token.query.get(1)
+        url_signature = self.url_signature + token.token_address
+        # 認定画面
         client = self.client_with_admin_login(app)
+        assert response.status_code == 200
+        assert '<title>認定依頼'.encode('utf-8') in response.data
+        # 認定依頼
+        response = client.post(
+            self.url_signature,
+            data={
+                'token_address': token.token_address,
+                'signer': eth_account['agent']['account_address']
+            }
+        )
+        assert response.status_code == 302
+
+        # 待機
+        time.sleep(2)
+
+        url_setting = self.url_setting + token.token_address
+        # 債券詳細設定
+        response = client.get(url_setting)
+        assert response.status_code == 200
+        assert '<title>債券詳細設定'.encode('utf-8') in response.data
+        assert '認定依頼を受け付けました。'.encode('utf-8') in response.data
+
+        # 債券トークンのsignatureが1になっていること
+        val = get_signature(token.token_address, token.abi, eth_account['agent']['account_address'])
+        TokenContract = self.web3.eth.contract(
+            address = token.token_address,
+            abi = token.abi
+        )
+        assert val == 1
 
 
 

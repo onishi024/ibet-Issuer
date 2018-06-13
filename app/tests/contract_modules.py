@@ -262,6 +262,15 @@ def get_token_list(token_list, token_address):
     return token
 
 
+# 認定区分を取得
+def get_signature(token_address, token_abi, signer_address):
+    TokenContract = web3.eth.contract(
+        address = token_address,
+        abi = token_abi
+    )
+    return TokenContract.functions.signatures(signer_address).call()
+
+
 # トランザクションがブロックに取り込まれるまで待つ
 # 10秒以上経過した場合は失敗とみなす（Falseを返す）
 def wait_transaction_receipt(tx_hash):
