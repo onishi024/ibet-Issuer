@@ -357,7 +357,7 @@ class TestToken(TestBase):
 
         # 認定依頼
         response = client.post(
-            self.url_signature,
+            url_signature,
             data={
                 'token_address': token.token_address,
                 'signer': eth_account['agent']['account_address']
