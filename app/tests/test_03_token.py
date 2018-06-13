@@ -32,9 +32,6 @@ class TestToken(TestBase):
         Config.WHITE_LIST_CONTRACT_ADDRESS = shared_contract['WhiteList']['address']
         Config.TOKEN_LIST_CONTRACT_ADDRESS = shared_contract['TokenList']['address']
         Config.PERSONAL_INFO_CONTRACT_ADDRESS = shared_contract['PersonalInfo']['address']
-        # 各コントラクトの登録
-        register_whitelist(eth_account['issuer'], shared_contract['WhiteList'], self.issuer_encrypted_info)
-        register_personalinfo(eth_account['issuer'], shared_contract['PersonalInfo'], self.issuer_encrypted_info)
         
         # 発行済債券一覧
         client = self.client_with_admin_login(app)
@@ -174,13 +171,34 @@ class TestToken(TestBase):
         assert 'メモ'.encode('utf-8') in response.data
 
     # ＜正常系7＞
-    # 募集 →　一覧で募集済みになっていること
+    # 募集 → personinfo登録 → 募集 → whitelist登録 →
+    # 募集 → 一覧で募集済みになっていること
     def test_normal_7(self, app, shared_contract):
-        
-
+        client = self.client_with_admin_login(app)
         token = Token.query.get(1)
         # 募集
-        client = self.client_with_admin_login(app)
+        response = client.post(
+            self.url_sell + token.token_address,
+            data={
+                'sellPrice': 100,
+            }
+        )
+        assert response.status_code == 302
+        assert '法人名、所在地の情報が未登録です。'.encode('utf-8') in response.data
+        # personalinfo登録
+        register_personalinfo(eth_account['issuer'], shared_contract['PersonalInfo'], self.issuer_encrypted_info)
+        # 募集
+        response = client.post(
+            self.url_sell + token.token_address,
+            data={
+                'sellPrice': 100,
+            }
+        )
+        assert response.status_code == 302
+        assert '金融機関の情報が未登録です。'.encode('utf-8') in response.data
+        # whitelist
+        register_whitelist(eth_account['issuer'], shared_contract['WhiteList'], self.issuer_encrypted_info)
+        # 募集
         response = client.post(
             self.url_sell + token.token_address,
             data={
@@ -190,11 +208,10 @@ class TestToken(TestBase):
         assert response.status_code == 302
 
         # 待機
-        time.sleep(5)
+        time.sleep(2)
 
         # 保有債券一覧
         response = client.get(self.url_positions)
-        logger.info(response.data)
         assert response.status_code == 200
         assert '<title>保有債券一覧'.encode('utf-8') in response.data
         assert 'テスト債券'.encode('utf-8') in response.data
@@ -212,9 +229,9 @@ class TestToken(TestBase):
     #############################################################################
     # エラー系
     #############################################################################
-    # ＜エラー系1_1＞
+    # ＜エラー系1＞
     # 債券新規発行（必須エラー）
-    def test_error_1_1(self, app, shared_contract):
+    def test_error_1(self, app, shared_contract):
         client = self.client_with_admin_login(app)
         # 新規発行
         response = client.post(
@@ -232,3 +249,20 @@ class TestToken(TestBase):
         assert '償還日は必須です。'.encode('utf-8') in response.data
         assert '償還金額は必須です。'.encode('utf-8') in response.data
         assert '発行目的は必須です。'.encode('utf-8') in response.data
+
+
+    # ＜エラー系2＞
+    # 募集（必須エラー）
+    def test_error_2(self, app, shared_contract):
+        token = Token.query.get(1)
+        # 募集
+        client = self.client_with_admin_login(app)
+        response = client.post(
+            self.url_sell + token.token_address,
+            data={
+            }
+        )
+        assert response.status_code == 200
+        assert '<title>債券新規募集'.encode('utf-8') in response.data
+        assert '売出価格は必須です。'.encode('utf-8') in response.data
+
