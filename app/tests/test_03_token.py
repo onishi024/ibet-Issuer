@@ -234,7 +234,7 @@ class TestToken(TestBase):
     def test_normal_8(self, app, shared_contract):
         client = self.client_with_admin_login(app)
         response = client.post(
-            self.url_cancel_order + '1',
+            self.url_cancel_order + '0',
         )
         assert response.status_code == 302
 
