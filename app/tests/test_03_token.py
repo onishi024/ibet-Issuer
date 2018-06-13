@@ -423,3 +423,32 @@ class TestToken(TestBase):
         assert '<title>債券新規募集'.encode('utf-8') in response.data
         assert '売出価格は必須です。'.encode('utf-8') in response.data
 
+    # ＜エラー系3＞
+    # 認定（必須エラー）
+    def test_error_3(self, app, shared_contract):
+        token = Token.query.get(1)
+        url_signature = self.url_signature + token.token_address
+        # 認定依頼
+        response = client.post(
+            url_signature,
+        )
+        assert response.status_code == 200
+        assert 'トークンアドレスは必須です。'.encode('utf-8') in response.data
+        assert '認定者は必須です。'.encode('utf-8') in response.data
+
+
+    # ＜エラー系3＞
+    # 認定（認定依頼先アドレスのフォーマットエラー）
+    def test_error_3(self, app, shared_contract):
+        token = Token.query.get(1)
+        url_signature = self.url_signature + token.token_address
+        # 認定依頼
+        response = client.post(
+            url_signature,
+            data={
+                'token_address': token.token_address,
+                'signer': '0xc94b0d702422587e361dd6cd08b55dfe1961181f'
+            }
+        )
+        assert response.status_code == 200
+        assert '有効なアドレスではありません。'.encode('utf-8') in response.data
