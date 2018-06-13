@@ -32,7 +32,11 @@ class TestToken(TestBase):
         Config.WHITE_LIST_CONTRACT_ADDRESS = shared_contract['WhiteList']['address']
         Config.TOKEN_LIST_CONTRACT_ADDRESS = shared_contract['TokenList']['address']
         Config.PERSONAL_INFO_CONTRACT_ADDRESS = shared_contract['PersonalInfo']['address']
-
+        # 各コントラクトの登録
+        register_whitelist(eth_account['issuer'], shared_contract['WhiteList'], issuer_encrypted_info)
+        register_personalinfo(eth_account['issuer'], shared_contract['PersonalInfo'], issuer_encrypted_info)
+        
+        # 発行済債券一覧
         client = self.client_with_admin_login(app)
         response = client.get(self.url_tokenlist)
         assert response.status_code == 200
@@ -172,6 +176,8 @@ class TestToken(TestBase):
     # ＜正常系7＞
     # 募集 →　一覧で募集済みになっていること
     def test_normal_7(self, app, shared_contract):
+        
+
         token = Token.query.get(1)
         # 募集
         client = self.client_with_admin_login(app)
