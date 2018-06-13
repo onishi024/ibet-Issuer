@@ -303,8 +303,8 @@ class TestToken(TestBase):
         assert '公開中です。公開開始までに数分程かかることがあります。'.encode('utf-8') in response.data
 
         # tokenが登録されているか確認
-        token = get_token_list(shared_contract['TokenList'], token.token_address)
-        assert token[0] == token.token_address
+        res_token = get_token_list(shared_contract['TokenList'], token.token_address)
+        assert res_token[0] == token.token_address
 
 
     #############################################################################
