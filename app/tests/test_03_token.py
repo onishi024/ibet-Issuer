@@ -23,6 +23,7 @@ class TestToken(TestBase):
     url_cancel_order = 'token/cancel_order/' # 募集停止
     url_release = 'token/release' # リリース
     url_holders = 'token/holders/' # 債券保有者一覧
+    url_holder = 'token/holder/' # 債券保有者詳細 
 
 
     # ＜正常系1＞
@@ -314,12 +315,33 @@ class TestToken(TestBase):
         token = Token.query.get(1)
         client = self.client_with_admin_login(app)
         response = client.get(self.url_holders + token.token_address)
-        logger.info(response.data)
         assert response.status_code == 200
         assert '<title>債券保有者一覧'.encode('utf-8') in response.data
         assert eth_account['issuer']['account_address'].encode('utf-8') in response.data
         assert '株式会社１'.encode('utf-8') in response.data
         assert '1000000'.encode('utf-8') in response.data
+
+    # ＜正常系12＞
+    # 債券保有者詳細
+    def test_normal_12(self, app, shared_contract):
+        token = Token.query.get(1)
+        client = self.client_with_admin_login(app)
+        response = client.get(self.url_holder + token.token_address + '/' + eth_account['issuer']['account_address'])
+        assert response.status_code == 200
+        assert '<title>債券保有者詳細'.encode('utf-8') in response.data
+        assert eth_account['issuer']['account_address'].encode('utf-8') in response.data
+        assert '株式会社１'.encode('utf-8') in response.data
+        assert '1234567'.encode('utf-8') in response.data
+        assert '東京都'.encode('utf-8') in response.data
+        assert '中央区'.encode('utf-8') in response.data
+        assert '日本橋11-1'.encode('utf-8') in response.data
+        assert '東京マンション１０１'.encode('utf-8') in response.data
+        assert '三菱UFJ銀行'.encode('utf-8') in response.data
+        assert '0005'.encode('utf-8') in response.data
+        assert '東恵比寿支店'.encode('utf-8') in response.data
+        assert '610'.encode('utf-8') in response.data
+        assert '普通'.encode('utf-8') in response.data
+        assert 'ｶﾌﾞｼｷｶﾞｲｼﾔｹﾂｻｲﾀﾞｲｺｳ'.encode('utf-8') in response.data
 
 
 
