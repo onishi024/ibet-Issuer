@@ -337,9 +337,7 @@ class TestToken(TestBase):
         assert '日本橋11-1'.encode('utf-8') in response.data
         assert '東京マンション１０１'.encode('utf-8') in response.data
         assert '三菱UFJ銀行'.encode('utf-8') in response.data
-        assert '0005'.encode('utf-8') in response.data
         assert '東恵比寿支店'.encode('utf-8') in response.data
-        assert '610'.encode('utf-8') in response.data
         assert '普通'.encode('utf-8') in response.data
         assert 'ｶﾌﾞｼｷｶﾞｲｼﾔｹﾂｻｲﾀﾞｲｺｳ'.encode('utf-8') in response.data
 
