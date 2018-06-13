@@ -188,6 +188,7 @@ class TestToken(TestBase):
 
         # 保有債券一覧
         response = client.get(self.url_positions)
+        logger.info(response.data)
         assert response.status_code == 200
         assert '<title>保有債券一覧'.encode('utf-8') in response.data
         assert 'テスト債券'.encode('utf-8') in response.data
