@@ -348,10 +348,13 @@ class TestToken(TestBase):
     def test_normal_13(self, app, shared_contract):
         token = Token.query.get(1)
         url_signature = self.url_signature + token.token_address
-        # 認定画面
         client = self.client_with_admin_login(app)
+
+        # 認定画面
+        response = client.get(url_signature)
         assert response.status_code == 200
         assert '<title>認定依頼'.encode('utf-8') in response.data
+
         # 認定依頼
         response = client.post(
             self.url_signature,
@@ -365,9 +368,8 @@ class TestToken(TestBase):
         # 待機
         time.sleep(2)
 
-        url_setting = self.url_setting + token.token_address
         # 債券詳細設定
-        response = client.get(url_setting)
+        response = client.get(self.url_setting + token.token_address)
         assert response.status_code == 200
         assert '<title>債券詳細設定'.encode('utf-8') in response.data
         assert '認定依頼を受け付けました。'.encode('utf-8') in response.data
