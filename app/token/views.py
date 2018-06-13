@@ -884,6 +884,7 @@ def cancel_order(order_id):
     amount = orderBook[2]
     price = orderBook[3]
 
+    logger.info(token_exchange_address)
     logger.info(orderBook)
     logger.info(token_address)
     logger.info(amount)
