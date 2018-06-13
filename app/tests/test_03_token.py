@@ -428,6 +428,7 @@ class TestToken(TestBase):
     def test_error_3(self, app, shared_contract):
         token = Token.query.get(1)
         url_signature = self.url_signature + token.token_address
+        client = self.client_with_admin_login(app)
         # 認定依頼
         response = client.post(
             url_signature,
@@ -442,6 +443,7 @@ class TestToken(TestBase):
     def test_error_3(self, app, shared_contract):
         token = Token.query.get(1)
         url_signature = self.url_signature + token.token_address
+        client = self.client_with_admin_login(app)
         # 認定依頼
         response = client.post(
             url_signature,
