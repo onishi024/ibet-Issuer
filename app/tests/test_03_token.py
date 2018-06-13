@@ -184,6 +184,9 @@ class TestToken(TestBase):
             }
         )
         assert response.status_code == 302
+        # 保有債券一覧でエラーを確認
+        response = client.get(self.url_positions)
+        assert response.status_code == 200
         assert '法人名、所在地の情報が未登録です。'.encode('utf-8') in response.data
         # personalinfo登録
         register_personalinfo(eth_account['issuer'], shared_contract['PersonalInfo'], self.issuer_encrypted_info)
@@ -195,8 +198,11 @@ class TestToken(TestBase):
             }
         )
         assert response.status_code == 302
+        # 保有債券一覧でエラーを確認
+        response = client.get(self.url_positions)
+        assert response.status_code == 200
         assert '金融機関の情報が未登録です。'.encode('utf-8') in response.data
-        # whitelist
+        # whitelist登録
         register_whitelist(eth_account['issuer'], shared_contract['WhiteList'], self.issuer_encrypted_info)
         # 募集
         response = client.post(
@@ -262,6 +268,9 @@ class TestToken(TestBase):
             data={
             }
         )
+        assert response.status_code == 302
+        # 債券新規募集でエラーを確認
+        response = client.get(self.url_sell + token.token_address)
         assert response.status_code == 200
         assert '<title>債券新規募集'.encode('utf-8') in response.data
         assert '売出価格は必須です。'.encode('utf-8') in response.data
