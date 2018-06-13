@@ -143,6 +143,7 @@ class TestToken(TestBase):
     def test_normal_6(self, app, shared_contract):
         token = Token.query.get(1)
         url_sell = self.url_sell + token.token_address
+        client = self.client_with_admin_login(app)
         response = client.get(url_sell)
         assert response.status_code == 200
         assert '<title>新規募集'.encode('utf-8') in response.data
@@ -175,6 +176,7 @@ class TestToken(TestBase):
         token = Token.query.get(1)
         url_sell = self.url_sell + token.token_address
         # 募集
+        client = self.client_with_admin_login(app)
         response = client.post(
             self.url_sell,
             data={
@@ -182,6 +184,9 @@ class TestToken(TestBase):
             }
         )
         assert response.status_code == 302
+
+        # 2秒待機
+        time.sleep(2)
 
         # 保有債券一覧
         response = client.get(self.url_positions)
