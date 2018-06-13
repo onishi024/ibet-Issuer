@@ -234,6 +234,11 @@ class TestToken(TestBase):
     # 募集停止 → 保有債券一覧で確認
     def test_normal_8(self, app, shared_contract):
         client = self.client_with_admin_login(app)
+        response = client.get(self.url_positions)
+        logger.info(response.data)
+
+
+
         response = client.post(
             self.url_cancel_order + '1',
         )
