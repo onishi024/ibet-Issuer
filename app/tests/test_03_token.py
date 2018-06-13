@@ -318,7 +318,7 @@ class TestToken(TestBase):
         assert response.status_code == 200
         assert '<title>債券保有者一覧'.encode('utf-8') in response.data
         assert eth_account['issuer']['account_address'].encode('utf-8') in response.data
-        assert '株式会社DEMO'.encode('utf-8') in response.data
+        assert '株式会社１'.encode('utf-8') in response.data
         assert '1000000'.encode('utf-8') in response.data
 
 
