@@ -20,6 +20,7 @@ class TestToken(TestBase):
     url_issue = '/token/issue' # 債券新規発行
     url_setting = '/token/setting/' # 設定画面
     url_sell = 'token/sell/' # 募集画面
+    url_cancel_order = 'token/cancel_order/' # 募集停止
 
     # ＜正常系1＞
     # 発行済債券一覧の参照(0件)
@@ -172,7 +173,7 @@ class TestToken(TestBase):
 
     # ＜正常系7＞
     # 募集 → personinfo登録 → 募集 → whitelist登録 →
-    # 募集 → 一覧で募集済みになっていること
+    # 募集 → 保有債券一覧で確認
     def test_normal_7(self, app, shared_contract):
         client = self.client_with_admin_login(app)
         url_sell = self.url_sell + token.token_address
@@ -228,8 +229,25 @@ class TestToken(TestBase):
         assert '募集停止'.encode('utf-8') in response.data
 
 
+    # ＜正常系8＞
+    # 募集停止 → 保有債券一覧で確認
+    def test_normal_8(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
+        response = client.post(
+            self.url_cancel_order + '1',
+        )
+        assert response.status_code == 302
 
+        # 待機
+        time.sleep(2)
 
+        # 保有債券一覧
+        response = client.get(self.url_positions)
+        assert response.status_code == 200
+        assert '<title>保有債券一覧'.encode('utf-8') in response.data
+        assert 'テスト債券'.encode('utf-8') in response.data
+        assert 'BOND'.encode('utf-8') in response.data
+        assert '募集開始'.encode('utf-8') in response.data
 
 
 
