@@ -252,6 +252,16 @@ def get_token_list_length(token_list):
     return list_length
 
 
+# トークン数取得
+def get_token_list(token_list, token_address):
+    ListContract = web3.eth.contract(
+        address = to_checksum_address(token_list['address']),
+        abi = token_list['abi'],
+    )
+    token = ListContract.functions.getTokenByAddress(token_address).call()
+    return token
+
+
 # トランザクションがブロックに取り込まれるまで待つ
 # 10秒以上経過した場合は失敗とみなす（Falseを返す）
 def wait_transaction_receipt(tx_hash):

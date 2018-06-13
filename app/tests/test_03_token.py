@@ -280,7 +280,7 @@ class TestToken(TestBase):
         assert 'https://test.com/image_large.jpg'.encode('utf-8') in response.data
 
     # ＜正常系10＞
-    # 公開　→　もう一度公開してエラー
+    # 公開
     def test_normal_10(self, app, shared_contract):
         token = Token.query.get(1)
         client = self.client_with_admin_login(app)
@@ -302,23 +302,9 @@ class TestToken(TestBase):
         assert '<title>債券詳細設定'.encode('utf-8') in response.data
         assert '公開中です。公開開始までに数分程かかることがあります。'.encode('utf-8') in response.data
 
-        # もう一度公開
-        response = client.post(
-            self.url_release,
-            data={
-                'token_address': token.token_address
-            }
-        )
-        assert response.status_code == 302
-
-        # 待機
-        time.sleep(2)
-
-        # 債券詳細設定
-        response = client.get(url_setting)
-        assert response.status_code == 200
-        assert '<title>債券詳細設定'.encode('utf-8') in response.data
-        assert '既に公開されています。'.encode('utf-8') in response.data
+        # tokenが登録されているか確認
+        token = get_token_list(shared_contract['TokenList'], token.token_address)
+        assert token[0] = token.token_address
 
 
     #############################################################################
