@@ -438,9 +438,9 @@ class TestToken(TestBase):
         assert '認定者は必須です。'.encode('utf-8') in response.data
 
 
-    # ＜エラー系3＞
+    # ＜エラー系4＞
     # 認定（認定依頼先アドレスのフォーマットエラー）
-    def test_error_3(self, app, shared_contract):
+    def test_error_4(self, app, shared_contract):
         token = Token.query.get(1)
         url_signature = self.url_signature + token.token_address
         client = self.client_with_admin_login(app)
@@ -449,7 +449,7 @@ class TestToken(TestBase):
             url_signature,
             data={
                 'token_address': token.token_address,
-                'signer': '0xc94b0d702422587e361dd6cd08b55dfe1961181f'
+                'signer': '0xc94b0d702422587e361dd6cd08b55dfe1961181f1' # 1桁多い
             }
         )
         assert response.status_code == 200
