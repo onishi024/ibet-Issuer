@@ -180,7 +180,7 @@ def bankinfo():
         bank_info = bank_infos[0]
     else:
         bank_info = None
-    form = CompanyInfoForm(bank_info=bank_info)
+    form = BankInfoForm(bank_info=bank_info)
     if request.method == 'POST':
         if form.validate():
             if bank_info is None:
