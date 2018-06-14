@@ -193,7 +193,7 @@ def bankinfo():
     if request.method == 'POST':
         if form.validate():
             if bank_info is None:
-                bank_info = bank_info()
+                bank_info = BankInfo()
             # DB登録
             bank_info.name = form.name.data
             bank_info.bank_name = form.bank_name.data
