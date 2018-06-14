@@ -39,7 +39,7 @@ class Config:
     NAVI_MENU_ADMIN = [
         ('account', 'glyphicon glyphicon-user', 'アカウント管理', [
             ('account_list', 'fa fa-list', 'アカウント一覧', 'account.list'),
-            ('bank_info', 'fa fa-bank', '銀行情報登録', 'account.bankinfo'),
+            ('account_bank_info', 'fa fa-bank', '銀行情報登録', 'account.bankinfo'),
         ]),
     ]
 
