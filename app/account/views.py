@@ -14,8 +14,8 @@ from sqlalchemy import desc
 
 from . import account
 from .. import db
-from ..models import Role, User
-from .forms import RegistUserForm, EditUserForm, PasswordChangeForm, EditUserAdminForm
+from ..models import Role, User, BankInfoForm
+from .forms import *
 from flask import current_app
 from cryptography.fernet import Fernet
 
@@ -167,6 +167,49 @@ def delete():
 def permissionDenied():
     return render_template('permissiondenied.html')
 
+#################################################
+# 企業情報登録
+#################################################
+@account.route('/bankinfo', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def bankinfo():
+    logger.info('account/bankinfo')
+    bank_infos = BankInfo.query.all()
+    if len(bank_infos) == 1:
+        bank_info = bank_infos[0]
+    else:
+        bank_info = None
+    form = CompanyInfoForm(bank_info=bank_info)
+    if request.method == 'POST':
+        if form.validate():
+            if bank_info is None:
+                bank_info = bank_info()
+            bank_info.name = form.name.data
+            bank_info.bank_name = form.bank_name.data
+            bank_info.bank_code = form.bank_code.data
+            bank_info.branch_name = form.branch_name.data
+            bank_info.branch_code = form.branch_code.data
+            bank_info.account_type = form.account_type.data
+            bank_info.account_number = form.account_number.data
+            bank_info.account_holder = form.account_holder.data
+            db.session.add(bank_info)
+            flash('登録完了しました。', 'success')
+            return render_template('account/bankinfo.html', form=form)
+        else:
+            flash_errors(form)
+            return render_template('account/bankinfo.html', form=form)
+    else: # GET
+        if bank_info is not None:
+            form.name.data = bank_info.name
+            form.bank_name.data = bank_info.bank_name
+            form.bank_code.data = bank_info.bank_code
+            form.branch_name.data = bank_info.branch_name
+            form.branch_code.data = bank_info.branch_code
+            form.account_type.data = bank_info.account_type
+            form.account_number.data = bank_info.account_number
+            form.account_holder.data = bank_info.account_holder
+        return render_template('account/bankinfo.html', form=form)
 
 #+++++++++++++++++++++++++++++++
 # Custom Filter

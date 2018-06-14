@@ -4,7 +4,7 @@ from flask_wtf import FlaskForm as Form
 from wtforms import StringField, TextAreaField, PasswordField, SubmitField, HiddenField, SelectField, PasswordField, FileField
 from wtforms.validators import Required, Email, EqualTo, Length, Regexp
 from wtforms import ValidationError
-from ..models import Role, User
+from ..models import Role, User, BankInfo
 from sqlalchemy import or_, and_
 
 # ベースフォーム
@@ -56,3 +56,48 @@ class PasswordChangeForm(Form):
     password = PasswordField('新しいパスワード', [ Required('新しいパスワードが入力されていません。'), EqualTo('confirm', message='パスワードが一致しません。') ])
     confirm = PasswordField('新しいパスワード（再入力）')
     submit = SubmitField('変更する')
+
+class BankInfoForm(Form):
+    name = StringField("会社名", validators=[
+                    Required('会社名は必須です。'),
+                    Length(max=64, message='会社名は64文字までです。')
+                    ])
+    bank_name = StringField("金融機関名", validators=[
+                    Required('金融機関名は必須です。'),
+                    Length(max=64, message='金融機関名は64文字までです。')
+                    ])
+    bank_code = StringField("金融機関コード", validators=[
+                    Required('金融機関コードは必須です。'),
+                    Length(min=4, max=4, message='金融機関コードは4桁です。'),
+                    Regexp(r'^[0-9]+$', message='金融機関コードは数字のみです。')
+                    ])
+    branch_name = StringField("支店名", validators=[
+                    Required('支店名は必須です。'),
+                    Length(max=64, message='支店名は64文字までです。')
+                    ])
+    branch_code = StringField("支店コード", validators=[
+                    Required('支店コードは必須です。'),
+                    Length(min=3, max=3, message='支店コードは3桁です。'),
+                    Regexp(r'^[0-9]+$', message='支店コードは数字のみです。')
+                    ])
+    account_type = StringField("口座種別", validators=[
+                    Required('口座種別は必須です。'),
+                    Length(min=1, max=1, message='口座種別は1桁です。'),
+                    Regexp(r'^[0-9]+$', message='口座種別は数字のみです。')
+                    ])
+    account_number = StringField("口座番号", validators=[
+                    Required('口座番号は必須です。'),
+                    Length(min=7, max=7, message='口座番号は7桁です。'),
+                    Regexp(r'^[0-9]+$', message='口座番号は数字のみです。')
+                    ])
+    account_holder = StringField("口座名義", validators=[
+                    Required('口座名義は必須です。'),
+                    Length(max=40, message='口座名義は40文字までです。'),
+                    Regexp(r'^[A-Z0-9ｱ-ﾝﾞﾟ\-]+$', message='口座名義は半角カナ文字（大文字）および英数字のみです。')
+                    ])
+    submit = SubmitField('登録')
+
+    def __init__(self, bank_info=None, *args, **kwargs):
+        super(BankInfoForm, self).__init__(*args, **kwargs)
+        self.account_type.choices = [('1', '普通'), ('2', '当座'), ('4', '貯蓄預金'), ('9', 'その他')]
+        self.bank_info = bank_info
