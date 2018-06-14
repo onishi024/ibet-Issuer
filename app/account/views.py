@@ -2,6 +2,7 @@
 import secrets
 import datetime
 import json
+import base64
 from flask import Flask, request, redirect, url_for, flash, session
 from flask_restful import Resource, Api
 from flask import render_template
