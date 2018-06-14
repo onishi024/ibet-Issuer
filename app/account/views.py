@@ -14,7 +14,7 @@ from sqlalchemy import desc
 
 from . import account
 from .. import db
-from ..models import Role, User, BankInfoForm
+from ..models import Role, User, BankInfo
 from .forms import *
 from flask import current_app
 from cryptography.fernet import Fernet
