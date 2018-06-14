@@ -22,6 +22,15 @@ from cryptography.fernet import Fernet
 from logging import getLogger
 logger = getLogger('api')
 
+from web3 import Web3
+from web3.middleware import geth_poa_middleware
+web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
+web3.middleware_stack.inject(geth_poa_middleware, layer=0)
+from eth_utils import to_checksum_address
+
+from Crypto.Cipher import PKCS1_OAEP
+from Crypto.PublicKey import RSA
+
 #+++++++++++++++++++++++++++++++
 # Utils
 #+++++++++++++++++++++++++++++++
@@ -185,6 +194,7 @@ def bankinfo():
         if form.validate():
             if bank_info is None:
                 bank_info = bank_info()
+            # DB登録
             bank_info.name = form.name.data
             bank_info.bank_name = form.bank_name.data
             bank_info.bank_code = form.bank_code.data
@@ -194,6 +204,49 @@ def bankinfo():
             bank_info.account_number = form.account_number.data
             bank_info.account_holder = form.account_holder.data
             db.session.add(bank_info)
+
+            # unlock
+            web3.personal.unlockAccount(Config.ETH_ACCOUNT, Config.ETH_ACCOUNT_PASSWORD, 1000)
+
+            # public key
+            key = RSA.importKey(open('data/rsa/public.pem').read())
+            cipher = PKCS1_OAEP.new(key)
+
+            # personInfo暗号文字列
+            personal_info_json = {
+                "name": bank_info.name,
+                "address":{
+                    "postal_code":"a",
+                    "prefecture":"i",
+                    "city":"u",
+                    "address1":"e",
+                    "address2":"o"
+                }
+            }
+            personal_info_message_string = json.dumps(personal_info_json)
+            personal_info_ciphertext = base64.encodestring(cipher.encrypt(personal_info_message_string.encode('utf-8')))
+            
+            # personInfo register
+            personalinfo_address = to_checksum_address(Config.PERSONAL_INFO_CONTRACT_ADDRESS)
+            personalinfo_abi = Config.PERSONAL_INFO_CONTRACT_ABI
+            PersonalInfoContract = web3.eth.contract(
+                address = personalinfo_address,
+                abi = personalinfo_abi
+            )
+            p_gas = PersonalInfoContract.estimateGas().register(Config.ETH_ACCOUNT, personal_info_ciphertext)
+            p_txid = PersonalInfoContract.functions.register(Config.ETH_ACCOUNT, personal_info_ciphertext).\
+                transact({'from':Config.ETH_ACCOUNT, 'gas':p_gas})
+
+            # WhiteList Contract
+            whitelist_address = to_checksum_address(Config.WHITE_LIST_CONTRACT_ADDRESS)
+            whitelist_abi = Config.WHITE_LIST_CONTRACT_ABI
+            WhiteListContract = web3.eth.contract(
+                address = whitelist_address,
+                abi = whitelist_abi
+            )
+
+
+
             flash('登録完了しました。', 'success')
             return render_template('account/bankinfo.html', form=form)
         else:
