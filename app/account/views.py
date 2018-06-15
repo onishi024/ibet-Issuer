@@ -214,6 +214,9 @@ def bankinfo():
             key = RSA.importKey(open('data/rsa/public.pem').read())
             cipher = PKCS1_OAEP.new(key)
 
+            # address
+            agent_address = to_checksum_address(Config.AGENT_ADDRESS)
+
             # personInfo暗号文字列
             personal_info_json = {
                 "name": bank_info.name,
@@ -271,14 +274,14 @@ def bankinfo():
                 address = whitelist_address,
                 abi = whitelist_abi
             )
-            payment_account = WhiteListContract.functions.payment_accounts(Config.ETH_ACCOUNT, Config.AGENT_ADDRESS).call()
+            payment_account = WhiteListContract.functions.payment_accounts(Config.ETH_ACCOUNT, agent_address).call()
             if payment_account == 0:
-                w_gas = WhiteListContract.estimateGas().register(Config.AGENT_ADDRESS, whitelist_ciphertext)
-                w_txid = WhiteListContract.functions.register(Config.AGENT_ADDRESS, whitelist_ciphertext).\
+                w_gas = WhiteListContract.estimateGas().register(agent_address, whitelist_ciphertext)
+                w_txid = WhiteListContract.functions.register(agent_address, whitelist_ciphertext).\
                     transact({'from':Config.ETH_ACCOUNT, 'gas':w_gas})
             else:
-                w_gas = WhiteListContract.estimateGas().changeInfo(Config.AGENT_ADDRESS, whitelist_ciphertext)
-                w_txid = WhiteListContract.functions.changeInfo(Config.AGENT_ADDRESS, whitelist_ciphertext).\
+                w_gas = WhiteListContract.estimateGas().changeInfo(agent_address, whitelist_ciphertext)
+                w_txid = WhiteListContract.functions.changeInfo(agent_address, whitelist_ciphertext).\
                     transact({'from':Config.ETH_ACCOUNT, 'gas':w_gas})
             flash('登録完了しました。', 'success')
             return render_template('account/bankinfo.html', form=form)
