@@ -307,7 +307,7 @@ def get_whitelist_encrypted_info(white_list, account_address, agent_address):
             to_checksum_address(account_address),
             to_checksum_address(agent_address)
         ).call()[2]
-    
+    logger.info(encrypted_info)
     # 復号化
     key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
     cipher = PKCS1_OAEP.new(key)
