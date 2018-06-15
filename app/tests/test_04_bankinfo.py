@@ -98,7 +98,7 @@ class TestBankInfo(TestBase):
 
     # ＜正常系３＞
     # 上書き登録
-    def test_normal_3(self, app):
+    def test_normal_3(self, app, shared_contract):
         client = self.client_with_admin_login(app)
         response = client.post(
             self.url_bankinfo,
