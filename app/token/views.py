@@ -590,7 +590,7 @@ def issue():
             ).hex()
 
             token = Token()
-            token.template_id = 1
+            token.template_id = Config.TEMPLATE_ID_SB
             token.tx_hash = tx_hash
             token.admin_address = None
             token.token_address = None
