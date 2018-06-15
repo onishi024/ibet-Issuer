@@ -29,7 +29,7 @@ class TestBankInfo(TestBase):
         client = self.client_with_admin_login(app)
         response = client.get(self.url_bankinfo)
         assert response.status_code == 200
-        assert '<title>銀行情報登録'.encode('utf-8') in response.data
+        assert '<title>行情報登録'.encode('utf-8') in response.data
         assert '<input class="form-control" id="name" name="name" type="text" value="">'.encode('utf-8') in response.data
         assert '<input class="form-control" id="bank_name" name="bank_name" type="text" value="">'.encode('utf-8') in response.data
         assert '<input class="form-control" id="bank_code" name="bank_code" type="text" value="">'.encode('utf-8') in response.data
@@ -52,7 +52,7 @@ class TestBankInfo(TestBase):
                 'branch_code':'100',
                 'account_type':'2',
                 'account_number':'1234567',
-                'account_holder':'ABCDEFGHIJKLMNOPQRSTUVWXYZ-ﾞﾟｱｲｳｴｵｶｷｸｹｺｱ' 
+                'account_holder':'ABCDEFGHIJKLMNOPQRSTUVWXYZ-ﾞﾟｱｲｳｴｵｶｷｸｹｺｱ'
             }
         )
         assert response.status_code == 200
@@ -68,7 +68,7 @@ class TestBankInfo(TestBase):
 
         # 待機
         time.sleep(4)
-        
+
         # personalInfoの確認
         personal_info_json = get_personal_encrypted_info(shared_contract['PersonalInfo'], eth_account['issuer']['account_address'], eth_account['issuer']['account_address'])
         assert personal_info_json['name'] == '株式会社１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０'
@@ -110,7 +110,7 @@ class TestBankInfo(TestBase):
                 'branch_code':'101',
                 'account_type':'4',
                 'account_number':'7654321',
-                'account_holder':'ﾃｽﾄ' 
+                'account_holder':'ﾃｽﾄ'
             }
         )
         assert response.status_code == 200
@@ -126,7 +126,7 @@ class TestBankInfo(TestBase):
 
         # 待機
         time.sleep(4)
-        
+
         # personalInfoの確認
         personal_info_json = get_personal_encrypted_info(shared_contract['PersonalInfo'], eth_account['issuer']['account_address'], eth_account['issuer']['account_address'])
         assert personal_info_json['name'] == '株式会社２３４'
