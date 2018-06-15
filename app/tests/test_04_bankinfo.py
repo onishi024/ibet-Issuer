@@ -7,17 +7,16 @@ from .conftest import TestBase
 from .account_config import eth_account
 from config import Config
 from .contract_modules import *
-from ..models import Token
 
 from logging import getLogger
 logger = getLogger('api')
 
-class TestToken(TestBase):
+class TestBankInfo(TestBase):
     url_bankinfo = '/account/bankinfo'
 
     # ＜正常系１＞
     # 通常参照（データなし）
-    def test_normal_1(self, app):
+    def test_normal_1(self, app, shared_contract):
         # config登録
         Config.ETH_ACCOUNT = eth_account['issuer']['account_address']
         Config.ETH_ACCOUNT_PASSWORD = eth_account['issuer']['password']
@@ -42,7 +41,7 @@ class TestToken(TestBase):
 
     # ＜正常系２＞
     # 登録　→　正常参照
-    def test_normal_2(self, app):
+    def test_normal_2(self, app, shared_contract):
         client = self.client_with_admin_login(app)
         response = client.post(
             self.url_bankinfo,
