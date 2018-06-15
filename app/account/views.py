@@ -289,7 +289,7 @@ def bankinfo():
             form.name.data = personalinfo_json['name']
             form.bank_name.data = personalinfo_json['bank_account']['bank_name']
             form.bank_code.data = personalinfo_json['bank_account']['bank_code']
-            form.branch_name.data = personalinfo_json['bank_account']['branch_name']
+            form.branch_name.data = personalinfo_json['bank_account']['branch_office']
             form.branch_code.data = personalinfo_json['bank_account']['branch_code']
             form.account_type.data = personalinfo_json['bank_account']['account_type']
             form.account_number.data = personalinfo_json['bank_account']['account_number']
