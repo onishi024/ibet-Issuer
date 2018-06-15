@@ -284,7 +284,7 @@ def tokenlist_contract():
 
     return {'address':contract_address, 'abi':TokenList['abi']}
 
-@pytest.fixture(scope = 'session')
+@pytest.fixture(scope = 'class')
 def shared_contract():
     white_list = whitelist_contract()
     personal_info = personalinfo_contract()
