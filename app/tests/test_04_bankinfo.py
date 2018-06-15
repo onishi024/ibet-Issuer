@@ -35,6 +35,7 @@ class TestBankInfo(TestBase):
         assert '<input class="form-control" id="bank_code" name="bank_code" type="text" value="">'.encode('utf-8') in response.data
         assert '<input class="form-control" id="branch_name" name="branch_name" type="text" value="">'.encode('utf-8') in response.data
         assert '<input class="form-control" id="branch_code" name="branch_code" type="text" value="">'.encode('utf-8') in response.data
+        assert '<option selected value="1">普通</option>'.encode('utf-8') in response.data
         assert '<input class="form-control" id="account_number" name="account_number" type="text" value="">'.encode('utf-8') in response.data
         assert '<input class="form-control" id="account_holder" name="account_holder" type="text" value="">'.encode('utf-8') in response.data
 
@@ -58,44 +59,44 @@ class TestBankInfo(TestBase):
         logger.info(response.data)
         assert response.status_code == 200
         assert '<title>銀行情報登録'.encode('utf-8') in response.data
-        assert '<input class="form-control" id="name" name="name" type="text" value="株式会社１２３４５あいうえおかきくけこさしすせそたちつてと">'.encode('utf-8') in response.data
-        assert '<input class="form-control" id="bank_name" name="bank_name" type="text" value="銀行めい１２３４５あいうえおかきくけこさしすせそたちつてと">'.encode('utf-8') in response.data
+        assert '<input class="form-control" id="name" name="name" type="text" value="株式会社１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０">'.encode('utf-8') in response.data
+        assert '<input class="form-control" id="bank_name" name="bank_name" type="text" value="銀行めい１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０">'.encode('utf-8') in response.data
         assert '<input class="form-control" id="bank_code" name="bank_code" type="text" value="0001">'.encode('utf-8') in response.data
-        assert '<input class="form-control" id="branch_name" name="branch_name" type="text" value="支店めい１２３４５あいうえおかきくけこさしすせそたちつてと">'.encode('utf-8') in response.data
+        assert '<input class="form-control" id="branch_name" name="branch_name" type="text" value="支店めい１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０">'.encode('utf-8') in response.data
         assert '<input class="form-control" id="branch_code" name="branch_code" type="text" value="100">'.encode('utf-8') in response.data
-        assert '<option selected="" value="2">当座</option>'.encode('utf-8') in response.data
+        assert '<option selected value="2">当座</option>'.encode('utf-8') in response.data
         assert '<input class="form-control" id="account_number" name="account_number" type="text" value="1234567">'.encode('utf-8') in response.data
-        assert '<input class="form-control" id="account_holder" name="account_holder" type="text" value="ABCDEFGHIJKLMNOPQRSTUVWXYZ-ﾞﾟｱｲｳｴｵｶｷｸｹｺ">'.encode('utf-8') in response.data
+        assert '<input class="form-control" id="account_holder" name="account_holder" type="text" value="ABCDEFGHIJKLMNOPQRSTUVWXYZ-ﾞﾟｱｲｳｴｵｶｷｸｹｺｱ">'.encode('utf-8') in response.data
 
         # 2秒待機
         time.sleep(2)
         
         # personalInfoの確認
         personal_info_json = get_personal_encrypted_info(shared_contract['PersonalInfo'], eth_account['issuer']['account_address'], eth_account['issuer']['account_address'])
-        assert personal_info_json['name'] == '株式会社１２３４５あいうえおかきくけこさしすせそたちつてと'
+        assert personal_info_json['name'] == '株式会社１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０'
         assert personal_info_json['address']['postal_code'] == ''
         assert personal_info_json['address']['prefecture'] == ''
         assert personal_info_json['address']['city'] == ''
         assert personal_info_json['address']['address1'] == ''
         assert personal_info_json['address']['address2'] == ''
-        assert personal_info_json['bank_account']['bank_name'] == '銀行めい１２３４５あいうえおかきくけこさしすせそたちつてと'
+        assert personal_info_json['bank_account']['bank_name'] == '銀行めい１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０'
         assert personal_info_json['bank_account']['bank_code'] == '0001'
-        assert personal_info_json['bank_account']['branch_office'] == '支店めい１２３４５あいうえおかきくけこさしすせそたちつてと'
+        assert personal_info_json['bank_account']['branch_office'] == '支店めい１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０'
         assert personal_info_json['bank_account']['branch_code'] == '100'
         assert personal_info_json['bank_account']['account_type'] == '2'
         assert personal_info_json['bank_account']['account_number'] == '1234567'
-        assert personal_info_json['bank_account']['account_holder'] == 'ABCDEFGHIJKLMNOPQRSTUVWXYZ-ﾞﾟｱｲｳｴｵｶｷｸｹｺ'
+        assert personal_info_json['bank_account']['account_holder'] == 'ABCDEFGHIJKLMNOPQRSTUVWXYZ-ﾞﾟｱｲｳｴｵｶｷｸｹｺｱ'
 
         # whitelistの確認
         whitelist_json = get_whitelist_encrypted_info(shared_contract['WhiteList'], eth_account['issuer']['account_address'], eth_account['agent']['account_address'])
-        assert whitelist_json['name'] == '株式会社１２３４５あいうえおかきくけこさしすせそたちつてと'
-        assert whitelist_json['bank_account']['bank_name'] == '銀行めい１２３４５あいうえおかきくけこさしすせそたちつてと'
+        assert whitelist_json['name'] == '株式会社１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０'
+        assert whitelist_json['bank_account']['bank_name'] == '銀行めい１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０'
         assert whitelist_json['bank_account']['bank_code'] == '0001'
-        assert whitelist_json['bank_account']['branch_office'] == '支店めい１２３４５あいうえおかきくけこさしすせそたちつてと'
+        assert whitelist_json['bank_account']['branch_office'] == '支店めい１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０'
         assert whitelist_json['bank_account']['branch_code'] == '100'
         assert whitelist_json['bank_account']['account_type'] == '2'
         assert whitelist_json['bank_account']['account_number'] == '1234567'
-        assert whitelist_json['bank_account']['account_holder'] == 'ABCDEFGHIJKLMNOPQRSTUVWXYZ-ﾞﾟｱｲｳｴｵｶｷｸｹｺ'
+        assert whitelist_json['bank_account']['account_holder'] == 'ABCDEFGHIJKLMNOPQRSTUVWXYZ-ﾞﾟｱｲｳｴｵｶｷｸｹｺｱ'
 
     # # ＜正常系３＞
     # # 上書き登録
