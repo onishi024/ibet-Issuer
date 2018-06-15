@@ -90,10 +90,10 @@ class Certification(db.Model):
 class BankInfo(db.Model):
     __tablename__ = 'bankinfos'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(64)) # 会社名
-    bank_name = db.Column(db.String(64)) # 金融機関名
+    name = db.Column(db.String(40)) # 会社名
+    bank_name = db.Column(db.String(40)) # 金融機関名
     bank_code = db.Column(db.String(4)) # 金融機関コード
-    branch_name = db.Column(db.String(64)) # 支店名
+    branch_name = db.Column(db.String(40)) # 支店名
     branch_code = db.Column(db.String(3)) # 支店コード
     account_type = db.Column(db.String(1)) # 口座番号
     account_number = db.Column(db.String(7)) # 口座番号

@@ -60,11 +60,11 @@ class PasswordChangeForm(Form):
 class BankInfoForm(Form):
     name = StringField("会社名", validators=[
                     Required('会社名は必須です。'),
-                    Length(max=64, message='会社名は64文字までです。')
+                    Length(max=40, message='会社名は40文字までです。')
                     ])
     bank_name = StringField("金融機関名", validators=[
                     Required('金融機関名は必須です。'),
-                    Length(max=64, message='金融機関名は64文字までです。')
+                    Length(max=40, message='金融機関名は40文字までです。')
                     ])
     bank_code = StringField("金融機関コード", validators=[
                     Required('金融機関コードは必須です。'),
@@ -73,7 +73,7 @@ class BankInfoForm(Form):
                     ])
     branch_name = StringField("支店名", validators=[
                     Required('支店名は必須です。'),
-                    Length(max=64, message='支店名は64文字までです。')
+                    Length(max=40, message='支店名は40文字までです。')
                     ])
     branch_code = StringField("支店コード", validators=[
                     Required('支店コードは必須です。'),
