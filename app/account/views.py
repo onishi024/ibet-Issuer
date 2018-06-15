@@ -223,6 +223,15 @@ def bankinfo():
                     "city":"u",
                     "address1":"e",
                     "address2":"o"
+                },
+                "bank_account":{
+                    "bank_name": bank_info.bank_name,
+                    "bank_code": bank_info.bank_code,
+                    "branch_office": bank_info.branch_name,
+                    "branch_code": bank_info.branch_code,
+                    "account_type": bank_info.account_type,
+                    "account_number": bank_info.account_number,
+                    "account_holder": bank_info.account_holder
                 }
             }
             personal_info_message_string = json.dumps(personal_info_json)
