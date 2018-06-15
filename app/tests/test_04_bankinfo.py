@@ -154,91 +154,95 @@ class TestBankInfo(TestBase):
         assert whitelist_json['bank_account']['account_number'] == '7654321'
         assert whitelist_json['bank_account']['account_holder'] == 'ﾃｽﾄ'
 
-    # # ＜エラー系1-1＞
-    # # 必須系
-    # def test_error_1_1(self, app):
-    #     client = self.client_with_admin_login(app)
-    #     response = client.post(
-    #         '/account/bankinfo',
-    #         data={}
-    #     )
-    #     assert response.status_code == 200
-    #     assert '<title>銀行情報登録'.encode('utf-8') in response.data
-    #     assert '振込依頼人コード（委託者コード）は必須です。'.encode('utf-8') in response.data
-    #     assert '振込依頼人名は必須です。'.encode('utf-8') in response.data
-    #     assert '金融機関コードは必須です。'.encode('utf-8') in response.data
-    #     assert '支店コードは必須です。'.encode('utf-8') in response.data
-    #     assert '口座番号は必須です。'.encode('utf-8') in response.data
+    # ＜エラー系1-1＞
+    # 必須系
+    def test_error_1_1(self, app):
+        client = self.client_with_admin_login(app)
+        response = client.post(
+            self.url_bankinfo,
+            data={}
+        )
+        assert response.status_code == 200
+        assert '<title>銀行情報登録'.encode('utf-8') in response.data
+        assert '会社名は必須です。'.encode('utf-8') in response.data
+        assert '金融機関名は必須です。'.encode('utf-8') in response.data
+        assert '金融機関コードは必須です。'.encode('utf-8') in response.data
+        assert '支店名は必須です。'.encode('utf-8') in response.data
+        assert '支店コードは必須です。'.encode('utf-8') in response.data
+        assert '口座番号は必須です。'.encode('utf-8') in response.data
+        assert '口座名義は必須です。'.encode('utf-8') in response.data
 
+    # ＜エラー系1-2＞
+    # 桁数系(1文字オーバー)
+    def test_error_1_2(self, app):
+        client = self.client_with_admin_login(app)
+        response = client.post(
+            self.url_bankinfo,
+            data={
+                'name':'１２３４５６７８９０あいうえおかきくけこ１２３４５６７８９０さしすせそたちつてとあ', # 41文字
+                'bank_name':'１２３４５６７８９０あいうえおかきくけこ１２３４５６７８９０さしすせそたちつてとあ', # 41文字
+                'bank_code':'00067',
+                'branch_name':'１２３４５６７８９０あいうえおかきくけこ１２３４５６７８９０さしすせそたちつてとあ', # 41文字
+                'branch_code':'1017',
+                'account_number':'12345678',
+                'account_holder':'12345678901234567890123456789012345678901', # 41文字
+            }
+        )
+        assert response.status_code == 200
+        assert '<title>銀行情報登録'.encode('utf-8') in response.data
+        assert '会社名は40文字までです。'.encode('utf-8') in response.data
+        assert '金融機関名は40文字までです。'.encode('utf-8') in response.data
+        assert '金融機関コードは4桁です。'.encode('utf-8') in response.data
+        assert '支店名は40文字までです。'.encode('utf-8') in response.data
+        assert '支店コードは3桁です。'.encode('utf-8') in response.data
+        assert '口座番号は7桁です。'.encode('utf-8') in response.data
+        assert '口座名義は40文字までです。'.encode('utf-8') in response.data
 
-    # # ＜エラー系1-2＞
-    # # 桁数系(1文字オーバー)
-    # def test_error_1_2(self, app):
-    #     client = self.client_with_admin_login(app)
-    #     response = client.post(
-    #         '/account/bankinfo',
-    #         data={
-    #             'irainin_code':'20876543211', # 11文字
-    #             'irainin_name':'12345678901234567890123456789012345678901', # 41文字
-    #             'bank_code':'00067',
-    #             'branch_code':'1017',
-    #             'koza_no':'12345687',
-    #         }
-    #     )
-    #     assert response.status_code == 200
-    #     assert '<title>銀行情報登録'.encode('utf-8') in response.data
-    #     assert '振込依頼人コード（委託者コード）は10文字です。'.encode('utf-8') in response.data
-    #     assert '振込依頼人名は40文字までです。'.encode('utf-8') in response.data
-    #     assert '金融機関コードは4桁です。'.encode('utf-8') in response.data
-    #     assert '支店コードは3桁です。'.encode('utf-8') in response.data
-    #     assert '口座番号は7桁です。'.encode('utf-8') in response.data
+    # ＜エラー系1-3＞
+    # 桁数系(1文字少ない)
+    def test_error_1_3(self, app):
+        client = self.client_with_admin_login(app)
+        response = client.post(
+            self.url_bankinfo,
+            data={
+                'name':'１２３４５６７８９０あいうえおかきくけこ１２３４５６７８９０さしすせそたちつて', # 39文字（正常）
+                'bank_name':'１２３４５６７８９０あいうえおかきくけこ１２３４５６７８９０さしすせそたちつて', # 39文字（正常）
+                'bank_code':'001', # 3文字
+                'branch_name':'１２３４５６７８９０あいうえおかきくけこ１２３４５６７８９０さしすせそたちつて', # 39文字（正常）
+                'branch_code':'10', # 2文字
+                'account_number':'123456', # 6文字
+                'account_holder':'123456789012345678901234567890123456789', # 39文字（正常）
+            }
+        )
+        assert response.status_code == 200
+        assert '<title>銀行情報登録'.encode('utf-8') in response.data
+        assert '会社名は40文字までです。'.encode('utf-8') not in response.data
+        assert '金融機関名は40文字までです。'.encode('utf-8') not  in response.data
+        assert '金融機関コードは4桁です。'.encode('utf-8') in response.data
+        assert '支店名は40文字までです。'.encode('utf-8') not  in response.data
+        assert '支店コードは3桁です。'.encode('utf-8') in response.data
+        assert '口座番号は7桁です。'.encode('utf-8') in response.data
+        assert '口座名義は40文字までです。'.encode('utf-8') not in response.data
 
-
-    # # ＜エラー系1-3＞
-    # # 桁数系(1文字少ない)
-    # def test_error_1_3(self, app):
-    #     client = self.client_with_admin_login(app)
-    #     response = client.post(
-    #         '/account/bankinfo',
-    #         data={
-    #             'irainin_code':'208765432', # 9文字
-    #             'irainin_name':'123456789012345678901234567890123456789', # 39文字（正常）
-    #             'bank_code':'001', # 3文字
-    #             'branch_code':'10', # 2文字
-    #             'koza_no':'123456', # 6文字
-    #         }
-    #     )
-    #     assert response.status_code == 200
-    #     assert '<title>銀行情報登録'.encode('utf-8') in response.data
-    #     assert '振込依頼人コード（委託者コード）は10文字です。'.encode('utf-8') in response.data
-    #     assert '振込依頼人名は40文字までです。'.encode('utf-8') not in response.data # エラーがないこと。
-    #     assert '金融機関コードは4桁です。'.encode('utf-8') in response.data
-    #     assert '支店コードは3桁です。'.encode('utf-8') in response.data
-    #     assert '口座番号は7桁です。'.encode('utf-8') in response.data
-
-
-    # # ＜エラー系1-4＞
-    # # 入力不可文字
-    # def test_error_1_4(self, app):
-    #     client = self.client_with_admin_login(app)
-    #     response = client.post(
-    #         '/account/bankinfo',
-    #         data={
-    #             'irainin_code':'20123a5678', # 数字以外
-    #             'irainin_name':'123456789012345678901234567890123456789a', # A-Z0-9ｱ-ﾝﾞﾟ\-以外
-    #             'bank_code':'00b1', # 数字以外
-    #             'branch_code':'1c0', # 数字以外
-    #             'koza_no':'1234d56', # 数字以外
-    #         }
-    #     )
-    #     assert response.status_code == 200
-    #     assert '<title>銀行情報登録'.encode('utf-8') in response.data
-    #     assert '振込依頼人コード（委託者コード）は数字のみです。'.encode('utf-8') in response.data
-    #     assert '振込依頼人名は半角カナ文字（大文字）および英数字のみです。'.encode('utf-8') in response.data
-    #     assert '金融機関コードは数字のみです。'.encode('utf-8') in response.data
-    #     assert '支店コードは数字のみです。'.encode('utf-8') in response.data
-    #     assert '口座番号は数字のみです。'.encode('utf-8') in response.data
-
+    # ＜エラー系1-4＞
+    # 入力不可文字
+    def test_error_1_4(self, app):
+        client = self.client_with_admin_login(app)
+        response = client.post(
+            self.url_bankinfo,
+            data={
+                'bank_code':'00b1', # 数字以外
+                'branch_code':'1c0', # 数字以外
+                'account_number':'1234d56', # 数字以外
+                'account_holder':'テスト', # 全角カナ
+            }
+        )
+        assert response.status_code == 200
+        assert '<title>銀行情報登録'.encode('utf-8') in response.data
+        assert '金融機関コードは数字のみです。'.encode('utf-8') in response.data
+        assert '支店コードは数字のみです。'.encode('utf-8') in response.data
+        assert '口座番号は数字のみです。'.encode('utf-8') in response.data
+        assert '口座名義は半角カナ文字（大文字）および英数字のみです。'.encode('utf-8') in response.data
 
     # ＜エラー系2_1＞
     # 権限なしエラー
