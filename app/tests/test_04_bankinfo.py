@@ -35,7 +35,6 @@ class TestBankInfo(TestBase):
         assert '<input class="form-control" id="bank_code" name="bank_code" type="text" value="">'.encode('utf-8') in response.data
         assert '<input class="form-control" id="branch_name" name="branch_name" type="text" value="">'.encode('utf-8') in response.data
         assert '<input class="form-control" id="branch_code" name="branch_code" type="text" value="">'.encode('utf-8') in response.data
-        assert '<option selected="" value="1">普通</option>'.encode('utf-8') in response.data
         assert '<input class="form-control" id="account_number" name="account_number" type="text" value="">'.encode('utf-8') in response.data
         assert '<input class="form-control" id="account_holder" name="account_holder" type="text" value="">'.encode('utf-8') in response.data
 
@@ -53,7 +52,7 @@ class TestBankInfo(TestBase):
                 'branch_code':'100',
                 'account_type':'2',
                 'account_number':'1234567',
-                'account_holder':'ABCDEFGHIJKLMNOPQRSTUVWXYZ-ｱｲｳｴｵｶﾞｷｸｹｺﾊﾟ'
+                'account_holder':'ABCDEFGHIJKLMNOPQRSTUVWXYZ' # -ﾞﾟｱｲｳｴｵｶｷｸｹｺ
             }
         )
         assert response.status_code == 200
