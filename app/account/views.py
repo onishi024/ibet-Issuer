@@ -16,7 +16,7 @@ from sqlalchemy import desc
 
 from . import account
 from .. import db
-from ..models import Role, User, BankInfo
+from ..models import Role, User
 from .forms import *
 from flask import current_app
 from cryptography.fernet import Fernet
@@ -179,34 +179,36 @@ def permissionDenied():
     return render_template('permissiondenied.html')
 
 #################################################
-# 企業情報登録
+# 銀行情報の登録
 #################################################
 @account.route('/bankinfo', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def bankinfo():
     logger.info('account/bankinfo')
-    bank_infos = BankInfo.query.all()
-    if len(bank_infos) == 1:
-        bank_info = bank_infos[0]
-    else:
-        bank_info = None
-    form = BankInfoForm(bank_info=bank_info)
+
+    personalinfo_address = to_checksum_address(Config.PERSONAL_INFO_CONTRACT_ADDRESS)
+    personalinfo_abi = Config.PERSONAL_INFO_CONTRACT_ABI
+    PersonalInfoContract = web3.eth.contract(
+        address = personalinfo_address,
+        abi = personalinfo_abi
+    )
+    isRegistered = PersonalInfoContract.functions.isRegistered(Config.ETH_ACCOUNT, Config.ETH_ACCOUNT).call()
+    if isRegistered:
+        # 銀行情報の復号化
+        personal_info = PersonalInfoContract.functions.personal_info(
+                    to_checksum_address(account_address), 
+                    to_checksum_address(token_owner)
+            ).call()
+        key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
+        cipher = PKCS1_OAEP.new(key)
+        ciphertext = base64.decodestring(personal_info[2].encode('utf-8'))
+        message = cipher.decrypt(ciphertext)
+        personalinfo_json = json.loads(message)
+
+    form = BankInfoForm()
     if request.method == 'POST':
         if form.validate():
-            if bank_info is None:
-                bank_info = BankInfo()
-            # DB登録
-            bank_info.name = form.name.data
-            bank_info.bank_name = form.bank_name.data
-            bank_info.bank_code = form.bank_code.data
-            bank_info.branch_name = form.branch_name.data
-            bank_info.branch_code = form.branch_code.data
-            bank_info.account_type = form.account_type.data
-            bank_info.account_number = form.account_number.data
-            bank_info.account_holder = form.account_holder.data
-            db.session.add(bank_info)
-
             # unlock
             web3.personal.unlockAccount(Config.ETH_ACCOUNT, Config.ETH_ACCOUNT_PASSWORD, 1000)
 
@@ -219,7 +221,7 @@ def bankinfo():
 
             # personInfo暗号文字列
             personal_info_json = {
-                "name": bank_info.name,
+                "name": form.name.data,
                 "address":{
                     "postal_code":"",
                     "prefecture":"",
@@ -228,40 +230,34 @@ def bankinfo():
                     "address2":""
                 },
                 "bank_account":{
-                    "bank_name": bank_info.bank_name,
-                    "bank_code": bank_info.bank_code,
-                    "branch_office": bank_info.branch_name,
-                    "branch_code": bank_info.branch_code,
-                    "account_type": bank_info.account_type,
-                    "account_number": bank_info.account_number,
-                    "account_holder": bank_info.account_holder
+                    "bank_name": form.bank_name.data,
+                    "bank_code": form.bank_code.data,
+                    "branch_office": form.branch_name.data,
+                    "branch_code": form.branch_code.data,
+                    "account_type": form.account_type.data,
+                    "account_number": form.account_number.data,
+                    "account_holder": form.account_holder.data
                 }
             }
             personal_info_message_string = json.dumps(personal_info_json)
             personal_info_ciphertext = base64.encodestring(cipher.encrypt(personal_info_message_string.encode('utf-8')))
             
             # personInfo register
-            personalinfo_address = to_checksum_address(Config.PERSONAL_INFO_CONTRACT_ADDRESS)
-            personalinfo_abi = Config.PERSONAL_INFO_CONTRACT_ABI
-            PersonalInfoContract = web3.eth.contract(
-                address = personalinfo_address,
-                abi = personalinfo_abi
-            )
             p_gas = PersonalInfoContract.estimateGas().register(Config.ETH_ACCOUNT, personal_info_ciphertext)
             p_txid = PersonalInfoContract.functions.register(Config.ETH_ACCOUNT, personal_info_ciphertext).\
                 transact({'from':Config.ETH_ACCOUNT, 'gas':p_gas})
 
             # whitelist暗号文字列
             whitelist_json = {
-                "name": bank_info.name,
+                "name": form.name.data,
                 "bank_account":{
-                    "bank_name": bank_info.bank_name,
-                    "bank_code": bank_info.bank_code,
-                    "branch_office": bank_info.branch_name,
-                    "branch_code": bank_info.branch_code,
-                    "account_type": bank_info.account_type,
-                    "account_number": bank_info.account_number,
-                    "account_holder": bank_info.account_holder
+                    "bank_name": form.bank_name.data,
+                    "bank_code": form.bank_code.data,
+                    "branch_office": form.branch_name.data,
+                    "branch_code": form.branch_code.data,
+                    "account_type": form.account_type.data,
+                    "account_number": form.account_number.data,
+                    "account_holder": form.account_holder.data
                 }
             }
             whitelist_message_string = json.dumps(whitelist_json)
@@ -289,15 +285,15 @@ def bankinfo():
             flash_errors(form)
             return render_template('account/bankinfo.html', form=form)
     else: # GET
-        if bank_info is not None:
-            form.name.data = bank_info.name
-            form.bank_name.data = bank_info.bank_name
-            form.bank_code.data = bank_info.bank_code
-            form.branch_name.data = bank_info.branch_name
-            form.branch_code.data = bank_info.branch_code
-            form.account_type.data = bank_info.account_type
-            form.account_number.data = bank_info.account_number
-            form.account_holder.data = bank_info.account_holder
+        if isRegistered:
+            form.name.data = personalinfo_json['name']
+            form.bank_name.data = personalinfo_json['bank_account']['bank_name']
+            form.bank_code.data = personalinfo_json['bank_account']['bank_code']
+            form.branch_name.data = personalinfo_json['bank_account']['branch_name']
+            form.branch_code.data = personalinfo_json['bank_account']['branch_code']
+            form.account_type.data = personalinfo_json['bank_account']['account_type']
+            form.account_number.data = personalinfo_json['bank_account']['account_number']
+            form.account_holder.data = personalinfo_json['bank_account']['account_holder']
         return render_template('account/bankinfo.html', form=form)
 
 #+++++++++++++++++++++++++++++++

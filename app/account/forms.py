@@ -4,7 +4,7 @@ from flask_wtf import FlaskForm as Form
 from wtforms import StringField, TextAreaField, PasswordField, SubmitField, HiddenField, SelectField, PasswordField, FileField
 from wtforms.validators import Required, Email, EqualTo, Length, Regexp
 from wtforms import ValidationError
-from ..models import Role, User, BankInfo
+from ..models import Role, User
 from sqlalchemy import or_, and_
 
 # ベースフォーム

@@ -86,17 +86,3 @@ class Certification(db.Model):
     @classmethod
     def get_id(cls):
         return Certification.id
-
-class BankInfo(db.Model):
-    __tablename__ = 'bankinfos'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(40)) # 会社名
-    bank_name = db.Column(db.String(40)) # 金融機関名
-    bank_code = db.Column(db.String(4)) # 金融機関コード
-    branch_name = db.Column(db.String(40)) # 支店名
-    branch_code = db.Column(db.String(3)) # 支店コード
-    account_type = db.Column(db.String(1)) # 口座番号
-    account_number = db.Column(db.String(7)) # 口座番号
-    account_holder = db.Column(db.String(40)) # 口座名義
-    created = db.Column(db.DateTime, nullable=False, default=datetime.now)
-    modified = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
