@@ -52,7 +52,7 @@ class TestBankInfo(TestBase):
                 'branch_code':'100',
                 'account_type':'2',
                 'account_number':'1234567',
-                'account_holder':'ABCDEFGHIJKLMNOPQRSTUVWXYZ' # -ﾞﾟｱｲｳｴｵｶｷｸｹｺ
+                'account_holder':'ABCDEFGHIJKLMNOPQRSTUVWXYZ-ﾞﾟｱｲｳｴｵｶｷｸｹｺｱ' 
             }
         )
         logger.info(response.data)
