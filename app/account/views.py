@@ -197,8 +197,8 @@ def bankinfo():
     if isRegistered:
         # 銀行情報の復号化
         personal_info = PersonalInfoContract.functions.personal_info(
-                    to_checksum_address(account_address), 
-                    to_checksum_address(token_owner)
+                    Config.ETH_ACCOUNT, 
+                    Config.ETH_ACCOUNT
             ).call()
         key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
         cipher = PKCS1_OAEP.new(key)
