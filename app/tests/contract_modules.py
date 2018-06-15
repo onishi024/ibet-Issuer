@@ -158,12 +158,10 @@ def register_bond_list(invoker, bond_token, token_list):
         transact({'from':invoker['account_address'], 'gas':4000000})
     tx = wait_transaction_receipt(tx_hash)
 
-
 # 債券トークンの募集
 def offer_bond_token(invoker, bond_exchange, bond_token, amount, price):
     bond_transfer_to_exchange(invoker, bond_exchange, bond_token, amount)
     make_sell_bond_token(invoker, bond_exchange, bond_token, amount, price)
-
 
 # 取引コントラクトに債券トークンをチャージ
 def bond_transfer_to_exchange(invoker, bond_exchange, bond_token, amount):
@@ -177,7 +175,6 @@ def bond_transfer_to_exchange(invoker, bond_exchange, bond_token, amount):
     tx_hash = TokenContract.functions.transfer(bond_exchange['address'], amount).\
         transact({'from':invoker['account_address'], 'gas':4000000})
     tx = wait_transaction_receipt(tx_hash)
-
 
 # 債券トークンの売りMake注文
 def make_sell_bond_token(invoker, bond_exchange, bond_token, amount, price):
@@ -196,7 +193,6 @@ def make_sell_bond_token(invoker, bond_exchange, bond_token, amount, price):
         transact({'from':invoker['account_address'], 'gas':gas})
     tx = wait_transaction_receipt(tx_hash)
 
-
 # 債券トークンの買いTake注文
 def take_buy_bond_token(invoker, bond_exchange, order_id, amount):
     web3.eth.defaultAccount = invoker['account_address']
@@ -211,7 +207,6 @@ def take_buy_bond_token(invoker, bond_exchange, order_id, amount):
         transact({'from':invoker['account_address'], 'gas':4000000})
     tx = wait_transaction_receipt(tx_hash)
 
-
 # 直近注文IDを取得
 def get_latest_orderid(bond_exchange):
     ExchangeContract = web3.eth.contract(
@@ -219,14 +214,12 @@ def get_latest_orderid(bond_exchange):
     latest_orderid = ExchangeContract.functions.latestOrderId().call()
     return latest_orderid
 
-
 # 直近約定IDを取得
 def get_latest_agreementid(bond_exchange, order_id):
     ExchangeContract = web3.eth.contract(
         address=bond_exchange['address'], abi=bond_exchange['abi'])
     latest_agreementid = ExchangeContract.functions.latestAgreementIds(order_id).call()
     return latest_agreementid
-
 
 # 債券約定の資金決済
 def bond_confirm_agreement(invoker, bond_exchange, order_id, agreement_id):
@@ -283,6 +276,40 @@ def get_signature(token_address, token_abi, signer_address):
         abi = token_abi
     )
     return TokenContract.functions.signatures(signer_address).call()
+
+# personalInfoを復号化して返す
+def get_personal_encrypted_info(personal_info, account_address, token_owner):
+    # personalinfo取得
+    PersonalInfoContract = web3.eth.contract(
+        address=personal_info['address'], abi=personal_info['abi'])
+    encrypted_info = PersonalInfoContract.functions.\
+            personal_info(
+                to_checksum_address(account_address), 
+                to_checksum_address(token_owner)
+            .call()[2]
+    # 復号化
+    key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
+    cipher = PKCS1_OAEP.new(key)
+    ciphertext = base64.decodestring(encrypted_info.encode('utf-8'))
+    message = cipher.decrypt(ciphertext)
+    return json.loads(message)
+
+# whitelistを復号化して返す
+def get_whitelist_encrypted_info(white_list, account_address, agent_address):
+    WhiteListContract = web3.eth.contract(
+        address=white_list['address'], abi=white_list['abi'])
+    encrypted_info = WhiteListContract.functions.\
+        payment_accounts(
+            to_checksum_address(account_address),
+            to_checksum_address(agent_address)
+        ).call()[2]
+    
+    # 復号化
+    key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
+    cipher = PKCS1_OAEP.new(key)
+    ciphertext = base64.decodestring(encrypted_info.encode('utf-8'))
+    message = cipher.decrypt(ciphertext)
+    return json.loads(message)
 
 
 # トランザクションがブロックに取り込まれるまで待つ
