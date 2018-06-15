@@ -275,7 +275,7 @@ def bankinfo():
                 abi = whitelist_abi
             )
             payment_account = WhiteListContract.functions.payment_accounts(Config.ETH_ACCOUNT, agent_address).call()
-            if payment_account == 0:
+            if payment_account[3] == 0:
                 w_gas = WhiteListContract.estimateGas().register(agent_address, whitelist_ciphertext)
                 w_txid = WhiteListContract.functions.register(agent_address, whitelist_ciphertext).\
                     transact({'from':Config.ETH_ACCOUNT, 'gas':w_gas})
