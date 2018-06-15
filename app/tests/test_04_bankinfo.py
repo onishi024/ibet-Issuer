@@ -45,16 +45,17 @@ class TestBankInfo(TestBase):
         response = client.post(
             self.url_bankinfo,
             data={
-                'name':'株式会社１２３４５あいうえおかきくけこさしすせそたちつてと',
-                'bank_name':'銀行めい１２３４５あいうえおかきくけこさしすせそたちつてと',
+                'name':'株式会社１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０',
+                'bank_name':'銀行めい１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０',
                 'bank_code':'0001',
-                'branch_name':'支店めい１２３４５あいうえおかきくけこさしすせそたちつてと',
+                'branch_name':'支店めい１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０',
                 'branch_code':'100',
                 'account_type':'2',
                 'account_number':'1234567',
                 'account_holder':'ABCDEFGHIJKLMNOPQRSTUVWXYZ' # -ﾞﾟｱｲｳｴｵｶｷｸｹｺ
             }
         )
+        logger.info(response.data)
         assert response.status_code == 200
         assert '<title>銀行情報登録'.encode('utf-8') in response.data
         assert '<input class="form-control" id="name" name="name" type="text" value="株式会社１２３４５あいうえおかきくけこさしすせそたちつてと">'.encode('utf-8') in response.data
