@@ -272,15 +272,14 @@ def bankinfo():
                 abi = whitelist_abi
             )
             payment_account = WhiteListContract.functions.payment_accounts(Config.ETH_ACCOUNT, Config.AGENT_ADDRESS).call()
-            if (payment_account == 0) {
+            if payment_account == 0:
                 w_gas = WhiteListContract.estimateGas().register(Config.AGENT_ADDRESS, whitelist_ciphertext)
                 w_txid = WhiteListContract.functions.register(Config.AGENT_ADDRESS, whitelist_ciphertext).\
                     transact({'from':Config.ETH_ACCOUNT, 'gas':w_gas})
-            } else {
+            else:
                 w_gas = WhiteListContract.estimateGas().changeInfo(Config.AGENT_ADDRESS, whitelist_ciphertext)
                 w_txid = WhiteListContract.functions.changeInfo(Config.AGENT_ADDRESS, whitelist_ciphertext).\
                     transact({'from':Config.ETH_ACCOUNT, 'gas':w_gas})
-            }
             flash('登録完了しました。', 'success')
             return render_template('account/bankinfo.html', form=form)
         else:
