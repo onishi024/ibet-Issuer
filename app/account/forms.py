@@ -80,11 +80,7 @@ class BankInfoForm(Form):
                     Length(min=3, max=3, message='支店コードは3桁です。'),
                     Regexp(r'^[0-9]+$', message='支店コードは数字のみです。')
                     ])
-    account_type = StringField("口座種別", validators=[
-                    Required('口座種別は必須です。'),
-                    Length(min=1, max=1, message='口座種別は1桁です。'),
-                    Regexp(r'^[0-9]+$', message='口座種別は数字のみです。')
-                    ])
+    account_type = SelectField('口座種別', coerce=int)
     account_number = StringField("口座番号", validators=[
                     Required('口座番号は必須です。'),
                     Length(min=7, max=7, message='口座番号は7桁です。'),

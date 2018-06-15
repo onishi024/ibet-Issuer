@@ -218,11 +218,11 @@ def bankinfo():
             personal_info_json = {
                 "name": bank_info.name,
                 "address":{
-                    "postal_code":"a",
-                    "prefecture":"i",
-                    "city":"u",
-                    "address1":"e",
-                    "address2":"o"
+                    "postal_code":"",
+                    "prefecture":"",
+                    "city":"",
+                    "address1":"",
+                    "address2":""
                 },
                 "bank_account":{
                     "bank_name": bank_info.bank_name,
