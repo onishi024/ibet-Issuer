@@ -1,6 +1,7 @@
 #!/usr/local/bin/python
 # -*- coding:utf-8 -*-
 import os
+import sys
 
 if os.path.exists('.env'):
     print('Importing environment from .env...')
@@ -31,16 +32,19 @@ manager.add_command('db', MigrateCommand)
 import pytest
 @manager.option('-v', dest='v_opt', action="store_true", help='pytest -v option add.', default=False, required=False)
 @manager.option('-s', dest='s_opt', action="store_true", help='pytest -s option add.', default=False, required=False)
+@manager.option('-x', dest='x_opt', action="store_true", help='pytest -x option add.', default=False, required=False)
 @manager.option('-m', '--module', dest='module', help='can specify module.', default=None, required=False)
 @manager.option('--cov', dest='cov', action="store_true", help='coverage mode on.', default=False, required=False)
 @manager.option('--pdb', dest='pdb', action="store_true", help='debug mode on.', default=False, required=False)
-def test(v_opt, s_opt, module, cov, pdb):
+def test(v_opt, s_opt, x_opt, module, cov, pdb):
     """ Runs pytest """
     pytest_args = []
     if v_opt:
         pytest_args.append("-v")
     if s_opt:
         pytest_args.append("-s")
+    if x_opt:
+        pytest_args.append("-x")
     if cov:
         pytest_args.append("--cov")
         pytest_args.append("--cov-report=html")
@@ -50,7 +54,11 @@ def test(v_opt, s_opt, module, cov, pdb):
         pytest_args.append("app/tests/")
     else:
         pytest_args.append("app/tests/test_%s.py" % module)
-    pytest.main(pytest_args)
+
+    try:
+        pytest.main(pytest_args)
+    except:
+        sys.exit(1)
 
 if __name__ == '__main__':
     manager.run()
