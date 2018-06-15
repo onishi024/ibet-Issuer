@@ -3,41 +3,82 @@
     {{ super() }}
     <link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
 {% endblock %}
-{% set active_page = "coupon_transfer" %}
+{% set active_page = "coupon_issue" %}
 
-{% block title %}クーポン割当 - {% endblock %}
-{% block page_header %}クーポン割当{% endblock %}
+{% block title %}クーポン発行 - {% endblock %}
+{% block page_header %}クーポン発行{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
     <li><a href="{{ url_for('index.index') }}">トップ</a></li>
-    <li class="active">クーポン割当</li>
+    <li class="active">クーポン発行</li>
 {% endblock %}
 
 {% block page_content %}
 <section class="content">
     <div class="box box-default">
         <div class="box-header with-border">
-            <h3 class="box-title">クーポン割当</h3>
+            <h3 class="box-title">クーポン発行</h3>
         </div>
-        <form class="form-horizontal" method="POST" role="form" action="{{ url_for('coupon.transfer') }}">
+        <form class="form-horizontal" method="POST" role="form" action="{{ url_for('coupon.issue') }}">
             {{ form.csrf_token }}
             <div class="box-body">
                 <div class="form-group">
-                    {{ form.tokenAddress.label(class="col-md-2") }}
+                    {{ form.name.label(class="col-md-2") }}
                     <div class="col-md-4">
-                        {{ form.tokenAddress(class="form-control") }}
+                        {{ form.name(class="form-control") }}
                     </div>
                 </div>
                 <div class="form-group">
-                    {{ form.sendAddress.label(class="col-md-2") }}
+                    {{ form.symbol.label(class="col-md-2") }}
                     <div class="col-md-4">
-                        {{ form.sendAddress(class="form-control") }}
+                        {{ form.symbol(class="form-control") }}
                     </div>
                 </div>
                 <div class="form-group">
-                    {{ form.sendAmount.label(class="col-md-2") }}
+                    {{ form.totalSupply.label(class="col-md-2") }}
                     <div class="col-md-4">
-                        {{ form.sendAmount(class="form-control") }}
+                        {{ form.totalSupply(class="form-control") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.redemptionDate.label(class="col-md-2") }}
+                    <div class="col-md-4">
+                        <div class="input-group date">
+                            <div class="input-group-addon">
+                                <i class="fa fa-calendar"></i>
+                            </div>
+                            {{ form.redemptionDate(class="form-control pull-right", id="datepicker") }}
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.details.label(class="col-md-2") }}
+                    <div class="col-md-4">
+                        {{ form.details(class="form-control") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.memo.label(class="col-md-2") }}
+                    <div class="col-md-4">
+                        {{ form.memo(class="form-control") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.image_small.label(class="col-md-2") }}
+                    <div class="col-md-8">
+                        {{ form.image_small(class="form-control") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.image_medium.label(class="col-md-2") }}
+                    <div class="col-md-8">
+                        {{ form.image_medium(class="form-control") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.image_large.label(class="col-md-2") }}
+                    <div class="col-md-8">
+                        {{ form.image_large(class="form-control") }}
                     </div>
                 </div>
             </div>
@@ -51,4 +92,30 @@
 
 {% block required_js %}
 {{ super() }}
+<script type="text/javascript" src="/static/adminlte/bower_components/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js"></script>
+<script type="text/javascript" src="/static/js/bootstrap-timepicker.min.js"></script>
+<script type="text/javascript">
+  $.fn.datepicker.dates['ja'] = {
+      days: ["日曜日", "月曜日", "火曜日", "水曜日", "木曜日", "金曜日", "土曜日"],
+      daysShort: ["日", "月", "火", "水", "木", "金", "土"],
+      daysMin: ["日", "月", "火", "水", "木", "金", "土"],
+      months: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"],
+      monthsShort: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"],
+      today: "今日",
+      clear: "Clear",
+      format: "yyyy/mm/dd",
+      titleFormat: "yyyy年 MM",
+      weekStart: 0
+  };
+  //Date picker
+  $('[id="datepicker"]').datepicker({
+      language: 'ja',
+      format: 'yyyymmdd',
+      todayHighlight: true,
+      autoclose: true,
+      orientation: "bottom right",
+      todayBtn: true
+  });
+</script>
+
 {% endblock %}

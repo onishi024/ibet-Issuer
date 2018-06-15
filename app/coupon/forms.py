@@ -8,11 +8,12 @@ from wtforms import ValidationError
 from sqlalchemy import or_, and_
 
 class IssueCouponForm(Form):
-    name = StringField("商品名", validators=[Required('商品名は必須です。')])
+    name = StringField("クーポン名", validators=[Required('クーポン名は必須です。')])
     symbol = StringField("略称", validators=[Required('略称は必須です。')])
     totalSupply = IntegerField("総発行量", validators=[Required('総発行量は必須です。')])
     redemptionDate = StringField("有効期限", validators=[])
-    returnAmount = TextAreaField("リターン内容", validators=[])
+    details = TextAreaField("クーポン詳細", validators=[])
+    memo = TextAreaField("メモ", validators=[])
     image_small = StringField("商品画像（小）URL", validators=[])
     image_medium = StringField("商品画像（中）URL", validators=[])
     image_large = StringField("商品画像（大）URL", validators=[])
@@ -31,4 +32,3 @@ class TransferCouponForm(Form):
     def __init__(self, transfer_coupon=None, *args, **kwargs):
         super(TransferCouponForm, self).__init__(*args, **kwargs)
         self.transfer_coupon = transfer_coupon
-
