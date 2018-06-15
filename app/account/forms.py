@@ -95,5 +95,5 @@ class BankInfoForm(Form):
 
     def __init__(self, bank_info=None, *args, **kwargs):
         super(BankInfoForm, self).__init__(*args, **kwargs)
-        self.account_type.choices = [('1', '普通'), ('2', '当座'), ('4', '貯蓄預金'), ('9', 'その他')]
+        self.account_type.choices = [(1, '普通'), (2, '当座'), (4, '貯蓄預金'), (9, 'その他')]
         self.bank_info = bank_info
