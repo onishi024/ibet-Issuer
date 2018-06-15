@@ -288,11 +288,10 @@ def get_personal_encrypted_info(personal_info, account_address, token_owner):
     # personalinfo取得
     PersonalInfoContract = web3.eth.contract(
         address=personal_info['address'], abi=personal_info['abi'])
-    encrypted_info = PersonalInfoContract.functions.\
-            personal_info(
+    encrypted_info = PersonalInfoContract.functions.personal_info(
                 to_checksum_address(account_address), 
                 to_checksum_address(token_owner)
-            .call()[2]
+        ).call()[2]
     # 復号化
     key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
     cipher = PKCS1_OAEP.new(key)
@@ -304,8 +303,7 @@ def get_personal_encrypted_info(personal_info, account_address, token_owner):
 def get_whitelist_encrypted_info(white_list, account_address, agent_address):
     WhiteListContract = web3.eth.contract(
         address=white_list['address'], abi=white_list['abi'])
-    encrypted_info = WhiteListContract.functions.\
-        payment_accounts(
+    encrypted_info = WhiteListContract.functions.payment_accounts(
             to_checksum_address(account_address),
             to_checksum_address(agent_address)
         ).call()[2]
