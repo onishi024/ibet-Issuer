@@ -56,7 +56,6 @@ class TestBankInfo(TestBase):
                 'account_holder':'ABCDEFGHIJKLMNOPQRSTUVWXYZ-ﾞﾟｱｲｳｴｵｶｷｸｹｺｱ' 
             }
         )
-        logger.info(response.data)
         assert response.status_code == 200
         assert '<title>銀行情報登録'.encode('utf-8') in response.data
         assert '<input class="form-control" id="name" name="name" type="text" value="株式会社１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０">'.encode('utf-8') in response.data
@@ -68,8 +67,8 @@ class TestBankInfo(TestBase):
         assert '<input class="form-control" id="account_number" name="account_number" type="text" value="1234567">'.encode('utf-8') in response.data
         assert '<input class="form-control" id="account_holder" name="account_holder" type="text" value="ABCDEFGHIJKLMNOPQRSTUVWXYZ-ﾞﾟｱｲｳｴｵｶｷｸｹｺｱ">'.encode('utf-8') in response.data
 
-        # 2秒待機
-        time.sleep(2)
+        # 待機
+        time.sleep(4)
         
         # personalInfoの確認
         personal_info_json = get_personal_encrypted_info(shared_contract['PersonalInfo'], eth_account['issuer']['account_address'], eth_account['issuer']['account_address'])
