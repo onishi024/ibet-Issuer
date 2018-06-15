@@ -29,7 +29,7 @@ class TestBankInfo(TestBase):
         client = self.client_with_admin_login(app)
         response = client.get(self.url_bankinfo)
         assert response.status_code == 200
-        assert '<title>行情報登録'.encode('utf-8') in response.data
+        assert '<title>銀行情報登録'.encode('utf-8') in response.data
         assert '<input class="form-control" id="name" name="name" type="text" value="">'.encode('utf-8') in response.data
         assert '<input class="form-control" id="bank_name" name="bank_name" type="text" value="">'.encode('utf-8') in response.data
         assert '<input class="form-control" id="bank_code" name="bank_code" type="text" value="">'.encode('utf-8') in response.data

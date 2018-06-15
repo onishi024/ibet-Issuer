@@ -55,10 +55,7 @@ def test(v_opt, s_opt, x_opt, module, cov, pdb):
     else:
         pytest_args.append("app/tests/test_%s.py" % module)
 
-    try:
-        pytest.main(pytest_args)
-    except:
-        sys.exit(1)
+    pytest.main(pytest_args)
 
 if __name__ == '__main__':
     manager.run()
