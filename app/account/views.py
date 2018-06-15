@@ -248,6 +248,22 @@ def bankinfo():
             p_txid = PersonalInfoContract.functions.register(Config.ETH_ACCOUNT, personal_info_ciphertext).\
                 transact({'from':Config.ETH_ACCOUNT, 'gas':p_gas})
 
+            # whitelist暗号文字列
+            whitelist_json = {
+                "name": bank_info.name,
+                "bank_account":{
+                    "bank_name": bank_info.bank_name,
+                    "bank_code": bank_info.bank_code,
+                    "branch_office": bank_info.branch_name,
+                    "branch_code": bank_info.branch_code,
+                    "account_type": bank_info.account_type,
+                    "account_number": bank_info.account_number,
+                    "account_holder": bank_info.account_holder
+                }
+            }
+            whitelist_message_string = json.dumps(whitelist_json)
+            whitelist_ciphertext = base64.encodestring(cipher.encrypt(whitelist_message_string.encode('utf-8')))
+
             # WhiteList Contract
             whitelist_address = to_checksum_address(Config.WHITE_LIST_CONTRACT_ADDRESS)
             whitelist_abi = Config.WHITE_LIST_CONTRACT_ABI
@@ -255,9 +271,16 @@ def bankinfo():
                 address = whitelist_address,
                 abi = whitelist_abi
             )
-
-
-
+            payment_account = WhiteListContract.functions.payment_accounts(Config.ETH_ACCOUNT, Config.AGENT_ADDRESS).call()
+            if (payment_account == 0) {
+                w_gas = WhiteListContract.estimateGas().register(Config.AGENT_ADDRESS, whitelist_ciphertext)
+                w_txid = WhiteListContract.functions.register(Config.AGENT_ADDRESS, whitelist_ciphertext).\
+                    transact({'from':Config.ETH_ACCOUNT, 'gas':w_gas})
+            } else {
+                w_gas = WhiteListContract.estimateGas().changeInfo(Config.AGENT_ADDRESS, whitelist_ciphertext)
+                w_txid = WhiteListContract.functions.changeInfo(Config.AGENT_ADDRESS, whitelist_ciphertext).\
+                    transact({'from':Config.ETH_ACCOUNT, 'gas':w_gas})
+            }
             flash('登録完了しました。', 'success')
             return render_template('account/bankinfo.html', form=form)
         else:
