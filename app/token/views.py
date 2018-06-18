@@ -75,7 +75,7 @@ def list():
     logger.info('list')
 
     # 発行済トークンの情報をDBから取得する
-    tokens = Token.query.all()
+    tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
 
     token_list = []
     for row in tokens:
@@ -616,7 +616,7 @@ def positions():
     logger.info('positions')
 
     # 自社が発行したトークンの一覧を取得
-    tokens = Token.query.all()
+    tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
 
     # Exchangeコントラクトに接続
     token_exchange_address = to_checksum_address(Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS)
