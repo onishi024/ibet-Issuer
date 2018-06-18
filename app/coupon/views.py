@@ -134,7 +134,9 @@ def issue():
                 form.symbol.data,
                 form.totalSupply.data,
                 form.details.data,
-                form.memo.data
+                form.memo.data,
+                form.expirationDate.data,
+                form.transferable.data
             ]
             tx_hash = CouponContract.deploy(
                 transaction={'from':Config.ETH_ACCOUNT, 'gas':4000000},
