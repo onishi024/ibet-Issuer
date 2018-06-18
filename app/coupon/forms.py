@@ -2,7 +2,7 @@
 from flask_wtf import FlaskForm as Form
 
 from wtforms import IntegerField, StringField, TextAreaField, \
-    SubmitField, DateField, HiddenField, DecimalField
+    SubmitField, DateField, HiddenField, DecimalField, SelectField
 from wtforms.validators import Required, Email, EqualTo, Length, Regexp
 from wtforms import ValidationError
 from sqlalchemy import or_, and_
