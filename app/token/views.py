@@ -44,7 +44,6 @@ def flash_errors(form):
         for error in errors:
             flash(error, 'error')
 
-
 # トランザクションがブロックに取り込まれるまで待つ
 # 10秒以上経過した場合は失敗とみなす（Falseを返す）
 def wait_transaction_receipt(tx_hash):

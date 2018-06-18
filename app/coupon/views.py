@@ -72,9 +72,41 @@ def wait_transaction_receipt(tx_hash):
 @login_required
 def list():
     logger.info('coupon/list')
-    
 
+    # 発行済トークンの情報をDBから取得する
+    tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
 
+    token_list = []
+    for row in tokens:
+        is_redeemed = False
+
+        # トークンがデプロイ済みの場合、トークン情報を取得する
+        if row.token_address == None:
+            name = '<処理中>'
+            symbol = '<処理中>'
+        else:
+            # Token-Contractへの接続
+            TokenContract = web3.eth.contract(
+                address=row.token_address,
+                abi = json.loads(
+                    row.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+            )
+
+            # Token-Contractから情報を取得する
+            name = TokenContract.functions.name().call()
+            symbol = TokenContract.functions.symbol().call()
+            is_valid = TokenContract.functions.isValid().call()
+
+        token_list.append({
+            'name':name,
+            'symbol':symbol,
+            'is_valid':is_valid,
+            'created':row.created,
+            'tx_hash':row.tx_hash,
+            'token_address':row.token_address
+        })
+
+    return render_template('coupon/list.html', tokens=token_list)
 
 # クーポン発行
 @coupon.route('/issue', methods=['GET', 'POST'])
@@ -150,6 +182,13 @@ def issue():
             return render_template('coupon/issue.html', form=form)
     else: # GET
         return render_template('coupon/issue.html', form=form)
+
+# クーポン一覧
+@coupon.route('/setting', methods=['GET', 'POST'])
+@login_required
+def setting():
+    logger.info('coupon/setting')
+
 
 # クーポン割当
 @coupon.route('/transfer', methods=['GET', 'POST'])
