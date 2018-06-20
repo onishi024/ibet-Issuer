@@ -26,4 +26,4 @@ if __name__ == '__main__':
     if not args.passphrase:
         raise Exception("passphrase is missing")
 
-    create(passphrase)
+    create(args.passphrase)
