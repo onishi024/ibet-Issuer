@@ -18,7 +18,7 @@ def create(passphrase):
     with open('public.pem', 'wb') as f:
         f.write(public_pem)
 
-    print(public_pem)
+    print(str(public_pem))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="秘密鍵のパスワードを入力してください。")
