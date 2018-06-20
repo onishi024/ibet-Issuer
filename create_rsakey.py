@@ -6,7 +6,7 @@ from Crypto import Random
 
 def create(passphrase):
     random_func = Random.new().read
-    rsa = RSA.generate(2048, random_func)
+    rsa = RSA.generate(10240, random_func)
 
     # 秘密鍵作成
     private_pem = rsa.exportKey(format='PEM', passphrase=passphrase)
