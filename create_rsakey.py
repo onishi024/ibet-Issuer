@@ -10,12 +10,12 @@ def create(passphrase):
 
     # 秘密鍵作成
     private_pem = rsa.exportKey(format='PEM', passphrase=passphrase)
-    with open('private.pem', 'w') as f:
+    with open('private.pem', 'wb') as f:
         f.write(private_pem)
 
     # 公開鍵作成
     public_pem = rsa.publickey().exportKey()
-    with open('public.pem', 'w') as f:
+    with open('public.pem', 'wb') as f:
         f.write(public_pem)
 
 if __name__ == '__main__':
