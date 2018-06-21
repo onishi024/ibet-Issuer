@@ -36,8 +36,8 @@ class Config:
         ]),
         ('coupon', 'glyphicon glyphicon-list-alt', 'クーポン発行管理', [
             ('coupon_list', 'fa fa-list', 'クーポン一覧', 'coupon.list'),
-            ('coupon_issue', 'fa fa-list', 'クーポン発行', 'coupon.issue'),
-            ('coupon_transfer', 'fa fa-list', 'クーポン割当', 'coupon.transfer')
+            ('coupon_issue', 'fa fa-plus-square-o', 'クーポン発行', 'coupon.issue'),
+            ('coupon_transfer', 'fa fa-send', 'クーポン割当', 'coupon.transfer')
         ]),
     ]
 
