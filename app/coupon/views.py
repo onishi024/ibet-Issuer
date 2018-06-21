@@ -78,8 +78,6 @@ def list():
 
     token_list = []
     for row in tokens:
-        is_redeemed = False
-
         # トークンがデプロイ済みの場合、トークン情報を取得する
         if row.token_address == None:
             name = '<処理中>'
@@ -91,7 +89,6 @@ def list():
                 abi = json.loads(
                     row.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
             )
-
             # Token-Contractから情報を取得する
             name = TokenContract.functions.name().call()
             symbol = TokenContract.functions.symbol().call()
