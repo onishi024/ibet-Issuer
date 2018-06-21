@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block head %}
+  {{ super() }}
+  <!-- DataTables -->
+  <link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
+{% endblock %}
+{% set active_page = "coupon_list" %}
+
+{% block title %}クーポン一覧 - {% endblock %}
+{% block page_header %}クーポン一覧{% endblock %}
+{% block page_description %}{% endblock %}
+{% block breadcrumb %}
+    <li><a href="{{ url_for('index.index') }}">トップ</a></li>
+    <li class="active">クーポン一覧</li>
+{% endblock %}
+
+{% block page_content %}
+<section class="content">
+  <div class="box box-default">
+    <div class="box-header">
+      <h3 class="box-title">クーポン一覧</h3>
+    </div>
+    <div class="box-body">
+  	  <table id="data_table" class="table table-bordered table-hover">
+  		<thead>
+  		  <tr>
+    			<th>名称</th>
+    			<th>略称</th>
+    			<th>登録日時</th>
+          <th>クーポンアドレス</th>
+          <th style="width: 50px">有効/<br>無効</th>
+          <th></th>
+    		</tr>
+  		</thead>
+  		<tbody>
+  		{% for token in tokens %}
+      　<tr>
+          {% if token.token_address != None %}
+    			  <td><a href="{{ url_for('coupon.setting', token_address=token.token_address) }}">{{ token.name }}</a></td>
+          {% else %}
+            <td>{{ token.name }}</td>
+          {% endif %}
+          <td>{{ token.symbol }}</td>
+    			<td align="center">{{ token.created | format_date }}</td>
+          {% if token.token_address != None %}
+            <td>{{ token.token_address }}</td>
+          {% else %}
+            <td>-</td>
+          {% endif %}
+          {% if token.is_valid == true %}
+            <td align="center"><span class="badge bg-green">有効</span></td>
+          {% elif token.is_valid == false %}
+            <td align="center"><span class="badge">無効</span></td>
+          {% else %}
+            <td align="center">{{ token.is_valid }}</td>
+          {% endif %}
+          {% if token.token_address != None %}
+      			<td><a href="{{ url_for('coupon.holders', token_address=token.token_address) }}">保有者一覧</a></td>
+          {% else %}
+            <td></td>
+          {% endif %}
+        </tr>
+  		{% endfor %}
+  		</tbody>
+  	    </table>
+  	</div>
+  </div>
+</section>
+{% endblock %}
+
+{% block required_js %}
+{{ super() }}
+<!-- DataTables -->
+<script src="/static/adminlte/bower_components/datatables.net/js/jquery.dataTables.min.js"></script>
+<script src="/static/adminlte/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+<!-- SlimScroll -->
+<script src="/static/adminlte/bower_components/jquery-slimscroll/jquery.slimscroll.min.js"></script>
+<!-- FastClick -->
+<script src="/static/adminlte/bower_components/fastclick/lib/fastclick.js"></script>
+<!-- AdminLTE for demo purposes -->
+<script src="/static/adminlte/dist/js/demo.js"></script>
+<script>
+  $(function () {
+    $('#data_table').DataTable({
+      'paging'      : true,
+      'lengthChange': true,
+      'searching'   : true,
+      'ordering'    : true,
+      'info'        : true,
+      'autoWidth'   : true,
+      'pagingType': "full_numbers",
+      'language': {
+          'info': "_TOTAL_ 件中 _START_ 〜 _END_ 件目",
+          'lengthMenu': "表示件数 _MENU_ 件",
+          'search': "検索:",
+          'paginate': {
+              'first': "最初へ",
+              'previous': "前へ",
+              'next': "次へ",
+              'last': "最後へ",
+          },
+          "emptyTable": "データが存在しません",
+          "sInfoEmpty":	" 0 件中 0 から 0 まで表示"
+      },
+    })
+  })
+</script>
+{% endblock %}

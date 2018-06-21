@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block head %}
+  {{ super() }}
+  <!-- DataTables -->
+  <link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
+{% endblock %}
+{% set active_page = "coupon_list" %}
+
+{% block title %}クーポン保有者一覧 - {% endblock %}
+{% block page_header %}クーポン保有者一覧{% endblock %}
+{% block page_description %}{% endblock %}
+{% block breadcrumb %}
+    <li><a href="{{ url_for('index.index') }}">トップ</a></li>
+    <li><a href="{{ url_for('coupon.list') }}">クーポン一覧</a></li>
+    <li class="active">クーポン保有者一覧</li>
+{% endblock %}
+
+{% block page_content %}
+<section class="content">
+  <div class="box box-default">
+    <div class="box-header">
+      <h3 class="box-title">保有者一覧　<small>{{ token_name }}</small></h3>
+    </div>
+    <div class="box-body">
+  	  <table id="data_table" class="table table-bordered table-hover">
+    		<thead>
+    		  <tr>
+            <th style="width: 200px">アカウントアドレス</th>
+      			<th>氏名</th>
+            <th>保有数量</th>
+            <th>使用済み数量</th>
+            <th></th>
+      		</tr>
+    		</thead>
+    		<tbody>
+    		{% for holder in holders %}
+        　<tr>
+            <td>{{ holder.account_address }}</td>
+            <td>{{ holder.name }}</td>
+            <td>{{ holder.balance }}</td>
+            <td>{{ holder.used }}</td>
+            <td><a href="{{ url_for('coupon.holder', token_address=token_address, account_address=holder.account_address) }}">保有者情報詳細</a></td>
+          </tr>
+    		{% endfor %}
+    		</tbody>
+  	  </table>
+  	</div>
+  </div>
+</section>
+{% endblock %}
+
+{% block required_js %}
+{{ super() }}
+<!-- DataTables -->
+<script src="/static/adminlte/bower_components/datatables.net/js/jquery.dataTables.min.js"></script>
+<script src="/static/adminlte/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+<!-- SlimScroll -->
+<script src="/static/adminlte/bower_components/jquery-slimscroll/jquery.slimscroll.min.js"></script>
+<!-- FastClick -->
+<script src="/static/adminlte/bower_components/fastclick/lib/fastclick.js"></script>
+<!-- AdminLTE for demo purposes -->
+<script src="/static/adminlte/dist/js/demo.js"></script>
+<script>
+  $(function () {
+    $('#data_table').DataTable({
+      'paging'      : true,
+      'lengthChange': true,
+      'searching'   : true,
+      'ordering'    : true,
+      'info'        : true,
+      'autoWidth'   : true,
+      'pagingType': "full_numbers",
+      'language': {
+          'info': "_TOTAL_ 件中 _START_ 〜 _END_ 件目",
+          'lengthMenu': "表示件数 _MENU_ 件",
+          'search': "検索:",
+          'paginate': {
+              'first': "最初へ",
+              'previous': "前へ",
+              'next': "次へ",
+              'last': "最後へ",
+          }
+      },
+    })
+  })
+</script>
+{% endblock %}

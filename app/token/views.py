@@ -24,6 +24,7 @@ from sqlalchemy import desc
 
 from . import token
 from .. import db
+from ..util import *
 from ..models import Role, User, Token, Certification
 from .forms import IssueTokenForm, TokenSettingForm, SellTokenForm, CancelOrderForm, RequestSignatureForm
 from ..decorators import admin_required
@@ -43,7 +44,6 @@ def flash_errors(form):
     for field, errors in form.errors.items():
         for error in errors:
             flash(error, 'error')
-
 
 # トランザクションがブロックに取り込まれるまで待つ
 # 10秒以上経過した場合は失敗とみなす（Falseを返す）
@@ -75,7 +75,7 @@ def list():
     logger.info('list')
 
     # 発行済トークンの情報をDBから取得する
-    tokens = Token.query.all()
+    tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
 
     token_list = []
     for row in tokens:
@@ -149,91 +149,7 @@ def list():
 @login_required
 def holders(token_address):
     logger.info('holders')
-
-    cipher = None
-    try:
-        key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
-        cipher = PKCS1_OAEP.new(key)
-    except:
-        traceback.print_exc()
-        pass
-
-    # Token Contract
-    token = Token.query.filter(Token.token_address==token_address).first()
-    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
-
-    TokenContract = web3.eth.contract(
-        address= token_address,
-        abi = token_abi
-    )
-
-    # Exchange Contract
-    token_exchange_address = to_checksum_address(Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS)
-    token_exchange_abi = Config.IBET_SB_EXCHANGE_CONTRACT_ABI
-    ExchangeContract = web3.eth.contract(
-        address = token_exchange_address,
-        abi = token_exchange_abi
-    )
-
-    # PersonalInfo Contract
-    personalinfo_address = to_checksum_address(Config.PERSONAL_INFO_CONTRACT_ADDRESS)
-    personalinfo_abi = Config.PERSONAL_INFO_CONTRACT_ABI
-    PersonalInfoContract = web3.eth.contract(
-        address = personalinfo_address,
-        abi = personalinfo_abi
-    )
-
-    # 残高を保有している可能性のあるアドレスを抽出する
-    holders_temp = []
-    holders_temp.append(TokenContract.functions.owner().call())
-
-    event_filter = TokenContract.eventFilter(
-        'Transfer', {
-            'filter':{},
-            'fromBlock':'earliest'
-        }
-    )
-    entries = event_filter.get_all_entries()
-    for entry in entries:
-        holders_temp.append(entry['args']['to'])
-
-    # 口座リストをユニークにする
-    holders_uniq = []
-    for x in holders_temp:
-        if x not in holders_uniq:
-            holders_uniq.append(x)
-
-    token_owner = TokenContract.functions.owner().call()
-    token_name = TokenContract.functions.name().call()
-
-    # 残高（balance）、または注文中の残高（commitment）が存在する情報を抽出
-    holders = []
-    for account_address in holders_uniq:
-        balance = TokenContract.functions.balanceOf(account_address).call()
-        commitment = ExchangeContract.functions.\
-            commitments(account_address,token_address).call()
-        if balance > 0 or commitment > 0:
-            encrypted_info = PersonalInfoContract.functions.\
-                personal_info(account_address, token_owner).call()[2]
-            if encrypted_info == '' or cipher == None:
-                name = ''
-            else:
-                ciphertext = base64.decodestring(encrypted_info.encode('utf-8'))
-                try:
-                    message = cipher.decrypt(ciphertext)
-                    personal_info_json = json.loads(message)
-                    name = personal_info_json['name']
-                except:
-                    name = ''
-
-            holder = {
-                'account_address':account_address,
-                'name':name,
-                'balance':balance,
-                'commitment':commitment,
-            }
-            holders.append(holder)
-
+    holders, token_name = get_holders(token_address, Config.TEMPLATE_ID_SB)
     return render_template('token/holders.html', \
         holders=holders, token_address=token_address, token_name=token_name)
 
@@ -244,63 +160,7 @@ def holders(token_address):
 @login_required
 def holder(token_address, account_address):
     logger.info('holder')
-
-    cipher = None
-    try:
-        key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
-        cipher = PKCS1_OAEP.new(key)
-    except:
-        pass
-
-    # Token Contract
-    token = Token.query.filter(Token.token_address==token_address).first()
-    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
-    TokenContract = web3.eth.contract(
-        address= token_address,
-        abi = token_abi
-    )
-
-    # PersonalInfo Contract
-    personalinfo_address = to_checksum_address(Config.PERSONAL_INFO_CONTRACT_ADDRESS)
-    personalinfo_abi = Config.PERSONAL_INFO_CONTRACT_ABI
-    PersonalInfoContract = web3.eth.contract(
-        address = personalinfo_address,
-        abi = personalinfo_abi
-    )
-
-    personal_info = {
-        "name":"--",
-        "address":{
-            "postal_code":"--",
-            "prefecture":"--",
-            "city":"--",
-            "address1":"--",
-            "address2":"--"
-        },
-        "bank_account":{
-            "bank_name": "--",
-            "branch_office": "--",
-            "account_type": "--",
-            "account_number": "--",
-            "account_holder": "--"
-        }
-    }
-
-    token_owner = TokenContract.functions.owner().call()
-
-    encrypted_info = PersonalInfoContract.functions.\
-        personal_info(account_address, token_owner).call()[2]
-
-    if encrypted_info == '' or cipher == None:
-        pass
-    else:
-        ciphertext = base64.decodestring(encrypted_info.encode('utf-8'))
-        try:
-            message = cipher.decrypt(ciphertext)
-            personal_info = json.loads(message)
-        except:
-            pass
-
+    personal_info = get_holder(token_address, account_address)
     return render_template('token/holder.html', personal_info=personal_info, token_address=token_address)
 
 ####################################################
@@ -342,17 +202,17 @@ def setting(token_address):
 
     if request.method == 'POST':
         web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
-        if form.image_small.data != '':
+        if form.image_small.data != image_small:
             gas = TokenContract.estimateGas().setImageURL(0, form.image_small.data)
             txid_small = TokenContract.functions.setImageURL(0, form.image_small.data).transact(
                 {'from':Config.ETH_ACCOUNT, 'gas':gas}
             )
-        if form.image_medium.data != '':
+        if form.image_medium.data != image_medium:
             gas = TokenContract.estimateGas().setImageURL(1, form.image_medium.data)
             txid_medium = TokenContract.functions.setImageURL(1, form.image_medium.data).transact(
                 {'from':Config.ETH_ACCOUNT, 'gas':gas}
             )
-        if form.image_large.data != '':
+        if form.image_large.data != image_large:
             gas = TokenContract.estimateGas().setImageURL(2, form.image_large.data)
             txid = TokenContract.functions.setImageURL(2, form.image_large.data).transact(
                 {'from':Config.ETH_ACCOUNT, 'gas':gas}
@@ -590,7 +450,7 @@ def issue():
             ).hex()
 
             token = Token()
-            token.template_id = 1
+            token.template_id = Config.TEMPLATE_ID_SB
             token.tx_hash = tx_hash
             token.admin_address = None
             token.token_address = None
@@ -616,7 +476,7 @@ def positions():
     logger.info('positions')
 
     # 自社が発行したトークンの一覧を取得
-    tokens = Token.query.all()
+    tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
 
     # Exchangeコントラクトに接続
     token_exchange_address = to_checksum_address(Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS)
