@@ -44,7 +44,7 @@
     			<td align="center">{{ token.created | format_date }}</td>
           <td><small>{{ token.tx_hash }}</small></td>
           {% if token.is_valid == true %}
-            <td align="center"><span class="badge">有効</span></td>
+            <td align="center"><span class="badge bg-green">有効</span></td>
           {% else %}
             <td align="center"><span class="badge">無効</span></td>
           {% endif %}
