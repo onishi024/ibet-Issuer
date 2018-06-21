@@ -42,7 +42,11 @@
           {% endif %}
           <td>{{ token.symbol }}</td>
     			<td align="center">{{ token.created | format_date }}</td>
-          <td>{{ token.token_address }}</td>
+          {% if token.token_address != None %}
+            <td>{{ token.token_address }}</td>
+          {% else %}
+            <td>-</td>
+          {% endif %}
           {% if token.is_valid == true %}
             <td align="center"><span class="badge bg-green">有効</span></td>
           {% elif token.is_valid == false %}

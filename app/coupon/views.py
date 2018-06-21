@@ -65,10 +65,10 @@ def wait_transaction_receipt(tx_hash):
             raise Exception
 
     return tx
-####################################################
-# クーポン
+
 ####################################################
 # クーポン一覧
+####################################################
 @coupon.route('/list', methods=['GET', 'POST'])
 @login_required
 def list():
@@ -84,7 +84,7 @@ def list():
             name = '<処理中>'
             symbol = '<処理中>'
             is_valid = '<処理中>'
-            token_address = '<処理中>'
+            token_address = None
         else:
             # Token-Contractへの接続
             TokenContract = web3.eth.contract(
@@ -107,7 +107,9 @@ def list():
 
     return render_template('coupon/list.html', tokens=token_list)
 
+####################################################
 # クーポン発行
+####################################################
 @coupon.route('/issue', methods=['GET', 'POST'])
 @login_required
 def issue():
@@ -122,7 +124,7 @@ def issue():
             bytecode = Config.IBET_COUPON_CONTRACT_BYTECODE
             bytecode_runtime = Config.IBET_COUPON_CONTRACT_BYTECODE_RUNTIME
 
-            CouponContract = web3.eth.contract(
+            TokenContract = web3.eth.contract(
                 abi = abi,
                 bytecode = bytecode,
                 bytecode_runtime = bytecode_runtime,
@@ -137,7 +139,7 @@ def issue():
                 form.expirationDate.data,
                 form.transferable.data
             ]
-            tx_hash = CouponContract.deploy(
+            tx_hash = TokenContract.deploy(
                 transaction={'from':Config.ETH_ACCOUNT, 'gas':4000000},
                 args=arguments
             ).hex()
@@ -157,23 +159,23 @@ def issue():
                 tx_receipt = wait_transaction_receipt(tx_hash)
                 if tx_receipt is not None :
                     contract_address = tx_receipt['contractAddress']
-                    CouponContract = web3.eth.contract(
+                    TokenContract = web3.eth.contract(
                         address= tx_receipt['contractAddress'],
                         abi = abi
                     )
                     if form.image_small.data != '':
-                        gas = CouponContract.estimateGas().setImageURL(0, form.image_small.data)
-                        txid_small = CouponContract.functions.setImageURL(0, form.image_small.data).transact(
+                        gas = TokenContract.estimateGas().setImageURL(0, form.image_small.data)
+                        txid_small = TokenContract.functions.setImageURL(0, form.image_small.data).transact(
                             {'from':Config.ETH_ACCOUNT, 'gas':gas}
                         )
                     if form.image_medium.data != '':
-                        gas = CouponContract.estimateGas().setImageURL(1, form.image_medium.data)
-                        txid_medium = CouponContract.functions.setImageURL(1, form.image_medium.data).transact(
+                        gas = TokenContract.estimateGas().setImageURL(1, form.image_medium.data)
+                        txid_medium = TokenContract.functions.setImageURL(1, form.image_medium.data).transact(
                             {'from':Config.ETH_ACCOUNT, 'gas':gas}
                         )
                     if form.image_large.data != '':
-                        gas = CouponContract.estimateGas().setImageURL(2, form.image_large.data)
-                        txid = CouponContract.functions.setImageURL(2, form.image_large.data).transact(
+                        gas = TokenContract.estimateGas().setImageURL(2, form.image_large.data)
+                        txid = TokenContract.functions.setImageURL(2, form.image_large.data).transact(
                             {'from':Config.ETH_ACCOUNT, 'gas':gas}
                         )
             flash('新規発行を受け付けました。発行完了までに数分程かかることがあります。', 'success')
@@ -184,14 +186,123 @@ def issue():
     else: # GET
         return render_template('coupon/issue.html', form=form)
 
-# クーポン一覧
-@coupon.route('/setting', methods=['GET', 'POST'])
+# 追加発行
+@coupon.route('/add_supply/<string:token_address>', methods=['GET', 'POST'])
 @login_required
-def setting():
+def add_supply(token_address):
+    logger.info('coupon/add_supply')
+
+    token = Token.query.filter(Token.token_address==token_address).first()
+    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+    owner = to_checksum_address(Config.ETH_ACCOUNT)
+    TokenContract = web3.eth.contract(
+        address= token.token_address,
+        abi = token_abi
+    )
+    form = AddSupplyForm()
+    form.token_address.data = token.token_address
+    form.name.data = TokenContract.functions.name().call()
+    form.totalSupply.data = TokenContract.functions.totalSupply().call()
+    if request.method == 'POST':
+        if form.validate():
+            web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
+
+            gas = TokenContract.estimateGas().issue(form.addSupply.data)
+            tx = TokenContract.functions.issue(form.addSupply.data).\
+                        transact({'from':owner, 'gas':gas})
+            wait_transaction_receipt(tx)
+
+            flash('追加発行を受け付けました。発行完了までに数分程かかることがあります。', 'success')
+            return redirect(url_for('.list'))
+        else:
+            flash_errors(form)
+            return render_template('coupon/add_supply.html', form=form)
+    else: # GET
+        return render_template('coupon/add_supply.html', form=form)
+
+####################################################
+# クーポン編集
+####################################################
+@coupon.route('/setting/<string:token_address>', methods=['GET', 'POST'])
+@login_required
+def setting(token_address):
     logger.info('coupon/setting')
+    token = Token.query.filter(Token.token_address==token_address).first()
+    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
 
+    TokenContract = web3.eth.contract(
+        address= token.token_address,
+        abi = token_abi
+    )
 
+    name = TokenContract.functions.name().call()
+    symbol = TokenContract.functions.symbol().call()
+    totalSupply = TokenContract.functions.totalSupply().call()
+    details = TokenContract.functions.details().call()
+    memo = TokenContract.functions.memo().call()
+    expirationDate = TokenContract.functions.expirationDate().call()
+    isValid = TokenContract.functions.isValid().call()
+    transferable = TokenContract.functions.transferable().call()
+    image_small = TokenContract.functions.getImageURL(0).call()
+    image_medium = TokenContract.functions.getImageURL(1).call()
+    image_large = TokenContract.functions.getImageURL(2).call()
+
+    form = IssueCouponForm()
+
+    if request.method == 'POST':
+        web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
+        # 詳細
+        if form.details.data != details:
+            gas = TokenContract.estimateGas().updateDetails(form.details.data)
+            txid = TokenContract.functions.updateDetails(form.details.data).transact(
+                {'from':Config.ETH_ACCOUNT, 'gas':gas}
+            )
+        # memo
+        if form.memo.data != memo:
+            gas = TokenContract.estimateGas().updateMemo(form.memo.data)
+            txid = TokenContract.functions.updateMemo(form.memo.data).transact(
+                {'from':Config.ETH_ACCOUNT, 'gas':gas}
+            )
+        # 画像 小
+        if form.image_small.data != image_small:
+            gas = TokenContract.estimateGas().setImageURL(0, form.image_small.data)
+            txid_small = TokenContract.functions.setImageURL(0, form.image_small.data).transact(
+                {'from':Config.ETH_ACCOUNT, 'gas':gas}
+            )
+        # 画像 中
+        if form.image_medium.data != image_medium:
+            gas = TokenContract.estimateGas().setImageURL(1, form.image_medium.data)
+            txid_medium = TokenContract.functions.setImageURL(1, form.image_medium.data).transact(
+                {'from':Config.ETH_ACCOUNT, 'gas':gas}
+            )
+        # 画像 大
+        if form.image_large.data != image_large:
+            gas = TokenContract.estimateGas().setImageURL(2, form.image_large.data)
+            txid = TokenContract.functions.setImageURL(2, form.image_large.data).transact(
+                {'from':Config.ETH_ACCOUNT, 'gas':gas}
+            )
+        flash('設定変更を受け付けました。変更完了までに数分程かかることがあります。', 'success')
+        return redirect(url_for('.list'))
+    else: # GET
+        form.token_address.data = token.token_address
+        form.name.data = name
+        form.symbol.data = symbol
+        form.totalSupply.data = totalSupply
+        form.details.data = details
+        form.isValid.data = isValid
+        form.expirationDate.data = expirationDate
+        form.transferable.data = transferable
+        form.memo.data = memo
+        form.image_small.data = image_small
+        form.image_medium.data = image_medium
+        form.image_large.data = image_large
+        form.abi.data = token.abi
+        form.bytecode.data = token.bytecode
+        return render_template('coupon/setting.html', form=form, token_address=token_address)
+
+####################################################
 # クーポン割当
+####################################################
 @coupon.route('/transfer', methods=['GET', 'POST'])
 @login_required
 def transfer():
@@ -206,14 +317,14 @@ def transfer():
             owner = to_checksum_address(Config.ETH_ACCOUNT)
             to_address = form.sendAddress.data
             amount = form.sendAmount.data
-            CouponContract = web3.eth.contract(
+            TokenContract = web3.eth.contract(
                 address= token.token_address,
                 abi = token_abi
             )
             web3.personal.unlockAccount(owner,Config.ETH_ACCOUNT_PASSWORD,1000)
             # 取引所コントラクトへトークン送信
-            deposit_gas = CouponContract.estimateGas().transfer(token_exchange_address, amount)
-            deposit_txid = CouponContract.functions.transfer(token_exchange_address, amount).\
+            deposit_gas = TokenContract.estimateGas().allocate(token_exchange_address, amount)
+            deposit_txid = TokenContract.functions.allocate(token_exchange_address, amount).\
                         transact({'from':owner, 'gas':deposit_gas})
             tx_receipt = wait_transaction_receipt(deposit_txid)
             if tx_receipt is not None:
@@ -222,15 +333,12 @@ def transfer():
                     address = token_exchange_address,
                     abi = token_exchange_abi
                 )
-                transfer_gas = CouponContract.estimateGas().\
-                    allocate(token.token_address, to_address, amount)
-                transfer_txid = CouponContract.functions.\
-                    allocate(token.token_address, to_address, amount).\
+                transfer_gas = ExchangeContract.estimateGas().\
+                    transfer(token.token_address, to_address, amount)
+                transfer_txid = ExchangeContract.functions.\
+                    transfer(token.token_address, to_address, amount).\
                     transact({'from':owner, 'gas':transfer_gas})
             flash('処理を受け付けました。割当完了までに数分程かかることがあります。', 'success')
-            return redirect(url_for('.list'))
-        else:
-            flash_errors(form)
             return render_template('coupon/transfer.html', form=form)
     else: # GET
         return render_template('coupon/transfer.html', form=form)
@@ -256,3 +364,42 @@ def holder(token_address, account_address):
     logger.info('coupon/holder')
     personal_info = get_holder(token_address, account_address)
     return render_template('coupon/holder.html', personal_info=personal_info, token_address=token_address)
+
+
+####################################################
+# 有効化/無効化
+####################################################
+@coupon.route('/valid', methods=['POST'])
+@login_required
+def valid():
+    logger.info('coupon/valid')
+    coupon_valid(request.form.get('token_address'), True)
+    return redirect(url_for('.list'))
+
+@coupon.route('/invalid', methods=['POST'])
+@login_required
+def invalid():
+    logger.info('coupon/invalid')
+    coupon_valid(request.form.get('token_address'), False)
+    return redirect(url_for('.list'))
+
+
+def coupon_valid(token_address, isvalid):
+    token = Token.query.filter(Token.token_address==token_address).first()
+    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+
+    owner = to_checksum_address(Config.ETH_ACCOUNT)
+    TokenContract = web3.eth.contract(
+        address= token.token_address,
+        abi = token_abi
+    )
+    web3.personal.unlockAccount(owner,Config.ETH_ACCOUNT_PASSWORD,1000)
+
+    gas = TokenContract.estimateGas().updateStatus(isvalid)
+    tx = TokenContract.functions.updateStatus(isvalid).\
+                transact({'from':owner, 'gas':gas})
+
+    wait_transaction_receipt(tx)
+
+    flash('処理を受け付けました。完了までに数分程かかることがあります。', 'success')
+

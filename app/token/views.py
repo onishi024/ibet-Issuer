@@ -202,17 +202,17 @@ def setting(token_address):
 
     if request.method == 'POST':
         web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
-        if form.image_small.data != '':
+        if form.image_small.data != image_small:
             gas = TokenContract.estimateGas().setImageURL(0, form.image_small.data)
             txid_small = TokenContract.functions.setImageURL(0, form.image_small.data).transact(
                 {'from':Config.ETH_ACCOUNT, 'gas':gas}
             )
-        if form.image_medium.data != '':
+        if form.image_medium.data != image_medium:
             gas = TokenContract.estimateGas().setImageURL(1, form.image_medium.data)
             txid_medium = TokenContract.functions.setImageURL(1, form.image_medium.data).transact(
                 {'from':Config.ETH_ACCOUNT, 'gas':gas}
             )
-        if form.image_large.data != '':
+        if form.image_large.data != image_large:
             gas = TokenContract.estimateGas().setImageURL(2, form.image_large.data)
             txid = TokenContract.functions.setImageURL(2, form.image_large.data).transact(
                 {'from':Config.ETH_ACCOUNT, 'gas':gas}

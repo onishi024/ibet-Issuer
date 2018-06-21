@@ -28,6 +28,7 @@
             <th style="width: 200px">アカウントアドレス</th>
       			<th>氏名</th>
             <th>保有数量</th>
+            <th>使用済み数量</th>
             <th></th>
       		</tr>
     		</thead>
@@ -37,6 +38,7 @@
             <td>{{ holder.account_address }}</td>
             <td>{{ holder.name }}</td>
             <td>{{ holder.balance }}</td>
+            <td>{{ holder.used }}</td>
             <td><a href="{{ url_for('coupon.holder', token_address=token_address, account_address=holder.account_address) }}">保有者情報詳細</a></td>
           </tr>
     		{% endfor %}

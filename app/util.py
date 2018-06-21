@@ -81,11 +81,13 @@ def get_holders(token_address, template_id):
         balance = TokenContract.functions.balanceOf(account_address).call()
         # 債券の場合は、注文中の残高（commitment）を抽出
         commitment = 0
+        used = 0
         if template_id == Config.TEMPLATE_ID_SB:
             commitment = ExchangeContract.functions.\
                 commitments(account_address,token_address).call()
-
-        if balance > 0 or commitment > 0:
+        if template_id == Config.TEMPLATE_ID_COUPON:
+            used = TokenContract.functions.usedOf(account_address).call()
+        if balance > 0 or commitment > 0 or used > 0:
             encrypted_info = PersonalInfoContract.functions.\
                 personal_info(account_address, token_owner).call()[2]
             if encrypted_info == '' or cipher == None:
@@ -104,6 +106,7 @@ def get_holders(token_address, template_id):
                 'name':name,
                 'balance':balance,
                 'commitment':commitment,
+                'used': used
             }
             holders.append(holder)
 

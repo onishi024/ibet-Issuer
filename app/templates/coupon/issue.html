@@ -52,6 +52,12 @@
                     </div>
                 </div>
                 <div class="form-group">
+                    {{ form.transferable.label(class="col-md-2") }}
+                    <div class="col-md-4">
+                        {{ form.transferable(class="form-control") }}
+                    </div>
+                </div>
+                <div class="form-group">
                     {{ form.details.label(class="col-md-2") }}
                     <div class="col-md-4">
                         {{ form.details(class="form-control") }}
@@ -61,12 +67,6 @@
                     {{ form.memo.label(class="col-md-2") }}
                     <div class="col-md-4">
                         {{ form.memo(class="form-control") }}
-                    </div>
-                </div>
-                <div class="form-group">
-                    {{ form.transferable.label(class="col-md-2") }}
-                    <div class="col-md-4">
-                        {{ form.transferable(class="form-control") }}
                     </div>
                 </div>
                 <div class="form-group">
