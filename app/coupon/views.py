@@ -25,6 +25,7 @@ from sqlalchemy import desc
 from . import coupon
 from .. import db
 from ..models import Role, User, Token, Certification
+from ..util import *
 from .forms import *
 from ..decorators import admin_required
 from config import Config
@@ -82,6 +83,8 @@ def list():
         if row.token_address == None:
             name = '<処理中>'
             symbol = '<処理中>'
+            is_valid = '<処理中>'
+            token_address = '<処理中>'
         else:
             # Token-Contractへの接続
             TokenContract = web3.eth.contract(
@@ -93,14 +96,13 @@ def list():
             name = TokenContract.functions.name().call()
             symbol = TokenContract.functions.symbol().call()
             is_valid = TokenContract.functions.isValid().call()
-
+            token_address = row.token_address
         token_list.append({
             'name':name,
             'symbol':symbol,
             'is_valid':is_valid,
             'created':row.created,
-            'tx_hash':row.tx_hash,
-            'token_address':row.token_address
+            'token_address':token_address
         })
 
     return render_template('coupon/list.html', tokens=token_list)
@@ -175,7 +177,7 @@ def issue():
                             {'from':Config.ETH_ACCOUNT, 'gas':gas}
                         )
             flash('新規発行を受け付けました。発行完了までに数分程かかることがあります。', 'success')
-            return render_template('coupon/issue.html', form=form)
+            return redirect(url_for('.list'))
         else:
             flash_errors(form)
             return render_template('coupon/issue.html', form=form)
@@ -221,14 +223,36 @@ def transfer():
                     abi = token_exchange_abi
                 )
                 transfer_gas = CouponContract.estimateGas().\
-                    transfer(token.token_address, to_address, amount)
+                    allocate(token.token_address, to_address, amount)
                 transfer_txid = CouponContract.functions.\
-                    transfer(token.token_address, to_address, amount).\
+                    allocate(token.token_address, to_address, amount).\
                     transact({'from':owner, 'gas':transfer_gas})
             flash('処理を受け付けました。割当完了までに数分程かかることがあります。', 'success')
-            return redirect(url_for('token.list'))
+            return redirect(url_for('.list'))
         else:
             flash_errors(form)
             return render_template('coupon/transfer.html', form=form)
     else: # GET
         return render_template('coupon/transfer.html', form=form)
+
+
+####################################################
+# coupon保有者一覧
+####################################################
+@coupon.route('/holders/<string:token_address>', methods=['GET'])
+@login_required
+def holders(token_address):
+    logger.info('coupon/holders')
+    holders, token_name = get_holders(token_address, Config.TEMPLATE_ID_COUPON)
+    return render_template('coupon/holders.html', \
+        holders=holders, token_address=token_address, token_name=token_name)
+
+####################################################
+# 債券保有者詳細
+####################################################
+@coupon.route('/holder/<string:token_address>/<string:account_address>', methods=['GET'])
+@login_required
+def holder(token_address, account_address):
+    logger.info('coupon/holder')
+    personal_info = get_holder(token_address, account_address)
+    return render_template('coupon/holder.html', personal_info=personal_info, token_address=token_address)
