@@ -147,7 +147,7 @@ def whitelist_contract():
     web3.eth.defaultAccount = deployer['account_address']
     web3.personal.unlockAccount(deployer['account_address'],deployer['password'])
 
-    contract_address, abi = Contract.deploy_contract(
+    contract_address, abi, _ = Contract.deploy_contract(
         'WhiteList', [], deployer['account_address'])
 
     return {'address':contract_address, 'abi':abi}
@@ -157,7 +157,7 @@ def personalinfo_contract():
     web3.eth.defaultAccount = deployer['account_address']
     web3.personal.unlockAccount(deployer['account_address'],deployer['password'])
 
-    contract_address, abi = Contract.deploy_contract(
+    contract_address, abi, _ = Contract.deploy_contract(
         'PersonalInfo', [], deployer['account_address'])
 
     return {'address':contract_address, 'abi':abi}
@@ -172,7 +172,7 @@ def bond_exchange_contract(whitelist_address, personalinfo_address):
         personalinfo_address
     ]
 
-    contract_address, abi = Contract.deploy_contract(
+    contract_address, abi, _ = Contract.deploy_contract(
         'IbetStraightBondExchange', args, deployer['account_address'])
 
     return {'address':contract_address, 'abi':abi}
@@ -182,7 +182,7 @@ def tokenlist_contract():
     web3.eth.defaultAccount = deployer['account_address']
     web3.personal.unlockAccount(deployer['account_address'],deployer['password'])
 
-    contract_address, abi = Contract.deploy_contract(
+    contract_address, abi, _ = Contract.deploy_contract(
         'TokenList', [], deployer['account_address'])
 
     return {'address':contract_address, 'abi':abi}

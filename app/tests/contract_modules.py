@@ -123,7 +123,7 @@ def issue_bond_token(invoker, attribute):
         attribute['purpose'], attribute['memo']
     ]
 
-    contract_address, abi = Contract.deploy_contract(
+    contract_address, abi, _ = Contract.deploy_contract(
         'IbetStraightBond', arguments, invoker['account_address'])
 
     return {'address': contract_address, 'abi': abi}
