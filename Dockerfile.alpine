@@ -1,0 +1,79 @@
+FROM python:3.6.5-alpine3.7
+
+# install solc
+RUN \
+  apk upgrade --update && \
+  apk --no-cache add build-base cmake boost-dev git                                                         && \
+  sed -i -E -e 's/include <sys\/poll.h>/include <poll.h>/' /usr/include/boost/asio/detail/socket_types.hpp  && \
+  git clone https://github.com/ethereum/solidity                                                            && \
+  cd /solidity && git checkout tags/v0.4.24                                                                 && \
+  cd /solidity && cmake -DCMAKE_BUILD_TYPE=Release -DTESTS=0 -DSTATIC_LINKING=1                             && \
+  cd /solidity && make solc && install -s  solc/solc /usr/bin                                               && \
+  cd / && rm -rf solidity                                                                                   && \
+  apk del sed build-base git make cmake gcc g++ musl-dev curl-dev boost-dev                                 && \
+  rm -rf /var/cache/apk/*
+
+# install packages
+RUN echo http://nl.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories \
+ && apk upgrade --update \
+ && apk add --no-cache shadow \
+  gcc \
+  make \
+  bzip2-dev \
+  coreutils \
+  dpkg-dev dpkg \
+  expat-dev \
+  gdbm-dev \
+  libc-dev \
+  libffi-dev \
+  libressl \
+  libressl-dev \
+  linux-headers \
+  ncurses-dev \
+  pax-utils \
+  readline-dev \
+  sqlite-dev \
+  tcl-dev \
+  tk \
+  tk-dev \
+  xz-dev \
+  zlib-dev \
+  python3-dev \
+  libffi-dev \
+  pkgconfig \
+  libpq \
+  gmp-dev \
+  postgresql-dev
+
+# requirements
+COPY requirements.txt /requirements.txt
+RUN pip install -r /requirements.txt
+
+# apk del
+RUN apk del gcc make bzip2-dev coreutils \
+  dpkg-dev dpkg expat-dev gdbm-dev libc-dev \
+  libffi-dev libressl libressl-dev \
+  linux-headers ncurses-dev pax-utils readline-dev \
+  sqlite-dev tcl-dev tk tk-dev xz-dev zlib-dev \
+  python3-dev libffi-dev pkgconfig libpq gmp-dev \
+  && rm -rf /var/cache/apk/*
+
+# make application directory
+RUN mkdir -p /app
+
+# add apl user/group
+RUN groupadd -g 1000 apl \
+ && useradd -g apl -s /bin/bash -u 1000 -p apl apl \
+ && echo 'apl ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers \
+ && chown -R apl:apl /app
+
+# app install
+COPY . /app/tmr-issuer
+RUN chown -R apl:apl /app/tmr-issuer && \
+    chmod 755 /app/tmr-issuer
+
+USER apl
+COPY run.alpine.sh /app/
+
+CMD /app/run.alpine.sh
+EXPOSE 5000
