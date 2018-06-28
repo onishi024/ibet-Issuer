@@ -304,7 +304,7 @@ def transfer():
             token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
             token_exchange_address = to_checksum_address(Config.IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS)
             owner = to_checksum_address(Config.ETH_ACCOUNT)
-            to_address = form.sendAddress.data
+            to_address = to_checksum_address(form.sendAddress.data)
             amount = form.sendAmount.data
             TokenContract = web3.eth.contract(
                 address= token.token_address,
