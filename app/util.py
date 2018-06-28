@@ -7,6 +7,7 @@ from Crypto.Cipher import PKCS1_OAEP
 
 from .models import Token
 from config import Config
+from app.contracts import Contract
 
 from web3 import Web3
 from eth_utils import to_checksum_address
