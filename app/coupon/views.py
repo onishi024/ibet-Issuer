@@ -130,7 +130,7 @@ def issue():
                 form.expirationDate.data,
                 form.transferable.data
             ]
-            _, bytecode, bytecode_runtime = get_contract_info('IbetCoupon')
+            _, bytecode, bytecode_runtime = Contract.get_contract_info('IbetCoupon')
             contract_address, abi, tx_hash = Contract.deploy_contract(
                 'IbetCoupon', arguments, Config.ETH_ACCOUNT)
 
