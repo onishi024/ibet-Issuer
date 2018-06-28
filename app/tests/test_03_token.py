@@ -374,7 +374,7 @@ class TestToken(TestBase):
         assert '認定依頼を受け付けました。'.encode('utf-8') in response.data
 
         # 債券トークンのsignatureが1になっていること
-        val = get_signature(token.token_address, token.abi, eth_account['agent']['account_address'])
+        val = get_signature(token.token_address, eth_account['agent']['account_address'])
         assert val == 1
 
     # ＜正常系14＞
@@ -382,7 +382,7 @@ class TestToken(TestBase):
     def test_normal_14(self, app, shared_contract):
         # 認定実施
         token = Token.query.get(1)
-        exec_sign(token.token_address, token.abi, eth_account['agent'])
+        exec_sign(token.token_address, eth_account['agent'])
 
         # 発行済債券一覧
         client = self.client_with_admin_login(app)
