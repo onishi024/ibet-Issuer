@@ -12,6 +12,9 @@ web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
 web3.middleware_stack.inject(geth_poa_middleware, layer=0)
 
 class Contract():
+    def get_contract_info(contract_name):
+        contracts = json.load(open('data/contracts.json' , 'r'))
+        return contracts[contract_name]['abi'], contracts[contract_name]['bytecode'], contracts[contract_name]['bytecode_runtime']
 
     def get_contract(contract_name, address):
         contracts = json.load(open('data/contracts.json' , 'r'))

@@ -430,10 +430,9 @@ def issue():
                 form.purpose.data,
                 form.memo.data
             ]
-
+            _, bytecode, bytecode_runtime = get_contract_info('IbetStraightBond')
             contract_address, abi, tx_hash = Contract.deploy_contract(
                 'IbetStraightBond', arguments, Config.ETH_ACCOUNT)
-
 
             token = Token()
             token.template_id = Config.TEMPLATE_ID_SB
