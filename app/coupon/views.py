@@ -29,6 +29,7 @@ from ..util import *
 from .forms import *
 from ..decorators import admin_required
 from config import Config
+from app.contracts import Contract
 
 from logging import getLogger
 logger = getLogger('api')
@@ -120,16 +121,6 @@ def issue():
             ####### トークン発行処理 #######
             web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
 
-            abi = json.loads(Config.IBET_COUPON_CONTRACT_ABI)
-            bytecode = Config.IBET_COUPON_CONTRACT_BYTECODE
-            bytecode_runtime = Config.IBET_COUPON_CONTRACT_BYTECODE_RUNTIME
-
-            TokenContract = web3.eth.contract(
-                abi = abi,
-                bytecode = bytecode,
-                bytecode_runtime = bytecode_runtime,
-            )
-
             arguments = [
                 form.name.data,
                 form.symbol.data,
@@ -139,10 +130,9 @@ def issue():
                 form.expirationDate.data,
                 form.transferable.data
             ]
-            tx_hash = TokenContract.deploy(
-                transaction={'from':Config.ETH_ACCOUNT, 'gas':4000000},
-                args=arguments
-            ).hex()
+
+            contract_address, abi, tx_hash = Contract.deploy_contract(
+                'IbetCoupon', arguments, Config.ETH_ACCOUNT)
 
             token = Token()
             token.template_id = Config.TEMPLATE_ID_COUPON
@@ -313,7 +303,6 @@ def transfer():
             token = Token.query.filter(Token.token_address==form.tokenAddress.data).first()
             token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
             token_exchange_address = to_checksum_address(Config.IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS)
-            token_exchange_abi = Config.IBET_COUPON_EXCHANGE_CONTRACT_ABI
             owner = to_checksum_address(Config.ETH_ACCOUNT)
             to_address = form.sendAddress.data
             amount = form.sendAmount.data
@@ -329,10 +318,8 @@ def transfer():
             tx_receipt = wait_transaction_receipt(deposit_txid)
             if tx_receipt is not None:
                 # 取引所コントラクトのtransferで送信相手へ送信
-                ExchangeContract = web3.eth.contract(
-                    address = token_exchange_address,
-                    abi = token_exchange_abi
-                )
+                ExchangeContract = Contract.get_contract(
+                    'IbetCouponExchange', token_exchange_address)
                 transfer_gas = ExchangeContract.estimateGas().\
                     transfer(token.token_address, to_address, amount)
                 transfer_txid = ExchangeContract.functions.\

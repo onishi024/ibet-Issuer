@@ -29,6 +29,7 @@ from ..models import Role, User, Token, Certification
 from .forms import IssueTokenForm, TokenSettingForm, SellTokenForm, CancelOrderForm, RequestSignatureForm
 from ..decorators import admin_required
 from config import Config
+from app.contracts import Contract
 
 from logging import getLogger
 logger = getLogger('api')
@@ -339,14 +340,10 @@ def release():
     token_address = request.form.get('token_address')
 
     list_contract_address = Config.TOKEN_LIST_CONTRACT_ADDRESS
-    list_contract_abi = json.loads(Config.TOKEN_LIST_CONTRACT_ABI)
+    ListContract = Contract.get_contract(
+        'TokenList', list_contract_address)
 
     web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
-
-    ListContract = web3.eth.contract(
-        address = to_checksum_address(list_contract_address),
-        abi = list_contract_abi
-    )
 
     try:
         gas = ListContract.estimateGas().register(token_address, 'IbetStraightBond')
@@ -402,16 +399,6 @@ def issue():
         if form.validate():
             web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
 
-            abi = json.loads(Config.IBET_SB_CONTRACT_ABI)
-            bytecode = Config.IBET_SB_CONTRACT_BYTECODE
-            bytecode_runtime = Config.IBET_SB_CONTRACT_BYTECODE_RUNTIME
-
-            TokenContract = web3.eth.contract(
-                abi = abi,
-                bytecode = bytecode,
-                bytecode_runtime = bytecode_runtime,
-            )
-
             interestPaymentDate = {
                 'interestPaymentDate1': form.interestPaymentDate1.data,
                 'interestPaymentDate2': form.interestPaymentDate2.data,
@@ -444,10 +431,9 @@ def issue():
                 form.memo.data
             ]
 
-            tx_hash = TokenContract.deploy(
-                transaction={'from':Config.ETH_ACCOUNT, 'gas':4000000},
-                args=arguments
-            ).hex()
+            contract_address, abi, tx_hash = Contract.deploy_contract(
+                'IbetStraightBond', arguments, Config.ETH_ACCOUNT)
+
 
             token = Token()
             token.template_id = Config.TEMPLATE_ID_SB
@@ -480,11 +466,8 @@ def positions():
 
     # Exchangeコントラクトに接続
     token_exchange_address = to_checksum_address(Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS)
-    token_exchange_abi = Config.IBET_SB_EXCHANGE_CONTRACT_ABI
-    ExchangeContract = web3.eth.contract(
-        address = token_exchange_address,
-        abi = token_exchange_abi
-    )
+    ExchangeContract = Contract.get_contract(
+        'IbetStraightBondExchange', token_exchange_address)
 
     position_list = []
     for row in tokens:
@@ -594,19 +577,13 @@ def sell(token_address):
         if form.validate():
             # PersonalInfo Contract
             personalinfo_address = to_checksum_address(Config.PERSONAL_INFO_CONTRACT_ADDRESS)
-            personalinfo_abi = Config.PERSONAL_INFO_CONTRACT_ABI
-            PersonalInfoContract = web3.eth.contract(
-                address = personalinfo_address,
-                abi = personalinfo_abi
-            )
+            PersonalInfoContract = Contract.get_contract(
+                'PersonalInfo', personalinfo_address)
 
             # WhiteList Contract
             whitelist_address = to_checksum_address(Config.WHITE_LIST_CONTRACT_ADDRESS)
-            whitelist_abi = Config.WHITE_LIST_CONTRACT_ABI
-            WhiteListContract = web3.eth.contract(
-                address = whitelist_address,
-                abi = whitelist_abi
-            )
+            WhiteListContract = Contract.get_contract(
+                'WhiteList', whitelist_address)
 
             eth_account = to_checksum_address(Config.ETH_ACCOUNT)
             agent_account = to_checksum_address(Config.AGENT_ADDRESS)
@@ -620,7 +597,6 @@ def sell(token_address):
             else:
                 web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
                 token_exchange_address = to_checksum_address(Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS)
-                token_exchange_abi = Config.IBET_SB_EXCHANGE_CONTRACT_ABI
                 agent_address = to_checksum_address(Config.AGENT_ADDRESS)
 
                 deposit_gas = TokenContract.estimateGas().transfer(token_exchange_address, balance)
@@ -638,10 +614,9 @@ def sell(token_address):
                     if deposit_tx_receipt is not None or count > 30:
                         break
 
-                ExchangeContract = web3.eth.contract(
-                    address = token_exchange_address,
-                    abi = token_exchange_abi
-                )
+                ExchangeContract = Contract.get_contract(
+                    'IbetStraightBondExchange', token_exchange_address)
+
                 sell_gas = ExchangeContract.estimateGas().\
                     createOrder(token_address, balance, form.sellPrice.data, False, agent_address)
                 sell_txid = ExchangeContract.functions.\
@@ -732,11 +707,8 @@ def cancel_order(order_id):
 
     # Exchangeコントラクトに接続
     token_exchange_address = to_checksum_address(Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS)
-    token_exchange_abi = Config.IBET_SB_EXCHANGE_CONTRACT_ABI
-    ExchangeContract = web3.eth.contract(
-        address = token_exchange_address,
-        abi = token_exchange_abi
-    )
+    ExchangeContract = Contract.get_contract(
+        'IbetStraightBondExchange', token_exchange_address)
 
     # 注文情報を取得する
     orderBook = ExchangeContract.functions.orderBook(order_id).call()

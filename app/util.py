@@ -38,19 +38,13 @@ def get_holders(token_address, template_id):
 
     # Exchange Contract
     token_exchange_address = to_checksum_address(Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS)
-    token_exchange_abi = Config.IBET_SB_EXCHANGE_CONTRACT_ABI
-    ExchangeContract = web3.eth.contract(
-        address = token_exchange_address,
-        abi = token_exchange_abi
-    )
+    ExchangeContract = Contract.get_contract(
+        'IbetStraightBondExchange', token_exchange_address)
 
     # PersonalInfo Contract
     personalinfo_address = to_checksum_address(Config.PERSONAL_INFO_CONTRACT_ADDRESS)
-    personalinfo_abi = Config.PERSONAL_INFO_CONTRACT_ABI
-    PersonalInfoContract = web3.eth.contract(
-        address = personalinfo_address,
-        abi = personalinfo_abi
-    )
+    PersonalInfoContract = Contract.get_contract(
+        'PersonalInfo', personalinfo_address)
 
     # 残高を保有している可能性のあるアドレスを抽出する
     holders_temp = []
@@ -134,11 +128,8 @@ def get_holder(token_address, account_address):
 
     # PersonalInfo Contract
     personalinfo_address = to_checksum_address(Config.PERSONAL_INFO_CONTRACT_ADDRESS)
-    personalinfo_abi = Config.PERSONAL_INFO_CONTRACT_ABI
-    PersonalInfoContract = web3.eth.contract(
-        address = personalinfo_address,
-        abi = personalinfo_abi
-    )
+    PersonalInfoContract = Contract.get_contract(
+        'PersonalInfo', personalinfo_address)
 
     personal_info = {
         "name":"--",
