@@ -32,6 +32,7 @@ from eth_utils import to_checksum_address
 
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
+from app.contracts import Contract
 
 #+++++++++++++++++++++++++++++++
 # Utils
@@ -188,11 +189,8 @@ def bankinfo():
     logger.info('account/bankinfo')
 
     personalinfo_address = to_checksum_address(Config.PERSONAL_INFO_CONTRACT_ADDRESS)
-    personalinfo_abi = Config.PERSONAL_INFO_CONTRACT_ABI
-    PersonalInfoContract = web3.eth.contract(
-        address = personalinfo_address,
-        abi = personalinfo_abi
-    )
+    PersonalInfoContract = Contract.get_contract(
+        'PersonalInfo', personalinfo_address)
     isRegistered = PersonalInfoContract.functions.isRegistered(Config.ETH_ACCOUNT, Config.ETH_ACCOUNT).call()
     if isRegistered:
         # 銀行情報の復号化
@@ -265,11 +263,8 @@ def bankinfo():
 
             # WhiteList Contract
             whitelist_address = to_checksum_address(Config.WHITE_LIST_CONTRACT_ADDRESS)
-            whitelist_abi = Config.WHITE_LIST_CONTRACT_ABI
-            WhiteListContract = web3.eth.contract(
-                address = whitelist_address,
-                abi = whitelist_abi
-            )
+            WhiteListContract = Contract.get_contract(
+                'WhiteList', whitelist_address)
             payment_account = WhiteListContract.functions.payment_accounts(Config.ETH_ACCOUNT, agent_address).call()
             if payment_account[3] == 0:
                 w_gas = WhiteListContract.estimateGas().register(agent_address, whitelist_ciphertext)

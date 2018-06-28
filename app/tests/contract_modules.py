@@ -15,7 +15,7 @@ from eth_utils import to_checksum_address
 
 from config import Config
 from .account_config import eth_account
-from .contract_config import IbetStraightBond, PersonalInfo, TokenList
+from app.contracts import Contract
 from ..models import Token
 
 from logging import getLogger
@@ -30,8 +30,8 @@ def register_personalinfo(invoker, personal_info, encrypted_info):
     web3.personal.unlockAccount(invoker['account_address'],
                                 invoker['password'])
 
-    PersonalInfoContract = web3.eth.contract(
-        address=personal_info['address'], abi=personal_info['abi'])
+    PersonalInfoContract = Contract.get_contract(
+        'PersonalInfo', personal_info['address'])
 
     issuer = eth_account['issuer']
     tx_hash = PersonalInfoContract.functions.register(issuer['account_address'], encrypted_info).\
@@ -41,8 +41,8 @@ def register_personalinfo(invoker, personal_info, encrypted_info):
 
 # 決済用銀行口座情報登録
 def register_only_whitelist(invoker, white_list, encrypted_info):
-    WhiteListContract = web3.eth.contract(
-        address=white_list['address'], abi=white_list['abi'])
+    WhiteListContract = Contract.get_contract(
+        'WhiteList', white_list['address'])
 
     # 1) 登録 from Invoker
     web3.eth.defaultAccount = invoker['account_address']
@@ -56,8 +56,8 @@ def register_only_whitelist(invoker, white_list, encrypted_info):
 
 # 決済口座の認可
 def approve_whitelist(invoker, white_list):
-    WhiteListContract = web3.eth.contract(
-        address=white_list['address'], abi=white_list['abi'])
+    WhiteListContract = Contract.get_contract(
+        'WhiteList', white_list['address'])
     agent = eth_account['agent']
 
     # 2) 認可 from Agent
@@ -72,8 +72,8 @@ def approve_whitelist(invoker, white_list):
 
 # 決済用銀行口座情報登録（認可まで）
 def register_whitelist(invoker, white_list, encrypted_info):
-    WhiteListContract = web3.eth.contract(
-        address=white_list['address'], abi=white_list['abi'])
+    WhiteListContract = Contract.get_contract(
+        'WhiteList', white_list['address'])
 
     # 1) 登録 from Invoker
     web3.eth.defaultAccount = invoker['account_address']
@@ -100,16 +100,6 @@ def issue_bond_token(invoker, attribute):
     web3.personal.unlockAccount(invoker['account_address'],
                                 invoker['password'])
 
-    abi = IbetStraightBond['abi']
-    bytecode = IbetStraightBond['bytecode']
-    bytecode_runtime = IbetStraightBond['bytecode_runtime']
-
-    TokenContract = web3.eth.contract(
-        abi=abi,
-        bytecode=bytecode,
-        bytecode_runtime=bytecode_runtime,
-    )
-
     interestPaymentDate = json.dumps({
         'interestPaymentDate1':attribute['interestPaymentDate1'],
         'interestPaymentDate2':attribute['interestPaymentDate2'],
@@ -133,28 +123,16 @@ def issue_bond_token(invoker, attribute):
         attribute['purpose'], attribute['memo']
     ]
 
-    tx_hash = TokenContract.deploy(
-        transaction={
-            'from': invoker['account_address'],
-            'gas': 4000000
-        },
-        args=arguments).hex()
+    contract_address, abi, _ = Contract.deploy_contract(
+        'IbetStraightBond', arguments, invoker['account_address'])
 
-    tx = wait_transaction_receipt(tx_hash)
-
-    contract_address = ''
-    if tx is not None:
-        # ブロックの状態を確認して、コントラクトアドレスが登録されているかを確認する。
-        if 'contractAddress' in tx.keys():
-            contract_address = tx['contractAddress']
-
-    return {'address': contract_address, 'abi': IbetStraightBond['abi']}
+    return {'address': contract_address, 'abi': abi}
 
 
 # 債券トークンのリスト登録
 def register_bond_list(invoker, bond_token, token_list):
-    TokenListContract = web3.eth.contract(
-        address=token_list['address'], abi=token_list['abi'])
+    TokenListContract = Contract.get_contract(
+        'TokenList', token_list['address'])
 
     web3.eth.defaultAccount = invoker['account_address']
     web3.personal.unlockAccount(invoker['account_address'],
@@ -175,8 +153,8 @@ def bond_transfer_to_exchange(invoker, bond_exchange, bond_token, amount):
     web3.personal.unlockAccount(invoker['account_address'],
                                 invoker['password'])
 
-    TokenContract = web3.eth.contract(
-        address=bond_token['address'], abi=bond_token['abi'])
+    TokenContract = Contract.get_contract(
+        'IbetStraightBond', bond_token['address'])
 
     tx_hash = TokenContract.functions.transfer(bond_exchange['address'], amount).\
         transact({'from':invoker['account_address'], 'gas':4000000})
@@ -187,8 +165,8 @@ def make_sell_bond_token(invoker, bond_exchange, bond_token, amount, price):
     web3.eth.defaultAccount = invoker['account_address']
     web3.personal.unlockAccount(invoker['account_address'],invoker['password'])
 
-    ExchangeContract = web3.eth.contract(
-        address=bond_exchange['address'], abi=bond_exchange['abi'])
+    ExchangeContract = Contract.get_contract(
+        'IbetStraightBondExchange', bond_exchange['address'])
 
     agent = eth_account['agent']
 
@@ -205,8 +183,8 @@ def take_buy_bond_token(invoker, bond_exchange, order_id, amount):
     web3.personal.unlockAccount(invoker['account_address'],
                                 invoker['password'])
 
-    ExchangeContract = web3.eth.contract(
-        address=bond_exchange['address'], abi=bond_exchange['abi'])
+    ExchangeContract = Contract.get_contract(
+        'IbetStraightBondExchange', bond_exchange['address'])
 
     tx_hash = ExchangeContract.functions.\
         executeOrder(order_id, amount, True).\
@@ -215,15 +193,15 @@ def take_buy_bond_token(invoker, bond_exchange, order_id, amount):
 
 # 直近注文IDを取得
 def get_latest_orderid(bond_exchange):
-    ExchangeContract = web3.eth.contract(
-        address=bond_exchange['address'], abi=bond_exchange['abi'])
+    ExchangeContract = Contract.get_contract(
+        'IbetStraightBondExchange', bond_exchange['address'])
     latest_orderid = ExchangeContract.functions.latestOrderId().call()
     return latest_orderid
 
 # 直近約定IDを取得
 def get_latest_agreementid(bond_exchange, order_id):
-    ExchangeContract = web3.eth.contract(
-        address=bond_exchange['address'], abi=bond_exchange['abi'])
+    ExchangeContract = Contract.get_contract(
+        'IbetStraightBondExchange', bond_exchange['address'])
     latest_agreementid = ExchangeContract.functions.latestAgreementIds(order_id).call()
     return latest_agreementid
 
@@ -233,8 +211,8 @@ def bond_confirm_agreement(invoker, bond_exchange, order_id, agreement_id):
     web3.personal.unlockAccount(invoker['account_address'],
                                 invoker['password'])
 
-    ExchangeContract = web3.eth.contract(
-        address=bond_exchange['address'], abi=bond_exchange['abi'])
+    ExchangeContract = Contract.get_contract(
+        'IbetStraightBondExchange', bond_exchange['address'])
 
     tx_hash = ExchangeContract.functions.\
         confirmAgreement(order_id, agreement_id).\
@@ -243,51 +221,42 @@ def bond_confirm_agreement(invoker, bond_exchange, order_id, agreement_id):
 
 # トークン数取得
 def get_token_list_length(token_list):
-    ListContract = web3.eth.contract(
-        address = to_checksum_address(token_list['address']),
-        abi = token_list['abi'],
-    )
-    list_length = ListContract.functions.getListLength().call()
+    TokenListContract = Contract.get_contract(
+        'TokenList', token_list['address'])
+    list_length = TokenListContract.functions.getListLength().call()
     return list_length
 
 # トークン数取得
 def get_token_list(token_list, token_address):
-    ListContract = web3.eth.contract(
-        address = to_checksum_address(token_list['address']),
-        abi = token_list['abi'],
-    )
-    token = ListContract.functions.getTokenByAddress(token_address).call()
+    TokenListContract = Contract.get_contract(
+        'TokenList', token_list['address'])
+    token = TokenListContract.functions.getTokenByAddress(token_address).call()
     return token
 
 # 認定実施
-def exec_sign(token_address, token_abi, invoker):
+def exec_sign(token_address, invoker):
     web3.eth.defaultAccount = invoker['account_address']
     web3.personal.unlockAccount(invoker['account_address'],
                                 invoker['password'])
 
-    token_abi = json.loads(token_abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
-    TokenContract = web3.eth.contract(
-        address = token_address,
-        abi = token_abi
-    )
+    TokenContract = Contract.get_contract(
+        'IbetStraightBond', token_address)
+
     tx_hash = TokenContract.functions.sign().\
         transact({'from':invoker['account_address'], 'gas':4000000})
     tx = wait_transaction_receipt(tx_hash)
 
 # 認定区分を取得
-def get_signature(token_address, token_abi, signer_address):
-    token_abi = json.loads(token_abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
-    TokenContract = web3.eth.contract(
-        address = token_address,
-        abi = token_abi
-    )
+def get_signature(token_address, signer_address):
+    TokenContract = Contract.get_contract(
+        'IbetStraightBond', token_address)
     return TokenContract.functions.signatures(signer_address).call()
 
 # personalInfoを復号化して返す
 def get_personal_encrypted_info(personal_info, account_address, token_owner):
     # personalinfo取得
-    PersonalInfoContract = web3.eth.contract(
-        address=personal_info['address'], abi=personal_info['abi'])
+    PersonalInfoContract = Contract.get_contract(
+        'PersonalInfo', personal_info['address'])
     encrypted_info = PersonalInfoContract.functions.personal_info(
                 to_checksum_address(account_address), 
                 to_checksum_address(token_owner)
@@ -301,8 +270,8 @@ def get_personal_encrypted_info(personal_info, account_address, token_owner):
 
 # whitelistを復号化して返す
 def get_whitelist_encrypted_info(white_list, account_address, agent_address):
-    WhiteListContract = web3.eth.contract(
-        address=white_list['address'], abi=white_list['abi'])
+    WhiteListContract = Contract.get_contract(
+        'WhiteList', white_list['address'])
     payment_account = WhiteListContract.functions.payment_accounts(
             to_checksum_address(account_address),
             to_checksum_address(agent_address)
