@@ -46,7 +46,7 @@ class TestCoupon(TestBase):
 
     # ＜正常系2＞
     # 新規発行　→　DB登録処理 →　詳細画面
-    def test_normal_2(self, app, shared_contract):
+    def test_normal_2(self, app, db, shared_contract):
         client = self.client_with_admin_login(app)
         # 新規発行
         response = client.post(
