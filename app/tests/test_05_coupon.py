@@ -73,8 +73,8 @@ class TestCoupon(TestBase):
         processorIssueEvent(db)
 
         # 設定画面
-        token = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).get(1)
-        response = client.get(self.url_setting + token.token_address)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        response = client.get(self.url_setting + tokens[0].token_address)
     
         assert response.status_code == 200
         assert '<title>クーポン編集'.encode('utf-8') in response.data
