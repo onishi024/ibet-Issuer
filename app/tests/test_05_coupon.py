@@ -90,462 +90,462 @@ class TestCoupon(TestBase):
         assert 'https://test.com/image_large.jpg'.encode('utf-8') in response.data
 
 
-    # ＜正常系3＞
-    # 新規発行　→　DB登録処理 →　詳細画面
-    def test_normal_3(self, app, db, shared_contract):
-        client = self.client_with_admin_login(app)
-        # 新規発行
-        response = client.post(
-            self.url_issue,
-            data={
-                'name': 'テスト債券',
-                'symbol': 'BOND',
-                'totalSupply': 1000000,
-                'faceValue': 1000,
-                'interestRate': 1000,
-                'interestPaymentDate1': '0101',
-                'interestPaymentDate2': '0201',
-                'interestPaymentDate3': '0301',
-                'interestPaymentDate4': '0401',
-                'interestPaymentDate5': '0501',
-                'interestPaymentDate6': '0601',
-                'interestPaymentDate7': '0701',
-                'interestPaymentDate8': '0801',
-                'interestPaymentDate9': '0901',
-                'interestPaymentDate10': '1001',
-                'interestPaymentDate11': '1101',
-                'interestPaymentDate12': '1201',
-                'redemptionDate': '20191231',
-                'redemptionAmount': 10000,
-                'returnDate': '20191231',
-                'returnAmount': '商品券をプレゼント',
-                'purpose': '新商品の開発資金として利用。',
-                'memo': 'メモ'
-            }
-        )
-        assert response.status_code == 302
+    # # ＜正常系3＞
+    # # 新規発行　→　DB登録処理 →　詳細画面
+    # def test_normal_3(self, app, db, shared_contract):
+    #     client = self.client_with_admin_login(app)
+    #     # 新規発行
+    #     response = client.post(
+    #         self.url_issue,
+    #         data={
+    #             'name': 'テスト債券',
+    #             'symbol': 'BOND',
+    #             'totalSupply': 1000000,
+    #             'faceValue': 1000,
+    #             'interestRate': 1000,
+    #             'interestPaymentDate1': '0101',
+    #             'interestPaymentDate2': '0201',
+    #             'interestPaymentDate3': '0301',
+    #             'interestPaymentDate4': '0401',
+    #             'interestPaymentDate5': '0501',
+    #             'interestPaymentDate6': '0601',
+    #             'interestPaymentDate7': '0701',
+    #             'interestPaymentDate8': '0801',
+    #             'interestPaymentDate9': '0901',
+    #             'interestPaymentDate10': '1001',
+    #             'interestPaymentDate11': '1101',
+    #             'interestPaymentDate12': '1201',
+    #             'redemptionDate': '20191231',
+    #             'redemptionAmount': 10000,
+    #             'returnDate': '20191231',
+    #             'returnAmount': '商品券をプレゼント',
+    #             'purpose': '新商品の開発資金として利用。',
+    #             'memo': 'メモ'
+    #         }
+    #     )
+    #     assert response.status_code == 302
 
-        # 2秒待機
-        time.sleep(2)
+    #     # 2秒待機
+    #     time.sleep(2)
 
-        # DB登録処理
-        processorIssueEvent(db)
+    #     # DB登録処理
+    #     processorIssueEvent(db)
 
-        # 設定画面
-        token = Token.query.get(1)
-        response = client.get(self.url_setting + token.token_address)
+    #     # 設定画面
+    #     token = Token.query.get(1)
+    #     response = client.get(self.url_setting + token.token_address)
     
-        assert response.status_code == 200
-        assert '<title>債券詳細設定'.encode('utf-8') in response.data
-        assert 'テスト債券'.encode('utf-8') in response.data
-        assert 'BOND'.encode('utf-8') in response.data
-        assert '1000000'.encode('utf-8') in response.data
-        assert '1000'.encode('utf-8') in response.data
-        assert '0101'.encode('utf-8') in response.data
-        assert '0201'.encode('utf-8') in response.data
-        assert '0301'.encode('utf-8') in response.data
-        assert '0401'.encode('utf-8') in response.data
-        assert '0501'.encode('utf-8') in response.data
-        assert '0601'.encode('utf-8') in response.data
-        assert '0701'.encode('utf-8') in response.data
-        assert '0801'.encode('utf-8') in response.data
-        assert '0901'.encode('utf-8') in response.data
-        assert '1001'.encode('utf-8') in response.data
-        assert '1101'.encode('utf-8') in response.data
-        assert '1201'.encode('utf-8') in response.data
-        assert '20191231'.encode('utf-8') in response.data
-        assert '10000'.encode('utf-8') in response.data
-        assert '20191231'.encode('utf-8') in response.data
-        assert '商品券をプレゼント'.encode('utf-8') in response.data
-        assert '新商品の開発資金として利用。'.encode('utf-8') in response.data
-        assert 'メモ'.encode('utf-8') in response.data
+    #     assert response.status_code == 200
+    #     assert '<title>債券詳細設定'.encode('utf-8') in response.data
+    #     assert 'テスト債券'.encode('utf-8') in response.data
+    #     assert 'BOND'.encode('utf-8') in response.data
+    #     assert '1000000'.encode('utf-8') in response.data
+    #     assert '1000'.encode('utf-8') in response.data
+    #     assert '0101'.encode('utf-8') in response.data
+    #     assert '0201'.encode('utf-8') in response.data
+    #     assert '0301'.encode('utf-8') in response.data
+    #     assert '0401'.encode('utf-8') in response.data
+    #     assert '0501'.encode('utf-8') in response.data
+    #     assert '0601'.encode('utf-8') in response.data
+    #     assert '0701'.encode('utf-8') in response.data
+    #     assert '0801'.encode('utf-8') in response.data
+    #     assert '0901'.encode('utf-8') in response.data
+    #     assert '1001'.encode('utf-8') in response.data
+    #     assert '1101'.encode('utf-8') in response.data
+    #     assert '1201'.encode('utf-8') in response.data
+    #     assert '20191231'.encode('utf-8') in response.data
+    #     assert '10000'.encode('utf-8') in response.data
+    #     assert '20191231'.encode('utf-8') in response.data
+    #     assert '商品券をプレゼント'.encode('utf-8') in response.data
+    #     assert '新商品の開発資金として利用。'.encode('utf-8') in response.data
+    #     assert 'メモ'.encode('utf-8') in response.data
 
-    # ＜正常系4＞
-    # 発行済債券一覧の参照(1件)
-    def test_normal_4(self, app, shared_contract):
-        client = self.client_with_admin_login(app)
-        response = client.get(self.url_tokenlist)
-        assert response.status_code == 200
-        assert '<title>発行済債券一覧'.encode('utf-8') in response.data
-        assert 'テスト債券'.encode('utf-8') in response.data
-        assert 'BOND'.encode('utf-8') in response.data
+    # # ＜正常系4＞
+    # # 発行済債券一覧の参照(1件)
+    # def test_normal_4(self, app, shared_contract):
+    #     client = self.client_with_admin_login(app)
+    #     response = client.get(self.url_tokenlist)
+    #     assert response.status_code == 200
+    #     assert '<title>発行済債券一覧'.encode('utf-8') in response.data
+    #     assert 'テスト債券'.encode('utf-8') in response.data
+    #     assert 'BOND'.encode('utf-8') in response.data
 
-    # ＜正常系5＞
-    # 保有債券一覧(1件)
-    def test_normal_5(self, app, shared_contract):
-        client = self.client_with_admin_login(app)
-        response = client.get(self.url_positions)
-        assert response.status_code == 200
-        assert '<title>保有債券一覧'.encode('utf-8') in response.data
-        assert 'テスト債券'.encode('utf-8') in response.data
-        assert 'BOND'.encode('utf-8') in response.data
+    # # ＜正常系5＞
+    # # 保有債券一覧(1件)
+    # def test_normal_5(self, app, shared_contract):
+    #     client = self.client_with_admin_login(app)
+    #     response = client.get(self.url_positions)
+    #     assert response.status_code == 200
+    #     assert '<title>保有債券一覧'.encode('utf-8') in response.data
+    #     assert 'テスト債券'.encode('utf-8') in response.data
+    #     assert 'BOND'.encode('utf-8') in response.data
 
-    # ＜正常系6＞
-    # 新規募集画面の参照
-    def test_normal_6(self, app, shared_contract):
-        token = Token.query.get(1)
-        client = self.client_with_admin_login(app)
-        response = client.get(self.url_sell + token.token_address)
-        assert response.status_code == 200
-        assert '<title>債券新規募集'.encode('utf-8') in response.data
-        assert 'テスト債券'.encode('utf-8') in response.data
-        assert 'BOND'.encode('utf-8') in response.data
-        assert '1000000'.encode('utf-8') in response.data
-        assert '1000'.encode('utf-8') in response.data
-        assert '0101'.encode('utf-8') in response.data
-        assert '0201'.encode('utf-8') in response.data
-        assert '0301'.encode('utf-8') in response.data
-        assert '0401'.encode('utf-8') in response.data
-        assert '0501'.encode('utf-8') in response.data
-        assert '0601'.encode('utf-8') in response.data
-        assert '0701'.encode('utf-8') in response.data
-        assert '0801'.encode('utf-8') in response.data
-        assert '0901'.encode('utf-8') in response.data
-        assert '1001'.encode('utf-8') in response.data
-        assert '1101'.encode('utf-8') in response.data
-        assert '1201'.encode('utf-8') in response.data
-        assert '20191231'.encode('utf-8') in response.data
-        assert '10000'.encode('utf-8') in response.data
-        assert '20191231'.encode('utf-8') in response.data
-        assert '商品券をプレゼント'.encode('utf-8') in response.data
-        assert '新商品の開発資金として利用。'.encode('utf-8') in response.data
-        assert 'メモ'.encode('utf-8') in response.data
+    # # ＜正常系6＞
+    # # 新規募集画面の参照
+    # def test_normal_6(self, app, shared_contract):
+    #     token = Token.query.get(1)
+    #     client = self.client_with_admin_login(app)
+    #     response = client.get(self.url_sell + token.token_address)
+    #     assert response.status_code == 200
+    #     assert '<title>債券新規募集'.encode('utf-8') in response.data
+    #     assert 'テスト債券'.encode('utf-8') in response.data
+    #     assert 'BOND'.encode('utf-8') in response.data
+    #     assert '1000000'.encode('utf-8') in response.data
+    #     assert '1000'.encode('utf-8') in response.data
+    #     assert '0101'.encode('utf-8') in response.data
+    #     assert '0201'.encode('utf-8') in response.data
+    #     assert '0301'.encode('utf-8') in response.data
+    #     assert '0401'.encode('utf-8') in response.data
+    #     assert '0501'.encode('utf-8') in response.data
+    #     assert '0601'.encode('utf-8') in response.data
+    #     assert '0701'.encode('utf-8') in response.data
+    #     assert '0801'.encode('utf-8') in response.data
+    #     assert '0901'.encode('utf-8') in response.data
+    #     assert '1001'.encode('utf-8') in response.data
+    #     assert '1101'.encode('utf-8') in response.data
+    #     assert '1201'.encode('utf-8') in response.data
+    #     assert '20191231'.encode('utf-8') in response.data
+    #     assert '10000'.encode('utf-8') in response.data
+    #     assert '20191231'.encode('utf-8') in response.data
+    #     assert '商品券をプレゼント'.encode('utf-8') in response.data
+    #     assert '新商品の開発資金として利用。'.encode('utf-8') in response.data
+    #     assert 'メモ'.encode('utf-8') in response.data
 
-    # ＜正常系7＞
-    # 募集 → personinfo登録 → 募集 → whitelist登録 →
-    # 募集 → 保有債券一覧で確認
-    def test_normal_7(self, app, shared_contract):
-        client = self.client_with_admin_login(app)
-        token = Token.query.get(1)
-        url_sell = self.url_sell + token.token_address
-        # 募集
-        response = client.post(
-            url_sell,
-            data={
-                'sellPrice': 100,
-            }
-        )
-        assert response.status_code == 302
-        # 保有債券一覧でエラーを確認
-        response = client.get(self.url_positions)
-        assert response.status_code == 200
-        assert '法人名、所在地の情報が未登録です。'.encode('utf-8') in response.data
+    # # ＜正常系7＞
+    # # 募集 → personinfo登録 → 募集 → whitelist登録 →
+    # # 募集 → 保有債券一覧で確認
+    # def test_normal_7(self, app, shared_contract):
+    #     client = self.client_with_admin_login(app)
+    #     token = Token.query.get(1)
+    #     url_sell = self.url_sell + token.token_address
+    #     # 募集
+    #     response = client.post(
+    #         url_sell,
+    #         data={
+    #             'sellPrice': 100,
+    #         }
+    #     )
+    #     assert response.status_code == 302
+    #     # 保有債券一覧でエラーを確認
+    #     response = client.get(self.url_positions)
+    #     assert response.status_code == 200
+    #     assert '法人名、所在地の情報が未登録です。'.encode('utf-8') in response.data
         
-        # personalinfo登録
-        register_personalinfo(eth_account['issuer'], shared_contract['PersonalInfo'], self.issuer_encrypted_info)
-        # 募集
-        response = client.post(
-            url_sell,
-            data={
-                'sellPrice': 100,
-            }
-        )
-        assert response.status_code == 302
-        # 保有債券一覧でエラーを確認
-        response = client.get(self.url_positions)
-        assert response.status_code == 200
-        assert '金融機関の情報が未登録です。'.encode('utf-8') in response.data
+    #     # personalinfo登録
+    #     register_personalinfo(eth_account['issuer'], shared_contract['PersonalInfo'], self.issuer_encrypted_info)
+    #     # 募集
+    #     response = client.post(
+    #         url_sell,
+    #         data={
+    #             'sellPrice': 100,
+    #         }
+    #     )
+    #     assert response.status_code == 302
+    #     # 保有債券一覧でエラーを確認
+    #     response = client.get(self.url_positions)
+    #     assert response.status_code == 200
+    #     assert '金融機関の情報が未登録です。'.encode('utf-8') in response.data
         
-        # whitelist登録
-        register_whitelist(eth_account['issuer'], shared_contract['WhiteList'], self.issuer_encrypted_info)
-        # 募集
-        response = client.post(
-            url_sell,
-            data={
-                'sellPrice': 100,
-            }
-        )
-        assert response.status_code == 302
+    #     # whitelist登録
+    #     register_whitelist(eth_account['issuer'], shared_contract['WhiteList'], self.issuer_encrypted_info)
+    #     # 募集
+    #     response = client.post(
+    #         url_sell,
+    #         data={
+    #             'sellPrice': 100,
+    #         }
+    #     )
+    #     assert response.status_code == 302
 
-        # 待機（募集には時間がかかる）
-        time.sleep(5)
+    #     # 待機（募集には時間がかかる）
+    #     time.sleep(5)
 
-        # 保有債券一覧
-        response = client.get(self.url_positions)
-        assert response.status_code == 200
-        assert '<title>保有債券一覧'.encode('utf-8') in response.data
-        assert '新規募集を受け付けました。募集開始までに数分程かかることがあります。'.encode('utf-8') in response.data
-        assert 'テスト債券'.encode('utf-8') in response.data
-        assert 'BOND'.encode('utf-8') in response.data
-        assert '募集停止'.encode('utf-8') in response.data
+    #     # 保有債券一覧
+    #     response = client.get(self.url_positions)
+    #     assert response.status_code == 200
+    #     assert '<title>保有債券一覧'.encode('utf-8') in response.data
+    #     assert '新規募集を受け付けました。募集開始までに数分程かかることがあります。'.encode('utf-8') in response.data
+    #     assert 'テスト債券'.encode('utf-8') in response.data
+    #     assert 'BOND'.encode('utf-8') in response.data
+    #     assert '募集停止'.encode('utf-8') in response.data
 
-    # ＜正常系8＞
-    # 募集停止 → 保有債券一覧で確認
-    def test_normal_8(self, app, shared_contract):
-        client = self.client_with_admin_login(app)
-        response = client.post(
-            self.url_cancel_order + '0',
-        )
-        assert response.status_code == 302
+    # # ＜正常系8＞
+    # # 募集停止 → 保有債券一覧で確認
+    # def test_normal_8(self, app, shared_contract):
+    #     client = self.client_with_admin_login(app)
+    #     response = client.post(
+    #         self.url_cancel_order + '0',
+    #     )
+    #     assert response.status_code == 302
 
-        # 待機
-        time.sleep(2)
+    #     # 待機
+    #     time.sleep(2)
 
-        # 保有債券一覧
-        response = client.get(self.url_positions)
-        assert response.status_code == 200
-        assert '<title>保有債券一覧'.encode('utf-8') in response.data
-        assert 'テスト債券'.encode('utf-8') in response.data
-        assert 'BOND'.encode('utf-8') in response.data
-        assert '募集開始'.encode('utf-8') in response.data
+    #     # 保有債券一覧
+    #     response = client.get(self.url_positions)
+    #     assert response.status_code == 200
+    #     assert '<title>保有債券一覧'.encode('utf-8') in response.data
+    #     assert 'テスト債券'.encode('utf-8') in response.data
+    #     assert 'BOND'.encode('utf-8') in response.data
+    #     assert '募集開始'.encode('utf-8') in response.data
 
-    # ＜正常系9＞
-    # 募集設定　画像URL登録 → 詳細画面で確認
-    def test_normal_9(self, app, shared_contract):
-        token = Token.query.get(1)
-        url_setting = self.url_setting + token.token_address
-        client = self.client_with_admin_login(app)
-        # 募集設定
-        response = client.post(
-            url_setting,
-            data={
-                'image_small': 'https://test.com/image_small.jpg',
-                'image_medium': 'https://test.com/image_medium.jpg',
-                'image_large': 'https://test.com/image_large.jpg',
-            }
-        )
-        assert response.status_code == 302
+    # # ＜正常系9＞
+    # # 募集設定　画像URL登録 → 詳細画面で確認
+    # def test_normal_9(self, app, shared_contract):
+    #     token = Token.query.get(1)
+    #     url_setting = self.url_setting + token.token_address
+    #     client = self.client_with_admin_login(app)
+    #     # 募集設定
+    #     response = client.post(
+    #         url_setting,
+    #         data={
+    #             'image_small': 'https://test.com/image_small.jpg',
+    #             'image_medium': 'https://test.com/image_medium.jpg',
+    #             'image_large': 'https://test.com/image_large.jpg',
+    #         }
+    #     )
+    #     assert response.status_code == 302
 
-        # 待機
-        time.sleep(6)
+    #     # 待機
+    #     time.sleep(6)
 
-        # 債券詳細設定
-        response = client.get(url_setting)
-        assert response.status_code == 200
-        assert '<title>債券詳細設定'.encode('utf-8') in response.data
-        assert 'テスト債券'.encode('utf-8') in response.data
-        assert 'https://test.com/image_small.jpg'.encode('utf-8') in response.data
-        assert 'https://test.com/image_medium.jpg'.encode('utf-8') in response.data
-        assert 'https://test.com/image_large.jpg'.encode('utf-8') in response.data
+    #     # 債券詳細設定
+    #     response = client.get(url_setting)
+    #     assert response.status_code == 200
+    #     assert '<title>債券詳細設定'.encode('utf-8') in response.data
+    #     assert 'テスト債券'.encode('utf-8') in response.data
+    #     assert 'https://test.com/image_small.jpg'.encode('utf-8') in response.data
+    #     assert 'https://test.com/image_medium.jpg'.encode('utf-8') in response.data
+    #     assert 'https://test.com/image_large.jpg'.encode('utf-8') in response.data
 
-    # ＜正常系10＞
-    # 公開
-    def test_normal_10(self, app, shared_contract):
-        token = Token.query.get(1)
-        client = self.client_with_admin_login(app)
-        response = client.post(
-            self.url_release,
-            data={
-                'token_address': token.token_address
-            }
-        )
-        assert response.status_code == 302
+    # # ＜正常系10＞
+    # # 公開
+    # def test_normal_10(self, app, shared_contract):
+    #     token = Token.query.get(1)
+    #     client = self.client_with_admin_login(app)
+    #     response = client.post(
+    #         self.url_release,
+    #         data={
+    #             'token_address': token.token_address
+    #         }
+    #     )
+    #     assert response.status_code == 302
 
-        # 待機
-        time.sleep(2)
+    #     # 待機
+    #     time.sleep(2)
 
-        url_setting = self.url_setting + token.token_address
-        # 債券詳細設定
-        response = client.get(url_setting)
-        assert response.status_code == 200
-        assert '<title>債券詳細設定'.encode('utf-8') in response.data
-        assert '公開中です。公開開始までに数分程かかることがあります。'.encode('utf-8') in response.data
+    #     url_setting = self.url_setting + token.token_address
+    #     # 債券詳細設定
+    #     response = client.get(url_setting)
+    #     assert response.status_code == 200
+    #     assert '<title>債券詳細設定'.encode('utf-8') in response.data
+    #     assert '公開中です。公開開始までに数分程かかることがあります。'.encode('utf-8') in response.data
 
-        # tokenが登録されているか確認
-        res_token = get_token_list(shared_contract['TokenList'], token.token_address)
-        assert res_token[0] == token.token_address
+    #     # tokenが登録されているか確認
+    #     res_token = get_token_list(shared_contract['TokenList'], token.token_address)
+    #     assert res_token[0] == token.token_address
 
-    # ＜正常系11＞
-    # 債券保有者一覧
-    def test_normal_11(self, app, shared_contract):
-        token = Token.query.get(1)
-        client = self.client_with_admin_login(app)
-        response = client.get(self.url_holders + token.token_address)
-        assert response.status_code == 200
-        assert '<title>債券保有者一覧'.encode('utf-8') in response.data
-        assert eth_account['issuer']['account_address'].encode('utf-8') in response.data
-        assert '株式会社１'.encode('utf-8') in response.data
-        assert '1000000'.encode('utf-8') in response.data
+    # # ＜正常系11＞
+    # # 債券保有者一覧
+    # def test_normal_11(self, app, shared_contract):
+    #     token = Token.query.get(1)
+    #     client = self.client_with_admin_login(app)
+    #     response = client.get(self.url_holders + token.token_address)
+    #     assert response.status_code == 200
+    #     assert '<title>債券保有者一覧'.encode('utf-8') in response.data
+    #     assert eth_account['issuer']['account_address'].encode('utf-8') in response.data
+    #     assert '株式会社１'.encode('utf-8') in response.data
+    #     assert '1000000'.encode('utf-8') in response.data
 
-    # ＜正常系12＞
-    # 債券保有者詳細
-    def test_normal_12(self, app, shared_contract):
-        token = Token.query.get(1)
-        client = self.client_with_admin_login(app)
-        response = client.get(self.url_holder + token.token_address + '/' + eth_account['issuer']['account_address'])
-        assert response.status_code == 200
-        assert '<title>債券保有者詳細'.encode('utf-8') in response.data
-        assert eth_account['issuer']['account_address'].encode('utf-8') in response.data
-        assert '株式会社１'.encode('utf-8') in response.data
-        assert '1234567'.encode('utf-8') in response.data
-        assert '東京都'.encode('utf-8') in response.data
-        assert '中央区'.encode('utf-8') in response.data
-        assert '日本橋11-1'.encode('utf-8') in response.data
-        assert '東京マンション１０１'.encode('utf-8') in response.data
-        assert '三菱UFJ銀行'.encode('utf-8') in response.data
-        assert '東恵比寿支店'.encode('utf-8') in response.data
-        assert '普通'.encode('utf-8') in response.data
-        assert 'ｶﾌﾞｼｷｶﾞｲｼﾔｹﾂｻｲﾀﾞｲｺｳ'.encode('utf-8') in response.data
+    # # ＜正常系12＞
+    # # 債券保有者詳細
+    # def test_normal_12(self, app, shared_contract):
+    #     token = Token.query.get(1)
+    #     client = self.client_with_admin_login(app)
+    #     response = client.get(self.url_holder + token.token_address + '/' + eth_account['issuer']['account_address'])
+    #     assert response.status_code == 200
+    #     assert '<title>債券保有者詳細'.encode('utf-8') in response.data
+    #     assert eth_account['issuer']['account_address'].encode('utf-8') in response.data
+    #     assert '株式会社１'.encode('utf-8') in response.data
+    #     assert '1234567'.encode('utf-8') in response.data
+    #     assert '東京都'.encode('utf-8') in response.data
+    #     assert '中央区'.encode('utf-8') in response.data
+    #     assert '日本橋11-1'.encode('utf-8') in response.data
+    #     assert '東京マンション１０１'.encode('utf-8') in response.data
+    #     assert '三菱UFJ銀行'.encode('utf-8') in response.data
+    #     assert '東恵比寿支店'.encode('utf-8') in response.data
+    #     assert '普通'.encode('utf-8') in response.data
+    #     assert 'ｶﾌﾞｼｷｶﾞｲｼﾔｹﾂｻｲﾀﾞｲｺｳ'.encode('utf-8') in response.data
 
-    # ＜正常系13＞
-    # 認定依頼
-    def test_normal_13(self, app, shared_contract):
-        token = Token.query.get(1)
-        url_signature = self.url_signature + token.token_address
-        client = self.client_with_admin_login(app)
+    # # ＜正常系13＞
+    # # 認定依頼
+    # def test_normal_13(self, app, shared_contract):
+    #     token = Token.query.get(1)
+    #     url_signature = self.url_signature + token.token_address
+    #     client = self.client_with_admin_login(app)
 
-        # 認定画面
-        response = client.get(url_signature)
-        assert response.status_code == 200
-        assert '<title>認定依頼'.encode('utf-8') in response.data
+    #     # 認定画面
+    #     response = client.get(url_signature)
+    #     assert response.status_code == 200
+    #     assert '<title>認定依頼'.encode('utf-8') in response.data
 
-        # 認定依頼
-        response = client.post(
-            url_signature,
-            data={
-                'token_address': token.token_address,
-                'signer': eth_account['agent']['account_address']
-            }
-        )
-        assert response.status_code == 302
+    #     # 認定依頼
+    #     response = client.post(
+    #         url_signature,
+    #         data={
+    #             'token_address': token.token_address,
+    #             'signer': eth_account['agent']['account_address']
+    #         }
+    #     )
+    #     assert response.status_code == 302
 
-        # 待機
-        time.sleep(2)
+    #     # 待機
+    #     time.sleep(2)
 
-        # 債券詳細設定
-        response = client.get(self.url_setting + token.token_address)
-        assert response.status_code == 200
-        assert '<title>債券詳細設定'.encode('utf-8') in response.data
-        assert '認定依頼を受け付けました。'.encode('utf-8') in response.data
+    #     # 債券詳細設定
+    #     response = client.get(self.url_setting + token.token_address)
+    #     assert response.status_code == 200
+    #     assert '<title>債券詳細設定'.encode('utf-8') in response.data
+    #     assert '認定依頼を受け付けました。'.encode('utf-8') in response.data
 
-        # 債券トークンのsignatureが1になっていること
-        val = get_signature(token.token_address, eth_account['agent']['account_address'])
-        assert val == 1
+    #     # 債券トークンのsignatureが1になっていること
+    #     val = get_signature(token.token_address, eth_account['agent']['account_address'])
+    #     assert val == 1
 
-    # ＜正常系14＞
-    # 認定実施　→　発行済債券一覧で確認
-    def test_normal_14(self, app, shared_contract):
-        # 認定実施
-        token = Token.query.get(1)
-        exec_sign(token.token_address, eth_account['agent'])
+    # # ＜正常系14＞
+    # # 認定実施　→　発行済債券一覧で確認
+    # def test_normal_14(self, app, shared_contract):
+    #     # 認定実施
+    #     token = Token.query.get(1)
+    #     exec_sign(token.token_address, eth_account['agent'])
 
-        # 発行済債券一覧
-        client = self.client_with_admin_login(app)
-        response = client.get(self.url_tokenlist)
-        assert response.status_code == 200
-        assert '<title>発行済債券一覧'.encode('utf-8') in response.data
-        assert 'テスト債券'.encode('utf-8') in response.data
-        assert 'BOND'.encode('utf-8') in response.data
-        assert '認定済'.encode('utf-8') in response.data
+    #     # 発行済債券一覧
+    #     client = self.client_with_admin_login(app)
+    #     response = client.get(self.url_tokenlist)
+    #     assert response.status_code == 200
+    #     assert '<title>発行済債券一覧'.encode('utf-8') in response.data
+    #     assert 'テスト債券'.encode('utf-8') in response.data
+    #     assert 'BOND'.encode('utf-8') in response.data
+    #     assert '認定済'.encode('utf-8') in response.data
 
-    # ＜正常系15＞
-    # 償還実施　→　発行済債券一覧で確認
-    def test_normal_15(self, app, shared_contract):
-        token = Token.query.get(1)
-        client = self.client_with_admin_login(app)
-        response = client.post(
-            self.url_redeem,
-            data={
-                'token_address': token.token_address
-            }
-        )
-        assert response.status_code == 302
+    # # ＜正常系15＞
+    # # 償還実施　→　発行済債券一覧で確認
+    # def test_normal_15(self, app, shared_contract):
+    #     token = Token.query.get(1)
+    #     client = self.client_with_admin_login(app)
+    #     response = client.post(
+    #         self.url_redeem,
+    #         data={
+    #             'token_address': token.token_address
+    #         }
+    #     )
+    #     assert response.status_code == 302
 
-        # 待機
-        time.sleep(2)
+    #     # 待機
+    #     time.sleep(2)
 
-        # 発行済債券一覧
-        client = self.client_with_admin_login(app)
-        response = client.get(self.url_tokenlist)
-        assert response.status_code == 200
-        assert '<title>発行済債券一覧'.encode('utf-8') in response.data
-        assert 'テスト債券'.encode('utf-8') in response.data
-        assert 'BOND'.encode('utf-8') in response.data
-        assert '償還済'.encode('utf-8') in response.data
+    #     # 発行済債券一覧
+    #     client = self.client_with_admin_login(app)
+    #     response = client.get(self.url_tokenlist)
+    #     assert response.status_code == 200
+    #     assert '<title>発行済債券一覧'.encode('utf-8') in response.data
+    #     assert 'テスト債券'.encode('utf-8') in response.data
+    #     assert 'BOND'.encode('utf-8') in response.data
+    #     assert '償還済'.encode('utf-8') in response.data
 
-    #############################################################################
-    # エラー系
-    #############################################################################
-    # ＜エラー系1＞
-    # 債券新規発行（必須エラー）
-    def test_error_1(self, app, shared_contract):
-        client = self.client_with_admin_login(app)
-        # 新規発行
-        response = client.post(
-            self.url_issue,
-            data={
-            }
-        )
-        assert response.status_code == 200
-        assert '<title>債券新規発行'.encode('utf-8') in response.data
-        assert '商品名は必須です。'.encode('utf-8') in response.data
-        assert '略称は必須です。'.encode('utf-8') in response.data
-        assert '総発行量は必須です。'.encode('utf-8') in response.data
-        assert '額面は必須です。'.encode('utf-8') in response.data
-        assert '金利は必須です。'.encode('utf-8') in response.data
-        assert '償還日は必須です。'.encode('utf-8') in response.data
-        assert '償還金額は必須です。'.encode('utf-8') in response.data
-        assert '発行目的は必須です。'.encode('utf-8') in response.data
-
-
-    # ＜エラー系2＞
-    # 募集（必須エラー）
-    def test_error_2(self, app, shared_contract):
-        token = Token.query.get(1)
-        # 募集
-        client = self.client_with_admin_login(app)
-        response = client.post(
-            self.url_sell + token.token_address,
-            data={
-            }
-        )
-        assert response.status_code == 302
-        # 債券新規募集でエラーを確認
-        response = client.get(self.url_sell + token.token_address)
-        assert response.status_code == 200
-        assert '<title>債券新規募集'.encode('utf-8') in response.data
-        assert '売出価格は必須です。'.encode('utf-8') in response.data
-
-    # ＜エラー系3＞
-    # 認定（必須エラー）
-    def test_error_3(self, app, shared_contract):
-        token = Token.query.get(1)
-        url_signature = self.url_signature + token.token_address
-        client = self.client_with_admin_login(app)
-        # 認定依頼
-        response = client.post(
-            url_signature,
-            data={
-                'token_address': token.token_address,
-            }
-
-        )
-        assert response.status_code == 200
-        assert '認定者は必須です。'.encode('utf-8') in response.data
+    # #############################################################################
+    # # エラー系
+    # #############################################################################
+    # # ＜エラー系1＞
+    # # 債券新規発行（必須エラー）
+    # def test_error_1(self, app, shared_contract):
+    #     client = self.client_with_admin_login(app)
+    #     # 新規発行
+    #     response = client.post(
+    #         self.url_issue,
+    #         data={
+    #         }
+    #     )
+    #     assert response.status_code == 200
+    #     assert '<title>債券新規発行'.encode('utf-8') in response.data
+    #     assert '商品名は必須です。'.encode('utf-8') in response.data
+    #     assert '略称は必須です。'.encode('utf-8') in response.data
+    #     assert '総発行量は必須です。'.encode('utf-8') in response.data
+    #     assert '額面は必須です。'.encode('utf-8') in response.data
+    #     assert '金利は必須です。'.encode('utf-8') in response.data
+    #     assert '償還日は必須です。'.encode('utf-8') in response.data
+    #     assert '償還金額は必須です。'.encode('utf-8') in response.data
+    #     assert '発行目的は必須です。'.encode('utf-8') in response.data
 
 
-    # ＜エラー系4＞
-    # 認定（認定依頼先アドレスのフォーマットエラー）
-    def test_error_4(self, app, shared_contract):
-        token = Token.query.get(1)
-        url_signature = self.url_signature + token.token_address
-        client = self.client_with_admin_login(app)
-        # 認定依頼
-        response = client.post(
-            url_signature,
-            data={
-                'token_address': token.token_address,
-                'signer': '0xc94b0d702422587e361dd6cd08b55dfe1961181f1' # 1桁多い
-            }
-        )
-        assert response.status_code == 200
-        assert '有効なアドレスではありません。'.encode('utf-8') in response.data
+    # # ＜エラー系2＞
+    # # 募集（必須エラー）
+    # def test_error_2(self, app, shared_contract):
+    #     token = Token.query.get(1)
+    #     # 募集
+    #     client = self.client_with_admin_login(app)
+    #     response = client.post(
+    #         self.url_sell + token.token_address,
+    #         data={
+    #         }
+    #     )
+    #     assert response.status_code == 302
+    #     # 債券新規募集でエラーを確認
+    #     response = client.get(self.url_sell + token.token_address)
+    #     assert response.status_code == 200
+    #     assert '<title>債券新規募集'.encode('utf-8') in response.data
+    #     assert '売出価格は必須です。'.encode('utf-8') in response.data
+
+    # # ＜エラー系3＞
+    # # 認定（必須エラー）
+    # def test_error_3(self, app, shared_contract):
+    #     token = Token.query.get(1)
+    #     url_signature = self.url_signature + token.token_address
+    #     client = self.client_with_admin_login(app)
+    #     # 認定依頼
+    #     response = client.post(
+    #         url_signature,
+    #         data={
+    #             'token_address': token.token_address,
+    #         }
+
+    #     )
+    #     assert response.status_code == 200
+    #     assert '認定者は必須です。'.encode('utf-8') in response.data
 
 
-    # ＜エラー系5＞
-    # 認定（認定依頼がすでに登録されている）
-    def test_error_5(self, app, shared_contract):
-        token = Token.query.get(1)
-        url_signature = self.url_signature + token.token_address
-        client = self.client_with_admin_login(app)
-        # 認定依頼
-        response = client.post(
-            url_signature,
-            data={
-                'token_address': token.token_address,
-                'signer': eth_account['agent']['account_address']
-            }
-        )
-        assert response.status_code == 200
-        assert '既に情報が登録されています。'.encode('utf-8') in response.data
+    # # ＜エラー系4＞
+    # # 認定（認定依頼先アドレスのフォーマットエラー）
+    # def test_error_4(self, app, shared_contract):
+    #     token = Token.query.get(1)
+    #     url_signature = self.url_signature + token.token_address
+    #     client = self.client_with_admin_login(app)
+    #     # 認定依頼
+    #     response = client.post(
+    #         url_signature,
+    #         data={
+    #             'token_address': token.token_address,
+    #             'signer': '0xc94b0d702422587e361dd6cd08b55dfe1961181f1' # 1桁多い
+    #         }
+    #     )
+    #     assert response.status_code == 200
+    #     assert '有効なアドレスではありません。'.encode('utf-8') in response.data
+
+
+    # # ＜エラー系5＞
+    # # 認定（認定依頼がすでに登録されている）
+    # def test_error_5(self, app, shared_contract):
+    #     token = Token.query.get(1)
+    #     url_signature = self.url_signature + token.token_address
+    #     client = self.client_with_admin_login(app)
+    #     # 認定依頼
+    #     response = client.post(
+    #         url_signature,
+    #         data={
+    #             'token_address': token.token_address,
+    #             'signer': eth_account['agent']['account_address']
+    #         }
+    #     )
+    #     assert response.status_code == 200
+    #     assert '既に情報が登録されています。'.encode('utf-8') in response.data
 
