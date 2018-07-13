@@ -37,6 +37,9 @@ class TestCoupon(TestBase):
         Config.TOKEN_LIST_CONTRACT_ADDRESS = shared_contract['TokenList']['address']
         Config.PERSONAL_INFO_CONTRACT_ADDRESS = shared_contract['PersonalInfo']['address']
         Config.IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS = shared_contract['IbetCouponExchange']['address']
+        # personalinfo登録
+        register_personalinfo(eth_account['issuer'], shared_contract['PersonalInfo'], self.issuer_encrypted_info)
+        register_personalinfo(eth_account['trader'], shared_contract['PersonalInfo'], self.trader_encrypted_info)
 
         client = self.client_with_admin_login(app)
         response = client.get(self.url_list)
@@ -254,9 +257,6 @@ class TestCoupon(TestBase):
     # ＜正常系8＞
     # 保有者詳細
     def test_normal_8(self, app, shared_contract):
-        # personalinfo登録
-        register_personalinfo(eth_account['issuer'], shared_contract['PersonalInfo'], self.issuer_encrypted_info)
-        # 参照
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
         client = self.client_with_admin_login(app)
         response = client.get(self.url_holder + tokens[0].token_address + '/' + eth_account['issuer']['account_address'])
