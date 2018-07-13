@@ -22,7 +22,7 @@ class TestCoupon(TestBase):
     url_invalid = 'coupon/invalid' # 無効化
     url_add_supply = 'coupon/add_supply/' # 追加発効
     url_transfer = 'coupon/transfer' # 割当
-    url_holders = 'coupon/holders' # 保有者一覧
+    url_holders = 'coupon/holders/' # 保有者一覧
     url_holder = 'coupon/holder/' # 保有者詳細
 
     # ＜正常系1＞
@@ -239,7 +239,7 @@ class TestCoupon(TestBase):
         
         time.sleep(2)
 
-        response = client.get(self.url_holders)
+        response = client.get(self.url_holders + tokens[0].token_address)
         assert response.status_code == 200
         assert '<title>クーポン保有者一覧'.encode('utf-8') in response.data
         # issuer
@@ -278,7 +278,7 @@ class TestCoupon(TestBase):
     # エラー系
     #############################################################################
     # ＜エラー系1＞
-    # 債券新規発行（必須エラー）
+    # 新規発行（必須エラー）
     def test_error_1(self, app, shared_contract):
         client = self.client_with_admin_login(app)
         # 新規発行
@@ -288,85 +288,39 @@ class TestCoupon(TestBase):
             }
         )
         assert response.status_code == 200
-        assert '<title>債券新規発行'.encode('utf-8') in response.data
-        assert '商品名は必須です。'.encode('utf-8') in response.data
+        assert '<title>クーポン発行'.encode('utf-8') in response.data
+        assert 'クーポン名は必須です。'.encode('utf-8') in response.data
         assert '略称は必須です。'.encode('utf-8') in response.data
         assert '総発行量は必須です。'.encode('utf-8') in response.data
-        assert '額面は必須です。'.encode('utf-8') in response.data
-        assert '金利は必須です。'.encode('utf-8') in response.data
-        assert '償還日は必須です。'.encode('utf-8') in response.data
-        assert '償還金額は必須です。'.encode('utf-8') in response.data
-        assert '発行目的は必須です。'.encode('utf-8') in response.data
-
 
     # ＜エラー系2＞
-    # 募集（必須エラー）
+    # 追加発行（必須エラー）
     def test_error_2(self, app, shared_contract):
-        token = Token.query.get(1)
-        # 募集
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        url_add_supply = self.url_add_supply + tokens[0].token_address
         client = self.client_with_admin_login(app)
+        # 新規発行
         response = client.post(
-            self.url_sell + token.token_address,
-            data={
-            }
+            url_add_supply,
+            data={}
         )
-        assert response.status_code == 302
-        # 債券新規募集でエラーを確認
-        response = client.get(self.url_sell + token.token_address)
         assert response.status_code == 200
-        assert '<title>債券新規募集'.encode('utf-8') in response.data
-        assert '売出価格は必須です。'.encode('utf-8') in response.data
+        assert '<title>クーポン追加発行'.encode('utf-8') in response.data
+        assert '追加発行する数量は必須です。'.encode('utf-8') in response.data
 
     # ＜エラー系3＞
-    # 認定（必須エラー）
+    # （必須エラー）
     def test_error_3(self, app, shared_contract):
-        token = Token.query.get(1)
-        url_signature = self.url_signature + token.token_address
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        url_add_supply = self.url_add_supply + tokens[0].token_address
         client = self.client_with_admin_login(app)
-        # 認定依頼
+        # 新規発行
         response = client.post(
-            url_signature,
-            data={
-                'token_address': token.token_address,
-            }
-
+            url_add_supply,
+            data={}
         )
         assert response.status_code == 200
-        assert '認定者は必須です。'.encode('utf-8') in response.data
-
-
-    # ＜エラー系4＞
-    # 認定（認定依頼先アドレスのフォーマットエラー）
-    def test_error_4(self, app, shared_contract):
-        token = Token.query.get(1)
-        url_signature = self.url_signature + token.token_address
-        client = self.client_with_admin_login(app)
-        # 認定依頼
-        response = client.post(
-            url_signature,
-            data={
-                'token_address': token.token_address,
-                'signer': '0xc94b0d702422587e361dd6cd08b55dfe1961181f1' # 1桁多い
-            }
-        )
-        assert response.status_code == 200
-        assert '有効なアドレスではありません。'.encode('utf-8') in response.data
-
-
-    # ＜エラー系5＞
-    # 認定（認定依頼がすでに登録されている）
-    def test_error_5(self, app, shared_contract):
-        token = Token.query.get(1)
-        url_signature = self.url_signature + token.token_address
-        client = self.client_with_admin_login(app)
-        # 認定依頼
-        response = client.post(
-            url_signature,
-            data={
-                'token_address': token.token_address,
-                'signer': eth_account['agent']['account_address']
-            }
-        )
-        assert response.status_code == 200
-        assert '既に情報が登録されています。'.encode('utf-8') in response.data
-
+        assert '<title>クーポン割当'.encode('utf-8') in response.data
+        assert '債券アドレスは必須です。'.encode('utf-8') in response.data
+        assert '割当先アドレスは必須です。'.encode('utf-8') in response.data
+        assert '割当数量は必須です。'.encode('utf-8') in response.data
