@@ -309,14 +309,11 @@ class TestCoupon(TestBase):
         assert '追加発行する数量は必須です。'.encode('utf-8') in response.data
 
     # ＜エラー系3＞
-    # （必須エラー）
+    # 割当（必須エラー）
     def test_error_3(self, app, shared_contract):
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
-        url_add_supply = self.url_add_supply + tokens[0].token_address
         client = self.client_with_admin_login(app)
-        # 新規発行
         response = client.post(
-            url_add_supply,
+            self.url_transfer
             data={}
         )
         assert response.status_code == 200
