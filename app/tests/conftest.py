@@ -187,16 +187,28 @@ def tokenlist_contract():
 
     return {'address':contract_address, 'abi':abi}
 
+def coupon_exchange_contract():
+    deployer = eth_account['deployer']
+    web3.eth.defaultAccount = deployer['account_address']
+    web3.personal.unlockAccount(deployer['account_address'],deployer['password'])
+
+    contract_address, abi, _ = Contract.deploy_contract(
+        'IbetCouponExchange', [], deployer['account_address'])
+
+    return {'address':contract_address, 'abi':abi}
+
 @pytest.fixture(scope = 'class')
 def shared_contract():
     white_list = whitelist_contract()
     personal_info = personalinfo_contract()
     bond_exchange = bond_exchange_contract(white_list['address'], personal_info['address'])
     token_list = tokenlist_contract()
+    coupon_exchange = coupon_exchange_contract()
     contracts = {
         'WhiteList': white_list,
         'PersonalInfo': personal_info,
         'IbetStraightBondExchange': bond_exchange,
-        'TokenList': token_list
+        'TokenList': token_list,
+        'IbetCouponExchange': coupon_exchange
     }
     return contracts

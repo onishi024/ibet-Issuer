@@ -327,6 +327,9 @@ def transfer():
                     transact({'from':owner, 'gas':transfer_gas})
             flash('処理を受け付けました。割当完了までに数分程かかることがあります。', 'success')
             return render_template('coupon/transfer.html', form=form)
+        else:
+            flash_errors(form)
+            return render_template('coupon/transfer.html', form=form)
     else: # GET
         return render_template('coupon/transfer.html', form=form)
 
