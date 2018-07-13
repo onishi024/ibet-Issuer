@@ -313,7 +313,7 @@ class TestCoupon(TestBase):
     def test_error_3(self, app, shared_contract):
         client = self.client_with_admin_login(app)
         response = client.post(
-            self.url_transfer
+            self.url_transfer,
             data={}
         )
         assert response.status_code == 200
