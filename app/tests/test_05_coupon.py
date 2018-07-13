@@ -66,8 +66,8 @@ class TestCoupon(TestBase):
         )
         assert response.status_code == 302
 
-        # 2秒待機
-        time.sleep(2)
+        # 5秒待機
+        time.sleep(5)
 
         # DB登録処理
         processorIssueEvent(db)
