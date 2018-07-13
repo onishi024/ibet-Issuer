@@ -227,7 +227,7 @@ class TestCoupon(TestBase):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
         client = self.client_with_admin_login(app)
         response = client.post(
-            self.url_add_supply,
+            self.url_transfer,
             data={
                 'tokenAddress': tokens[0].token_address,
                 'sendAddress': eth_account['trader']['account_address'],
@@ -253,6 +253,9 @@ class TestCoupon(TestBase):
     # ＜正常系8＞
     # 保有者詳細
     def test_normal_8(self, app, shared_contract):
+        # personalinfo登録
+        register_personalinfo(eth_account['issuer'], shared_contract['PersonalInfo'], self.issuer_encrypted_info)
+        # 参照
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
         client = self.client_with_admin_login(app)
         response = client.get(self.url_holder + tokens[0].token_address + '/' + eth_account['issuer']['account_address'])
