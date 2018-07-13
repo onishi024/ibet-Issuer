@@ -165,7 +165,7 @@ class TestCoupon(TestBase):
         response = client.post(
             self.url_valid,
             data={
-                'token_address': tokens[0].token_addres
+                'token_address': tokens[0].token_address
             }
         )
         assert response.status_code == 302
@@ -185,7 +185,7 @@ class TestCoupon(TestBase):
     # 追加発効
     def test_normal_6(self, app, shared_contract):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
-        url_add_supply = self.url_add_supply + tokens[0].token_addres
+        url_add_supply = self.url_add_supply + tokens[0].token_address
         url_setting = self.url_setting + tokens[0].token_address
         client = self.client_with_admin_login(app)
 
