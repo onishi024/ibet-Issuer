@@ -192,13 +192,13 @@ class TestCoupon(TestBase):
         # 一覧で確認
         response = client.get(url_add_supply)
         assert response.status_code == 200
-        assert '<title>クーポン追加発効'.encode('utf-8') in response.data
-        assert tokens[0].token_addres.encode('utf-8') in response.data
+        assert '<title>クーポン追加発行'.encode('utf-8') in response.data
+        assert tokens[0].token_address.encode('utf-8') in response.data
         assert '2000000'.encode('utf-8') in response.data
 
-        # 無効化
+        # 追加
         response = client.post(
-            self.url_add_supply,
+            url_add_supply,
             data={
                 'addSupply': 100
             }
@@ -269,9 +269,6 @@ class TestCoupon(TestBase):
         assert '東恵比寿支店'.encode('utf-8') in response.data
         assert '普通'.encode('utf-8') in response.data
         assert 'ｶﾌﾞｼｷｶﾞｲｼﾔｹﾂｻｲﾀﾞｲｺｳ'.encode('utf-8') in response.data
-
-
-
 
     #############################################################################
     # エラー系
