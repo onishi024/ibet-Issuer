@@ -36,6 +36,7 @@ class TestCoupon(TestBase):
         Config.WHITE_LIST_CONTRACT_ADDRESS = shared_contract['WhiteList']['address']
         Config.TOKEN_LIST_CONTRACT_ADDRESS = shared_contract['TokenList']['address']
         Config.PERSONAL_INFO_CONTRACT_ADDRESS = shared_contract['PersonalInfo']['address']
+        Config.IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS = shared_contract['IbetCouponExchange']['address']
 
         client = self.client_with_admin_login(app)
         response = client.get(self.url_list)
