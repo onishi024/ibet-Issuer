@@ -20,10 +20,10 @@ class TestCoupon(TestBase):
     url_setting = 'coupon/setting/' # 設定画面
     url_valid = 'coupon/valid' # 有効化
     url_invalid = 'coupon/invalid' # 無効化
-    url_add_supply = 'coupon/add_supply' # 追加発効
+    url_add_supply = 'coupon/add_supply/' # 追加発効
     url_transfer = 'coupon/transfer' # 割当
     url_holders = 'coupon/holders' # 保有者一覧
-    url_holder = 'coupon/holder' # 保有者詳細
+    url_holder = 'coupon/holder/' # 保有者詳細
 
     # ＜正常系1＞
     # 一覧の参照(0件)
@@ -255,7 +255,7 @@ class TestCoupon(TestBase):
     def test_normal_8(self, app, shared_contract):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
         client = self.client_with_admin_login(app)
-        response = client.get(self.url_holder + token[0].token_address + '/' + eth_account['issuer']['account_address'])
+        response = client.get(self.url_holder + tokens[0].token_address + '/' + eth_account['issuer']['account_address'])
         assert response.status_code == 200
         assert '<title>保有者詳細'.encode('utf-8') in response.data
         assert eth_account['issuer']['account_address'].encode('utf-8') in response.data
