@@ -41,14 +41,17 @@ class TestBankInfo(TestBase):
     # ＜正常系２＞
     # 登録　→　正常参照
     def test_normal_2(self, app, shared_contract):
+        # WhiteListの規約登録
+        register_terms(eth_account['agent'], shared_contract['WhiteList'])
+
         client = self.client_with_admin_login(app)
         response = client.post(
             self.url_bankinfo,
             data={
-                'name':'株式会社１２３４５あいうえおかきくけこさしすせそ１２３４５６７８９０',
-                'bank_name':'銀行めい１２３４５あいうえおかきくけこさしすせそ１２３４５６７８９０',
+                'name':'株式会社１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０',
+                'bank_name':'銀行めい１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０',
                 'bank_code':'0001',
-                'branch_name':'支店めい１２３４５あいうえおかきくけこさしすせそ１２３４５６７８９０',
+                'branch_name':'支店めい１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０',
                 'branch_code':'100',
                 'account_type':'2',
                 'account_number':'1234567',
@@ -57,10 +60,10 @@ class TestBankInfo(TestBase):
         )
         assert response.status_code == 200
         assert '<title>銀行情報登録'.encode('utf-8') in response.data
-        assert '<input class="form-control" id="name" name="name" type="text" value="株式会社１２３４５あいうえおかきくけこさしすせそ１２３４５６７８９０">'.encode('utf-8') in response.data
-        assert '<input class="form-control" id="bank_name" name="bank_name" type="text" value="銀行めい１２３４５あいうえおかきくけこさしすせそ１２３４５６７８９０">'.encode('utf-8') in response.data
+        assert '<input class="form-control" id="name" name="name" type="text" value="株式会社１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０">'.encode('utf-8') in response.data
+        assert '<input class="form-control" id="bank_name" name="bank_name" type="text" value="銀行めい１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０">'.encode('utf-8') in response.data
         assert '<input class="form-control" id="bank_code" name="bank_code" type="text" value="0001">'.encode('utf-8') in response.data
-        assert '<input class="form-control" id="branch_name" name="branch_name" type="text" value="支店めい１２３４５あいうえおかきくけこさしすせそ１２３４５６７８９０">'.encode('utf-8') in response.data
+        assert '<input class="form-control" id="branch_name" name="branch_name" type="text" value="支店めい１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０">'.encode('utf-8') in response.data
         assert '<input class="form-control" id="branch_code" name="branch_code" type="text" value="100">'.encode('utf-8') in response.data
         assert '<option selected value="2">当座</option>'.encode('utf-8') in response.data
         assert '<input class="form-control" id="account_number" name="account_number" type="text" value="1234567">'.encode('utf-8') in response.data
@@ -71,15 +74,15 @@ class TestBankInfo(TestBase):
 
         # personalInfoの確認
         personal_info_json = get_personal_encrypted_info(shared_contract['PersonalInfo'], eth_account['issuer']['account_address'], eth_account['issuer']['account_address'])
-        assert personal_info_json['name'] == '株式会社１２３４５あいうえおかきくけこさしすせそ１２３４５６７８９０'
+        assert personal_info_json['name'] == '株式会社１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０'
         assert personal_info_json['address']['postal_code'] == ''
         assert personal_info_json['address']['prefecture'] == ''
         assert personal_info_json['address']['city'] == ''
         assert personal_info_json['address']['address1'] == ''
         assert personal_info_json['address']['address2'] == ''
-        assert personal_info_json['bank_account']['bank_name'] == '銀行めい１２３４５あいうえおかきくけこさしすせそ１２３４５６７８９０'
+        assert personal_info_json['bank_account']['bank_name'] == '銀行めい１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０'
         assert personal_info_json['bank_account']['bank_code'] == '0001'
-        assert personal_info_json['bank_account']['branch_office'] == '支店めい１２３４５あいうえおかきくけこさしすせそ１２３４５６７８９０'
+        assert personal_info_json['bank_account']['branch_office'] == '支店めい１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０'
         assert personal_info_json['bank_account']['branch_code'] == '100'
         assert personal_info_json['bank_account']['account_type'] == '2'
         assert personal_info_json['bank_account']['account_number'] == '1234567'
@@ -87,10 +90,10 @@ class TestBankInfo(TestBase):
 
         # whitelistの確認
         whitelist_json = get_whitelist_encrypted_info(shared_contract['WhiteList'], eth_account['issuer']['account_address'], eth_account['agent']['account_address'])
-        assert whitelist_json['name'] == '株式会社１２３４５あいうえおかきくけこさしすせそ１２３４５６７８９０'
-        assert whitelist_json['bank_account']['bank_name'] == '銀行めい１２３４５あいうえおかきくけこさしすせそ１２３４５６７８９０'
+        assert whitelist_json['name'] == '株式会社１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０'
+        assert whitelist_json['bank_account']['bank_name'] == '銀行めい１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０'
         assert whitelist_json['bank_account']['bank_code'] == '0001'
-        assert whitelist_json['bank_account']['branch_office'] == '支店めい１２３４５あいうえおかきくけこさしすせそ１２３４５６７８９０'
+        assert whitelist_json['bank_account']['branch_office'] == '支店めい１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０'
         assert whitelist_json['bank_account']['branch_code'] == '100'
         assert whitelist_json['bank_account']['account_type'] == '2'
         assert whitelist_json['bank_account']['account_number'] == '1234567'

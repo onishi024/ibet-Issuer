@@ -212,6 +212,7 @@ class TestToken(TestBase):
         assert '金融機関の情報が未登録です。'.encode('utf-8') in response.data
         
         # whitelist登録
+        register_terms(eth_account['agent'], shared_contract['WhiteList'])
         register_whitelist(eth_account['issuer'], shared_contract['WhiteList'], self.issuer_encrypted_info)
         # 募集
         response = client.post(
