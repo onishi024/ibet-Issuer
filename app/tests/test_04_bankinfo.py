@@ -41,6 +41,9 @@ class TestBankInfo(TestBase):
     # ＜正常系２＞
     # 登録　→　正常参照
     def test_normal_2(self, app, shared_contract):
+        # WhiteListの規約登録
+        register_terms(eth_account['agent'], shared_contract['WhiteList'])
+
         client = self.client_with_admin_login(app)
         response = client.post(
             self.url_bankinfo,

@@ -38,6 +38,20 @@ def register_personalinfo(invoker, personal_info, encrypted_info):
         transact({'from':invoker['account_address'], 'gas':4000000})
     tx = wait_transaction_receipt(tx_hash)
 
+# 決済用銀行口座情報登録
+def register_terms(invoker, white_list):
+    WhiteListContract = Contract.get_contract(
+        'WhiteList', white_list['address'])
+
+    # 1) 登録 from Invoker
+    web3.eth.defaultAccount = invoker['account_address']
+    web3.personal.unlockAccount(invoker['account_address'],
+                                invoker['password'])
+
+    tx_hash = WhiteListContract.functions.register_terms('test terms').\
+        transact({'from':invoker['account_address'], 'gas':4000000})
+    tx = wait_transaction_receipt(tx_hash)
+
 
 # 決済用銀行口座情報登録
 def register_only_whitelist(invoker, white_list, encrypted_info):
