@@ -263,17 +263,10 @@ def bankinfo():
 
             # WhiteList Contract
             whitelist_address = to_checksum_address(Config.WHITE_LIST_CONTRACT_ADDRESS)
-            WhiteListContract = Contract.get_contract(
-                'WhiteList', whitelist_address)
-            payment_account = WhiteListContract.functions.payment_accounts(Config.ETH_ACCOUNT, agent_address).call()
-            if payment_account[3] == 0:
-                w_gas = WhiteListContract.estimateGas().register(agent_address, whitelist_ciphertext)
-                w_txid = WhiteListContract.functions.register(agent_address, whitelist_ciphertext).\
-                    transact({'from':Config.ETH_ACCOUNT, 'gas':w_gas})
-            else:
-                w_gas = WhiteListContract.estimateGas().changeInfo(agent_address, whitelist_ciphertext)
-                w_txid = WhiteListContract.functions.changeInfo(agent_address, whitelist_ciphertext).\
-                    transact({'from':Config.ETH_ACCOUNT, 'gas':w_gas})
+            WhiteListContract = Contract.get_contract('WhiteList', whitelist_address)
+            w_gas = WhiteListContract.estimateGas().register(agent_address, whitelist_ciphertext)
+            w_txid = WhiteListContract.functions.register(agent_address, whitelist_ciphertext).\
+                transact({'from':Config.ETH_ACCOUNT, 'gas':w_gas})
             flash('登録完了しました。', 'success')
             return render_template('account/bankinfo.html', form=form)
         else:
