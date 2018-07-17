@@ -48,7 +48,7 @@ def register_terms(invoker, white_list):
     web3.personal.unlockAccount(invoker['account_address'],
                                 invoker['password'])
 
-    tx_hash = WhiteListContract.functions.register_terms('test terms')).\
+    tx_hash = WhiteListContract.functions.register_terms('test terms').\
         transact({'from':invoker['account_address'], 'gas':4000000})
     tx = wait_transaction_receipt(tx_hash)
 
