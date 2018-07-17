@@ -223,7 +223,7 @@ class TestToken(TestBase):
         assert response.status_code == 302
 
         # 待機（募集には時間がかかる）
-        time.sleep(5)
+        time.sleep(10)
 
         # 保有債券一覧
         response = client.get(self.url_positions)
