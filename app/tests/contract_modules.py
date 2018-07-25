@@ -36,7 +36,8 @@ def register_personalinfo(invoker, personal_info, encrypted_info):
     issuer = eth_account['issuer']
     tx_hash = PersonalInfoContract.functions.register(issuer['account_address'], encrypted_info).\
         transact({'from':invoker['account_address'], 'gas':4000000})
-    tx = wait_transaction_receipt(tx_hash)
+    tx = web3.eth.waitForTransactionReceipt(tx_hash)
+
 
 # 決済用銀行口座情報登録
 def register_terms(invoker, white_list):
@@ -50,7 +51,7 @@ def register_terms(invoker, white_list):
 
     tx_hash = WhiteListContract.functions.register_terms('test terms').\
         transact({'from':invoker['account_address'], 'gas':4000000})
-    tx = wait_transaction_receipt(tx_hash)
+    tx = web3.eth.waitForTransactionReceipt(tx_hash)
 
 
 # 決済用銀行口座情報登録
@@ -66,7 +67,8 @@ def register_only_whitelist(invoker, white_list, encrypted_info):
     agent = eth_account['agent']
     tx_hash = WhiteListContract.functions.register(agent['account_address'], encrypted_info).\
         transact({'from':invoker['account_address'], 'gas':4000000})
-    tx = wait_transaction_receipt(tx_hash)
+    tx = web3.eth.waitForTransactionReceipt(tx_hash)
+
 
 # 決済口座の認可
 def approve_whitelist(invoker, white_list):
@@ -80,8 +82,7 @@ def approve_whitelist(invoker, white_list):
 
     tx_hash = WhiteListContract.functions.approve(invoker['account_address']).\
         transact({'from':agent['account_address'], 'gas':4000000})
-    tx = wait_transaction_receipt(tx_hash)
-
+    tx = web3.eth.waitForTransactionReceipt(tx_hash)
 
 
 # 決済用銀行口座情報登録（認可まで）
@@ -97,7 +98,7 @@ def register_whitelist(invoker, white_list, encrypted_info):
     agent = eth_account['agent']
     tx_hash = WhiteListContract.functions.register(agent['account_address'], encrypted_info).\
         transact({'from':invoker['account_address'], 'gas':4000000})
-    tx = wait_transaction_receipt(tx_hash)
+    tx = web3.eth.waitForTransactionReceipt(tx_hash)
 
     # 2) 認可 from Agent
     web3.eth.defaultAccount = agent['account_address']
@@ -105,7 +106,7 @@ def register_whitelist(invoker, white_list, encrypted_info):
 
     tx_hash = WhiteListContract.functions.approve(invoker['account_address']).\
         transact({'from':agent['account_address'], 'gas':4000000})
-    tx = wait_transaction_receipt(tx_hash)
+    tx = web3.eth.waitForTransactionReceipt(tx_hash)
 
 
 # 債券トークンの発行
@@ -154,7 +155,8 @@ def register_bond_list(invoker, bond_token, token_list):
 
     tx_hash = TokenListContract.functions.register(bond_token['address'], 'IbetStraightBond').\
         transact({'from':invoker['account_address'], 'gas':4000000})
-    tx = wait_transaction_receipt(tx_hash)
+    tx = web3.eth.waitForTransactionReceipt(tx_hash)
+
 
 # 債券トークンの募集
 def offer_bond_token(invoker, bond_exchange, bond_token, amount, price):
@@ -172,7 +174,8 @@ def bond_transfer_to_exchange(invoker, bond_exchange, bond_token, amount):
 
     tx_hash = TokenContract.functions.transfer(bond_exchange['address'], amount).\
         transact({'from':invoker['account_address'], 'gas':4000000})
-    tx = wait_transaction_receipt(tx_hash)
+    tx = web3.eth.waitForTransactionReceipt(tx_hash)
+
 
 # 債券トークンの売りMake注文
 def make_sell_bond_token(invoker, bond_exchange, bond_token, amount, price):
@@ -189,7 +192,8 @@ def make_sell_bond_token(invoker, bond_exchange, bond_token, amount, price):
     tx_hash = ExchangeContract.functions.\
         createOrder(bond_token['address'], amount, price, False, agent['account_address']).\
         transact({'from':invoker['account_address'], 'gas':gas})
-    tx = wait_transaction_receipt(tx_hash)
+    tx = web3.eth.waitForTransactionReceipt(tx_hash)
+
 
 # 債券トークンの買いTake注文
 def take_buy_bond_token(invoker, bond_exchange, order_id, amount):
@@ -203,7 +207,8 @@ def take_buy_bond_token(invoker, bond_exchange, order_id, amount):
     tx_hash = ExchangeContract.functions.\
         executeOrder(order_id, amount, True).\
         transact({'from':invoker['account_address'], 'gas':4000000})
-    tx = wait_transaction_receipt(tx_hash)
+    tx = web3.eth.waitForTransactionReceipt(tx_hash)
+
 
 # 直近注文IDを取得
 def get_latest_orderid(bond_exchange):
@@ -212,12 +217,14 @@ def get_latest_orderid(bond_exchange):
     latest_orderid = ExchangeContract.functions.latestOrderId().call()
     return latest_orderid
 
+
 # 直近約定IDを取得
 def get_latest_agreementid(bond_exchange, order_id):
     ExchangeContract = Contract.get_contract(
         'IbetStraightBondExchange', bond_exchange['address'])
     latest_agreementid = ExchangeContract.functions.latestAgreementIds(order_id).call()
     return latest_agreementid
+
 
 # 債券約定の資金決済
 def bond_confirm_agreement(invoker, bond_exchange, order_id, agreement_id):
@@ -231,7 +238,8 @@ def bond_confirm_agreement(invoker, bond_exchange, order_id, agreement_id):
     tx_hash = ExchangeContract.functions.\
         confirmAgreement(order_id, agreement_id).\
         transact({'from':invoker['account_address'], 'gas':4000000})
-    tx = wait_transaction_receipt(tx_hash)
+    tx = web3.eth.waitForTransactionReceipt(tx_hash)
+
 
 # トークン数取得
 def get_token_list_length(token_list):
@@ -240,12 +248,14 @@ def get_token_list_length(token_list):
     list_length = TokenListContract.functions.getListLength().call()
     return list_length
 
+
 # トークン数取得
 def get_token_list(token_list, token_address):
     TokenListContract = Contract.get_contract(
         'TokenList', token_list['address'])
     token = TokenListContract.functions.getTokenByAddress(token_address).call()
     return token
+
 
 # 認定実施
 def exec_sign(token_address, invoker):
@@ -258,7 +268,8 @@ def exec_sign(token_address, invoker):
 
     tx_hash = TokenContract.functions.sign().\
         transact({'from':invoker['account_address'], 'gas':4000000})
-    tx = wait_transaction_receipt(tx_hash)
+    tx = web3.eth.waitForTransactionReceipt(tx_hash)
+
 
 # 認定区分を取得
 def get_signature(token_address, signer_address):
@@ -266,13 +277,14 @@ def get_signature(token_address, signer_address):
         'IbetStraightBond', token_address)
     return TokenContract.functions.signatures(signer_address).call()
 
+
 # personalInfoを復号化して返す
 def get_personal_encrypted_info(personal_info, account_address, token_owner):
     # personalinfo取得
     PersonalInfoContract = Contract.get_contract(
         'PersonalInfo', personal_info['address'])
     encrypted_info = PersonalInfoContract.functions.personal_info(
-                to_checksum_address(account_address), 
+                to_checksum_address(account_address),
                 to_checksum_address(token_owner)
         ).call()[2]
     # 復号化
@@ -281,6 +293,7 @@ def get_personal_encrypted_info(personal_info, account_address, token_owner):
     ciphertext = base64.decodestring(encrypted_info.encode('utf-8'))
     message = cipher.decrypt(ciphertext)
     return json.loads(message)
+
 
 # whitelistを復号化して返す
 def get_whitelist_encrypted_info(white_list, account_address, agent_address):
@@ -299,28 +312,6 @@ def get_whitelist_encrypted_info(white_list, account_address, agent_address):
     return json.loads(message)
 
 
-# トランザクションがブロックに取り込まれるまで待つ
-# 10秒以上経過した場合は失敗とみなす（Falseを返す）
-def wait_transaction_receipt(tx_hash):
-    count = 0
-    tx = None
-
-    while True:
-        time.sleep(0.1)
-        try:
-            tx = web3.eth.getTransactionReceipt(tx_hash)
-        except:
-            continue
-
-        count += 1
-        if tx is not None:
-            break
-        elif count > 120:
-            raise Exception
-
-    return tx
-
-
 # 発行済みトークンのアドレスをDBへ登録
 def processorIssueEvent(db):
     # コントラクトアドレスが登録されていないTokenの一覧を抽出
@@ -330,7 +321,7 @@ def processorIssueEvent(db):
             tx_hash = token.tx_hash
             tx_hash_hex = '0x' + tx_hash[2:]
             try:
-                tx_receipt = wait_transaction_receipt(tx_hash_hex)
+                tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash_hex)
             except:
                 continue
             if tx_receipt is not None :
