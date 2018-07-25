@@ -191,18 +191,6 @@ def bankinfo():
     personalinfo_address = to_checksum_address(Config.PERSONAL_INFO_CONTRACT_ADDRESS)
     PersonalInfoContract = Contract.get_contract(
         'PersonalInfo', personalinfo_address)
-    isRegistered = PersonalInfoContract.functions.isRegistered(Config.ETH_ACCOUNT, Config.ETH_ACCOUNT).call()
-    if isRegistered:
-        # 銀行情報の復号化
-        personal_info = PersonalInfoContract.functions.personal_info(
-                    Config.ETH_ACCOUNT, 
-                    Config.ETH_ACCOUNT
-            ).call()
-        key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
-        cipher = PKCS1_OAEP.new(key)
-        ciphertext = base64.decodestring(personal_info[2].encode('utf-8'))
-        message = cipher.decrypt(ciphertext)
-        personalinfo_json = json.loads(message)
 
     form = BankInfoForm()
     if request.method == 'POST':
@@ -239,7 +227,7 @@ def bankinfo():
             }
             personal_info_message_string = json.dumps(personal_info_json)
             personal_info_ciphertext = base64.encodestring(cipher.encrypt(personal_info_message_string.encode('utf-8')))
-            
+
             # personInfo register
             p_gas = PersonalInfoContract.estimateGas().register(Config.ETH_ACCOUNT, personal_info_ciphertext)
             p_txid = PersonalInfoContract.functions.register(Config.ETH_ACCOUNT, personal_info_ciphertext).\
@@ -273,15 +261,39 @@ def bankinfo():
             flash_errors(form)
             return render_template('account/bankinfo.html', form=form)
     else: # GET
+        form.name.data = ''
+        form.bank_name.data = ''
+        form.bank_code.data = ''
+        form.branch_name.data = ''
+        form.branch_code.data = ''
+        form.account_type.data = ''
+        form.account_number.data = ''
+        form.account_holder.data = ''
+
+        isRegistered = PersonalInfoContract.functions.\
+            isRegistered(Config.ETH_ACCOUNT, Config.ETH_ACCOUNT).call()
+
         if isRegistered:
-            form.name.data = personalinfo_json['name']
-            form.bank_name.data = personalinfo_json['bank_account']['bank_name']
-            form.bank_code.data = personalinfo_json['bank_account']['bank_code']
-            form.branch_name.data = personalinfo_json['bank_account']['branch_office']
-            form.branch_code.data = personalinfo_json['bank_account']['branch_code']
-            form.account_type.data = personalinfo_json['bank_account']['account_type']
-            form.account_number.data = personalinfo_json['bank_account']['account_number']
-            form.account_holder.data = personalinfo_json['bank_account']['account_holder']
+            personal_info = PersonalInfoContract.functions.\
+                personal_info(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT).call()
+            try:
+                # 銀行口座情報の復号化
+                key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
+                cipher = PKCS1_OAEP.new(key)
+                ciphertext = base64.decodestring(personal_info[2].encode('utf-8'))
+                message = cipher.decrypt(ciphertext)
+                personalinfo_json = json.loads(message)
+                form.name.data = personalinfo_json['name']
+                form.bank_name.data = personalinfo_json['bank_account']['bank_name']
+                form.bank_code.data = personalinfo_json['bank_account']['bank_code']
+                form.branch_name.data = personalinfo_json['bank_account']['branch_office']
+                form.branch_code.data = personalinfo_json['bank_account']['branch_code']
+                form.account_type.data = personalinfo_json['bank_account']['account_type']
+                form.account_number.data = personalinfo_json['bank_account']['account_number']
+                form.account_holder.data = personalinfo_json['bank_account']['account_holder']
+            except:
+                pass
+
         return render_template('account/bankinfo.html', form=form)
 
 #+++++++++++++++++++++++++++++++
