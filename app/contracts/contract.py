@@ -37,17 +37,7 @@ class Contract():
             args=args
         ).hex()
 
-        count = 0
-        tx = None
-        while True:
-            time.sleep(float(Config.TEST_INTARVAL))
-            try:
-                tx = web3.eth.getTransactionReceipt(tx_hash)
-            except:
-                continue
-            count += 1
-            if tx is not None or count > 120:
-                break
+        tx = web3.eth.waitForTransactionReceipt(tx_hash)
 
         contract_address = ''
         if tx is not None :
