@@ -13,6 +13,13 @@ class Config:
     TEMPLATE_ID_SB = 1
     TEMPLATE_ID_COUPON = 2
 
+    # Payment Agent List
+    APP_ENV = os.getenv('FLASK_CONFIG') or 'default'
+    if APP_ENV == 'production':
+        PAYMENT_AGENT_LIST_URL = 'https://s3-ap-northeast-1.amazonaws.com/ibet-company-list/payment_agent_list.json'
+    else:
+        PAYMENT_AGENT_LIST_URL = 'https://s3-ap-northeast-1.amazonaws.com/ibet-company-list-dev/payment_agent_list.json'
+
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'ZwiTDW52gQlxBQ8Sn34KYaLNQxA0mvpT2_RjYH5j-ZU='
     SSL_DISABLE = False
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True

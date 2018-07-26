@@ -3,6 +3,7 @@ import secrets
 import datetime
 import json
 import base64
+import requests
 from flask import Flask, request, redirect, url_for, flash, session
 from flask_restful import Resource, Api
 from flask import render_template
@@ -198,7 +199,7 @@ def bankinfo():
             # unlock
             web3.personal.unlockAccount(Config.ETH_ACCOUNT, Config.ETH_ACCOUNT_PASSWORD, 1000)
 
-            # public key
+            # public key（発行体）
             key = RSA.importKey(open('data/rsa/public.pem').read())
             cipher = PKCS1_OAEP.new(key)
 
@@ -232,6 +233,22 @@ def bankinfo():
             p_gas = PersonalInfoContract.estimateGas().register(Config.ETH_ACCOUNT, personal_info_ciphertext)
             p_txid = PersonalInfoContract.functions.register(Config.ETH_ACCOUNT, personal_info_ciphertext).\
                 transact({'from':Config.ETH_ACCOUNT, 'gas':p_gas})
+
+            # public key
+            company_list = []
+            isExist = False
+            try:
+                company_list = requests.get(Config.PAYMENT_AGENT_LIST_URL).json()
+            except:
+                raise AppError
+            for company_info in company_list:
+                if to_checksum_address(company_info['address']) == agent_address:
+                    isExist = True
+                    key_bank = RSA.importKey(company_info['rsa_publickey'].replace('\\n',''))
+            if isExist == False:
+                flash('決済代行業者の情報を取得できません。アプリケーション起動時の決済代行業者のアドレスが正しいか確認してください。', 'error')
+                return render_template('account/bankinfo.html', form=form)
+            cipher = PKCS1_OAEP.new(key_bank)
 
             # whitelist暗号文字列
             whitelist_json = {
