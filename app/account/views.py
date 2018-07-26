@@ -244,7 +244,7 @@ def bankinfo():
             for company_info in company_list:
                 if to_checksum_address(company_info['address']) == agent_address:
                     isExist = True
-                    key_bank = company_info['rsa_publickey'].replace('\n','')
+                    key_bank = company_info['rsa_publickey'].replace('\\n','')
             if isExist == False:
                 flash('決済代行業者の情報を取得できません。アプリケーション起動時の決済代行業者のアドレスが正しいか確認してください。', 'error')
                 return render_template('account/bankinfo.html', form=form)
