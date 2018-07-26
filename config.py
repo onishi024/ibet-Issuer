@@ -97,6 +97,13 @@ class Config:
     # テスト実行時のコントラクト実行完了待ちインターバル
     TEST_INTARVAL = os.environ.get('NODE_TEST_INTERVAL') or 0.5
 
+    # Payment Agent List
+    APP_ENV = os.getenv('FLASK_CONFIG') or 'default'
+    if APP_ENV == 'production':
+        PAYMENT_AGENT_LIST_URL = 'https://s3-ap-northeast-1.amazonaws.com/ibet-company-list/payment_agent_list.json'
+    else:
+        PAYMENT_AGENT_LIST_URL = 'https://s3-ap-northeast-1.amazonaws.com/ibet-company-list-dev/payment_agent_list.json'
+
     @staticmethod
     def init_app(app):
         pass
