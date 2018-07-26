@@ -94,9 +94,6 @@ class Config:
     #RSA鍵ファイルのパスワード
     RSA_PASSWORD = os.environ.get('RSA_PASSWORD')
 
-    # テスト実行時のコントラクト実行完了待ちインターバル
-    TEST_INTARVAL = os.environ.get('NODE_TEST_INTERVAL') or 0.5
-
     # Payment Agent List
     APP_ENV = os.getenv('FLASK_CONFIG') or 'default'
     if APP_ENV == 'production':
