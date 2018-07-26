@@ -246,7 +246,8 @@ def bankinfo():
                     isExist = True
                     key_bank = company_info['rsa_publickey'].replace('\n','')
             if isExist == False:
-                raise DataNotExistsError('eth_address: %s' % eth_address)
+                flash('決済代行業者の情報を取得できません。アプリケーション起動時の決済代行業者のアドレスが正しいか確認してください。', 'error')
+                return render_template('account/bankinfo.html', form=form)
             cipher = PKCS1_OAEP.new(key_bank)
 
             # whitelist暗号文字列
