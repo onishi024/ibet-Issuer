@@ -13,8 +13,46 @@ from logging import getLogger
 logger = getLogger('api')
 
 class TestToken(TestBase):
-    issuer_encrypted_info = 'hekR0bz6qfsnaIYLZ7emUNaynqHFQsrwehcMq8r0tw2SRSM2vhb4B9HZWNaB0pOF7Obtp6qQM59ADfpwoGw3KewOw/4ZmPG7ajFaDYP1CHwz+LaxcQciJDi07ROZYDKwxukbGVcRxWwRJdjt9fOjLJzcgEyTG44LqxAjaGANVQnf3ZF3I6iZ84FrDKTGQ/86Qzv/Mj53nGkU053J6p8/RWU3n1vOtwOOMSwqc2gZlCEMqjjKxkkFUxbVZAFXNMiLgOAsnvBsq49Tr0J4ei0M+j4uWnbxsB2mMdKJTY69jiCOgiTa/of//W9H/jl0PzTINXb59xLTDuER8Ni7UYCU2MIcWzsQY6+2kzpkSglqG3JXB/iQjg+TZUXgeRIVZvo1uecdKRegJbcNt/xn1HH1FzO6kxmcHP/GML5Hh0AXwswkzdDhJZExWYVJ6+W8Uc/OlO1Y1SzScX7I7f7WcsDgPrxuV+oVWl/e+bBroi6UAJAappq17n5ZxGB9vgDb4tQLXCV/hyyo61O4hg8Ca7jH2imxN4612e/Z5ZrZPQf9rnMJXLPF57r1lECC2xvfjTdhEmBblO1ynY/hlgW7mscgrZDMfr/shsdrQyqH1yExAmN9puR2X96Ejqn+lRBbhi9kqxAAnP1G4S3S9EDgMc1yiCmq4mLVZO/SyCbKzytXOmScMHWyPmcjfjt+uuxkWM6NifUkeWcc3NjXLDjwj1ipuegJJnVoAje950w3HEWBzxX2W16EHlzEdovXGObtV8WP/p+Q/WesPyE9s1gh/ND19APBQx7+TR7LepCTOA1cmFl/JTFFk37dGRka34CTDjqF+kan0sk/JPGytbmLMWEbZiZkDhcZ8kTI9EpTYeS4se5B3X4Nd/Fi6k/kGSK0FtYakwmc0q30eWnDyE049MmdZQV/QdARCrNWipv1WRbL5oNlP9pbR8Mz3pMcISofLdyrWtdJCgj1sNj/CXFai+4F2ce5wQZb95kCyrN0AT2zj8JAuZImeTDDUQpnn++iMGWkWKYPnRaw5Jel9OcYKbgsqvSyzTzSgfWvUMZxD0Fz6SLOeGKvWDlSDVi/jFOZZxWy4EYElBklc47eehlMQHGQT/6PZVnZbuf43j1EF8+s4VMLf7nnb1JG6tQ2gTYx/UG+arK25f5ZXnzaOQNX5X2Hu/Bv/s1PmaXa1QcEIuByumNFra7iNnhT/6DTgNAVPlbTUbTLrc+8kVft2VDIe1FUG4UNjpDGjP/j/Ovjy3prMrWdBAXcLvRuVk9NMiMa4qQIuVE+Dd4hw+47At8LIfu6pCwiX5cRPCCVEzZ5I8il41qbvdIjQ2ewANB0j1Ve3hrbUQcZcF/MMKGPHwRDaAprQ9oZZVX+pVrcZmD/EQr9A0NvRhvcQb1JdOIaOyWnMfj0r3Ki0eIp2seLtqQ9Mpxje+plCqHfy5FXunLMi3U5FzTLkPmt5ANiNtE5E9X6hqzBgSW4dR+plJbrsE0JvmNFxefiN2tTj9QOuOKy2QXdc3oR79Mi4KKKdti2sS6wopX8kkMSzK+LZ8Fr98FeKX/uLXj1T4o7xb65HG3i45kDhv5cGilkNyI8euOsEsMlfQbboITQpcRhspzunJXfHx9sEpiVjFL+vMR/vcNblJ3zZUtiOoqeQEynH7paCa2vxURLeJ3PsmfowIO8ZebX+ZWM8ElpNIG0l43SxoGFUP/tI78='
-    trader_encrypted_info = 'Upu+PwVJUYV30KMTrrDwEHTT/u6Px+5VdRWx+FZdKuJ/36TvIBJEsyf4bv/dgZwcOoBztWQnQ71Cf55fBkopqjpHm7YJpeRnEdqRVwOc44PynVdcZeQvWizU867ub5QUh/coG5ftCB5ln3UcunEMbxmOLpjnTmNSRdIz0iWdYU/gxFuHNVxexTgSpvhUp4R7QrY/mBp5g6reYILCjy9wabJ8i7iSEOjP5szmtmCDIqhBnidtmoVxfgDGUDYpL3HU8HmfDIwCc+YuUORS3LSBVWshEK9EO89flghnI/wozsh7vntcGXKfNkVkfwZx9C0q878+Ep+p6pFpU4HMGbjTEtFsozEjZT22wAMfMDZOoBOsrURM0PGom6bJ/zfrAKr9oAWgjvBkaYLknxagwOosVLQH/QF31mlQyFScXJEISsi023S7l/nDJ3DVPS8ejghWgvAUcfwOSA7Vt9fS2KLUTUbd+RTd4FL9uks+A3rm0yL2Jc/Px4fpbnENBrenqSyBl1sYw7JLvvfut/hz6qUiOswoy2G0tZszKGo9nZiOMkmAr5sv2xh4M380uG8KOf3PaZXm6elFPqCOilHAZpQfydA1y1M7QgVIa+WkO53HevVUn9iqk/u6q5x3xA3HgneiZFGXWCzJwnV+GMkR0ILGbugkP5bl/nlji/grev40jEdWlVy2tazHwh+2fH6QBTWfiTVvrPTcprWy0GAjqAwPyCuCkMcjr9invpkuwaI7BugbAyWA8o1ANv35hinVnNtpgbesJjHxJWlbE7x4Ph+Big2W5o+DdZpnIYFtBOi6YdB50lvemFcktFUewCRzzB5cO3wgkvpxkgPGpy3mq0GSB7gJqmJ28RVjjOyNCmbVsl0V3Sgq3YhpfIyeoFZ8YQCz+m8QXXEDUeLdkms2yKmaIYZqinXgRNxaQdwdgxbYYyamf9Ena3E+KeLuHSOq3xtupgHopv2Y6c1/hBznKy6gVJVbfEMYRWYqUM7KYLZahcaLvFP8YuD7nTx7r6tKH6OaQi12FO+Pnk98kvG66VWM+i/AlWvNSI+3Cx50sDW5BF7Rl9DNB59AfX7Ur7Pdn7lfDTy6fDLqGs+LtmYUOtt8YlL6mAmH1x7pV5nF+01CnaShAC430cQyBB2vngs/p4FS654z0dIkEZ6YLSCIBIJpNYJY2oGOixNTrG+4lECKyQ0HY4AmtXnH5iqgS9/NCcLHHBWiqIXQgCQ5sCUVTIe0cHu6fWLrDtAlBncrX/6gEix0N/O6OQHfVx3veHRYGMJ1ZIM25gqI/ccgz9IyKtG//8zGqruvt6y8e6xJ7yh3OnSHPbNmLd8hcY9Ti2gQnMbKe2hDFQJehLRawNG8Yujd0H3ROnypEaCF2m7hKy23w3vmeVnPMM6xYshCsjXInjjiXn8xLof5NUA9Ea8d2U/3DaGPm4Xgt9VV0hilTKAKRQsSSG9YBrg6iGI6IKnka3tD7iKOvsBahZstNw4xEn7NifYPatCJjHDKaSqeqrdS9U9T0ClnG4iD5U8ufIEtvHKewDMOpVD6KW/lszilrziA6hSUyVPBx/p/VHhhAXXJ8ISvk+TLrpRvUukE4CtwqE/rdryeBvYM7XKqnqV72zOlirnlx2iiaQWm6XfSGdfjaUt2J5VSbwHv5lv534CCWrqBC7V/X9KISx1UV0regXvOtOen2UV2xshEv2ljrWjGPFY='
+    # personal_info_json = {
+    #     "name":"株式会社１",
+    #     "address":{
+    #         "postal_code":"1234567",
+    #         "prefecture":"東京都",
+    #         "city":"中央区",
+    #         "address1":"日本橋11-1",
+    #         "address2":"東京マンション１０１"
+    #     },
+    #     "bank_account":{
+    #         "bank_name": "三菱UFJ銀行",
+    #         "bank_code": "0005",
+    #         "branch_office": "東恵比寿支店",
+    #         "branch_code": "610",
+    #         "account_type": 1,
+    #         "account_number": "1234567",
+    #         "account_holder": "ｶﾌﾞｼｷｶﾞｲｼﾔｹﾂｻｲﾀﾞｲｺｳ"
+    #     }
+    # }
+    issuer_encrypted_info = 'C3xjipCzPIbgydw0cObtsxadHqU3GuXd1u89EJuxMpyfnEJZ7CSXKrr4jF55Cji94xgknLjm7zFKfUzLcySXu5rj6mlJCfdKozBQ1GM7iN1wt+toXmiqCcGy0Rozis39oaykKT/s5CQtIQIbOf8DnQBGW7YP1bPx/yj5bEFUCf6+6QQHsmh4UTIugiQoyFms/ffNZjgnea49ja/eyyxt3mc/4tSoxHqamyQtvZ2UxVeMFHZ4QbbSomKXEwi7wp95rHzjnjgTvjxjHUFyMUhOTd+Y581uX2VnFCVb9ddYXrUOu7yySguLSCugr7ihNQUEe12im10XLDyksA+uCJnp0hSBBKCJ8oarbLYYuPfcZrP5YsfIZGJp5xpcqvmq795iOLqZQrhL4gfJXJ3JD+6KuCEX2gk3w8KWU6vS65yVhU5RxOtIJXuGiw/vzhdA2ZtI0hGA4JwG5o+iRBXuxeRz4uqucMHYj2VUu/2QFmtsO/4IqurDEQTLK+brPHnmzpdKPOvSQ4pkbrOgDkKOkXjsuFVf+eJEhjuiXr0CM9Y4yyKv6YMtVlsISG+yyKduMwXluPwbJUISMpz7P9y+WpvVQ1vrCqq/thxMrAzpGqj0ZYIrfuuWASpYGxH/xkYp24paXbLeYT4GJuPvT0RdpXcGCLBmZ8NT2VyePGXIdbmF4zKF+g9lGKzz/vRiSakIbHLK7hC1xTwHg4mrf2r1PBft3W4DyIll6eU7N5rdb8P4SlzM0dlfVrK5x4VP7VmRdsWvu8FBCHqTIlVBODbBT60MVsB0b/qEX3h3CBREUmwhWEYXShG12SNuO1rR/anEz+yv/DlVrfMthejBglNd76bUraouPgNrqI3gGRP+E6AP9/W5JJFQdteA/Hbkj9vI6A3l/UALNmLBGypOhO7cMPYiDkl5KIO2p53XpN6xRJtq3lXArkXD7wNn/I7zs3bj9U//bEE/qLngPMJFqNSWb+owGwx8vHKhZlozpVf/tWFG2nKrIvNCC1XtYH/G2rs/7HCVvvRksgOtJ+LOyXui/xtL4i1RMQh0AmwofwnnIL4zKXjX/b4Tog/D2nxr6ifG2baWE46h9WRdyV9ICzW+NRD3AQObkRb7e3LThMy7pupbPESGiO/kQfDFEFoNw47YD80COFU/0Ih8ylLtumk/ecunn8ayLyWhX6qHpdIR1ILYOPv5jbMcOWAs5FQfBVJlDv3iJNQrz3nN30/GecMS5unfVe05pknuvSIs2L6qLWgK4b3DyyZrbkvacNAzGC5GDt9jG107FsvtATlRt9KaxivjGsZpJ67//lkC3l+MJFUkMFL/tzNP7PGRhj801LggtzV+jjBG7EuDUP2K/pAQ4kVE4s3mIM61N3ytnvdcL3gTnjTlp5S6gb0taM/9hJTsAUWjycE0LqVdPhrYTvEvChN39eXstkU8WGI2V1iLXB4XKiTXmLqUXDtx7Yc5bvUiSaMXlxa8wMoeh/qmTcOvBbGSSzaTzc1r47f8LcNRLhLt3zogiI/pdiehDdEOG9u4eQNptU5ePCZcQcVZak7QbcIxECOvz4FZb8cR2JTDm01RnvyMyu2miB4ambWnRMiI9I30lPWgBlyvkGv3oCEIP+/P8Jy3wRRkMgbyUPStLTAQUeQ2JMXrQHLdgOLOEfvzBn9aZRuagzhdcdtaeePXFe1JbEc0worY6rHPNInTPejuV+Y='
+    # personal_info_json = {
+    #     "name":"ﾀﾝﾀｲﾃｽﾄ",
+    #     "address":{
+    #         "postal_code":"1040053",
+    #         "prefecture":"東京都",
+    #         "city":"中央区",
+    #         "address1":"勝どき6丁目３－２",
+    #         "address2":"ＴＴＴ６０１２"
+    #     },
+    #     "bank_account":{
+    #         "bank_name": "みずほ銀行",
+    #         "bank_code": "0001",
+    #         "branch_office": "日本橋支店",
+    #         "branch_code": "101",
+    #         "account_type": 2,
+    #         "account_number": "7654321",
+    #         "account_holder": "ﾀﾝﾀｲﾃｽﾄｺｳｻﾞ"
+    #     }
+    # }
+    trader_encrypted_info = 'oR3oSAdy1m6MR2nYKTsccjxdXlgLDx2MJZEir5qKpb9hpHEWisOn79GE8+o1ThG/BCzirZjx9z3gc40PmM+1l2VH+6c5ouSWkZ3JhoT4SUsf9YTAurj6jySzTcPkCMC9VPP+Nm4+XJyt3QroPzDOsJKaGycn63/B8BLTV6zZaDi9ZDBtZL0A1xMEx2aQJsXCj+cn6fGFy7VV8NG1+WYyUDZmXTK8nzR75J2onsiT4FzwtSCzZbM4/qME4O0rOlnaqjBoyn6Ae46S6LO72JPskT/b5pWM+mH8+/buLdGaxO3D1k6ICTvjNJaO7gxTNTsm3tWGotp9tzzkDsxYcVE+qr4/ufmsE6Qn3/pI1DtEZbMyXu51ucn7JYyQNiPN99OXbkTs2/DHsy7RtvujS+PXH4KHjH0//NbdyUxgEmGbf3XvZ2yDDRUKpi5jHs82mtECGPWN9hKzlwkV7UXp/BBHZP+MsyiU1pZCkqIGIrt9WlE/v9TlJXzarcJmqWL6LmG2b5g6ublux/AaYyYXjwNyKbP0kQJGYoGNV4KODNEQd6DNc5uI24laJd8GY7ucDcB2F/j1y1S5vWIQIOM9ksSr9K0xfsaiqGpNWtbquYrOv3lNVozFx22C8hTWDyMOCmkTEcha2nTnLUvSsopZeNlAfRxnNdqjtHqp8iBAqVlpxRpIgCjk9QTf1lYmNK3jb2/4Cyt8xAo0Z4ty6qOzeEcwd+BjGMbfWdxtGSJHDidr7nP56MOGKSzwOnLxLVYVL8YuV6MnzqDtbts/Vbw9mkX5zwddIfvsGlNvhbrDR8WSrXRVeWiwnbXnhc4njpsRLRlCXwvHVbhXzdUvEyfXmMdMGRScVBLLeb0BQK9Aea1ZuwKsK19JhK5QUrnYeimMRzJ/YUX5mMlJ4Skek7Lkn8py5hX3rZ3/SvLEXKe2GxkvqTPbwnyS+ZNAvGpyRl8AIthOHucW4Fnjl8KQpqS2GMJpj+SJRq8/HCpaR50743S5j6Ha0gx3D3/R032an+cgg7a875BNX0hgldffzoDr6+nHEtwsY/J96rkUFmeubmsISu0wAxH6C7XTsCFs90awBwIAydOgmbOovUub/yz/CJhbgbMrAMv1Mv2wnLIt0av8nC359AuRanIGr7q/ynDYqUS9mdUlpyfVbwWPJm0hMFfuJxdvVVHnyr2jg2GqtgvE8QcN18l1aI1FJDfqa7W7grlwn9+EQo+JXE1Xd7YZdeJNtKSD4aIQAFnIoIM3A7fkoPAS4sc+PdUzA3UNgomByNP3/cdcs/L3cvEpDjlTNzFLcQ2yojEXolcg2SZzpmb7MV3E5RQLnjOL+u/frwqk15up7jNiqfNp7N/o/wmjf6m+ceJq7b03o2oNLE+Ng6lNqLWNduII4Lq0N6qOgWJ/02LF1X/9oeBDPuPiLUZGkyy5y3FCuY4KN/hDUUpxGsxBOYfn+oFepAu6bz4UpxgaEu23DyCeKnkBlQITi1kSl7F7WHv1XBHF53eEY4fs4n0ZrOYWOzEFt/NfKm/oxiyIdSsCfGTcgmC/DGC90vM4sPPRXa7x7Xd8xJRbTnEuA88ALzCSeMt1NyNNtSKpw9xv+UIyFMkuDYsOoNRrdThZ/KvjYSMsAvNBXG0x6AYMz4x9oZ25VBiy/yWbivbN2nFPlWM7xyaQWMlTBVZZdCgnOoOR1tby7IAwlzTd1oGm+DJx9hA='
     url_tokenlist = '/token/tokenlist' # 発行済債券一覧
     url_positions = '/token/positions' # 保有債券一覧 
     url_issue = '/token/issue' # 債券新規発行
