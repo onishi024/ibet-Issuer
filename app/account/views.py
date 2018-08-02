@@ -221,7 +221,7 @@ def bankinfo():
                     "bank_code": form.bank_code.data,
                     "branch_office": form.branch_name.data,
                     "branch_code": form.branch_code.data,
-                    "account_type": form.account_type.data,
+                    "account_type": int(form.account_type.data),
                     "account_number": form.account_number.data,
                     "account_holder": form.account_holder.data
                 }
@@ -258,7 +258,7 @@ def bankinfo():
                     "bank_code": form.bank_code.data,
                     "branch_office": form.branch_name.data,
                     "branch_code": form.branch_code.data,
-                    "account_type": form.account_type.data,
+                    "account_type": int(form.account_type.data),
                     "account_number": form.account_number.data,
                     "account_holder": form.account_holder.data
                 }
@@ -305,7 +305,7 @@ def bankinfo():
                 form.bank_code.data = personalinfo_json['bank_account']['bank_code']
                 form.branch_name.data = personalinfo_json['bank_account']['branch_office']
                 form.branch_code.data = personalinfo_json['bank_account']['branch_code']
-                form.account_type.data = personalinfo_json['bank_account']['account_type']
+                form.account_type.data = str(personalinfo_json['bank_account']['account_type'])
                 form.account_number.data = personalinfo_json['bank_account']['account_number']
                 form.account_holder.data = personalinfo_json['bank_account']['account_holder']
             except:
