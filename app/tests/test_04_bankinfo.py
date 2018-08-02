@@ -53,7 +53,7 @@ class TestBankInfo(TestBase):
                 'bank_code':'0001',
                 'branch_name':'支店めい１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０',
                 'branch_code':'100',
-                'account_type':'2',
+                'account_type':2,
                 'account_number':'1234567',
                 'account_holder':'ABCDEFGHIJKLMNOPQRSTUVWXYZ-ﾞﾟｱｲｳｴｵｶｷｸｹｺｱ'
             }
@@ -84,7 +84,7 @@ class TestBankInfo(TestBase):
         assert personal_info_json['bank_account']['bank_code'] == '0001'
         assert personal_info_json['bank_account']['branch_office'] == '支店めい１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０'
         assert personal_info_json['bank_account']['branch_code'] == '100'
-        assert personal_info_json['bank_account']['account_type'] == '2'
+        assert personal_info_json['bank_account']['account_type'] == 2
         assert personal_info_json['bank_account']['account_number'] == '1234567'
         assert personal_info_json['bank_account']['account_holder'] == 'ABCDEFGHIJKLMNOPQRSTUVWXYZ-ﾞﾟｱｲｳｴｵｶｷｸｹｺｱ'
 
@@ -95,7 +95,7 @@ class TestBankInfo(TestBase):
         assert whitelist_json['bank_account']['bank_code'] == '0001'
         assert whitelist_json['bank_account']['branch_office'] == '支店めい１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０'
         assert whitelist_json['bank_account']['branch_code'] == '100'
-        assert whitelist_json['bank_account']['account_type'] == '2'
+        assert whitelist_json['bank_account']['account_type'] == 2
         assert whitelist_json['bank_account']['account_number'] == '1234567'
         assert whitelist_json['bank_account']['account_holder'] == 'ABCDEFGHIJKLMNOPQRSTUVWXYZ-ﾞﾟｱｲｳｴｵｶｷｸｹｺｱ'
 
@@ -111,7 +111,7 @@ class TestBankInfo(TestBase):
                 'bank_code':'0002',
                 'branch_name':'支店めい２３４',
                 'branch_code':'101',
-                'account_type':'4',
+                'account_type':4,
                 'account_number':'7654321',
                 'account_holder':'ﾃｽﾄ'
             }
@@ -142,7 +142,7 @@ class TestBankInfo(TestBase):
         assert personal_info_json['bank_account']['bank_code'] == '0002'
         assert personal_info_json['bank_account']['branch_office'] == '支店めい２３４'
         assert personal_info_json['bank_account']['branch_code'] == '101'
-        assert personal_info_json['bank_account']['account_type'] == '4'
+        assert personal_info_json['bank_account']['account_type'] == 4
         assert personal_info_json['bank_account']['account_number'] == '7654321'
         assert personal_info_json['bank_account']['account_holder'] == 'ﾃｽﾄ'
 
@@ -153,7 +153,7 @@ class TestBankInfo(TestBase):
         assert whitelist_json['bank_account']['bank_code'] == '0002'
         assert whitelist_json['bank_account']['branch_office'] == '支店めい２３４'
         assert whitelist_json['bank_account']['branch_code'] == '101'
-        assert whitelist_json['bank_account']['account_type'] == '4'
+        assert whitelist_json['bank_account']['account_type'] == 4
         assert whitelist_json['bank_account']['account_number'] == '7654321'
         assert whitelist_json['bank_account']['account_holder'] == 'ﾃｽﾄ'
 
