@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 from flask_wtf import FlaskForm as Form
 
-from wtforms import StringField, TextAreaField, PasswordField, SubmitField, HiddenField, SelectField, PasswordField, FileField
+from wtforms import IntegerField, StringField, TextAreaField, PasswordField, SubmitField, HiddenField, SelectField, PasswordField, FileField
 from wtforms.validators import Required, Email, EqualTo, Length, Regexp
 from wtforms import ValidationError
 from ..models import Role, User
@@ -80,7 +80,7 @@ class BankInfoForm(Form):
                     Length(min=3, max=3, message='支店コードは3桁です。'),
                     Regexp(r'^[0-9]+$', message='支店コードは数字のみです。')
                     ])
-    account_type = SelectField('口座種別', coerce=str)
+    account_type = IntegerField('口座種別', coerce=int)
     account_number = StringField("口座番号", validators=[
                     Required('口座番号は必須です。'),
                     Length(min=7, max=7, message='口座番号は7桁です。'),
@@ -95,5 +95,5 @@ class BankInfoForm(Form):
 
     def __init__(self, bank_info=None, *args, **kwargs):
         super(BankInfoForm, self).__init__(*args, **kwargs)
-        self.account_type.choices = [('1', '普通'), ('2', '当座'), ('4', '貯蓄預金'), ('9', 'その他')]
+        self.account_type.choices = [(1, '普通'), (2, '当座'), (4, '貯蓄預金'), (9, 'その他')]
         self.bank_info = bank_info
