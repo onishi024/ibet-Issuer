@@ -83,13 +83,13 @@
               <div class="row">
                 <label class="col-md-3">口座種別</label>
                 <div class="form-group col-md-4">
-                  {% if personal_info['bank_account']['account_type'] == '1' %}
+                  {% if personal_info['bank_account']['account_type'] == 1 %}
                     普通
-                  {% elif personal_info['bank_account']['account_type'] == '2' %}
+                  {% elif personal_info['bank_account']['account_type'] == 2 %}
                     当座
-                  {% elif personal_info['bank_account']['account_type'] == '4' %}
+                  {% elif personal_info['bank_account']['account_type'] == 4 %}
                     貯蓄預金
-                  {% elif personal_info['bank_account']['account_type'] == '9' %}
+                  {% elif personal_info['bank_account']['account_type'] == 9 %}
                     その他
                   {% else %}
                     {{ personal_info['bank_account']['account_type'] }}
