@@ -240,7 +240,7 @@ def bankinfo():
             try:
                 company_list = requests.get(Config.PAYMENT_AGENT_LIST_URL).json()
             except:
-                raise AppError
+                pass
             for company_info in company_list:
                 if to_checksum_address(company_info['address']) == agent_address:
                     isExist = True
