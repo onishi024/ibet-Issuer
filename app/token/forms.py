@@ -12,7 +12,7 @@ class IssueTokenForm(Form):
     name = StringField("商品名", validators=[Required('商品名は必須です。')])
     symbol = StringField("略称", validators=[Required('略称は必須です。')])
     totalSupply = IntegerField("総発行量", validators=[Required('総発行量は必須です。')])
-    faceValue = DecimalField("額面（円）", places=0, validators=[], default=0)
+    faceValue = IntegerField("額面（円）", validators=[], default=0)
     interestRate = DecimalField("金利[税引前]（%）", places=3, validators=[], default=0)
     interestPaymentDate1 = StringField("利払日１", validators=[])
     interestPaymentDate2 = StringField("利払日２", validators=[])
