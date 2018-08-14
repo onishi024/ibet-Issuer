@@ -475,10 +475,6 @@ class TestToken(TestBase):
         assert '商品名は必須です。'.encode('utf-8') in response.data
         assert '略称は必須です。'.encode('utf-8') in response.data
         assert '総発行量は必須です。'.encode('utf-8') in response.data
-        assert '額面は必須です。'.encode('utf-8') in response.data
-        assert '金利は必須です。'.encode('utf-8') in response.data
-        assert '償還日は必須です。'.encode('utf-8') in response.data
-        assert '償還金額は必須です。'.encode('utf-8') in response.data
         assert '発行目的は必須です。'.encode('utf-8') in response.data
 
 
