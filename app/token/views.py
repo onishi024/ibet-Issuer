@@ -150,7 +150,7 @@ def list():
 @login_required
 def holders(token_address):
     logger.info('holders')
-    holders, token_name = get_holders(token_address, Config.TEMPLATE_ID_SB)
+    holders, token_name = get_holders_bond(token_address)
     return render_template('token/holders.html', \
         holders=holders, token_address=token_address, token_name=token_name)
 

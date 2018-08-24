@@ -341,7 +341,7 @@ def transfer():
 @login_required
 def holders(token_address):
     logger.info('coupon/holders')
-    holders, token_name = get_holders(token_address, Config.TEMPLATE_ID_COUPON)
+    holders, token_name = get_holders_coupon(token_address)
     return render_template('coupon/holders.html', \
         holders=holders, token_address=token_address, token_name=token_name)
 
@@ -392,4 +392,3 @@ def coupon_valid(token_address, isvalid):
     wait_transaction_receipt(tx)
 
     flash('処理を受け付けました。完了までに数分程かかることがあります。', 'success')
-
