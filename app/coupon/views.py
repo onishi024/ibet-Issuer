@@ -333,9 +333,25 @@ def transfer():
     else: # GET
         return render_template('coupon/transfer.html', form=form)
 
+####################################################
+# クーポン利用履歴
+####################################################
+@coupon.route('/usage_history/<string:token_address>', methods=['GET'])
+@login_required
+def usage_history(token_address):
+    logger.info('coupon/usage_history')
+    token_address, token_name, usage_list = \
+        get_usege_history_coupon(token_address)
+
+    return render_template(
+        'coupon/usage_history.html',
+        token_address = token_address,
+        token_name = token_name,
+        usage_list = usage_list
+    )
 
 ####################################################
-# coupon保有者一覧
+# クーポン保有者一覧
 ####################################################
 @coupon.route('/holders/<string:token_address>', methods=['GET'])
 @login_required
@@ -346,7 +362,7 @@ def holders(token_address):
         holders=holders, token_address=token_address, token_name=token_name)
 
 ####################################################
-# coupon保有者詳細
+# クーポン保有者詳細
 ####################################################
 @coupon.route('/holder/<string:token_address>/<string:account_address>', methods=['GET'])
 @login_required
@@ -354,7 +370,6 @@ def holder(token_address, account_address):
     logger.info('coupon/holder')
     personal_info = get_holder(token_address, account_address)
     return render_template('coupon/holder.html', personal_info=personal_info, token_address=token_address)
-
 
 ####################################################
 # 有効化/無効化
@@ -392,3 +407,15 @@ def coupon_valid(token_address, isvalid):
     wait_transaction_receipt(tx)
 
     flash('処理を受け付けました。完了までに数分程かかることがあります。', 'success')
+
+#+++++++++++++++++++++++++++++++
+# Custom Filter
+#+++++++++++++++++++++++++++++++
+@coupon.app_template_filter()
+def format_date(date): # date = datetime object.
+    if date:
+        if isinstance(date, datetime):
+            return date.strftime('%Y/%m/%d %H:%M')
+        elif isinstance(date, datetime.date):
+            return date.strftime('%Y/%m/%d')
+    return ''

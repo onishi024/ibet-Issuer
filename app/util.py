@@ -1,6 +1,8 @@
 import base64
 import json
 from base64 import b64encode
+from datetime import datetime, timezone, timedelta
+JST = timezone(timedelta(hours=+9), 'JST')
 
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
@@ -237,3 +239,41 @@ def get_holder(token_address, account_address):
         except:
             pass
     return personal_info
+
+###
+# クーポントークンの利用履歴を返す
+###
+def get_usege_history_coupon(token_address):
+    # Coupon Token Contract
+    # Note: token_addressに対して、Couponトークンのものであるかはチェックしていない。
+    token = Token.query.filter(Token.token_address==token_address).first()
+    token_abi = json.loads(token.abi.replace("'", '"').\
+        replace('True', 'true').replace('False', 'false'))
+    CouponContract = web3.eth.contract(
+        address= token_address, abi = token_abi)
+
+    # クーポン名を取得
+    token_name = CouponContract.functions.name().call()
+
+    # クーポントークンの消費イベント（Consume）を検索
+    event_filter = CouponContract.eventFilter(
+        'Consume', {
+            'filter':{},
+            'fromBlock':'earliest'
+        }
+    )
+    entries = event_filter.get_all_entries()
+    web3.eth.uninstallFilter(event_filter.filter_id)
+
+    usage_list = []
+    for entry in entries:
+        usage = {
+            'block_timestamp': datetime.fromtimestamp(
+                web3.eth.getBlock(entry['blockNumber'])['timestamp'],JST).\
+                strftime("%Y/%m/%d %H:%M:%S"),
+            'consumer': entry['args']['consumer'],
+            'value': entry['args']['value']
+        }
+        usage_list.append(usage)
+
+    return token_address, token_name, usage_list
