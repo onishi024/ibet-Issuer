@@ -42,7 +42,7 @@ class AddSupplyForm(Form):
 
 
 class TransferCouponForm(Form):
-    tokenAddress = StringField("債券アドレス", validators=[Required('債券アドレスは必須です。')])
+    tokenAddress = StringField("クーポンアドレス", validators=[Required('クーポンアドレスは必須です。')])
     sendAddress = StringField("割当先アドレス", validators=[Required('割当先アドレスは必須です。')])
     sendAmount = IntegerField("割当数量", validators=[Required('割当数量は必須です。')])
     submit = SubmitField('割当')
