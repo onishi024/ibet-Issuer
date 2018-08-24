@@ -116,7 +116,7 @@ class TestCoupon(TestBase):
         # 設定画面
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
         response = client.get(self.url_setting + tokens[0].token_address)
-    
+
         assert response.status_code == 200
         assert '<title>クーポン編集'.encode('utf-8') in response.data
         assert 'テストクーポン'.encode('utf-8') in response.data
@@ -277,7 +277,7 @@ class TestCoupon(TestBase):
             }
         )
         assert response.status_code == 200
-        
+
         time.sleep(2)
 
         response = client.get(self.url_holders + tokens[0].token_address)
@@ -356,6 +356,6 @@ class TestCoupon(TestBase):
         )
         assert response.status_code == 200
         assert '<title>クーポン割当'.encode('utf-8') in response.data
-        assert '債券アドレスは必須です。'.encode('utf-8') in response.data
+        assert 'クーポンアドレスは必須です。'.encode('utf-8') in response.data
         assert '割当先アドレスは必須です。'.encode('utf-8') in response.data
         assert '割当数量は必須です。'.encode('utf-8') in response.data
