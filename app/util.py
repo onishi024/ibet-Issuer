@@ -153,12 +153,12 @@ def get_holders_coupon(token_address):
     token_owner = TokenContract.functions.owner().call()
     token_name = TokenContract.functions.name().call()
 
-    # 残高（balance）、または注文中の残高（commitment）が存在する情報を抽出
+    # 残高（balance）、または使用済（used）が存在する情報を抽出
     holders = []
     for account_address in holders_uniq:
         balance = TokenContract.functions.balanceOf(account_address).call()
         used = TokenContract.functions.usedOf(account_address).call()
-        if balance > 0 or commitment > 0 or used > 0:
+        if balance > 0 or used > 0:
             encrypted_info = PersonalInfoContract.functions.\
                 personal_info(account_address, token_owner).call()[2]
             if encrypted_info == '' or cipher == None:
