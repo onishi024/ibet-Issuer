@@ -3,6 +3,7 @@
 import os
 import sys
 import logging
+import qrcode
 
 from web3 import Web3
 
@@ -80,6 +81,8 @@ class Config:
     web3 = Web3(Web3.HTTPProvider(WEB3_HTTP_PROVIDER))
     ETH_ACCOUNT = os.environ.get('ETH_ACCOUNT') or web3.eth.accounts[0]
     ETH_ACCOUNT_PASSWORD = os.environ.get('ETH_ACCOUNT_PASSWORD')
+    img = qrcode.make(ETH_ACCOUNT)
+    img.save('app/static/eth_address.png')
 
     # TokenList-Contract
     TOKEN_LIST_CONTRACT_ADDRESS = os.environ.get('TOKEN_LIST_CONTRACT_ADDRESS')
