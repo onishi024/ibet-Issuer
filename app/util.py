@@ -256,14 +256,17 @@ def get_usege_history_coupon(token_address):
     token_name = CouponContract.functions.name().call()
 
     # クーポントークンの消費イベント（Consume）を検索
-    event_filter = CouponContract.eventFilter(
-        'Consume', {
-            'filter':{},
-            'fromBlock':'earliest'
-        }
-    )
-    entries = event_filter.get_all_entries()
-    web3.eth.uninstallFilter(event_filter.filter_id)
+    try:
+        event_filter = CouponContract.eventFilter(
+            'Consume', {
+                'filter':{},
+                'fromBlock':'earliest'
+            }
+        )
+        entries = event_filter.get_all_entries()
+        web3.eth.uninstallFilter(event_filter.filter_id)
+    except:
+        entries = []
 
     usage_list = []
     for entry in entries:
