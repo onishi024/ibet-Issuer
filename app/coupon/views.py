@@ -346,7 +346,7 @@ def holders(token_address):
         holders=holders, token_address=token_address, token_name=token_name)
 
 ####################################################
-# 債券保有者詳細
+# coupon保有者詳細
 ####################################################
 @coupon.route('/holder/<string:token_address>/<string:account_address>', methods=['GET'])
 @login_required
