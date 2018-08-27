@@ -18,7 +18,7 @@
 <section class="content">
     <div class="box box-default">
         <div class="box-header with-border">
-            <h3 class="box-title">設定　<small>{{ token_address }}</small></h3>
+            <h3 class="box-title">{{ token_name }}　<small>{{ token_address }}</small></h3>
             <div class="pull-right box-tools">
               <button type="button" class="btn btn-success" style="width: 100px" onclick="location.href='{{ url_for("token.request_signature", token_address=token_address)}}'">認定依頼 <i class="fa fa-arrow-circle-right"></i></button>
               <button id="release" class="btn btn-warning" type="button" style="width: 100px">公開 <i class="fa fa-arrow-circle-right"></i></button>

@@ -191,8 +191,10 @@ def add_supply(token_address):
     )
     form = AddSupplyForm()
     form.token_address.data = token.token_address
-    form.name.data = TokenContract.functions.name().call()
+    name = TokenContract.functions.name().call()
+    form.name.data = name
     form.totalSupply.data = TokenContract.functions.totalSupply().call()
+
     if request.method == 'POST':
         if form.validate():
             web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
@@ -206,9 +208,19 @@ def add_supply(token_address):
             return redirect(url_for('.list'))
         else:
             flash_errors(form)
-            return render_template('coupon/add_supply.html', form=form)
+            return render_template(
+                'coupon/add_supply.html',
+                form = form,
+                token_address = token_address,
+                token_name = name
+            )
     else: # GET
-        return render_template('coupon/add_supply.html', form=form)
+        return render_template(
+            'coupon/add_supply.html',
+            form = form,
+            token_address = token_address,
+            token_name = name
+        )
 
 ####################################################
 # クーポン編集
@@ -288,7 +300,12 @@ def setting(token_address):
         form.image_large.data = image_large
         form.abi.data = token.abi
         form.bytecode.data = token.bytecode
-        return render_template('coupon/setting.html', form=form, token_address=token_address)
+        return render_template(
+            'coupon/setting.html',
+            form = form,
+            token_address = token_address,
+            token_name = name
+        )
 
 ####################################################
 # クーポン割当

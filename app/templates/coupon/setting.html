@@ -19,7 +19,7 @@
 <section class="content">
     <div class="box box-default">
         <div class="box-header with-border">
-            <h3 class="box-title">クーポン詳細　<small>{{ token_address }}</small></h3>
+            <h3 class="box-title">{{token_name}}　<small>{{ token_address }}</small></h3>
             <div class="pull-right box-tools">
                 {% if form.isValid.data %}
                     <button type="button" class="btn btn-success" style="width: 100px" onclick="location.href='{{ url_for("coupon.add_supply", token_address=token_address)}}'">追加発行 <i class="fa fa-arrow-circle-right"></i></button>

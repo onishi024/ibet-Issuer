@@ -263,7 +263,12 @@ def setting(token_address):
         form.image_large.data = image_large
         form.abi.data = token.abi
         form.bytecode.data = token.bytecode
-        return render_template('token/setting.html', form=form, token_address=token_address)
+        return render_template(
+            'token/setting.html',
+            form=form,
+            token_address = token_address,
+            token_name = name
+        )
 
 ####################################################
 # 認定申請
@@ -693,7 +698,12 @@ def sell(token_address):
         form.abi.data = token.abi
         form.bytecode.data = token.bytecode
         form.sellPrice.data = None
-        return render_template('token/sell.html', form=form)
+        return render_template(
+            'token/sell.html',
+            token_address = token_address,
+            token_name = name,
+            form = form
+        )
 
 ####################################################
 # 債券売出停止

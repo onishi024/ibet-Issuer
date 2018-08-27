@@ -19,7 +19,7 @@
 <section class="content">
     <div class="box box-default">
         <div class="box-header with-border">
-            <h3 class="box-title">クーポン追加発行　<small>{{ form.token_address.data }}</small></h3>
+            <h3 class="box-title">{{token_name}}　<small>{{token_address}}</small></h3>
         </div>
         <form class="form-horizontal" method="POST" role="form" action="{{ url_for('coupon.add_supply', token_address=form.token_address.data) }}">
             {{ form.csrf_token }}
