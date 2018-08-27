@@ -18,7 +18,7 @@
 <section class="content">
     <div class="box box-default">
         <div class="box-header with-border">
-            <h3 class="box-title">募集</h3>
+            <h3 class="box-title">{{ token_name }} <small>{{ token_address }}</small></h3>
         </div>
         <form class="form-horizontal" method="POST" role="form" action="{{ url_for('token.sell', token_address=form.token_address.data) }}">
             {{ form.csrf_token }}

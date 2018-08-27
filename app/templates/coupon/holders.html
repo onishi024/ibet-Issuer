@@ -19,13 +19,13 @@
 <section class="content">
   <div class="box box-default">
     <div class="box-header">
-      <h3 class="box-title">保有者一覧　<small>{{ token_name }}</small></h3>
+      <h3 class="box-title">{{token_name}}　<small>{{token_address}}</small></h3>
     </div>
     <div class="box-body">
   	  <table id="data_table" class="table table-bordered table-hover">
     		<thead>
     		  <tr>
-            <th style="width: 200px">アカウントアドレス</th>
+            <th>アカウントアドレス</th>
       			<th>氏名</th>
             <th>保有数量</th>
             <th>使用済み数量</th>
@@ -35,7 +35,7 @@
     		<tbody>
     		{% for holder in holders %}
         　<tr>
-            <td>{{ holder.account_address }}</td>
+            <td><small>{{ holder.account_address }}</small></td>
             <td>{{ holder.name }}</td>
             <td>{{ holder.balance }}</td>
             <td>{{ holder.used }}</td>
