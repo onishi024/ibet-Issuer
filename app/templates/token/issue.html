@@ -16,7 +16,7 @@
 
 {% block page_content %}
 <section class="content">
-    <div class="box box-default">
+    <div class="box box-solid">
         <form class="form-horizontal" method="POST" role="form" action="{{ url_for('token.issue') }}">
             {{ form.csrf_token }}
             <div class="box-header">
@@ -224,7 +224,7 @@
             text: '利払日は12ヶ月分まで登録できます。',
             theme: 'bootstrap-v3',
             timeout: 3000,
-        }).show();  
+        }).show();
     }
   }
     // 利払日　初期表示
