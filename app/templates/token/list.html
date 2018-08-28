@@ -45,7 +45,7 @@
           <td>{{ token.symbol }}</td>
     			<td align="center">{{ token.created | format_date }}</td>
           <td align="center">
-            <button type="button" class="btn btn-default" onclick="viewTxHash('{{token.tx_hash}}')">表示</button>
+            <button type="button" class="btn btn-default btn-sm" onclick="viewTxHash('{{token.tx_hash}}')">表示</button>
           </td>
 
           {% if token.is_redeemed == true %}
