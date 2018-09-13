@@ -68,12 +68,12 @@ def wait_transaction_receipt(tx_hash):
     return tx
 
 ####################################################
-# 発行済債券一覧
+# 発行済一覧
 ####################################################
 @membership.route('/list', methods=['GET'])
 @login_required
 def list():
-    logger.info('list')
+    logger.info('membership.list')
 
     # 発行済トークンの情報をDBから取得する
     tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
@@ -366,7 +366,7 @@ def redeem():
 @membership.route('/issue', methods=['GET', 'POST'])
 @login_required
 def issue():
-    logger.info('token.issue')
+    logger.info('membership.issue')
     form = IssueForm()
     if request.method == 'POST':
         if form.validate():
