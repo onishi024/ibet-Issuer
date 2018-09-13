@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block head %}
+  {{ super() }}
+  <!-- DataTables -->
+  <link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
+{% endblock %}
+{% set active_page = "token_list" %}
+
+{% block title %}認定依頼 - {% endblock %}
+{% block page_header %}債券詳細設定（第三者認定依頼）{% endblock %}
+{% block page_description %}{% endblock %}
+{% block breadcrumb %}
+    <li><a href="{{ url_for('index.index') }}">トップ</a></li>
+    <li>債券詳細設定</li>
+    <li class="active">認定依頼</li>
+{% endblock %}
+
+{% block page_content %}
+<section class="content">
+    <div class="box box-solid">
+        <div class="box-header with-border">
+            <h3 class="box-title">第三者認定依頼　<small>{{ form.token_address.data }}</small></h3>
+        </div>
+        <form class="form-horizontal" method="POST" role="form" action="{{ url_for('token.request_signature', token_address=form.token_address.data) }}">
+            {{ form.csrf_token }}
+            {{ form.token_address }}
+            <div class="box-body">
+              <h5>認定を依頼するアドレスを入力してください。</h5>
+              <div class="form-group">
+                  <div class="col-md-6">
+                      {{ form.signer(class="form-control") }}
+                  </div>
+              </div>
+            </div>
+            <div class="box-footer">
+                <button type="button" class="btn btn-default" onclick="location.href='{{ url_for("token.setting", token_address=form.token_address.data) }}'">キャンセル</button>
+                {{ form.submit(class="btn btn-success") }}
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}
+
+{% block required_js %}
+{{ super() }}
+{% endblock %}

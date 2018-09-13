@@ -141,7 +141,7 @@ def list():
             'is_signed':is_signed
         })
 
-    return render_template('token/list.html', tokens=token_list)
+    return render_template('membership/list.html', tokens=token_list)
 
 ####################################################
 # 債券保有者一覧
@@ -151,7 +151,7 @@ def list():
 def holders(token_address):
     logger.info('holders')
     holders, token_name = get_holders_bond(token_address)
-    return render_template('token/holders.html', \
+    return render_template('membership/holders.html', \
         holders=holders, token_address=token_address, token_name=token_name)
 
 ####################################################
@@ -162,7 +162,7 @@ def holders(token_address):
 def holder(token_address, account_address):
     logger.info('holder')
     personal_info = get_holder(token_address, account_address)
-    return render_template('token/holder.html', personal_info=personal_info, token_address=token_address)
+    return render_template('membership/holder.html', personal_info=personal_info, token_address=token_address)
 
 ####################################################
 # 債券設定
@@ -264,7 +264,7 @@ def setting(token_address):
         form.abi.data = token.abi
         form.bytecode.data = token.bytecode
         return render_template(
-            'token/setting.html',
+            'membership/setting.html',
             form=form,
             token_address = token_address,
             token_name = name
@@ -305,7 +305,7 @@ def request_signature(token_address):
                 Certification.token_address==token_address,
                 Certification.signer==signer_address).count() > 0:
                 flash('既に情報が登録されています。', 'error')
-                return render_template('token/request_signature.html', form=form)
+                return render_template('membership/request_signature.html', form=form)
 
             # コントラクトに情報を登録する
             try:
@@ -315,7 +315,7 @@ def request_signature(token_address):
                     transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
             except ValueError:
                 flash('処理に失敗しました。', 'error')
-                return render_template('token/request_signature.html', form=form)
+                return render_template('membership/request_signature.html', form=form)
 
             # DBに情報を登録する
             certification = Certification()
@@ -328,12 +328,12 @@ def request_signature(token_address):
 
         else: # Validation Error
             flash_errors(form)
-            return render_template('token/request_signature.html', form=form)
+            return render_template('membership/request_signature.html', form=form)
 
     else: #GET
         form.token_address.data = token_address
         form.signer.data = ''
-        return render_template('token/request_signature.html', form=form)
+        return render_template('membership/request_signature.html', form=form)
 
 ####################################################
 # 債券公開
@@ -453,9 +453,9 @@ def issue():
             return redirect(url_for('.list'))
         else:
             flash_errors(form)
-            return render_template('token/issue.html', form=form)
+            return render_template('membership/issue.html', form=form)
     else: # GET
-        return render_template('token/issue.html', form=form)
+        return render_template('membership/issue.html', form=form)
 
 ####################################################
 # 保有債券一覧
@@ -771,21 +771,3 @@ def cancel_order(order_id):
 def permissionDenied():
     return render_template('permissiondenied.html')
 
-#+++++++++++++++++++++++++++++++
-# Custom Filter
-#+++++++++++++++++++++++++++++++
-@membership.app_template_filter()
-def format_date(date): # date = datetime object.
-    if date:
-        if isinstance(date, datetime.datetime):
-            return date.strftime('%Y/%m/%d %H:%M')
-        elif isinstance(date, datetime.date):
-            return date.strftime('%Y/%m/%d')
-    return ''
-
-@membership.app_template_filter()
-def img_convert(icon):
-    if icon:
-        img = b64encode(icon)
-        return img.decode('utf8')
-    return None
