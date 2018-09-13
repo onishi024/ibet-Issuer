@@ -76,7 +76,7 @@ def list():
     logger.info('list')
 
     # 発行済トークンの情報をDBから取得する
-    tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
+    tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
 
     token_list = []
     for row in tokens:
@@ -98,38 +98,7 @@ def list():
             # Token-Contractから情報を取得する
             name = TokenContract.functions.name().call()
             symbol = TokenContract.functions.symbol().call()
-
-            # 償還（Redeem）のイベント情報を検索する
-            event_filter_redeem = TokenContract.eventFilter(
-                'Redeem', {
-                    'filter':{},
-                    'fromBlock':'earliest'
-                }
-            )
-            try:
-                entries_redeem = event_filter_redeem.get_all_entries()
-            except:
-                entries_redeem = []
-
-            if len(entries_redeem) > 0:
-                is_redeemed = True
-
-            # 第三者認定（Sign）のイベント情報を検索する
-            event_filter_sign = TokenContract.eventFilter(
-                'Sign', {
-                    'filter':{},
-                    'fromBlock':'earliest'
-                }
-            )
-            try:
-                entries_sign = event_filter_sign.get_all_entries()
-            except:
-                entries_sign = []
-
-            for entry in entries_sign:
-                if TokenContract.functions.\
-                    signatures(to_checksum_address(entry['args']['signer'])).call() == 2:
-                    is_signed = True
+            status = TokenContract.functions.status().call()
 
         token_list.append({
             'name':name,
@@ -137,8 +106,7 @@ def list():
             'created':row.created,
             'tx_hash':row.tx_hash,
             'token_address':row.token_address,
-            'is_redeemed':is_redeemed,
-            'is_signed':is_signed
+            'status':status
         })
 
     return render_template('membership/list.html', tokens=token_list)
