@@ -26,7 +26,7 @@ from . import membership
 from .. import db
 from ..util import *
 from ..models import Role, User, Token, Certification
-from .forms import IssueMembershipForm, TokenSettingForm, SellTokenForm, CancelOrderForm, RequestSignatureForm
+from .forms import *
 from ..decorators import admin_required
 from config import Config
 from app.contracts import Contract
@@ -167,7 +167,7 @@ def setting(token_address):
     image_medium = TokenContract.functions.getImageURL(1).call()
     image_large = TokenContract.functions.getImageURL(2).call()
 
-    form = TokenSettingForm()
+    form = SettingForm()
 
     if request.method == 'POST':
         web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
@@ -367,7 +367,7 @@ def redeem():
 @login_required
 def issue():
     logger.info('token.issue')
-    form = IssueMembershipForm()
+    form = IssueForm()
     if request.method == 'POST':
         if form.validate():
             web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
@@ -495,7 +495,7 @@ def positions():
 @login_required
 def sell(token_address):
     logger.info('sell')
-    form = SellTokenForm()
+    form = SellForm()
 
     token = Token.query.filter(Token.token_address==token_address).first()
     token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))

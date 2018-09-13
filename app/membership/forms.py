@@ -6,7 +6,7 @@ from wtforms import IntegerField, StringField, TextAreaField, \
 from wtforms.validators import Required, Email, EqualTo, Length, Regexp
 from wtforms import ValidationError
 
-class IssueMembershipForm(Form):
+class IssueForm(Form):
     name = StringField("名称", validators=[Required('名称は必須です。')])
     symbol = StringField("略称", validators=[Required('略称は必須です。')])
     totalSupply = IntegerField("総発行量", validators=[Required('総発行量は必須です。')])
@@ -22,10 +22,10 @@ class IssueMembershipForm(Form):
     submit = SubmitField('新規発行')
 
     def __init__(self, issue_data=None, *args, **kwargs):
-        super(IssueMembershipForm, self).__init__(*args, **kwargs)
+        super(IssueForm, self).__init__(*args, **kwargs)
         self.issue_data = issue_data
 
-class MembershipSettingForm(Form):
+class SettingForm(Form):
     token_address = StringField("トークンアドレス", validators=[])
     name = StringField("商品名", validators=[])
     symbol = StringField("略称", validators=[])
@@ -58,10 +58,10 @@ class MembershipSettingForm(Form):
     submit = SubmitField('設定変更')
 
     def __init__(self, token_setting=None, *args, **kwargs):
-        super(TokenSettingForm, self).__init__(*args, **kwargs)
+        super(SettingForm, self).__init__(*args, **kwargs)
         self.token_setting = token_setting
 
-class SellMembershipForm(Form):
+class SellForm(Form):
     token_address = StringField("トークンアドレス", validators=[])
     name = StringField("商品名", validators=[])
     symbol = StringField("略称", validators=[])
@@ -92,7 +92,7 @@ class SellMembershipForm(Form):
     submit = SubmitField('募集開始')
 
     def __init__(self, sell_token=None, *args, **kwargs):
-        super(SellTokenForm, self).__init__(*args, **kwargs)
+        super(SellForm, self).__init__(*args, **kwargs)
         self.sell_token = sell_token
 
 class CancelOrderForm(Form):
