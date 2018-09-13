@@ -98,7 +98,6 @@
             </div>
         </div>
             <div class="box-footer">
-                <button type="button" class="btn btn-default" onclick="location.href='{{ url_for(" membership.list ") }}'">キャンセル</button>
                 {{ form.submit(class="btn btn-success") }}
             </div>
         </form>
@@ -128,32 +127,5 @@
         autoclose: true,
         orientation: "bottom right",
         todayBtn: true
-    });
-    var pay_date_count = 2;
-    function addPayDate() {
-        if (pay_date_count <= 12) {
-            $('#divInterestPaymentDate' + pay_date_count).show();
-            pay_date_count++;
-        } else {
-            new Noty({
-                type: 'error',
-                layout: 'topCenter',
-                text: '利払日は12ヶ月分まで登録できます。',
-                theme: 'bootstrap-v3',
-                timeout: 3000,
-            }).show();
-        }
-    }
-    // 利払日　初期表示
-    $(function () {
-        count = 1;
-        for (var i = 2; i <= 12; i++) {
-            if ($('#interestPaymentDate' + i).val() != "") {
-                count = i;
-            }
-        }
-        for (var i = 2; i <= count; i++) {
-            addPayDate();
-        }
     });
 </script> {% endblock %}
