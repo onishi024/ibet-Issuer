@@ -70,7 +70,7 @@ def wait_transaction_receipt(tx_hash):
 ####################################################
 # 発行済債券一覧
 ####################################################
-@membership.route('membership/list', methods=['GET'])
+@membership.route('/list', methods=['GET'])
 @login_required
 def list():
     logger.info('list')
@@ -146,7 +146,7 @@ def list():
 ####################################################
 # 債券保有者一覧
 ####################################################
-@membership.route('membership/holders/<string:token_address>', methods=['GET'])
+@membership.route('/holders/<string:token_address>', methods=['GET'])
 @login_required
 def holders(token_address):
     logger.info('holders')
@@ -157,7 +157,7 @@ def holders(token_address):
 ####################################################
 # 債券保有者詳細
 ####################################################
-@membership.route('membership/holder/<string:token_address>/<string:account_address>', methods=['GET'])
+@membership.route('/holder/<string:token_address>/<string:account_address>', methods=['GET'])
 @login_required
 def holder(token_address, account_address):
     logger.info('holder')
@@ -167,7 +167,7 @@ def holder(token_address, account_address):
 ####################################################
 # 債券設定
 ####################################################
-@membership.route('membership/setting/<string:token_address>', methods=['GET', 'POST'])
+@membership.route('/setting/<string:token_address>', methods=['GET', 'POST'])
 @login_required
 def setting(token_address):
     logger.info('token.setting')
@@ -273,7 +273,7 @@ def setting(token_address):
 ####################################################
 # 認定申請
 ####################################################
-@membership.route('membership/request_signature/<string:token_address>', methods=['GET','POST'])
+@membership.route('/request_signature/<string:token_address>', methods=['GET','POST'])
 @login_required
 def request_signature(token_address):
     logger.info('token.request_signature')
@@ -338,7 +338,7 @@ def request_signature(token_address):
 ####################################################
 # 債券公開
 ####################################################
-@membership.route('membership/release', methods=['POST'])
+@membership.route('/release', methods=['POST'])
 @login_required
 def release():
     logger.info('token.release')
@@ -364,7 +364,7 @@ def release():
 ####################################################
 # 債券償還
 ####################################################
-@membership.route('membership/redeem', methods=['POST'])
+@membership.route('/redeem', methods=['POST'])
 @login_required
 def redeem():
     logger.info('token.redeem')
@@ -395,7 +395,7 @@ def redeem():
 ####################################################
 # 債券新規発行
 ####################################################
-@membership.route('membership/issue', methods=['GET', 'POST'])
+@membership.route('/issue', methods=['GET', 'POST'])
 @login_required
 def issue():
     logger.info('token.issue')
@@ -460,7 +460,7 @@ def issue():
 ####################################################
 # 保有債券一覧
 ####################################################
-@membership.route('membership/positions', methods=['GET'])
+@membership.route('/positions', methods=['GET'])
 @login_required
 def positions():
     logger.info('positions')
@@ -543,7 +543,7 @@ def positions():
 ####################################################
 # 債券売出
 ####################################################
-@membership.route('membership/sell/<string:token_address>', methods=['GET', 'POST'])
+@membership.route('/sell/<string:token_address>', methods=['GET', 'POST'])
 @login_required
 def sell(token_address):
     logger.info('sell')
@@ -708,7 +708,7 @@ def sell(token_address):
 ####################################################
 # 債券売出停止
 ####################################################
-@membership.route('membership/cancel_order/<int:order_id>', methods=['GET', 'POST'])
+@membership.route('/cancel_order/<int:order_id>', methods=['GET', 'POST'])
 @login_required
 def cancel_order(order_id):
     logger.info('cancel_order')
@@ -766,7 +766,7 @@ def cancel_order(order_id):
 ####################################################
 # 権限エラー
 ####################################################
-@membership.route('membership/PermissionDenied', methods=['GET', 'POST'])
+@membership.route('/PermissionDenied', methods=['GET', 'POST'])
 @login_required
 def permissionDenied():
     return render_template('permissiondenied.html')
