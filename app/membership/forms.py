@@ -25,6 +25,7 @@ class IssueForm(Form):
         super(IssueForm, self).__init__(*args, **kwargs)
         self.issue_data = issue_data
         self.transferable.choices = [(True, 'あり'), (False, 'なし')]
+        self.status.choices = [(True, '有効'), (False, '無効')]
 
 class SettingForm(Form):
     token_address = StringField("トークンアドレス", validators=[])
