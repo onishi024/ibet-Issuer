@@ -13,6 +13,7 @@ class Config:
     # Tokenテーブルのtemplate_id
     TEMPLATE_ID_SB = 1
     TEMPLATE_ID_COUPON = 2
+    TEMPLATE_ID_MEMBERSHIP = 3
 
     # Payment Agent List
     APP_ENV = os.getenv('FLASK_CONFIG') or 'default'
@@ -41,6 +42,11 @@ class Config:
             ('token_list', 'fa fa-list', '発行済債券一覧', 'token.list'),
             ('token_issue', 'fa fa-plus-square-o', '債券新規発行', 'token.issue'),
             ('token_position', 'fa fa-yen', '債券募集管理', 'token.positions'),
+        ]),
+        ('membership', 'glyphicon glyphicon-list-alt', '会員権発行管理', [
+            ('membership_list', 'fa fa-list', '発行済会員権一覧', 'membership.list'),
+            ('membership_issue', 'fa fa-plus-square-o', '会員権新規発行', 'membership.issue'),
+            ('membership_position', 'fa fa-yen', '会員権募集管理', 'membership.positions'),
         ]),
         ('coupon', 'glyphicon glyphicon-list-alt', 'クーポン発行管理', [
             ('coupon_list', 'fa fa-list', 'クーポン一覧', 'coupon.list'),
@@ -98,6 +104,9 @@ class Config:
 
     # IbetCouponExchange-Contract
     IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS = os.environ.get('IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS')
+
+    # IbetMembershipExchange-Contract
+    IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS = os.environ.get('IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS')
 
     AGENT_ADDRESS = os.environ.get('AGENT_ADDRESS')
 

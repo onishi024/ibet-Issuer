@@ -6,7 +6,7 @@ from wtforms import IntegerField, StringField, TextAreaField, \
 from wtforms.validators import Required, Email, EqualTo, Length, Regexp
 from wtforms import ValidationError
 
-class IssueTokenForm(Form):
+class IssueMembershipForm(Form):
     name = StringField("商品名", validators=[Required('商品名は必須です。')])
     symbol = StringField("略称", validators=[Required('略称は必須です。')])
     totalSupply = IntegerField("総発行量", validators=[Required('総発行量は必須です。')])
