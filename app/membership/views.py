@@ -367,62 +367,62 @@ def redeem():
 @login_required
 def issue():
     logger.info('token.issue')
-    form = IssueTokenForm()
-    if request.method == 'POST':
-        if form.validate():
-            web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
+    form = IssueMembershipForm()
+    # if request.method == 'POST':
+    #     if form.validate():
+    #         web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
 
-            interestPaymentDate = {
-                'interestPaymentDate1': form.interestPaymentDate1.data,
-                'interestPaymentDate2': form.interestPaymentDate2.data,
-                'interestPaymentDate3': form.interestPaymentDate3.data,
-                'interestPaymentDate4': form.interestPaymentDate4.data,
-                'interestPaymentDate5': form.interestPaymentDate5.data,
-                'interestPaymentDate6': form.interestPaymentDate6.data,
-                'interestPaymentDate7': form.interestPaymentDate7.data,
-                'interestPaymentDate8': form.interestPaymentDate8.data,
-                'interestPaymentDate9': form.interestPaymentDate9.data,
-                'interestPaymentDate10': form.interestPaymentDate10.data,
-                'interestPaymentDate11': form.interestPaymentDate11.data,
-                'interestPaymentDate12': form.interestPaymentDate12.data
-            }
+    #         interestPaymentDate = {
+    #             'interestPaymentDate1': form.interestPaymentDate1.data,
+    #             'interestPaymentDate2': form.interestPaymentDate2.data,
+    #             'interestPaymentDate3': form.interestPaymentDate3.data,
+    #             'interestPaymentDate4': form.interestPaymentDate4.data,
+    #             'interestPaymentDate5': form.interestPaymentDate5.data,
+    #             'interestPaymentDate6': form.interestPaymentDate6.data,
+    #             'interestPaymentDate7': form.interestPaymentDate7.data,
+    #             'interestPaymentDate8': form.interestPaymentDate8.data,
+    #             'interestPaymentDate9': form.interestPaymentDate9.data,
+    #             'interestPaymentDate10': form.interestPaymentDate10.data,
+    #             'interestPaymentDate11': form.interestPaymentDate11.data,
+    #             'interestPaymentDate12': form.interestPaymentDate12.data
+    #         }
 
-            interestPaymentDate_string = json.dumps(interestPaymentDate)
+    #         interestPaymentDate_string = json.dumps(interestPaymentDate)
 
-            arguments = [
-                form.name.data,
-                form.symbol.data,
-                form.totalSupply.data,
-                form.faceValue.data,
-                int(form.interestRate.data * 1000),
-                interestPaymentDate_string,
-                form.redemptionDate.data,
-                form.redemptionAmount.data,
-                form.returnDate.data,
-                form.returnAmount.data,
-                form.purpose.data,
-                form.memo.data
-            ]
-            _, bytecode, bytecode_runtime = Contract.get_contract_info('IbetStraightBond')
-            contract_address, abi, tx_hash = Contract.deploy_contract(
-                'IbetStraightBond', arguments, Config.ETH_ACCOUNT)
+    #         arguments = [
+    #             form.name.data,
+    #             form.symbol.data,
+    #             form.totalSupply.data,
+    #             form.faceValue.data,
+    #             int(form.interestRate.data * 1000),
+    #             interestPaymentDate_string,
+    #             form.redemptionDate.data,
+    #             form.redemptionAmount.data,
+    #             form.returnDate.data,
+    #             form.returnAmount.data,
+    #             form.purpose.data,
+    #             form.memo.data
+    #         ]
+    #         _, bytecode, bytecode_runtime = Contract.get_contract_info('IbetStraightBond')
+    #         contract_address, abi, tx_hash = Contract.deploy_contract(
+    #             'IbetStraightBond', arguments, Config.ETH_ACCOUNT)
 
-            token = Token()
-            token.template_id = Config.TEMPLATE_ID_SB
-            token.tx_hash = tx_hash
-            token.admin_address = None
-            token.token_address = None
-            token.abi = str(abi)
-            token.bytecode = bytecode
-            token.bytecode_runtime = bytecode_runtime
-            db.session.add(token)
+    #         token = Token()
+    #         token.template_id = Config.TEMPLATE_ID_SB
+    #         token.tx_hash = tx_hash
+    #         token.admin_address = None
+    #         token.token_address = None
+    #         token.abi = str(abi)
+    #         token.bytecode = bytecode
+    #         token.bytecode_runtime = bytecode_runtime
+    #         db.session.add(token)
 
-            flash('新規発行を受け付けました。発行完了までに数分程かかることがあります。', 'success')
-            return redirect(url_for('.list'))
-        else:
-            flash_errors(form)
-            return render_template('membership/issue.html', form=form)
-    else: # GET
+    #         flash('新規発行を受け付けました。発行完了までに数分程かかることがあります。', 'success')
+    #         return redirect(url_for('.list'))
+    #     else:
+    #         flash_errors(form)
+    #         return render_template('membership/issue.html', form=form)
+    # else: # GET
         return render_template('membership/issue.html', form=form)
 
 ####################################################
