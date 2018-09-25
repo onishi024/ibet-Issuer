@@ -489,7 +489,7 @@ def positions():
                     'order_id':order_id,
                 })
 
-    return render_template('token/positions.html', position_list=position_list)
+    return render_template('membership/positions.html', position_list=position_list)
 
 ####################################################
 # 売出(募集)
