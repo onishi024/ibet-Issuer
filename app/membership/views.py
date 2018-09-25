@@ -109,6 +109,11 @@ def list():
             'status':status
         })
 
+    whitelist_address = to_checksum_address(Config.WHITE_LIST_CONTRACT_ADDRESS)
+    WhiteListContract = Contract.get_contract('WhiteList', whitelist_address)
+    payment_accounts = WhiteListContract.functions.payment_accounts("0xe3b4cad8033a8109a4080737d7f95099a61d0626", to_checksum_address(Config.AGENT_ADDRESS)).call()
+    logger.info(payment_accounts)
+
     return render_template('membership/list.html', tokens=token_list)
 
 ####################################################
@@ -511,30 +516,18 @@ def sell(token_address):
     name = TokenContract.functions.name().call()
     symbol = TokenContract.functions.symbol().call()
     totalSupply = TokenContract.functions.totalSupply().call()
-    faceValue = TokenContract.functions.faceValue().call()
-    interestRate = TokenContract.functions.interestRate().call() * 0.001
-
-    interestPaymentDate_string = TokenContract.functions.interestPaymentDate().call()
-    interestPaymentDate = json.loads(
-        interestPaymentDate_string.replace("'", '"').replace('True', 'true').replace('False', 'false'))
-
-    redemptionDate = TokenContract.functions.redemptionDate().call()
-    redemptionAmount = TokenContract.functions.redemptionAmount().call()
-    returnDate = TokenContract.functions.returnDate().call()
-    returnAmount = TokenContract.functions.returnAmount().call()
-    purpose = TokenContract.functions.purpose().call()
+    details = TokenContract.functions.details().call()
+    returnDetails = TokenContract.functions.returnDetails().call()
+    expirationDate = TokenContract.functions.expirationDate().call()
     memo = TokenContract.functions.memo().call()
+    transferable = TokenContract.functions.transferable().call()
+    status = TokenContract.functions.status().call()
 
     owner = to_checksum_address(Config.ETH_ACCOUNT)
     balance = TokenContract.functions.balanceOf(owner).call()
 
     if request.method == 'POST':
         if form.validate():
-            # PersonalInfo Contract
-            personalinfo_address = to_checksum_address(Config.PERSONAL_INFO_CONTRACT_ADDRESS)
-            PersonalInfoContract = Contract.get_contract(
-                'PersonalInfo', personalinfo_address)
-
             # WhiteList Contract
             whitelist_address = to_checksum_address(Config.WHITE_LIST_CONTRACT_ADDRESS)
             WhiteListContract = Contract.get_contract(
@@ -543,10 +536,7 @@ def sell(token_address):
             eth_account = to_checksum_address(Config.ETH_ACCOUNT)
             agent_account = to_checksum_address(Config.AGENT_ADDRESS)
 
-            if PersonalInfoContract.functions.isRegistered(eth_account,eth_account).call() == False:
-                flash('法人名、所在地の情報が未登録です。', 'error')
-                return redirect(url_for('.sell', token_address=token_address))
-            elif WhiteListContract.functions.isRegistered(eth_account, agent_account).call() == False:
+            if WhiteListContract.functions.isRegistered(eth_account, agent_account).call() == False:
                 flash('金融機関の情報が未登録です。', 'error')
                 return redirect(url_for('.sell', token_address=token_address))
             else:
@@ -590,67 +580,18 @@ def sell(token_address):
         form.name.data = name
         form.symbol.data = symbol
         form.totalSupply.data = totalSupply
-        form.faceValue.data = faceValue
-        form.interestRate.data = interestRate
-        if 'interestPaymentDate1' in interestPaymentDate:
-            form.interestPaymentDate1.data = interestPaymentDate['interestPaymentDate1']
-        else:
-            form.interestPaymentDate1.data = ""
-        if 'interestPaymentDate2' in interestPaymentDate:
-            form.interestPaymentDate2.data = interestPaymentDate['interestPaymentDate2']
-        else:
-            form.interestPaymentDate2.data = ""
-        if 'interestPaymentDate3' in interestPaymentDate:
-            form.interestPaymentDate3.data = interestPaymentDate['interestPaymentDate3']
-        else:
-            form.interestPaymentDate3.data = ""
-        if 'interestPaymentDate4' in interestPaymentDate:
-            form.interestPaymentDate4.data = interestPaymentDate['interestPaymentDate4']
-        else:
-            form.interestPaymentDate4.data = ""
-        if 'interestPaymentDate5' in interestPaymentDate:
-            form.interestPaymentDate5.data = interestPaymentDate['interestPaymentDate5']
-        else:
-            form.interestPaymentDate5.data = ""
-        if 'interestPaymentDate6' in interestPaymentDate:
-            form.interestPaymentDate6.data = interestPaymentDate['interestPaymentDate6']
-        else:
-            form.interestPaymentDate6.data = ""
-        if 'interestPaymentDate7' in interestPaymentDate:
-            form.interestPaymentDate7.data = interestPaymentDate['interestPaymentDate7']
-        else:
-            form.interestPaymentDate7.data = ""
-        if 'interestPaymentDate8' in interestPaymentDate:
-            form.interestPaymentDate8.data = interestPaymentDate['interestPaymentDate8']
-        else:
-            form.interestPaymentDate8.data = ""
-        if 'interestPaymentDate9' in interestPaymentDate:
-            form.interestPaymentDate9.data = interestPaymentDate['interestPaymentDate9']
-        else:
-            form.interestPaymentDate9.data = ""
-        if 'interestPaymentDate10' in interestPaymentDate:
-            form.interestPaymentDate10.data = interestPaymentDate['interestPaymentDate10']
-        else:
-            form.interestPaymentDate10.data = ""
-        if 'interestPaymentDate11' in interestPaymentDate:
-            form.interestPaymentDate11.data = interestPaymentDate['interestPaymentDate11']
-        else:
-            form.interestPaymentDate11.data = ""
-        if 'interestPaymentDate12' in interestPaymentDate:
-            form.interestPaymentDate12.data = interestPaymentDate['interestPaymentDate12']
-        else:
-            form.interestPaymentDate12.data = ""
-        form.redemptionDate.data = redemptionDate
-        form.redemptionAmount.data = redemptionAmount
-        form.returnDate.data = returnDate
-        form.returnAmount.data = returnAmount
-        form.purpose.data = purpose
+        form.details.data = details
+        form.returnDetails.data = returnDetails
+        form.expirationDate.data = expirationDate
         form.memo.data = memo
+        form.transferable.data = transferable
+        form.status.data = status
+
         form.abi.data = token.abi
         form.bytecode.data = token.bytecode
         form.sellPrice.data = None
         return render_template(
-            'token/sell.html',
+            'membership/sell.html',
             token_address = token_address,
             token_name = name,
             form = form
