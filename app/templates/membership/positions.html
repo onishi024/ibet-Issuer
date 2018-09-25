@@ -4,21 +4,21 @@
   <!-- DataTables -->
   <link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
 {% endblock %}
-{% set active_page = "token_position" %}
+{% set active_page = "membership_position" %}
 
-{% block title %}債券募集管理 - {% endblock %}
-{% block page_header %}債券募集管理{% endblock %}
+{% block title %}募集管理 - {% endblock %}
+{% block page_header %}募集管理{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
     <li><a href="{{ url_for('index.index') }}">トップ</a></li>
-    <li class="active">債券募集管理</li>
+    <li class="active">募集管理</li>
 {% endblock %}
 
 {% block page_content %}
 <section class="content">
   <div class="box box-solid">
     <div class="box-header">
-      <h3 class="box-title">債券一覧</h3>
+      <h3 class="box-title">会員権一覧</h3>
     </div>
     <div class="box-body">
   	  <table id="data_table" class="table table-bordered table-hover">
@@ -43,9 +43,9 @@
             <td>{{ position.balance }}</td>
             <td>{{ position.commitment }}</td>
             {% if position.on_sale != True %}
-              <td align="center"><button type="button" class="btn btn-success" onclick="location.href= '{{ url_for("token.sell", token_address=position.token_address) }}'">募集開始</button></td>
+              <td align="center"><button type="button" class="btn btn-success" onclick="location.href= '{{ url_for("membership.sell", token_address=position.token_address) }}'">募集開始</button></td>
             {% else %}
-              <td align="center"><button type="button" class="btn btn-danger" onclick="location.href= '{{ url_for("token.cancel_order", order_id=position.order_id) }}'">募集停止</button></td>
+              <td align="center"><button type="button" class="btn btn-danger" onclick="location.href= '{{ url_for("membership.cancel_order", order_id=position.order_id) }}'">募集停止</button></td>
             {% endif %}
           </tr>
     		{% endfor %}

@@ -406,7 +406,7 @@ def issue():
         return render_template('membership/issue.html', form=form)
 
 ####################################################
-# 保有債券一覧
+# 保有一覧（募集管理画面）
 ####################################################
 @membership.route('/positions', methods=['GET'])
 @login_required
@@ -414,12 +414,15 @@ def positions():
     logger.info('positions')
 
     # 自社が発行したトークンの一覧を取得
-    tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
+    tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
 
     # Exchangeコントラクトに接続
     token_exchange_address = to_checksum_address(Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS)
     ExchangeContract = Contract.get_contract(
         'IbetStraightBondExchange', token_exchange_address)
+    # token_exchange_address = to_checksum_address(Config.IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS)
+    # ExchangeContract = Contract.get_contract(
+    #     'IbetMembershipExchange', token_exchange_address)
 
     position_list = []
     for row in tokens:
@@ -489,7 +492,7 @@ def positions():
     return render_template('token/positions.html', position_list=position_list)
 
 ####################################################
-# 債券売出
+# 売出(募集)
 ####################################################
 @membership.route('/sell/<string:token_address>', methods=['GET', 'POST'])
 @login_required
