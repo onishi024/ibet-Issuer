@@ -8,6 +8,7 @@ from .account_config import eth_account
 from config import Config
 from .contract_modules import *
 from ..models import Token
+from app.contracts import Contract
 
 from logging import getLogger
 logger = getLogger('api')
