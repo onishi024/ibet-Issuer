@@ -113,7 +113,6 @@ class TestCoupon(TestBase):
         tx = web3.eth.waitForTransactionReceipt(tx_hash)
 
         latest_orderid = ExchangeContract.functions.latestOrderId().call() - 1
-        console.log(latestOrderId)
         
         # 買い注文
         web3.eth.defaultAccount = eth_account['trader']['account_address']
