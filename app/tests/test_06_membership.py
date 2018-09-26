@@ -69,7 +69,7 @@ class TestCoupon(TestBase):
         # whitelist登録
         register_terms(eth_account['agent'], shared_contract['WhiteList'])
         register_whitelist(eth_account['issuer'], shared_contract['WhiteList'], self.issuer_encrypted_info)
-        register_whitelist(eth_account['trader'], shared_contract['WhiteList'], self.issuer_encrypted_info)
+        #register_whitelist(eth_account['trader'], shared_contract['WhiteList'], self.issuer_encrypted_info)
 
         # 会員権発行
         attribute = {
@@ -114,7 +114,9 @@ class TestCoupon(TestBase):
         tx = web3.eth.waitForTransactionReceipt(tx_hash)
 
         latest_orderid = ExchangeContract.functions.latestOrderId().call() - 1
-        
+
+        logger.info(latest_orderid)
+
         # 買い注文
         web3.eth.defaultAccount = eth_account['trader']['account_address']
         web3.personal.unlockAccount(eth_account['trader']['account_address'],
