@@ -106,6 +106,13 @@ class TestCoupon(TestBase):
         ExchangeContract = Contract.get_contract('IbetMembershipExchange',
          shared_contract['IbetMembershipExchange']['address'])
 
+
+        whiteListAddress = ExchangeContract.functions.whiteListAddress().call()
+        logger.info("whiteListAddress")
+        logger.info(whiteListAddress)
+        logger.info("whiteListAddress-----------")
+
+
         gas = ExchangeContract.estimateGas().\
             createOrder(membership_contract_address, amount, price, False, eth_account['agent']['account_address'])
         tx_hash = ExchangeContract.functions.\
