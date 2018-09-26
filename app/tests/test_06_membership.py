@@ -127,11 +127,11 @@ class TestCoupon(TestBase):
         logger.info(whiteListAddress)
         logger.info("whiteListAddress-----------")
 
-        balances = ExchangeContract.functions.balances(eth_account['issuer']['account_address'], 
-            shared_contract['IbetMembershipExchange']['address']).call()
-        logger.info("balances")
-        logger.info(balances)
-        logger.info("balances-----------")
+        balances_ex = ExchangeContract.functions.balances(eth_account['issuer']['account_address'], 
+            membership_contract_address).call()
+        logger.info("balances_ex")
+        logger.info(balances_ex)
+        logger.info("balances_ex-----------")
 
 
         gas = ExchangeContract.estimateGas().\
