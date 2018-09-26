@@ -99,6 +99,12 @@ class TestCoupon(TestBase):
         price = 10
 
         TokenContract = Contract.get_contract('IbetMembership', membership_contract_address)
+
+        totalSupply = TokenContract.functions.totalSupply().call()
+        logger.info("totalSupply")
+        logger.info(totalSupply)
+        logger.info("totalSupply-----------")
+
         tx_hash = TokenContract.functions.transfer(shared_contract['IbetMembershipExchange']['address'], amount).\
             transact({'from':eth_account['issuer']['account_address'], 'gas':4000000})
         tx = web3.eth.waitForTransactionReceipt(tx_hash)
