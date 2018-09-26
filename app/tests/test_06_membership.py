@@ -115,7 +115,9 @@ class TestCoupon(TestBase):
 
         latest_orderid = ExchangeContract.functions.latestOrderId().call() - 1
 
+        logger.info("latest_orderid")
         logger.info(latest_orderid)
+        logger.info("latest_orderid-----------")
 
         # 買い注文
         web3.eth.defaultAccount = eth_account['trader']['account_address']
