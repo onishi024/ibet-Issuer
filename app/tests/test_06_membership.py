@@ -95,19 +95,29 @@ class TestCoupon(TestBase):
          arguments, eth_account['issuer']['account_address'])
 
         # 売り注文
-        amount = 10
+        amount = 100
         price = 10
-
+        
         TokenContract = Contract.get_contract('IbetMembership', membership_contract_address)
 
         totalSupply = TokenContract.functions.totalSupply().call()
         logger.info("totalSupply")
         logger.info(totalSupply)
         logger.info("totalSupply-----------")
+        balances_membership = TokenContract.functions.balances(eth_account['issuer']['account_address']).call()
+        logger.info("balances_membership")
+        logger.info(balances_membership)
+        logger.info("balances_membership-----------")
 
+        # transfer
         tx_hash = TokenContract.functions.transfer(shared_contract['IbetMembershipExchange']['address'], amount).\
             transact({'from':eth_account['issuer']['account_address'], 'gas':4000000})
         tx = web3.eth.waitForTransactionReceipt(tx_hash)
+
+        balances_membership = TokenContract.functions.balances(eth_account['issuer']['account_address']).call()
+        logger.info("balances_membership")
+        logger.info(balances_membership)
+        logger.info("balances_membership-----------")
 
         ExchangeContract = Contract.get_contract('IbetMembershipExchange',
          shared_contract['IbetMembershipExchange']['address'])
@@ -117,7 +127,8 @@ class TestCoupon(TestBase):
         logger.info(whiteListAddress)
         logger.info("whiteListAddress-----------")
 
-        balances = ExchangeContract.functions.balances(eth_account['issuer']['account_address'], shared_contract['IbetMembershipExchange']['address']).call()
+        balances = ExchangeContract.functions.balances(eth_account['issuer']['account_address'], 
+            shared_contract['IbetMembershipExchange']['address']).call()
         logger.info("balances")
         logger.info(balances)
         logger.info("balances-----------")
