@@ -100,7 +100,7 @@ class TestCoupon(TestBase):
         TokenContract = Contract.get_contract('IbetMembership', membership_contract_address)
         tx_hash = TokenContract.functions.transfer(shared_contract['IbetMembershipExchange']['address'], amount).\
             transact({'from':eth_account['issuer']['account_address'], 'gas':4000000})
-        tx = wait_transaction_receipt(tx_hash)
+        tx = web3.eth.waitForTransactionReceipt(tx_hash)
 
         ExchangeContract = Contract.get_contract('IbetMembershipExchange',
          shared_contract['IbetMembershipExchange']['address'])
@@ -110,10 +110,11 @@ class TestCoupon(TestBase):
         tx_hash = ExchangeContract.functions.\
             createOrder(membership_contract_address, amount, price, False, eth_account['agent']['account_address']).\
             transact({'from':eth_account['issuer']['account_address'], 'gas':gas})
-        tx = wait_transaction_receipt(tx_hash)
+        tx = web3.eth.waitForTransactionReceipt(tx_hash)
 
         latest_orderid = ExchangeContract.functions.latestOrderId().call() - 1
         console.log(latestOrderId)
+        
         # 買い注文
         web3.eth.defaultAccount = eth_account['trader']['account_address']
         web3.personal.unlockAccount(eth_account['trader']['account_address'],
@@ -122,4 +123,4 @@ class TestCoupon(TestBase):
         tx_hash = ExchangeContract.functions.\
             executeOrder(latest_orderid, amount, True).\
             transact({'from':eth_account['trader']['account_address'], 'gas':4000000})
-        tx = wait_transaction_receipt(tx_hash)
+        tx = web3.eth.waitForTransactionReceipt(tx_hash)
