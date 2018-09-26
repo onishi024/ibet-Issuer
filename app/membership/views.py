@@ -109,11 +109,6 @@ def list():
             'status':status
         })
 
-    whitelist_address = to_checksum_address(Config.WHITE_LIST_CONTRACT_ADDRESS)
-    WhiteListContract = Contract.get_contract('WhiteList', whitelist_address)
-    payment_accounts = WhiteListContract.functions.payment_accounts(to_checksum_address("0xe3b4cad8033a8109a4080737d7f95099a61d0626"), to_checksum_address(Config.AGENT_ADDRESS)).call()
-    logger.info(payment_accounts)
-
     return render_template('membership/list.html', tokens=token_list)
 
 ####################################################
