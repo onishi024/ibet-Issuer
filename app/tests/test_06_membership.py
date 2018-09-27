@@ -148,7 +148,8 @@ class TestCoupon(TestBase):
         assert balances_ex == 0
 
         # 投資家のバランス 0 
-        balances_trader = TokenContract.functions.balances(eth_account['trader']['account_address']).call()
+        balances_trader = ExchangeContract.functions.balances(eth_account['trader']['account_address'], 
+            membership_contract_address).call()
         logger.info("balances_trader")
         logger.info(balances_trader)
         logger.info("balances_trader-----------")
