@@ -102,7 +102,7 @@ class TestCoupon(TestBase):
         totalSupply = TokenContract.functions.totalSupply().call()
         logger.info("totalSupply: " + str(totalSupply))
         balances_membership = TokenContract.functions.balances(eth_account['issuer']['account_address']).call()
-        logger.info("balances_membership: " +　str(balances_membership))
+        logger.info("balances_membership: " + str(balances_membership))
 
         # transfer
         tx_hash = TokenContract.functions.transfer(shared_contract['IbetMembershipExchange']['address'], amount).\
