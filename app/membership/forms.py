@@ -27,32 +27,19 @@ class IssueForm(Form):
 
 class SettingForm(Form):
     token_address = StringField("トークンアドレス", validators=[])
-    name = StringField("商品名", validators=[])
-    symbol = StringField("略称", validators=[])
-    totalSupply = IntegerField("総発行量", validators=[])
-    faceValue = IntegerField("額面（円）", validators=[])
-    interestRate = DecimalField("金利[税引前]（%）", places=3, validators=[])
-    interestPaymentDate1 = StringField("利払日１", validators=[])
-    interestPaymentDate2 = StringField("利払日２", validators=[])
-    interestPaymentDate3 = StringField("利払日３", validators=[])
-    interestPaymentDate4 = StringField("利払日４", validators=[])
-    interestPaymentDate5 = StringField("利払日５", validators=[])
-    interestPaymentDate6 = StringField("利払日６", validators=[])
-    interestPaymentDate7 = StringField("利払日７", validators=[])
-    interestPaymentDate8 = StringField("利払日８", validators=[])
-    interestPaymentDate9 = StringField("利払日９", validators=[])
-    interestPaymentDate10 = StringField("利払日１０", validators=[])
-    interestPaymentDate11 = StringField("利払日１１", validators=[])
-    interestPaymentDate12 = StringField("利払日１２", validators=[])
-    redemptionDate = StringField("償還日", validators=[])
-    redemptionAmount = IntegerField("償還金額（額面当り）", validators=[])
-    returnDate = StringField("リターン実施日", validators=[])
-    returnAmount = TextAreaField("リターン内容", validators=[])
-    purpose = TextAreaField("発行目的", validators=[])
+    name = StringField("名称", validators=[Required('名称は必須です。')])
+    symbol = StringField("略称", validators=[Required('略称は必須です。')])
+    totalSupply = IntegerField("総発行量", validators=[Required('総発行量は必須です。')])
+    details = TextAreaField("会員権詳細", validators=[])
+    returnDetails = TextAreaField("リターン詳細", validators=[])
+    expirationDate = StringField("有効期限", validators=[])
     memo = TextAreaField("メモ", validators=[])
-    image_small = StringField("商品画像（小）URL", validators=[])
-    image_medium = StringField("商品画像（中）URL", validators=[])
-    image_large = StringField("商品画像（大）URL", validators=[])
+    transferable = SelectField('譲渡制限', coerce=bool, default=True)
+    image_small = StringField("画像（小）URL", validators=[])
+    image_medium = StringField("画像（中）URL", validators=[])
+    image_large = StringField("画像（大）URL", validators=[])
+    status = SelectField('取扱ステータス', coerce=bool, default=True)
+
     abi = TextAreaField("インターフェース", validators=[])
     bytecode = TextAreaField("バイトコード", validators=[])
     submit = SubmitField('設定変更')
@@ -60,6 +47,7 @@ class SettingForm(Form):
     def __init__(self, token_setting=None, *args, **kwargs):
         super(SettingForm, self).__init__(*args, **kwargs)
         self.token_setting = token_setting
+        self.transferable.choices = [(True, 'あり'), (False, 'なし')]
 
 class SellForm(Form):
     token_address = StringField("トークンアドレス", validators=[])

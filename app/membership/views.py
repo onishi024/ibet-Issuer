@@ -151,19 +151,12 @@ def setting(token_address):
     name = TokenContract.functions.name().call()
     symbol = TokenContract.functions.symbol().call()
     totalSupply = TokenContract.functions.totalSupply().call()
-    faceValue = TokenContract.functions.faceValue().call()
-    interestRate = TokenContract.functions.interestRate().call() * 0.001
-
-    interestPaymentDate_string = TokenContract.functions.interestPaymentDate().call()
-    interestPaymentDate = json.loads(
-        interestPaymentDate_string.replace("'", '"').replace('True', 'true').replace('False', 'false'))
-
-    redemptionDate = TokenContract.functions.redemptionDate().call()
-    redemptionAmount = TokenContract.functions.redemptionAmount().call()
-    returnDate = TokenContract.functions.returnDate().call()
-    returnAmount = TokenContract.functions.returnAmount().call()
-    purpose = TokenContract.functions.purpose().call()
+    details = TokenContract.functions.details().call()
+    returnDetails = TokenContract.functions.returnDetails().call()
+    expirationDate = TokenContract.functions.expirationDate().call()
     memo = TokenContract.functions.memo().call()
+    transferable = TokenContract.functions.transferable().call()
+    status = TokenContract.functions.status().call()
     image_small = TokenContract.functions.getImageURL(0).call()
     image_medium = TokenContract.functions.getImageURL(1).call()
     image_large = TokenContract.functions.getImageURL(2).call()
@@ -195,38 +188,12 @@ def setting(token_address):
         form.name.data = name
         form.symbol.data = symbol
         form.totalSupply.data = totalSupply
-        form.faceValue.data = faceValue
-        form.interestRate.data = interestRate
-        if 'interestPaymentDate1' in interestPaymentDate:
-            form.interestPaymentDate1.data = interestPaymentDate['interestPaymentDate1']
-        if 'interestPaymentDate2' in interestPaymentDate:
-            form.interestPaymentDate2.data = interestPaymentDate['interestPaymentDate2']
-        if 'interestPaymentDate3' in interestPaymentDate:
-            form.interestPaymentDate3.data = interestPaymentDate['interestPaymentDate3']
-        if 'interestPaymentDate4' in interestPaymentDate:
-            form.interestPaymentDate4.data = interestPaymentDate['interestPaymentDate4']
-        if 'interestPaymentDate5' in interestPaymentDate:
-            form.interestPaymentDate5.data = interestPaymentDate['interestPaymentDate5']
-        if 'interestPaymentDate6' in interestPaymentDate:
-            form.interestPaymentDate6.data = interestPaymentDate['interestPaymentDate6']
-        if 'interestPaymentDate7' in interestPaymentDate:
-            form.interestPaymentDate7.data = interestPaymentDate['interestPaymentDate7']
-        if 'interestPaymentDate8' in interestPaymentDate:
-            form.interestPaymentDate8.data = interestPaymentDate['interestPaymentDate8']
-        if 'interestPaymentDate9' in interestPaymentDate:
-            form.interestPaymentDate9.data = interestPaymentDate['interestPaymentDate9']
-        if 'interestPaymentDate10' in interestPaymentDate:
-            form.interestPaymentDate10.data = interestPaymentDate['interestPaymentDate10']
-        if 'interestPaymentDate11' in interestPaymentDate:
-            form.interestPaymentDate11.data = interestPaymentDate['interestPaymentDate11']
-        if 'interestPaymentDate12' in interestPaymentDate:
-            form.interestPaymentDate12.data = interestPaymentDate['interestPaymentDate12']
-        form.redemptionDate.data = redemptionDate
-        form.redemptionAmount.data = redemptionAmount
-        form.returnDate.data = returnDate
-        form.returnAmount.data = returnAmount
-        form.purpose.data = purpose
+        form.details.data = details
+        form.returnDetails.data = returnDetails
+        form.expirationDate.data = expirationDate
         form.memo.data = memo
+        form.transferable.data = transferable
+        form.status.data = status
         form.image_small.data = image_small
         form.image_medium.data = image_medium
         form.image_large.data = image_large
