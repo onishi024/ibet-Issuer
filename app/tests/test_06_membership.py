@@ -128,8 +128,7 @@ class TestCoupon(TestBase):
         tx = web3.eth.waitForTransactionReceipt(tx_hash)
 
         latest_orderid = ExchangeContract.functions.latestOrderId().call() - 1
-
-        logger.info("latest_orderid: " + str(latest_orderid)
+        logger.info("latest_orderid: " + str(latest_orderid))
         assert latest_orderid == 0
 
         # 買い注文
