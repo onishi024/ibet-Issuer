@@ -395,6 +395,31 @@ def issue():
             token.bytecode_runtime = bytecode_runtime
             db.session.add(token)
 
+            ####### 画像URL登録処理 #######
+            if form.image_small.data != '' or form.image_medium.data != '' or form.image_large.data != '':
+                tx_receipt = wait_transaction_receipt(tx_hash)
+                if tx_receipt is not None :
+                    contract_address = tx_receipt['contractAddress']
+                    TokenContract = web3.eth.contract(
+                        address= tx_receipt['contractAddress'],
+                        abi = abi
+                    )
+                    if form.image_small.data != '':
+                        gas = TokenContract.estimateGas().setImageURL(0, form.image_small.data)
+                        txid_small = TokenContract.functions.setImageURL(0, form.image_small.data).transact(
+                            {'from':Config.ETH_ACCOUNT, 'gas':gas}
+                        )
+                    if form.image_medium.data != '':
+                        gas = TokenContract.estimateGas().setImageURL(1, form.image_medium.data)
+                        txid_medium = TokenContract.functions.setImageURL(1, form.image_medium.data).transact(
+                            {'from':Config.ETH_ACCOUNT, 'gas':gas}
+                        )
+                    if form.image_large.data != '':
+                        gas = TokenContract.estimateGas().setImageURL(2, form.image_large.data)
+                        txid = TokenContract.functions.setImageURL(2, form.image_large.data).transact(
+                            {'from':Config.ETH_ACCOUNT, 'gas':gas}
+                        )
+            
             flash('新規発行を受け付けました。発行完了までに数分程かかることがあります。', 'success')
             return redirect(url_for('.list'))
         else:
