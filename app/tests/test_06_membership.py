@@ -121,7 +121,7 @@ class TestCoupon(TestBase):
             membership_contract_address).call()
         logger.info("balances_ex: " + str(balances_ex))
 
-
+        # create order
         gas = ExchangeContract.estimateGas().\
             createOrder(membership_contract_address, amount, price, False, eth_account['agent']['account_address'])
         tx_hash = ExchangeContract.functions.\
@@ -133,7 +133,12 @@ class TestCoupon(TestBase):
         logger.info("latest_orderid: " + str(latest_orderid))
         assert latest_orderid == 0
 
-        # 買い注文
+        commitments_ex = ExchangeContract.functions.commitments(eth_account['issuer']['account_address'], 
+            membership_contract_address).call()
+        logger.info("commitments_ex: " + str(commitments_ex))
+
+
+        # 約定
         web3.eth.defaultAccount = eth_account['trader']['account_address']
         web3.personal.unlockAccount(eth_account['trader']['account_address'],
                                     eth_account['trader']['password'])
@@ -147,42 +152,30 @@ class TestCoupon(TestBase):
         lastPrice = ExchangeContract.functions.lastPrice(membership_contract_address).call()
         logger.info("lastPrice: " + str(lastPrice))
 
-        balances_ex = ExchangeContract.functions.balances(eth_account['issuer']['account_address'], 
+        commitments_ex = ExchangeContract.functions.commitments(eth_account['issuer']['account_address'], 
             membership_contract_address).call()
-        logger.info("balances_ex: " + str(balances_ex))
-        assert balances_ex == 0
+        logger.info("commitments_ex: " + str(commitments_ex))
+        assert commitments_ex == amount
 
         # 投資家のバランス 0 
         balances_trader = ExchangeContract.functions.balances(eth_account['trader']['account_address'], 
             membership_contract_address).call()
-        logger.info("balances_trader")
-        logger.info(balances_trader)
-        logger.info("balances_trader-----------")
+        logger.info("balances_trader: " + str(balances_trader))
         assert balances_trader == 0
+
+        # whitelist登録し、再度買う。
+        register_whitelist(eth_account['trader'], shared_contract['WhiteList'], self.issuer_encrypted_info)
+        web3.eth.defaultAccount = eth_account['trader']['account_address']
+        web3.personal.unlockAccount(eth_account['trader']['account_address'],
+                                    eth_account['trader']['password'])
+
+        tx_hash = ExchangeContract.functions.\
+            executeOrder(latest_orderid, amount, True).\
+            transact({'from':eth_account['trader']['account_address'], 'gas':4000000})
+        tx = web3.eth.waitForTransactionReceipt(tx_hash)
+
+        # 購入できていること
+        lastPrice = ExchangeContract.functions.lastPrice(membership_contract_address).call()
+        logger.info("lastPrice: " + str(lastPrice))
+
         assert False
-
-        # # whitelist登録し、再度買う。
-        # register_whitelist(eth_account['trader'], shared_contract['WhiteList'], self.issuer_encrypted_info)
-        # web3.eth.defaultAccount = eth_account['trader']['account_address']
-        # web3.personal.unlockAccount(eth_account['trader']['account_address'],
-        #                             eth_account['trader']['password'])
-
-        # tx_hash = ExchangeContract.functions.\
-        #     executeOrder(latest_orderid, amount, True).\
-        #     transact({'from':eth_account['trader']['account_address'], 'gas':4000000})
-        # tx = web3.eth.waitForTransactionReceipt(tx_hash)
-
-        # # 購入できていること(発行体のexのバランスが0))
-        # balances_ex = ExchangeContract.functions.balances(eth_account['issuer']['account_address'], 
-        #     membership_contract_address).call()
-        # logger.info("balances_ex")
-        # logger.info(balances_ex)
-        # logger.info("balances_ex-----------")
-        # assert balances_ex == 0
-
-        # # 投資家のバランス amount 
-        # balances_trader = TokenContract.functions.balances(eth_account['trader']['account_address']).call()
-        # logger.info("balances_trader")
-        # logger.info(balances_trader)
-        # logger.info("balances_trader-----------")
-        # assert balances_trader == amount
