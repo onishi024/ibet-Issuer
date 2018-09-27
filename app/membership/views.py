@@ -361,7 +361,7 @@ def redeem():
     return redirect(url_for('.setting', token_address=token_address))
 
 ####################################################
-# 債券新規発行
+# 新規発行
 ####################################################
 @membership.route('/issue', methods=['GET', 'POST'])
 @login_required
