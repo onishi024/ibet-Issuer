@@ -153,7 +153,7 @@ class TestCoupon(TestBase):
                                     eth_account['trader']['password'])
 
         tx_hash = ExchangeContract.functions.\
-            executeOrder(latest_orderid, amount, True).\
+            executeOrder(latest_orderid, amount, False).\
             transact({'from':eth_account['trader']['account_address'], 'gas':4000000})
         tx = web3.eth.waitForTransactionReceipt(tx_hash)
 
