@@ -100,13 +100,9 @@ class TestCoupon(TestBase):
         TokenContract = Contract.get_contract('IbetMembership', membership_contract_address)
 
         totalSupply = TokenContract.functions.totalSupply().call()
-        logger.info("totalSupply")
-        logger.info(totalSupply)
-        logger.info("totalSupply-----------")
+        logger.info("totalSupply: " + totalSupply)
         balances_membership = TokenContract.functions.balances(eth_account['issuer']['account_address']).call()
-        logger.info("balances_membership")
-        logger.info(balances_membership)
-        logger.info("balances_membership-----------")
+        logger.info("balances_membership: " +　balances_membership)
 
         # transfer
         tx_hash = TokenContract.functions.transfer(shared_contract['IbetMembershipExchange']['address'], amount).\
@@ -114,23 +110,14 @@ class TestCoupon(TestBase):
         tx = web3.eth.waitForTransactionReceipt(tx_hash)
 
         balances_membership = TokenContract.functions.balances(eth_account['issuer']['account_address']).call()
-        logger.info("balances_membership")
-        logger.info(balances_membership)
-        logger.info("balances_membership-----------")
+        logger.info("balances_membership: " + balances_membership)
 
         ExchangeContract = Contract.get_contract('IbetMembershipExchange',
          shared_contract['IbetMembershipExchange']['address'])
 
-        whiteListAddress = ExchangeContract.functions.whiteListAddress().call()
-        logger.info("whiteListAddress")
-        logger.info(whiteListAddress)
-        logger.info("whiteListAddress-----------")
-
         balances_ex = ExchangeContract.functions.balances(eth_account['issuer']['account_address'], 
             membership_contract_address).call()
-        logger.info("balances_ex")
-        logger.info(balances_ex)
-        logger.info("balances_ex-----------")
+        logger.info("balances_ex: " + balances_ex)
 
 
         gas = ExchangeContract.estimateGas().\
@@ -142,9 +129,7 @@ class TestCoupon(TestBase):
 
         latest_orderid = ExchangeContract.functions.latestOrderId().call() - 1
 
-        logger.info("latest_orderid")
-        logger.info(latest_orderid)
-        logger.info("latest_orderid-----------")
+        logger.info("latest_orderid: " + latest_orderid)
         assert latest_orderid == 0
 
         # 買い注文
@@ -160,9 +145,7 @@ class TestCoupon(TestBase):
         # 購入できてないこと(発行体のexのバランスがamount))
         balances_ex = ExchangeContract.functions.balances(eth_account['issuer']['account_address'], 
             membership_contract_address).call()
-        logger.info("balances_ex")
-        logger.info(balances_ex)
-        logger.info("balances_ex-----------")
+        logger.info("balances_ex: " + balances_ex)
         assert balances_ex == amount
 
         # 投資家のバランス 0 
