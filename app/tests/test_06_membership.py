@@ -69,7 +69,6 @@ class TestCoupon(TestBase):
         # whitelist登録
         register_terms(eth_account['agent'], shared_contract['WhiteList'])
         register_whitelist(eth_account['issuer'], shared_contract['WhiteList'], self.issuer_encrypted_info)
-        #register_whitelist(eth_account['trader'], shared_contract['WhiteList'], self.issuer_encrypted_info)
 
         # 会員権発行
         attribute = {
@@ -146,6 +145,7 @@ class TestCoupon(TestBase):
         logger.info("latest_orderid")
         logger.info(latest_orderid)
         logger.info("latest_orderid-----------")
+        assert latest_orderid == 0
 
         # 買い注文
         web3.eth.defaultAccount = eth_account['trader']['account_address']
@@ -156,3 +156,44 @@ class TestCoupon(TestBase):
             executeOrder(latest_orderid, amount, True).\
             transact({'from':eth_account['trader']['account_address'], 'gas':4000000})
         tx = web3.eth.waitForTransactionReceipt(tx_hash)
+
+        # 購入できてないこと(発行体のexのバランスがamount))
+        balances_ex = ExchangeContract.functions.balances(eth_account['issuer']['account_address'], 
+            membership_contract_address).call()
+        logger.info("balances_ex")
+        logger.info(balances_ex)
+        logger.info("balances_ex-----------")
+        assert balances_ex == amount
+
+        # 投資家のバランス 0 
+        balances_trader = TokenContract.functions.balances(eth_account['trader']['account_address']).call()
+        logger.info("balances_trader")
+        logger.info(balances_trader)
+        logger.info("balances_trader-----------")
+        assert balances_trader == 0
+
+        # whitelist登録し、再度買う。
+        register_whitelist(eth_account['trader'], shared_contract['WhiteList'], self.issuer_encrypted_info)
+        web3.eth.defaultAccount = eth_account['trader']['account_address']
+        web3.personal.unlockAccount(eth_account['trader']['account_address'],
+                                    eth_account['trader']['password'])
+
+        tx_hash = ExchangeContract.functions.\
+            executeOrder(latest_orderid, amount, True).\
+            transact({'from':eth_account['trader']['account_address'], 'gas':4000000})
+        tx = web3.eth.waitForTransactionReceipt(tx_hash)
+
+        # 購入できていること(発行体のexのバランスが0))
+        balances_ex = ExchangeContract.functions.balances(eth_account['issuer']['account_address'], 
+            membership_contract_address).call()
+        logger.info("balances_ex")
+        logger.info(balances_ex)
+        logger.info("balances_ex-----------")
+        assert balances_ex == 0
+
+        # 投資家のバランス amount 
+        balances_trader = TokenContract.functions.balances(eth_account['trader']['account_address']).call()
+        logger.info("balances_trader")
+        logger.info(balances_trader)
+        logger.info("balances_trader-----------")
+        assert balances_trader == amount
