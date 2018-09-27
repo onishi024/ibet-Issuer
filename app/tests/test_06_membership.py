@@ -115,6 +115,8 @@ class TestCoupon(TestBase):
         ExchangeContract = Contract.get_contract('IbetMembershipExchange',
          shared_contract['IbetMembershipExchange']['address'])
 
+        lastPrice = ExchangeContract.functions.lastPrice(membership_contract_address).call()
+        logger.info("lastPrice: " + str(lastPrice))
         balances_ex = ExchangeContract.functions.balances(eth_account['issuer']['account_address'], 
             membership_contract_address).call()
         logger.info("balances_ex: " + str(balances_ex))
@@ -142,6 +144,9 @@ class TestCoupon(TestBase):
         tx = web3.eth.waitForTransactionReceipt(tx_hash)
 
         # 購入できてないこと(発行体のexのバランスがamount))
+        lastPrice = ExchangeContract.functions.lastPrice(membership_contract_address).call()
+        logger.info("lastPrice: " + str(lastPrice))
+
         balances_ex = ExchangeContract.functions.balances(eth_account['issuer']['account_address'], 
             membership_contract_address).call()
         logger.info("balances_ex: " + str(balances_ex))
