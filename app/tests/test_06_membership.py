@@ -137,7 +137,6 @@ class TestCoupon(TestBase):
             membership_contract_address).call()
         logger.info("commitments_ex: " + str(commitments_ex))
 
-
         # 約定
         web3.eth.defaultAccount = eth_account['trader']['account_address']
         web3.personal.unlockAccount(eth_account['trader']['account_address'],

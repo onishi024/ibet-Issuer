@@ -379,9 +379,7 @@ def issue():
                 form.returnDetails.data,
                 form.expirationDate.data,
                 form.memo.data,
-                form.returnAmount.data,
-                form.transferable.data,
-                form.status.data
+                form.transferable.data
             ]
             _, bytecode, bytecode_runtime = Contract.get_contract_info('IbetMembership')
             contract_address, abi, tx_hash = Contract.deploy_contract(
