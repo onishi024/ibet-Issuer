@@ -159,6 +159,7 @@ class TestCoupon(TestBase):
         logger.info(balances_trader)
         logger.info("balances_trader-----------")
         assert balances_trader == 0
+        assert False
 
         # # whitelist登録し、再度買う。
         # register_whitelist(eth_account['trader'], shared_contract['WhiteList'], self.issuer_encrypted_info)
