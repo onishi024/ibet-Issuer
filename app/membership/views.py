@@ -87,6 +87,7 @@ def list():
         if row.token_address == None:
             name = '<処理中>'
             symbol = '<処理中>'
+            status = '<処理中>'
         else:
             # Token-Contractへの接続
             TokenContract = web3.eth.contract(
