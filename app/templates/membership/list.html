@@ -42,9 +42,7 @@
           {% endif %}
           <td>{{ token.symbol }}</td>
     			<td>{{ token.created | format_date }}</td>
-          <td align="center">
-            <button type="button" class="btn btn-default btn-sm" onclick="viewTxHash('{{token.token_address}}')">表示</button>
-          </td>
+          <td>{{token.token_address}}</td>
           {% if token.status == true %}
             <td align="center"><span class="badge bg-green">有効</span></td>
           {% elif token.status == false %}
