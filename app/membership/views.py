@@ -80,14 +80,12 @@ def list():
 
     token_list = []
     for row in tokens:
-        is_redeemed = False
-        is_signed = False
-
         # トークンがデプロイ済みの場合、トークン情報を取得する
         if row.token_address == None:
             name = '<処理中>'
             symbol = '<処理中>'
             status = '<処理中>'
+            totalSupply = '<処理中>'
         else:
             # Token-Contractへの接続
             TokenContract = web3.eth.contract(
@@ -100,6 +98,7 @@ def list():
             name = TokenContract.functions.name().call()
             symbol = TokenContract.functions.symbol().call()
             status = TokenContract.functions.status().call()
+            totalSupply = TokenContract.functions.totalSupply().call()
 
         token_list.append({
             'name':name,
@@ -107,6 +106,7 @@ def list():
             'created':row.created,
             'tx_hash':row.tx_hash,
             'token_address':row.token_address,
+            'totalSupply':totalSupply,
             'status':status
         })
 
@@ -134,7 +134,7 @@ def holder(token_address, account_address):
     return render_template('membership/holder.html', personal_info=personal_info, token_address=token_address)
 
 ####################################################
-# 債券設定
+# 会員権の内容修正
 ####################################################
 @membership.route('/setting/<string:token_address>', methods=['GET', 'POST'])
 @login_required
@@ -165,6 +165,31 @@ def setting(token_address):
 
     if request.method == 'POST':
         web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
+        if form.details.data != details:
+            gas = TokenContract.estimateGas().setDetails(form.details.data)
+            txid = TokenContract.functions.setDetails(form.details.data).transact(
+                {'from':Config.ETH_ACCOUNT, 'gas':gas}
+            )
+        if form.returnDetails.data != returnDetails:
+            gas = TokenContract.estimateGas().setReturnDetails(form.returnDetails.data)
+            txid = TokenContract.functions.setReturnDetails(form.returnDetails.data).transact(
+                {'from':Config.ETH_ACCOUNT, 'gas':gas}
+            )
+        if form.expirationDate.data != expirationDate:
+            gas = TokenContract.estimateGas().setExpirationDate(form.expirationDate.data)
+            txid = TokenContract.functions.setExpirationDate(form.expirationDate.data).transact(
+                {'from':Config.ETH_ACCOUNT, 'gas':gas}
+            )
+        if form.memo.data != memo:
+            gas = TokenContract.estimateGas().setMemo(form.memo.data)
+            txid = TokenContract.functions.setMemo(form.memo.data).transact(
+                {'from':Config.ETH_ACCOUNT, 'gas':gas}
+            )
+        if form.transferable.data != transferable:
+            gas = TokenContract.estimateGas().setTransferable(form.transferable.data)
+            txid = TokenContract.functions.setTransferable(form.transferable.data).transact(
+                {'from':Config.ETH_ACCOUNT, 'gas':gas}
+            )
         if form.image_small.data != image_small:
             gas = TokenContract.estimateGas().setImageURL(0, form.image_small.data)
             txid_small = TokenContract.functions.setImageURL(0, form.image_small.data).transact(
@@ -181,7 +206,7 @@ def setting(token_address):
                 {'from':Config.ETH_ACCOUNT, 'gas':gas}
             )
 
-        flash('設定変更を受け付けました。変更完了までに数分程かかることがあります。', 'success')
+        flash('変更を受け付けました。変更完了までに数分程かかることがあります。', 'success')
         return redirect(url_for('.list'))
     else: # GET
         form.token_address.data = token.token_address
