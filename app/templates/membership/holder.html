@@ -10,6 +10,7 @@
 {% block breadcrumb %}
     <li><a href="{{ url_for('index.index') }}">トップ</a></li>
     <li><a href="{{ url_for('membership.list') }}">会員権一覧</a></li>
+    <li><a href="{{ url_for("membership.holders", token_address=token_address) }}">保有者一覧</a></li>
     <li class="active">保有者詳細</li>
 {% endblock %}
 

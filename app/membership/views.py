@@ -129,7 +129,7 @@ def holders(token_address):
 @membership.route('/holder/<string:token_address>/<string:account_address>', methods=['GET'])
 @login_required
 def holder(token_address, account_address):
-    logger.info('holder')
+    logger.info('membership/holder')
     personal_info = get_holder(token_address, account_address)
     return render_template('membership/holder.html', personal_info=personal_info, token_address=token_address)
 
