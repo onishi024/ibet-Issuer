@@ -2,15 +2,15 @@
 {% block head %}
     {{ super() }}
 {% endblock %}
-{% set active_page = "token_list" %}
+{% set active_page = "membership_list" %}
 
-{% block title %}債券保有者詳細 - {% endblock %}
-{% block page_header %}債券保有者詳細{% endblock %}
+{% block title %}保有者詳細 - {% endblock %}
+{% block page_header %}保有者詳細{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
     <li><a href="{{ url_for('index.index') }}">トップ</a></li>
-    <li><a href="{{ url_for('token.list') }}">発行済債券一覧</a></li>
-    <li class="active">債券保有者詳細</li>
+    <li><a href="{{ url_for('membership.list') }}">会員権一覧</a></li>
+    <li class="active">保有者詳細</li>
 {% endblock %}
 
 {% block page_content %}
@@ -115,7 +115,7 @@
       <div class="col-md-1"></div>
     </div>
     <div class="box-footer">
-        <button type="button" class="btn btn-default" onclick="location.href='{{ url_for("token.holders", token_address=token_address) }}'">一覧に戻る</button>
+        <button type="button" class="btn btn-default" onclick="location.href='{{ url_for("membership.holders", token_address=token_address) }}'">一覧に戻る</button>
     </div>
   </div>
 </section>

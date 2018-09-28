@@ -44,7 +44,7 @@ class Config:
             ('token_position', 'fa fa-yen', '債券募集管理', 'token.positions'),
         ]),
         ('membership', 'glyphicon glyphicon-list-alt', '会員権発行管理', [
-            ('membership_list', 'fa fa-list', '発行済会員権一覧', 'membership.list'),
+            ('membership_list', 'fa fa-list', '会員権一覧', 'membership.list'),
             ('membership_issue', 'fa fa-plus-square-o', '会員権新規発行', 'membership.issue'),
             ('membership_position', 'fa fa-yen', '会員権募集管理', 'membership.positions'),
         ]),

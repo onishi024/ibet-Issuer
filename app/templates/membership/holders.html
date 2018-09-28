@@ -4,14 +4,14 @@
   <!-- DataTables -->
   <link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
 {% endblock %}
-{% set active_page = "token_list" %}
+{% set active_page = "membership_list" %}
 
 {% block title %}保有者一覧 - {% endblock %}
 {% block page_header %}保有者一覧{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
     <li><a href="{{ url_for('index.index') }}">トップ</a></li>
-    <li><a href="{{ url_for('token.list') }}">発行済一覧</a></li>
+    <li><a href="{{ url_for('token.list') }}">会員権一覧</a></li>
     <li class="active">保有者一覧</li>
 {% endblock %}
 
