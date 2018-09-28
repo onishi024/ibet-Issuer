@@ -118,8 +118,8 @@ def list():
 @membership.route('/holders/<string:token_address>', methods=['GET'])
 @login_required
 def holders(token_address):
-    logger.info('holders')
-    holders, token_name = get_holders_bond(token_address)
+    logger.info('membership/holders')
+    holders, token_name = get_holders(token_address)
     return render_template('membership/holders.html', \
         holders=holders, token_address=token_address, token_name=token_name)
 
@@ -539,49 +539,39 @@ def sell(token_address):
 
     if request.method == 'POST':
         if form.validate():
-            # WhiteList Contract
-            whitelist_address = to_checksum_address(Config.WHITE_LIST_CONTRACT_ADDRESS)
-            WhiteListContract = Contract.get_contract(
-                'WhiteList', whitelist_address)
-
             eth_account = to_checksum_address(Config.ETH_ACCOUNT)
             agent_account = to_checksum_address(Config.AGENT_ADDRESS)
 
-            if WhiteListContract.functions.isRegistered(eth_account, agent_account).call() == False:
-                flash('金融機関の情報が未登録です。', 'error')
-                return redirect(url_for('.sell', token_address=token_address))
-            else:
-                web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
-                token_exchange_address = to_checksum_address(Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS)
-                agent_address = to_checksum_address(Config.AGENT_ADDRESS)
+            web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
+            token_exchange_address = to_checksum_address(Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS)
+            agent_address = to_checksum_address(Config.AGENT_ADDRESS)
 
-                deposit_gas = TokenContract.estimateGas().transfer(token_exchange_address, balance)
-                deposit_txid = TokenContract.functions.transfer(token_exchange_address, balance).\
-                    transact({'from':owner, 'gas':deposit_gas})
+            deposit_gas = TokenContract.estimateGas().transfer(token_exchange_address, balance)
+            deposit_txid = TokenContract.functions.transfer(token_exchange_address, balance).\
+                transact({'from':owner, 'gas':deposit_gas})
 
-                count = 0
-                deposit_tx_receipt = None
-                while True:
-                    try:
-                        deposit_tx_receipt = web3.eth.getTransactionReceipt(deposit_txid)
-                    except:
-                        time.sleep(1)
-                    count += 1
-                    if deposit_tx_receipt is not None or count > 30:
-                        break
+            count = 0
+            deposit_tx_receipt = None
+            while True:
+                try:
+                    deposit_tx_receipt = web3.eth.getTransactionReceipt(deposit_txid)
+                except:
+                    time.sleep(1)
+                count += 1
+                if deposit_tx_receipt is not None or count > 30:
+                    break
 
-                ExchangeContract = Contract.get_contract(
-                    'IbetStraightBondExchange', token_exchange_address)
+            ExchangeContract = Contract.get_contract(
+                'IbetStraightBondExchange', token_exchange_address)
 
-                sell_gas = ExchangeContract.estimateGas().\
-                    createOrder(token_address, balance, form.sellPrice.data, False, agent_address)
-                sell_txid = ExchangeContract.functions.\
-                    createOrder(token_address, balance, form.sellPrice.data, False, agent_address).\
-                    transact({'from':owner, 'gas':sell_gas})
+            sell_gas = ExchangeContract.estimateGas().\
+                createOrder(token_address, balance, form.sellPrice.data, False, agent_address)
+            sell_txid = ExchangeContract.functions.\
+                createOrder(token_address, balance, form.sellPrice.data, False, agent_address).\
+                transact({'from':owner, 'gas':sell_gas})
 
-                flash('新規募集を受け付けました。募集開始までに数分程かかることがあります。', 'success')
-                return redirect(url_for('.positions'))
-
+            flash('新規募集を受け付けました。募集開始までに数分程かかることがあります。', 'success')
+            return redirect(url_for('.positions'))
         else:
             flash_errors(form)
             return redirect(url_for('.sell', token_address=token_address))
@@ -674,3 +664,87 @@ def cancel_order(order_id):
 def permissionDenied():
     return render_template('permissiondenied.html')
 
+
+
+###
+# トークンの保有者一覧、token_nameを返す
+###
+def get_holders(token_address):
+    cipher = None
+    try:
+        key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
+        cipher = PKCS1_OAEP.new(key)
+    except:
+        traceback.print_exc()
+        pass
+
+    token = Token.query.filter(Token.token_address==token_address).first()
+    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+
+    TokenContract = web3.eth.contract(
+        address= token_address,
+        abi = token_abi
+    )
+
+    # Exchange Contract
+    token_exchange_address = to_checksum_address(Config.IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS)
+    ExchangeContract = Contract.get_contract(
+        'IbetMembershipExchange', token_exchange_address)
+
+    # PersonalInfo Contract
+    personalinfo_address = to_checksum_address(Config.PERSONAL_INFO_CONTRACT_ADDRESS)
+    PersonalInfoContract = Contract.get_contract(
+        'PersonalInfo', personalinfo_address)
+
+    # 残高を保有している可能性のあるアドレスを抽出する
+    holders_temp = []
+    holders_temp.append(TokenContract.functions.owner().call())
+
+    event_filter = TokenContract.eventFilter(
+        'Transfer', {
+            'filter':{},
+            'fromBlock':'earliest'
+        }
+    )
+    entries = event_filter.get_all_entries()
+    for entry in entries:
+        holders_temp.append(entry['args']['to'])
+
+    # 口座リストをユニークにする
+    holders_uniq = []
+    for x in holders_temp:
+        if x not in holders_uniq:
+            holders_uniq.append(x)
+
+    token_owner = TokenContract.functions.owner().call()
+    token_name = TokenContract.functions.name().call()
+
+    # 残高（balance）、または注文中の残高（commitment）が存在する情報を抽出
+    holders = []
+    for account_address in holders_uniq:
+        balance = TokenContract.functions.balanceOf(account_address).call()
+        commitment = ExchangeContract.functions.\
+            commitments(account_address,token_address).call()
+        if balance > 0 or commitment > 0:
+            encrypted_info = PersonalInfoContract.functions.\
+                personal_info(account_address, token_owner).call()[2]
+            if encrypted_info == '' or cipher == None:
+                name = ''
+            else:
+                ciphertext = base64.decodestring(encrypted_info.encode('utf-8'))
+                try:
+                    message = cipher.decrypt(ciphertext)
+                    personal_info_json = json.loads(message)
+                    name = personal_info_json['name']
+                except:
+                    name = ''
+
+            holder = {
+                'account_address':account_address,
+                'name':name,
+                'balance':balance,
+                'commitment':commitment
+            }
+            holders.append(holder)
+
+    return holders, token_name

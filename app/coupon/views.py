@@ -436,3 +436,83 @@ def format_date(date): # date = datetime object.
         elif isinstance(date, datetime.date):
             return date.strftime('%Y/%m/%d')
     return ''
+
+
+###
+# クーポントークンの保有者一覧、token_nameを返す
+###
+def get_holders_coupon(token_address):
+    cipher = None
+    try:
+        key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
+        cipher = PKCS1_OAEP.new(key)
+    except:
+        traceback.print_exc()
+        pass
+
+    # Coupon Token Contract
+    # Note: token_addressに対して、Couponトークンのものであるかはチェックしていない。
+    token = Token.query.filter(Token.token_address==token_address).first()
+    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+
+    TokenContract = web3.eth.contract(
+        address= token_address,
+        abi = token_abi
+    )
+
+    # PersonalInfo Contract
+    personalinfo_address = to_checksum_address(Config.PERSONAL_INFO_CONTRACT_ADDRESS)
+    PersonalInfoContract = Contract.get_contract(
+        'PersonalInfo', personalinfo_address)
+
+    # 残高を保有している可能性のあるアドレスを抽出する
+    holders_temp = []
+    holders_temp.append(TokenContract.functions.owner().call())
+
+    event_filter = TokenContract.eventFilter(
+        'Transfer', {
+            'filter':{},
+            'fromBlock':'earliest'
+        }
+    )
+    entries = event_filter.get_all_entries()
+    for entry in entries:
+        holders_temp.append(entry['args']['to'])
+
+    # 口座リストをユニークにする
+    holders_uniq = []
+    for x in holders_temp:
+        if x not in holders_uniq:
+            holders_uniq.append(x)
+
+    token_owner = TokenContract.functions.owner().call()
+    token_name = TokenContract.functions.name().call()
+
+    # 残高（balance）、または使用済（used）が存在する情報を抽出
+    holders = []
+    for account_address in holders_uniq:
+        balance = TokenContract.functions.balanceOf(account_address).call()
+        used = TokenContract.functions.usedOf(account_address).call()
+        if balance > 0 or used > 0:
+            encrypted_info = PersonalInfoContract.functions.\
+                personal_info(account_address, token_owner).call()[2]
+            if encrypted_info == '' or cipher == None:
+                name = ''
+            else:
+                ciphertext = base64.decodestring(encrypted_info.encode('utf-8'))
+                try:
+                    message = cipher.decrypt(ciphertext)
+                    personal_info_json = json.loads(message)
+                    name = personal_info_json['name']
+                except:
+                    name = ''
+
+            holder = {
+                'account_address':account_address,
+                'name':name,
+                'balance':balance,
+                'used': used
+            }
+            holders.append(holder)
+
+    return holders, token_name
