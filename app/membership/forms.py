@@ -34,7 +34,7 @@ class SettingForm(Form):
     returnDetails = TextAreaField("リターン詳細", validators=[])
     expirationDate = StringField("有効期限", validators=[])
     memo = TextAreaField("メモ", validators=[])
-    transferable = SelectField('譲渡制限', coerce=bool, default=True)
+    transferable = SelectField('譲渡制限', coerce=bool)
     image_small = StringField("画像（小）URL", validators=[])
     image_medium = StringField("画像（中）URL", validators=[])
     image_large = StringField("画像（大）URL", validators=[])
