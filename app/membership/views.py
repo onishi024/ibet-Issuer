@@ -656,6 +656,55 @@ def cancel_order(order_id):
         form.price.data = price
         return render_template('token/cancel_order.html', form=form)
 
+
+####################################################
+# 追加発行
+####################################################
+@membership.route('/add_supply/<string:token_address>', methods=['GET', 'POST'])
+@login_required
+def add_supply(token_address):
+    logger.info('membership/add_supply')
+
+    token = Token.query.filter(Token.token_address==token_address).first()
+    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+    owner = to_checksum_address(Config.ETH_ACCOUNT)
+    TokenContract = web3.eth.contract(
+        address= token.token_address,
+        abi = token_abi
+    )
+    form = AddSupplyForm()
+    form.token_address.data = token.token_address
+    name = TokenContract.functions.name().call()
+    form.name.data = name
+    form.totalSupply.data = TokenContract.functions.totalSupply().call()
+
+    if request.method == 'POST':
+        if form.validate():
+            web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
+
+            gas = TokenContract.estimateGas().issue(form.addSupply.data)
+            tx = TokenContract.functions.issue(form.addSupply.data).\
+                        transact({'from':owner, 'gas':gas})
+            wait_transaction_receipt(tx)
+
+            flash('追加発行を受け付けました。発行完了までに数分程かかることがあります。', 'success')
+            return redirect(url_for('.list'))
+        else:
+            flash_errors(form)
+            return render_template(
+                'coupon/add_supply.html',
+                form = form,
+                token_address = token_address,
+                token_name = name
+            )
+    else: # GET
+        return render_template(
+            'coupon/add_supply.html',
+            form = form,
+            token_address = token_address,
+            token_name = name
+        )
+
 ####################################################
 # 権限エラー
 ####################################################
@@ -663,8 +712,6 @@ def cancel_order(order_id):
 @login_required
 def permissionDenied():
     return render_template('permissiondenied.html')
-
-
 
 ###
 # トークンの保有者一覧、token_nameを返す
