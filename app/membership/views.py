@@ -192,7 +192,7 @@ def setting(token_address):
         logger.info(form.transferable.data)
         if form.transferable.data != transferable:
             gas = TokenContract.estimateGas().setTransferable(bool(form.transferable.data))
-            txid = TokenContract.functions.setTransferable(bool(form.transferable.data).transact(
+            txid = TokenContract.functions.setTransferable(bool(form.transferable.data)).transact(
                 {'from':Config.ETH_ACCOUNT, 'gas':gas}
             )
         if form.image_small.data != image_small:
