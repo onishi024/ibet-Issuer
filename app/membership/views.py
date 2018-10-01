@@ -161,6 +161,8 @@ def setting(token_address):
     image_medium = TokenContract.functions.getImageURL(1).call()
     image_large = TokenContract.functions.getImageURL(2).call()
 
+    logger.info(transferable)
+
     form = SettingForm()
 
     if request.method == 'POST':
