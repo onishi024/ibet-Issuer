@@ -665,7 +665,7 @@ def cancel_order(order_id):
         form.totalSupply.data = totalSupply
         form.amount.data = amount
         form.price.data = price
-        return render_template('token/cancel_order.html', form=form)
+        return render_template('membership/cancel_order.html', form=form)
 
 
 ####################################################
