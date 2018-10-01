@@ -163,6 +163,11 @@ def setting(token_address):
 
     logger.info('transferable')
     logger.info(transferable)
+    testbool = 'False'
+    logger.info('testbool')
+    logger.info(testbool)
+    logger.info(bool(testbool)
+    logger.info('testbool-----------------')
 
     form = SettingForm()
 
