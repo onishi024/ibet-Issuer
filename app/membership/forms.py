@@ -14,11 +14,20 @@ class IssueForm(Form):
     returnDetails = TextAreaField("リターン詳細", validators=[])
     expirationDate = StringField("有効期限", validators=[])
     memo = TextAreaField("メモ", validators=[])
-    transferable = SelectField('譲渡制限', coerce=bool, default=True)
+    transferable = SelectField('譲渡制限', coerce=coerce_bool, default=True)
     image_small = StringField("画像（小）URL", validators=[])
     image_medium = StringField("画像（中）URL", validators=[])
     image_large = StringField("画像（大）URL", validators=[])
     submit = SubmitField('新規発行')
+    
+    def coerce_bool(value):
+        d = {'True': True, 'False': False}
+        if isinstance(value, NOT_PROVIDED):
+            return None
+        elif value in d:
+            return d[value]
+        else:
+            return bool(int(value))
 
     def __init__(self, issue_data=None, *args, **kwargs):
         super(IssueForm, self).__init__(*args, **kwargs)
