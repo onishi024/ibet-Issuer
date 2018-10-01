@@ -188,6 +188,8 @@ def setting(token_address):
                 {'from':Config.ETH_ACCOUNT, 'gas':gas}
             )
         if form.transferable.data != transferable:
+            logger.info('form.transferable.data')
+            logger.info(form.transferable.data)
             gas = TokenContract.estimateGas().setTransferable(form.transferable.data)
             txid = TokenContract.functions.setTransferable(form.transferable.data).transact(
                 {'from':Config.ETH_ACCOUNT, 'gas':gas}
