@@ -196,8 +196,11 @@ def setting(token_address):
         logger.info('form.transferable.data')
         logger.info(form.transferable.data)
         if form.transferable.data != transferable:
-            gas = TokenContract.estimateGas().setTransferable(bool(form.transferable.data))
-            txid = TokenContract.functions.setTransferable(bool(form.transferable.data)).transact(
+            tmpVal = True
+            if form.transferable.data == 'False':
+                tmpVal = False
+            gas = TokenContract.estimateGas().setTransferable(tmpVal)
+            txid = TokenContract.functions.setTransferable(tmpVal).transact(
                 {'from':Config.ETH_ACCOUNT, 'gas':gas}
             )
         if form.image_small.data != image_small:
@@ -374,6 +377,9 @@ def issue():
     if request.method == 'POST':
         if form.validate():
             web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
+            tmpVal = True
+            if form.transferable.data == 'False':
+                tmpVal = False
             arguments = [
                 form.name.data,
                 form.symbol.data,
@@ -382,7 +388,7 @@ def issue():
                 form.returnDetails.data,
                 form.expirationDate.data,
                 form.memo.data,
-                bool(form.transferable.data)
+                tmpVal
             ]
             _, bytecode, bytecode_runtime = Contract.get_contract_info('IbetMembership')
             contract_address, abi, tx_hash = Contract.deploy_contract(
