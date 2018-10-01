@@ -443,18 +443,15 @@ def issue():
 @membership.route('/positions', methods=['GET'])
 @login_required
 def positions():
-    logger.info('positions')
+    logger.info('membership/positions')
 
     # 自社が発行したトークンの一覧を取得
     tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
 
     # Exchangeコントラクトに接続
-    token_exchange_address = to_checksum_address(Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS)
+    token_exchange_address = to_checksum_address(Config.IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS)
     ExchangeContract = Contract.get_contract(
-        'IbetStraightBondExchange', token_exchange_address)
-    # token_exchange_address = to_checksum_address(Config.IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS)
-    # ExchangeContract = Contract.get_contract(
-    #     'IbetMembershipExchange', token_exchange_address)
+        'IbetMembershipExchange', token_exchange_address)
 
     position_list = []
     for row in tokens:
