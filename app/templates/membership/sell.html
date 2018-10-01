@@ -6,12 +6,12 @@
 {% endblock %}
 {% set active_page = "token_position" %}
 
-{% block title %}債券新規募集 - {% endblock %}
+{% block title %}新規募集 - {% endblock %}
 {% block page_header %}新規募集{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
     <li><a href="{{ url_for('index.index') }}">トップ</a></li>
-    <li class="active">債券新規募集</li>
+    <li class="active">新規募集</li>
 {% endblock %}
 
 {% block page_content %}
@@ -20,7 +20,7 @@
         <div class="box-header with-border">
             <h3 class="box-title">{{ token_name }} <small>{{ token_address }}</small></h3>
         </div>
-        <form class="form-horizontal" method="POST" role="form" action="{{ url_for('token.sell', token_address=form.token_address.data) }}">
+        <form class="form-horizontal" method="POST" role="form" action="{{ url_for('membership.sell', token_address=form.token_address.data) }}">
             {{ form.csrf_token }}
             <div class="box-body">
                 <div class="form-group">
@@ -38,7 +38,7 @@
     </div>
     <div class="box box-default box-solid">
         <div class="box-header with-border">
-            <h3 class="box-title">債券詳細</h3>
+            <h3 class="box-title">会員権詳細</h3>
         </div>
         <div class="box-body">
             <table id="data_table" class="table table-bordered table-hover">
@@ -49,38 +49,19 @@
                         <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.totalSupply.label }}</td><td class="col-md-2" >{{ form.totalSupply.data }}</td>
                     </tr>
                     <tr>
-                        <td style="background-color:#f7f7f7;">{{ form.faceValue.label }}</td><td>{{ form.faceValue.data }}</td>
-                        <td style="background-color:#f7f7f7;">{{ form.interestRate.label }}</td><td colspan="3">{{ form.interestRate.data }}</td>
+                        <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.details.label }}</td><td class="col-md-2" >{{ form.details.data }}</td>
+                        <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.returnDetails.label }}</td><td class="col-md-2" >{{ form.returnDetails.data }}</td>
+                        <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.expirationDate.label }}</td><td class="col-md-2" >{{ form.expirationDate.data }}</td>
                     </tr>
                     <tr>
-                        <td style="background-color:#f7f7f7;">{{ form.interestPaymentDate1.label }}</td><td>{{ form.interestPaymentDate1.data }}</td>
-                        <td style="background-color:#f7f7f7;">{{ form.interestPaymentDate2.label }}</td><td>{{ form.interestPaymentDate2.data }}</td>
-                        <td style="background-color:#f7f7f7;">{{ form.interestPaymentDate3.label }}</td><td>{{ form.interestPaymentDate3.data }}</td>
-                    </tr>
-                    <tr>
-                        <td style="background-color:#f7f7f7;">{{ form.interestPaymentDate4.label }}</td><td>{{ form.interestPaymentDate4.data }}</td>
-                        <td style="background-color:#f7f7f7;">{{ form.interestPaymentDate5.label }}</td><td>{{ form.interestPaymentDate5.data }}</td>
-                        <td style="background-color:#f7f7f7;">{{ form.interestPaymentDate6.label }}</td><td>{{ form.interestPaymentDate6.data }}</td>
-                    </tr>
-                    <tr>
-                        <td style="background-color:#f7f7f7;">{{ form.interestPaymentDate7.label }}</td><td>{{ form.interestPaymentDate7.data }}</td>
-                        <td style="background-color:#f7f7f7;">{{ form.interestPaymentDate8.label }}</td><td>{{ form.interestPaymentDate8.data }}</td>
-                        <td style="background-color:#f7f7f7;">{{ form.interestPaymentDate9.label }}</td><td>{{ form.interestPaymentDate9.data }}</td>
-                    </tr>
-                    <tr>
-                        <td style="background-color:#f7f7f7;">{{ form.interestPaymentDate10.label }}</td><td>{{ form.interestPaymentDate10.data }}</td>
-                        <td style="background-color:#f7f7f7;">{{ form.interestPaymentDate11.label }}</td><td>{{ form.interestPaymentDate11.data }}</td>
-                        <td style="background-color:#f7f7f7;">{{ form.interestPaymentDate12.label }}</td><td>{{ form.interestPaymentDate12.data }}</td>
-                    </tr>
-                    <tr>
-                        <td style="background-color:#f7f7f7;">{{ form.redemptionDate.label }}</td><td>{{ form.redemptionDate.data }}</td>
-                        <td style="background-color:#f7f7f7;">{{ form.redemptionAmount.label }}</td><td>{{ form.redemptionAmount.data }}</td>
-                        <td style="background-color:#f7f7f7;">{{ form.returnDate.label }}</td><td>{{ form.returnDate.data }}</td>
-                    </tr>
-                    <tr>
-                        <td style="background-color:#f7f7f7;">{{ form.returnAmount.label }}</td><td>{{ form.returnAmount.data }}</td>
-                        <td style="background-color:#f7f7f7;">{{ form.purpose.label }}</td><td>{{ form.purpose.data }}</td>
-                        <td style="background-color:#f7f7f7;">{{ form.memo.label }}</td><td>{{ form.memo.data }}</td>
+                        <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.memo.label }}</td><td class="col-md-2" >{{ form.memo.data }}</td>
+                        <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.transferable.label }}</td>
+                        {% if form.transferable.data %}
+                            <td class="col-md-2" >あり</td>
+                        {% else %}
+                            <td class="col-md-2" >なし</td>
+                        {% endif %}
+                        <td class="col-md-2" style="background-color:#f7f7f7;"></td><td class="col-md-2" ></td>
                     </tr>
                 </tbody>
             </table>
