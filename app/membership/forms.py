@@ -76,8 +76,7 @@ class CancelOrderForm(Form):
     symbol = StringField("略称", validators=[])
     totalSupply = IntegerField("総発行量", validators=[])
     amount = IntegerField("募集中数量（残注文数量）", validators=[])
-    faceValue = IntegerField("額面", validators=[])
-    price = IntegerField("売出価格（額面当り）", validators=[])
+    price = IntegerField("売出価格", validators=[])
     submit = SubmitField('募集停止')
 
     def __init__(self, cancel_order=None, *args, **kwargs):

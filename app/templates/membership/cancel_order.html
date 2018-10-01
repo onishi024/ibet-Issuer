@@ -4,14 +4,14 @@
   <!-- DataTables -->
   <link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
 {% endblock %}
-{% set active_page = "token_position" %}
+{% set active_page = "membership_position" %}
 
-{% block title %}債券募集停止 - {% endblock %}
+{% block title %}募集停止 - {% endblock %}
 {% block page_header %}募集停止{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
     <li><a href="{{ url_for('index.index') }}">トップ</a></li>
-    <li class="active">債券募集停止</li>
+    <li class="active">募集停止</li>
 {% endblock %}
 
 {% block page_content %}
@@ -20,7 +20,7 @@
         <div class="box-header with-border">
             <h3 class="box-title">募集情報　<small>{{ form.token_address.data }}</small></h3>
         </div>
-        <form class="form-horizontal" method="POST" role="form" action="{{ url_for('token.cancel_order', order_id=form.order_id.data) }}">
+        <form class="form-horizontal" method="POST" role="form" action="{{ url_for('membership.cancel_order', order_id=form.order_id.data) }}">
               {{ form.csrf_token }}
               <div class="box-body">
                 <div class="form-group">
@@ -54,12 +54,6 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    {{ form.faceValue.label(class="col-md-3") }}
-                    <div class="col-md-4">
-                        {{ form.faceValue.data }} 円
-                    </div>
-                </div>
-                <div class="form-group">
                     {{ form.price.label(class="col-md-3") }}
                     <div class="col-md-4">
                         {{ form.price.data }} 円
@@ -67,7 +61,7 @@
                 </div>
               </div>
               <div class="box-footer">
-                  <button type="button" class="btn btn-default" onclick="location.href= '{{ url_for("token.positions") }}'">キャンセル</button>
+                  <button type="button" class="btn btn-default" onclick="location.href= '{{ url_for("membership.positions") }}'">キャンセル</button>
                   {{ form.submit(class="btn btn-danger") }}
               </div>
           </form>

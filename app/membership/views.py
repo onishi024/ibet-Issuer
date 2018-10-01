@@ -612,18 +612,18 @@ def sell(token_address):
         )
 
 ####################################################
-# 債券売出停止
+# 売出停止
 ####################################################
 @membership.route('/cancel_order/<int:order_id>', methods=['GET', 'POST'])
 @login_required
 def cancel_order(order_id):
-    logger.info('cancel_order')
+    logger.info('membership/cancel_order')
     form = CancelOrderForm()
 
     # Exchangeコントラクトに接続
-    token_exchange_address = to_checksum_address(Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS)
+    token_exchange_address = to_checksum_address(Config.IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS)
     ExchangeContract = Contract.get_contract(
-        'IbetStraightBondExchange', token_exchange_address)
+        'IbetMembershipExchange', token_exchange_address)
 
     # 注文情報を取得する
     orderBook = ExchangeContract.functions.orderBook(order_id).call()
@@ -645,7 +645,6 @@ def cancel_order(order_id):
     name = TokenContract.functions.name().call()
     symbol = TokenContract.functions.symbol().call()
     totalSupply = TokenContract.functions.totalSupply().call()
-    faceValue = TokenContract.functions.faceValue().call()
 
     if request.method == 'POST':
         if form.validate():
@@ -665,7 +664,6 @@ def cancel_order(order_id):
         form.symbol.data = symbol
         form.totalSupply.data = totalSupply
         form.amount.data = amount
-        form.faceValue.data = faceValue
         form.price.data = price
         return render_template('token/cancel_order.html', form=form)
 
