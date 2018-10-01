@@ -139,7 +139,7 @@ def holder(token_address, account_address):
 @membership.route('/setting/<string:token_address>', methods=['GET', 'POST'])
 @login_required
 def setting(token_address):
-    logger.info('token.setting')
+    logger.info('membership.setting')
     token = Token.query.filter(Token.token_address==token_address).first()
     token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
 
@@ -161,6 +161,7 @@ def setting(token_address):
     image_medium = TokenContract.functions.getImageURL(1).call()
     image_large = TokenContract.functions.getImageURL(2).call()
 
+    logger.info('transferable')
     logger.info(transferable)
 
     form = SettingForm()
@@ -187,9 +188,9 @@ def setting(token_address):
             txid = TokenContract.functions.setMemo(form.memo.data).transact(
                 {'from':Config.ETH_ACCOUNT, 'gas':gas}
             )
+        logger.info('form.transferable.data')
+        logger.info(form.transferable.data)
         if form.transferable.data != transferable:
-            logger.info('form.transferable.data')
-            logger.info(form.transferable.data)
             gas = TokenContract.estimateGas().setTransferable(form.transferable.data)
             txid = TokenContract.functions.setTransferable(form.transferable.data).transact(
                 {'from':Config.ETH_ACCOUNT, 'gas':gas}
