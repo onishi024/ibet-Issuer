@@ -526,7 +526,7 @@ def positions():
 @membership.route('/sell/<string:token_address>', methods=['GET', 'POST'])
 @login_required
 def sell(token_address):
-    logger.info('sell')
+    logger.info('membership/sell')
     form = SellForm()
 
     token = Token.query.filter(Token.token_address==token_address).first()
