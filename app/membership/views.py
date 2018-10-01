@@ -166,7 +166,7 @@ def setting(token_address):
     testbool = 'False'
     logger.info('testbool')
     logger.info(testbool)
-    logger.info(bool(testbool)
+    logger.info(bool(testbool))
     logger.info('testbool-----------------')
 
     form = SettingForm()
