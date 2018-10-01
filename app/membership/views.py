@@ -155,7 +155,7 @@ def setting(token_address):
     returnDetails = TokenContract.functions.returnDetails().call()
     expirationDate = TokenContract.functions.expirationDate().call()
     memo = TokenContract.functions.memo().call()
-    transferable = TokenContract.functions.transferable().call()
+    transferable = str(TokenContract.functions.transferable().call())
     status = TokenContract.functions.status().call()
     image_small = TokenContract.functions.getImageURL(0).call()
     image_medium = TokenContract.functions.getImageURL(1).call()
@@ -191,8 +191,8 @@ def setting(token_address):
         logger.info('form.transferable.data')
         logger.info(form.transferable.data)
         if form.transferable.data != transferable:
-            gas = TokenContract.estimateGas().setTransferable(form.transferable.data)
-            txid = TokenContract.functions.setTransferable(form.transferable.data).transact(
+            gas = TokenContract.estimateGas().setTransferable(bool(form.transferable.data))
+            txid = TokenContract.functions.setTransferable(bool(form.transferable.data).transact(
                 {'from':Config.ETH_ACCOUNT, 'gas':gas}
             )
         if form.image_small.data != image_small:
@@ -377,7 +377,7 @@ def issue():
                 form.returnDetails.data,
                 form.expirationDate.data,
                 form.memo.data,
-                form.transferable.data
+                bool(form.transferable.data)
             ]
             _, bytecode, bytecode_runtime = Contract.get_contract_info('IbetMembership')
             contract_address, abi, tx_hash = Contract.deploy_contract(
