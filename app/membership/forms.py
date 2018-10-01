@@ -23,7 +23,7 @@ class IssueForm(Form):
     def __init__(self, issue_data=None, *args, **kwargs):
         super(IssueForm, self).__init__(*args, **kwargs)
         self.issue_data = issue_data
-        self.transferable.choices = [(True, 'あり'), (False, 'なし')]
+        self.transferable.choices = [('True', 'あり'), ('False', 'なし')]
 
 class SettingForm(Form):
     token_address = StringField("トークンアドレス", validators=[])
