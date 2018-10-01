@@ -16,7 +16,7 @@ class IssueCouponForm(Form):
     details = TextAreaField("クーポン詳細", validators=[])
     isValid = TextAreaField("有効/無効", validators=[])
     memo = TextAreaField("メモ", validators=[])
-    transferable = SelectField('譲渡制限', coerce=bool)
+    transferable = SelectField('譲渡制限', coerce=str, default='False')
     image_small = StringField("商品画像（小）URL", validators=[])
     image_medium = StringField("商品画像（中）URL", validators=[])
     image_large = StringField("商品画像（大）URL", validators=[])
@@ -27,7 +27,7 @@ class IssueCouponForm(Form):
     def __init__(self, issue_coupon=None, *args, **kwargs):
         super(IssueCouponForm, self).__init__(*args, **kwargs)
         self.issue_coupon = issue_coupon
-        self.transferable.choices = [(True, 'あり'), (False, 'なし')]
+        self.transferable.choices = [('True', 'あり'), ('False', 'なし')]
 
 class AddSupplyForm(Form):
     token_address = StringField("トークンアドレス", validators=[])

@@ -120,6 +120,9 @@ def issue():
         if form.validate():
             ####### トークン発行処理 #######
             web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
+            tmpVal = True
+            if form.transferable.data == 'False':
+                tmpVal = False
 
             arguments = [
                 form.name.data,
@@ -128,7 +131,7 @@ def issue():
                 form.details.data,
                 form.memo.data,
                 form.expirationDate.data,
-                form.transferable.data
+                tmpVal
             ]
             _, bytecode, bytecode_runtime = Contract.get_contract_info('IbetCoupon')
             contract_address, abi, tx_hash = Contract.deploy_contract(
@@ -244,7 +247,7 @@ def setting(token_address):
     memo = TokenContract.functions.memo().call()
     expirationDate = TokenContract.functions.expirationDate().call()
     isValid = TokenContract.functions.isValid().call()
-    transferable = TokenContract.functions.transferable().call()
+    transferable = str(TokenContract.functions.transferable().call())
     image_small = TokenContract.functions.getImageURL(0).call()
     image_medium = TokenContract.functions.getImageURL(1).call()
     image_large = TokenContract.functions.getImageURL(2).call()
