@@ -556,7 +556,7 @@ def sell(token_address):
             agent_account = to_checksum_address(Config.AGENT_ADDRESS)
 
             web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
-            token_exchange_address = to_checksum_address(Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS)
+            token_exchange_address = to_checksum_address(Config.IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS)
             agent_address = to_checksum_address(Config.AGENT_ADDRESS)
 
             deposit_gas = TokenContract.estimateGas().transfer(token_exchange_address, balance)
@@ -575,7 +575,7 @@ def sell(token_address):
                     break
 
             ExchangeContract = Contract.get_contract(
-                'IbetStraightBondExchange', token_exchange_address)
+                'IbetMembershipExchange', token_exchange_address)
 
             sell_gas = ExchangeContract.estimateGas().\
                 createOrder(token_address, balance, form.sellPrice.data, False, agent_address)
