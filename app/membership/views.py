@@ -245,7 +245,8 @@ def setting(token_address):
             'membership/setting.html',
             form=form,
             token_address = token_address,
-            token_name = name
+            token_name = name,
+            isRelease = isRelease
         )
 
 ####################################################
