@@ -49,12 +49,16 @@
                         <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.totalSupply.label }}</td><td class="col-md-2" >{{ form.totalSupply.data }}</td>
                     </tr>
                     <tr>
-                        <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.details.label }}</td><td class="col-md-2" >{{ form.details.data }}</td>
-                        <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.returnDetails.label }}</td><td class="col-md-2" >{{ form.returnDetails.data }}</td>
-                        <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.expirationDate.label }}</td><td class="col-md-2" >{{ form.expirationDate.data }}</td>
+                        <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.details.label }}</td><td class="col-md-10" >{{ form.details.data }}</td>
                     </tr>
                     <tr>
-                        <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.memo.label }}</td><td class="col-md-2" >{{ form.memo.data }}</td>
+                        <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.returnDetails.label }}</td><td class="col-md-10" >{{ form.returnDetails.data }}</td>
+                    </tr>
+                    <tr>
+                        <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.memo.label }}</td><td class="col-md-10" >{{ form.memo.data }}</td>
+                    </tr>
+                    <tr>
+                        <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.expirationDate.label }}</td><td class="col-md-2" >{{ form.expirationDate.data }}</td>
                         <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.transferable.label }}</td>
                         {% if form.transferable.data %}
                             <td class="col-md-2" >あり</td>
