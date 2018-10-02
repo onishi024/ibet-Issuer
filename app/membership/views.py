@@ -86,6 +86,7 @@ def list():
             symbol = '<処理中>'
             status = '<処理中>'
             totalSupply = '<処理中>'
+            token_address = '<処理中>'
         else:
             # Token-Contractへの接続
             TokenContract = web3.eth.contract(
@@ -99,13 +100,14 @@ def list():
             symbol = TokenContract.functions.symbol().call()
             status = TokenContract.functions.status().call()
             totalSupply = TokenContract.functions.totalSupply().call()
+            token_address = row.token_address
 
         token_list.append({
             'name':name,
             'symbol':symbol,
             'created':row.created,
             'tx_hash':row.tx_hash,
-            'token_address':row.token_address,
+            'token_address':token_address,
             'totalSupply':totalSupply,
             'status':status
         })
