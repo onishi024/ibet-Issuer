@@ -21,8 +21,8 @@
             <h3 class="box-title">{{ token_name }}　<small>{{ token_address }}</small></h3>
             <div class="pull-right box-tools">
                 <button id="release" class="btn btn-warning" type="button" style="width: 150px">公開 <i class="fa fa-arrow-circle-right"></i></button>
+                <button type="button" class="btn btn-success" style="width: 150px" onclick="location.href='{{ url_for("membership.add_supply", token_address=token_address)}}'">追加発行 <i class="fa fa-arrow-circle-right"></i></button>
                 {% if form.status.data %}
-                    <button type="button" class="btn btn-success" style="width: 150px" onclick="location.href='{{ url_for("membership.add_supply", token_address=token_address)}}'">追加発行 <i class="fa fa-arrow-circle-right"></i></button>
                     <button id="invalid" type="button" class="btn btn-danger" style="width: 150px">取扱停止 <i class="fa fa-arrow-circle-right"></i></button>
                 {% else %}
                     <button id="valid" type="button" class="btn btn-success" style="width: 150px">取扱開始 <i class="fa fa-arrow-circle-right"></i></button>
@@ -143,8 +143,22 @@
               return false;
           }
       });
-      $('#redeem').click(function(){
+      $('#invalid').click(function(){
           if (confirm('この商品を取扱停止します。よろしいですか？')) {
+              var $form = $('<form/>',
+                  {'action': "{{ url_for('token.redeem') }}", 'method': 'POST'}
+              );
+              $form.append($('<input/>',
+                  {'type': 'hidden', 'name': 'token_address', 'value': '{{ form.token_address.data }}'}
+              ));
+              $form.appendTo(document.body);
+              $form.submit();
+          } else {
+              return false;
+          }
+      });
+      $('#valid').click(function(){
+          if (confirm('この商品を取扱を再開します。よろしいですか？')) {
               var $form = $('<form/>',
                   {'action': "{{ url_for('token.redeem') }}", 'method': 'POST'}
               );

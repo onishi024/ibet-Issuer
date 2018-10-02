@@ -245,77 +245,12 @@ def setting(token_address):
         )
 
 ####################################################
-# 認定申請
-####################################################
-@membership.route('/request_signature/<string:token_address>', methods=['GET','POST'])
-@login_required
-def request_signature(token_address):
-    logger.info('token.request_signature')
-
-    token = Token.query.filter(Token.token_address==token_address).first()
-    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
-
-    TokenContract = web3.eth.contract(
-        address= token.token_address,
-        abi = token_abi
-    )
-
-    web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
-
-    form = RequestSignatureForm()
-
-    if request.method == 'POST':
-        if form.validate():
-
-            # 指定した認定者のアドレスが有効なアドレスであるかどうかをチェックする
-            if not Web3.isAddress(form.signer.data):
-                flash('有効なアドレスではありません。','error')
-                return render_template('token/request_signature.html', form=form)
-
-            signer_address = to_checksum_address(form.signer.data)
-
-            # DBに既に情報が登録されている場合はエラーを返す
-            if Certification.query.filter(
-                Certification.token_address==token_address,
-                Certification.signer==signer_address).count() > 0:
-                flash('既に情報が登録されています。', 'error')
-                return render_template('membership/request_signature.html', form=form)
-
-            # コントラクトに情報を登録する
-            try:
-                gas = TokenContract.estimateGas().requestSignature(signer_address)
-                txid = TokenContract.functions.\
-                    requestSignature(signer_address).\
-                    transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
-            except ValueError:
-                flash('処理に失敗しました。', 'error')
-                return render_template('membership/request_signature.html', form=form)
-
-            # DBに情報を登録する
-            certification = Certification()
-            certification.token_address = token_address
-            certification.signer = signer_address
-            db.session.add(certification)
-
-            flash('認定依頼を受け付けました。', 'success')
-            return redirect(url_for('.setting', token_address=token_address))
-
-        else: # Validation Error
-            flash_errors(form)
-            return render_template('membership/request_signature.html', form=form)
-
-    else: #GET
-        form.token_address.data = token_address
-        form.signer.data = ''
-        return render_template('membership/request_signature.html', form=form)
-
-####################################################
 # 債券公開
 ####################################################
 @membership.route('/release', methods=['POST'])
 @login_required
 def release():
-    logger.info('token.release')
+    logger.info('membership/release')
     token_address = request.form.get('token_address')
 
     list_contract_address = Config.TOKEN_LIST_CONTRACT_ADDRESS
@@ -325,8 +260,8 @@ def release():
     web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
 
     try:
-        gas = ListContract.estimateGas().register(token_address, 'IbetStraightBond')
-        register_txid = ListContract.functions.register(token_address, 'IbetStraightBond').\
+        gas = ListContract.estimateGas().register(token_address, 'IbetMembership')
+        register_txid = ListContract.functions.register(token_address, 'IbetMembership').\
             transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
     except ValueError:
         flash('既に公開されています。', 'error')
