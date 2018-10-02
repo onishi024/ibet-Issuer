@@ -28,6 +28,7 @@
     			<th>略称</th>
     			<th>登録日時</th>
           <th>アドレス</th>
+          <th>受付ID</th>
           <th style="width: 70px">取扱</th>
           <th></th>
     		</tr>
@@ -43,6 +44,9 @@
           <td>{{ token.symbol }}</td>
     			<td>{{ token.created | format_date }}</td>
           <td style="word-break : break-all;">{{token.token_address}}</td>
+          <td align="center">
+            <button type="button" class="btn btn-default btn-sm" onclick="viewTxHash('{{token.tx_hash}}')">表示</button>
+          </td>
           {% if token.status == true %}
             <td align="center"><span class="badge bg-green">取扱中</span></td>
           {% elif token.status == false %}
