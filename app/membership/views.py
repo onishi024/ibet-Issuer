@@ -161,14 +161,18 @@ def setting(token_address):
     image_medium = TokenContract.functions.getImageURL(1).call()
     image_large = TokenContract.functions.getImageURL(2).call()
 
-    logger.info('transferable')
-    logger.info(transferable)
-    testbool = 'False'
-    logger.info('testbool')
-    logger.info(testbool)
-    logger.info(bool(testbool))
-    logger.info('testbool-----------------')
+    # token listに登録中か？
+    list_contract_address = Config.TOKEN_LIST_CONTRACT_ADDRESS
+    ListContract = Contract.get_contract(
+        'TokenList', list_contract_address)
+    token_struct = ListContract.functions.getTokenByAddress(token_address).call()
 
+    logger.info(token_struct)
+
+    bool isRelease = False
+    if token_struct[0] == token_address:
+        isRelease = True
+    
     form = SettingForm()
 
     if request.method == 'POST':
