@@ -169,7 +169,7 @@ def setting(token_address):
 
     logger.info(token_struct)
 
-    bool isRelease = False
+    isRelease = False
     if token_struct[0] == token_address:
         isRelease = True
     
