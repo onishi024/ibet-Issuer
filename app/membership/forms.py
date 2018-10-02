@@ -23,7 +23,7 @@ class IssueForm(Form):
     def __init__(self, issue_data=None, *args, **kwargs):
         super(IssueForm, self).__init__(*args, **kwargs)
         self.issue_data = issue_data
-        self.transferable.choices = [('True', 'あり'), ('False', 'なし')]
+        self.transferable.choices = [('True', 'なし'), ('False', 'あり')]
 
 class SettingForm(Form):
     token_address = StringField("トークンアドレス", validators=[])
@@ -47,7 +47,7 @@ class SettingForm(Form):
     def __init__(self, token_setting=None, *args, **kwargs):
         super(SettingForm, self).__init__(*args, **kwargs)
         self.token_setting = token_setting
-        self.transferable.choices = [('True', 'あり'), ('False', 'なし')]
+        self.transferable.choices = [('True', 'なし'), ('False', 'あり')]
 
 class SellForm(Form):
     token_address = StringField("トークンアドレス", validators=[])

@@ -123,7 +123,7 @@ class TestCoupon(TestBase):
         assert 'COUPON'.encode('utf-8') in response.data
         assert '2000000'.encode('utf-8') in response.data
         assert '20191231'.encode('utf-8') in response.data
-        assert '<option selected value="True">あり</option>'.encode('utf-8') in response.data
+        assert '<option selected value="True">なし</option>'.encode('utf-8') in response.data
         assert 'details詳細'.encode('utf-8') in response.data
         assert 'memoメモ'.encode('utf-8') in response.data
         assert 'https://test.com/image_small.jpg'.encode('utf-8') in response.data
@@ -170,7 +170,7 @@ class TestCoupon(TestBase):
         assert 'COUPON'.encode('utf-8') in response.data
         assert '2000000'.encode('utf-8') in response.data
         assert '20191231'.encode('utf-8') in response.data
-        assert '<option selected value="True">あり</option>'.encode('utf-8') in response.data
+        assert '<option selected value="True">なし</option>'.encode('utf-8') in response.data
         assert 'details詳細2'.encode('utf-8') in response.data
         assert 'memoメモ2'.encode('utf-8') in response.data
         assert 'https://test.com/image_small2.jpg'.encode('utf-8') in response.data
@@ -256,7 +256,7 @@ class TestCoupon(TestBase):
         assert 'COUPON'.encode('utf-8') in response.data
         assert '2000100'.encode('utf-8') in response.data
         assert '20191231'.encode('utf-8') in response.data
-        assert '<option selected value="True">あり</option>'.encode('utf-8') in response.data
+        assert '<option selected value="True">なし</option>'.encode('utf-8') in response.data
         assert 'details詳細2'.encode('utf-8') in response.data
         assert 'memoメモ2'.encode('utf-8') in response.data
         assert 'https://test.com/image_small2.jpg'.encode('utf-8') in response.data

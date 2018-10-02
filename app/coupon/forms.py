@@ -27,7 +27,7 @@ class IssueCouponForm(Form):
     def __init__(self, issue_coupon=None, *args, **kwargs):
         super(IssueCouponForm, self).__init__(*args, **kwargs)
         self.issue_coupon = issue_coupon
-        self.transferable.choices = [('True', 'あり'), ('False', 'なし')]
+        self.transferable.choices = [('True', 'なし'), ('False', 'あり')]
 
 class AddSupplyForm(Form):
     token_address = StringField("トークンアドレス", validators=[])
