@@ -102,6 +102,7 @@ def list():
             'name':name,
             'symbol':symbol,
             'is_valid':is_valid,
+            'tx_hash':row.tx_hash,
             'created':row.created,
             'token_address':token_address
         })
