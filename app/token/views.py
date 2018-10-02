@@ -98,21 +98,21 @@ def list():
             # Token-Contractから情報を取得する
             name = TokenContract.functions.name().call()
             symbol = TokenContract.functions.symbol().call()
+            is_redeemed = TokenContract.functions.isRedeemed().call()
+            # # 償還（Redeem）のイベント情報を検索する
+            # event_filter_redeem = TokenContract.eventFilter(
+            #     'Redeem', {
+            #         'filter':{},
+            #         'fromBlock':'earliest'
+            #     }
+            # )
+            # try:
+            #     entries_redeem = event_filter_redeem.get_all_entries()
+            # except:
+            #     entries_redeem = []
 
-            # 償還（Redeem）のイベント情報を検索する
-            event_filter_redeem = TokenContract.eventFilter(
-                'Redeem', {
-                    'filter':{},
-                    'fromBlock':'earliest'
-                }
-            )
-            try:
-                entries_redeem = event_filter_redeem.get_all_entries()
-            except:
-                entries_redeem = []
-
-            if len(entries_redeem) > 0:
-                is_redeemed = True
+            # if len(entries_redeem) > 0:
+            #     is_redeemed = True
 
             # 第三者認定（Sign）のイベント情報を検索する
             event_filter_sign = TokenContract.eventFilter(
