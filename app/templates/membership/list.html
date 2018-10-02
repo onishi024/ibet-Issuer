@@ -42,7 +42,7 @@
           {% endif %}
           <td>{{ token.symbol }}</td>
     			<td>{{ token.created | format_date }}</td>
-          <td>{{token.token_address}}</td>
+          <td style="word-break : break-all;">{{token.token_address}}</td>
           {% if token.status == true %}
             <td align="center"><span class="badge bg-green">取扱中</span></td>
           {% elif token.status == false %}
