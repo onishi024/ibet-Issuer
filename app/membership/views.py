@@ -166,9 +166,6 @@ def setting(token_address):
     ListContract = Contract.get_contract(
         'TokenList', list_contract_address)
     token_struct = ListContract.functions.getTokenByAddress(token_address).call()
-
-    logger.info(token_struct)
-
     isRelease = False
     if token_struct[0] == token_address:
         isRelease = True
@@ -273,7 +270,7 @@ def release():
         return redirect(url_for('.setting', token_address=token_address))
 
     flash('公開中です。公開開始までに数分程かかることがあります。', 'success')
-    return redirect(url_for('.setting', token_address=token_address))
+    return redirect(url_for('.list'))
 
 ####################################################
 # 債券償還

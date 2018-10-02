@@ -199,6 +199,15 @@ def setting(token_address):
     image_medium = TokenContract.functions.getImageURL(1).call()
     image_large = TokenContract.functions.getImageURL(2).call()
 
+    # token listに登録中か？
+    list_contract_address = Config.TOKEN_LIST_CONTRACT_ADDRESS
+    ListContract = Contract.get_contract(
+        'TokenList', list_contract_address)
+    token_struct = ListContract.functions.getTokenByAddress(token_address).call()
+    isRelease = False
+    if token_struct[0] == token_address:
+        isRelease = True
+
     form = TokenSettingForm()
 
     if request.method == 'POST':
@@ -267,7 +276,8 @@ def setting(token_address):
             'token/setting.html',
             form=form,
             token_address = token_address,
-            token_name = name
+            token_name = name,
+            isRelease = isRelease
         )
 
 ####################################################
@@ -359,7 +369,7 @@ def release():
         return redirect(url_for('.setting', token_address=token_address))
 
     flash('公開中です。公開開始までに数分程かかることがあります。', 'success')
-    return redirect(url_for('.setting', token_address=token_address))
+    return redirect(url_for('.list'))
 
 ####################################################
 # 債券償還
