@@ -247,7 +247,7 @@ def setting(token_address):
         )
 
 ####################################################
-# 債券公開
+# 公開
 ####################################################
 @membership.route('/release', methods=['POST'])
 @login_required
@@ -271,37 +271,6 @@ def release():
 
     flash('公開中です。公開開始までに数分程かかることがあります。', 'success')
     return redirect(url_for('.list'))
-
-####################################################
-# 債券償還
-####################################################
-@membership.route('/redeem', methods=['POST'])
-@login_required
-def redeem():
-    logger.info('token.redeem')
-
-    token_address = request.form.get('token_address')
-
-    token = Token.query.filter(Token.token_address==token_address).first()
-    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
-
-    TokenContract = web3.eth.contract(
-        address= to_checksum_address(token.token_address),
-        abi = token_abi
-    )
-
-    web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
-
-    try:
-        gas = TokenContract.estimateGas().redeem()
-        txid = TokenContract.functions.redeem().\
-            transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
-    except ValueError:
-        flash('償還処理に失敗しました。', 'error')
-        return redirect(url_for('.setting', token_address=token_address))
-
-    flash('償還処理中です。完了までに数分程かかることがあります。', 'success')
-    return redirect(url_for('.setting', token_address=token_address))
 
 ####################################################
 # 新規発行
@@ -652,6 +621,42 @@ def add_supply(token_address):
             token_address = token_address,
             token_name = name
         )
+
+####################################################
+# 有効化/無効化
+####################################################
+@membership.route('/valid', methods=['POST'])
+@login_required
+def valid():
+    logger.info('membership/valid')
+    membership_valid(request.form.get('token_address'), True)
+    return redirect(url_for('.list'))
+
+@membership.route('/invalid', methods=['POST'])
+@login_required
+def invalid():
+    logger.info('membership/invalid')
+    membership_valid(request.form.get('token_address'), False)
+    return redirect(url_for('.list'))
+
+def membership_valid(token_address, isvalid):
+    token = Token.query.filter(Token.token_address==token_address).first()
+    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+
+    owner = to_checksum_address(Config.ETH_ACCOUNT)
+    TokenContract = web3.eth.contract(
+        address= token.token_address,
+        abi = token_abi
+    )
+    web3.personal.unlockAccount(owner,Config.ETH_ACCOUNT_PASSWORD,1000)
+
+    gas = TokenContract.estimateGas().updateStatus(isvalid)
+    tx = TokenContract.functions.updateStatus(isvalid).\
+                transact({'from':owner, 'gas':gas})
+
+    wait_transaction_receipt(tx)
+
+    flash('処理を受け付けました。完了までに数分程かかることがあります。', 'success')
 
 ####################################################
 # 権限エラー
