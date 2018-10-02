@@ -640,14 +640,14 @@ def add_supply(token_address):
         else:
             flash_errors(form)
             return render_template(
-                'coupon/add_supply.html',
+                'membership/add_supply.html',
                 form = form,
                 token_address = token_address,
                 token_name = name
             )
     else: # GET
         return render_template(
-            'coupon/add_supply.html',
+            'membership/add_supply.html',
             form = form,
             token_address = token_address,
             token_name = name

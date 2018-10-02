@@ -72,7 +72,7 @@ class SellForm(Form):
 class CancelOrderForm(Form):
     order_id = IntegerField("注文ID", validators=[])
     token_address = StringField("トークンアドレス", validators=[])
-    name = StringField("商品名", validators=[])
+    name = StringField("名称", validators=[])
     symbol = StringField("略称", validators=[])
     totalSupply = IntegerField("総発行量", validators=[])
     amount = IntegerField("募集中数量（残注文数量）", validators=[])
@@ -83,11 +83,13 @@ class CancelOrderForm(Form):
         super(CancelOrderForm, self).__init__(*args, **kwargs)
         self.sell_token = cancel_order
 
-class RequestSignatureForm(Form):
-    token_address = HiddenField("トークンアドレス", validators=[Required('トークンアドレスは必須です。')])
-    signer = StringField("認定者", validators=[Required('認定者は必須です。')])
-    submit = SubmitField('認定依頼')
+class AddSupplyForm(Form):
+    token_address = StringField("トークンアドレス", validators=[])
+    name = StringField("名称", validators=[])
+    totalSupply = IntegerField("総発行量", validators=[])
+    addSupply = IntegerField("追加発行する数量", validators=[Required('追加発行する数量は必須です。')])
+    submit = SubmitField('追加発行')
 
-    def __init__(self, request_signature=None, *args, **kwargs):
-        super(RequestSignatureForm, self).__init__(*args, **kwargs)
-        self.request_signature = request_signature
+    def __init__(self, issue=None, *args, **kwargs):
+        super(AddSupplyForm, self).__init__(*args, **kwargs)
+        self.issue = issue
