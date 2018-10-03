@@ -197,17 +197,13 @@ def coupon_exchange_contract():
 
     return {'address':contract_address, 'abi':abi}
 
-def membership_exchange_contract(whitelist_address):
+def membership_exchange_contract():
     deployer = eth_account['deployer']
     web3.eth.defaultAccount = deployer['account_address']
     web3.personal.unlockAccount(deployer['account_address'],deployer['password'])
 
-    args = [
-        whitelist_address
-    ]
-
     contract_address, abi, _ = Contract.deploy_contract(
-        'IbetMembershipExchange', args, deployer['account_address'])
+        'IbetMembershipExchange', [], deployer['account_address'])
 
     return {'address':contract_address, 'abi':abi}
 
@@ -217,7 +213,7 @@ def shared_contract():
     white_list = whitelist_contract()
     personal_info = personalinfo_contract()
     bond_exchange = bond_exchange_contract(white_list['address'], personal_info['address'])
-    membership_exchange = membership_exchange_contract(white_list['address'])
+    membership_exchange = membership_exchange_contract()
     token_list = tokenlist_contract()
     coupon_exchange = coupon_exchange_contract()
     contracts = {
