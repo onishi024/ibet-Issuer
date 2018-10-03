@@ -187,11 +187,12 @@ def setting(token_address):
         entries_sign = event_filter_sign.get_all_entries()
     except:
         entries_sign = []
-    logger.info(entries_sign)
+    
     for entry in entries_sign:
-        val = TokenContract.functions.signatures(to_checksum_address(entry['args']['signer'])).call()
-        signatures.append([entry['args']['signer'], val])
-    logger.info(signatures)
+        if TokenContract.functions.\
+            signatures(to_checksum_address(entry['args']['signer'])).call() == 2:
+            signatures.append(entry['args']['signer'])
+
 
     form = TokenSettingForm()
 
