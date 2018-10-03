@@ -29,7 +29,6 @@
     			<th>登録日時</th>
           <th>受付ID</th>
           <th style="width: 70px">償還<br>状況</th>
-          <th style="width: 70px">第三者<br>認定</th>
           <th></th>
     		</tr>
   		</thead>
@@ -37,35 +36,25 @@
   		{% for token in tokens %}
       　<tr>
           {% if token.token_address != None %}
-    			<td><a href="{{ url_for('token.setting', token_address=token.token_address) }}">{{ token.name }}</a></td>
+            <td><a href="{{ url_for('token.setting', token_address=token.token_address) }}">{{ token.name }}</a></td>
           {% else %}
-          <td>{{ token.name }}</td>
+            <td>{{ token.name }}</td>
           {% endif %}
-
           <td>{{ token.symbol }}</td>
     			<td align="center">{{ token.created | format_date }}</td>
           <td align="center">
             <button type="button" class="btn btn-default btn-sm" onclick="viewTxHash('{{token.tx_hash}}')">表示</button>
           </td>
-
           {% if token.is_redeemed == true %}
-          <td align="center"><span class="badge">償還済</span></td>
+            <td align="center"><span class="badge">償還済</span></td>
           {% else %}
-          <td align="center">--</td>
+            <td align="center">--</td>
           {% endif %}
-
-          {% if token.is_signed == true %}
-          <td align="center"><span class="badge">認定済</span></td>
-          {% else %}
-          <td align="center">--</td>
-          {% endif %}
-
           {% if token.token_address != None %}
-    			<td align="center"><a href="{{ url_for('token.holders', token_address=token.token_address) }}">保有者一覧</a></td>
+            <td align="center"><a href="{{ url_for('token.holders', token_address=token.token_address) }}">保有者一覧</a></td>
           {% else %}
-          <td></td>
+            <td></td>
           {% endif %}
-
         </tr>
   		{% endfor %}
   		</tbody>

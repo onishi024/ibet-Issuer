@@ -200,6 +200,14 @@
                         {{ form.image_large(class="form-control") }}
                     </div>
                 </div>
+                {% for signature in signatures %}
+                    <div class="form-group">
+                        <label class="col-md-2">認定者アドレス</label>
+                        <div class="col-md-8">
+                                {{ signature }}
+                        </div>
+                    </div>
+                {% endfor %}
                 <div class="form-group">
                     {{ form.abi.label(class="col-md-2") }}
                     <div class="col-md-10">

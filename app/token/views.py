@@ -99,46 +99,13 @@ def list():
             name = TokenContract.functions.name().call()
             symbol = TokenContract.functions.symbol().call()
             is_redeemed = TokenContract.functions.isRedeemed().call()
-            # # 償還（Redeem）のイベント情報を検索する
-            # event_filter_redeem = TokenContract.eventFilter(
-            #     'Redeem', {
-            #         'filter':{},
-            #         'fromBlock':'earliest'
-            #     }
-            # )
-            # try:
-            #     entries_redeem = event_filter_redeem.get_all_entries()
-            # except:
-            #     entries_redeem = []
-
-            # if len(entries_redeem) > 0:
-            #     is_redeemed = True
-
-            # 第三者認定（Sign）のイベント情報を検索する
-            event_filter_sign = TokenContract.eventFilter(
-                'Sign', {
-                    'filter':{},
-                    'fromBlock':'earliest'
-                }
-            )
-            try:
-                entries_sign = event_filter_sign.get_all_entries()
-            except:
-                entries_sign = []
-
-            for entry in entries_sign:
-                if TokenContract.functions.\
-                    signatures(to_checksum_address(entry['args']['signer'])).call() == 2:
-                    is_signed = True
-
         token_list.append({
             'name':name,
             'symbol':symbol,
             'created':row.created,
             'tx_hash':row.tx_hash,
             'token_address':row.token_address,
-            'is_redeemed':is_redeemed,
-            'is_signed':is_signed
+            'is_redeemed':is_redeemed
         })
 
     return render_template('token/list.html', tokens=token_list)
@@ -207,6 +174,25 @@ def setting(token_address):
     isRelease = False
     if token_struct[0] == token_address:
         isRelease = True
+
+    # 第三者認定（Sign）のイベント情報を検索する
+    signatures = []
+    event_filter_sign = TokenContract.eventFilter(
+        'Sign', {
+            'filter':{},
+            'fromBlock':'earliest'
+        }
+    )
+    try:
+        entries_sign = event_filter_sign.get_all_entries()
+    except:
+        entries_sign = []
+    
+    for entry in entries_sign:
+        if TokenContract.functions.\
+            signatures(to_checksum_address(entry['args']['signer'])).call() == 2:
+            signatures.append(entry['args']['signer'])
+
 
     form = TokenSettingForm()
 
@@ -277,7 +263,8 @@ def setting(token_address):
             form=form,
             token_address = token_address,
             token_name = name,
-            isRelease = isRelease
+            isRelease = isRelease,
+            signatures = signatures
         )
 
 ####################################################
