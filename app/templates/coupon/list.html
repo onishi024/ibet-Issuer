@@ -60,9 +60,9 @@
             <td align="center">{{ token.is_valid }}</td>
           {% endif %}
           {% if token.token_address != None %}
-          <td><a href="{{ url_for('coupon.usage_history', token_address=token.token_address) }}">利用履歴</a></td>
+            <td><a href="{{ url_for('coupon.usage_history', token_address=token.token_address) }}">利用履歴</a></td>
           {% else %}
-          <td></td>
+            <td></td>
           {% endif %}
           {% if token.token_address != None %}
       			<td><a href="{{ url_for('coupon.holders', token_address=token.token_address) }}">保有者一覧</a></td>

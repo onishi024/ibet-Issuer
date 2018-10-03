@@ -27,6 +27,7 @@
     			<th>名称</th>
     			<th>略称</th>
     			<th>登録日時</th>
+          <th>アドレス</th>
           <th>受付ID</th>
           <th style="width: 70px">償還<br>状況</th>
           <th></th>
@@ -42,6 +43,11 @@
           {% endif %}
           <td>{{ token.symbol }}</td>
     			<td align="center">{{ token.created | format_date }}</td>
+          {% if token.token_address != None %}
+            <td style="word-break : break-all;"><small>{{ token.token_address }}</small></td>
+          {% else %}
+            <td>-</td>
+          {% endif %}
           <td align="center">
             <button type="button" class="btn btn-default btn-sm" onclick="viewTxHash('{{token.tx_hash}}')">表示</button>
           </td>
