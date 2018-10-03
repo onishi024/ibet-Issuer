@@ -202,9 +202,9 @@
                 </div>
                 {% for signature in signatures %}
                     <div class="form-group">
-                        <label class="col-md-2">認定者アドレス</label>
+                        <label class="col-md-2">認定済みアドレス</label>
                         <div class="col-md-8">
-                                {{ signature }}
+                            <input class="form-control" disabled="" id="redemptionAmount" name="redemptionAmount" type="text" value="{{ signature }}">
                         </div>
                     </div>
                 {% endfor %}
