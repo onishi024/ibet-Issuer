@@ -177,4 +177,3 @@ class TestCoupon(TestBase):
         lastPrice = ExchangeContract.functions.lastPrice(membership_contract_address).call()
         logger.info("lastPrice: " + str(lastPrice))
 
-        assert False
