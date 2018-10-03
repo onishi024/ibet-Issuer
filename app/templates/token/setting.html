@@ -203,8 +203,13 @@
                 {% for signature in signatures %}
                     <div class="form-group">
                         <label class="col-md-2">認定者アドレス</label>
-                        <div class="col-md-8">
-                                {{ signature }}
+                        <div class="col-md-4">
+                                {{ signature[0] }}: 
+                                {% if signature[1] == 1 %}
+                                    依頼中
+                                {% else %}
+                                    認定済み
+                                {% endif %}
                         </div>
                     </div>
                 {% endfor %}

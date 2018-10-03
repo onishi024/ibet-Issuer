@@ -189,9 +189,8 @@ def setting(token_address):
         entries_sign = []
     
     for entry in entries_sign:
-        if TokenContract.functions.\
-            signatures(to_checksum_address(entry['args']['signer'])).call() == 2:
-            signatures.append(entry['args']['signer'])
+        val = TokenContract.functions.signatures(to_checksum_address(entry['args']['signer'])).call()
+        signatures.append([entry['args']['signer'], val])
 
 
     form = TokenSettingForm()
