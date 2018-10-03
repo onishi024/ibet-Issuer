@@ -16,7 +16,7 @@ class IssueCouponForm(Form):
     details = TextAreaField("クーポン詳細", validators=[])
     isValid = TextAreaField("有効/無効", validators=[])
     memo = TextAreaField("メモ", validators=[])
-    transferable = SelectField('譲渡制限', coerce=str, default='False')
+    transferable = SelectField('譲渡制限', coerce=str, default='True')
     image_small = StringField("商品画像（小）URL", validators=[])
     image_medium = StringField("商品画像（中）URL", validators=[])
     image_large = StringField("商品画像（大）URL", validators=[])
