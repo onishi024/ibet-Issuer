@@ -27,7 +27,8 @@
     			<th>名称</th>
     			<th>略称</th>
     			<th>登録日時</th>
-          <th>クーポンアドレス</th>
+          <th>アドレス</th>
+          <th>受付ID</th>
           <th style="width: 50px">有効/<br>無効</th>
           <th></th>
           <th></th>
@@ -44,10 +45,13 @@
           <td>{{ token.symbol }}</td>
     			<td align="center">{{ token.created | format_date }}</td>
           {% if token.token_address != None %}
-            <td><small>{{ token.token_address }}</small></td>
+            <td style="word-break : break-all;"><small>{{ token.token_address }}</small></td>
           {% else %}
             <td>-</td>
           {% endif %}
+          <td align="center">
+            <button type="button" class="btn btn-default btn-sm" onclick="viewTxHash('{{token.tx_hash}}')">表示</button>
+          </td>
           {% if token.is_valid == true %}
             <td align="center"><span class="badge bg-green">有効</span></td>
           {% elif token.is_valid == false %}
@@ -56,9 +60,9 @@
             <td align="center">{{ token.is_valid }}</td>
           {% endif %}
           {% if token.token_address != None %}
-          <td><a href="{{ url_for('coupon.usage_history', token_address=token.token_address) }}">利用履歴</a></td>
+            <td><a href="{{ url_for('coupon.usage_history', token_address=token.token_address) }}">利用履歴</a></td>
           {% else %}
-          <td></td>
+            <td></td>
           {% endif %}
           {% if token.token_address != None %}
       			<td><a href="{{ url_for('coupon.holders', token_address=token.token_address) }}">保有者一覧</a></td>
@@ -76,6 +80,24 @@
 
 {% block required_js %}
 {{ super() }}
+<div class="modal modal-default fade" id="modal-txhash" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">×</span></button>
+        <h4 class="modal-title">受付ID</h4>
+      </div>
+      <div class="modal-body" id="modal-txhash-body">
+      </div>
+      <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">閉じる</button>
+      </div>
+    </div>
+    <!-- /.modal-content -->
+  </div>
+  <!-- /.modal-dialog -->
+</div>
 <!-- DataTables -->
 <script src="/static/adminlte/bower_components/datatables.net/js/jquery.dataTables.min.js"></script>
 <script src="/static/adminlte/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
@@ -108,5 +130,10 @@
       },
     })
   })
+
+  function viewTxHash(txhash) {
+    $('#modal-txhash-body').html(txhash);
+    $('#modal-txhash').modal('show');
+  }
 </script>
 {% endblock %}

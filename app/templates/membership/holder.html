@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% set active_page = "membership_list" %}
+
+{% block title %}保有者詳細 - {% endblock %}
+{% block page_header %}保有者詳細{% endblock %}
+{% block page_description %}{% endblock %}
+{% block breadcrumb %}
+    <li><a href="{{ url_for('index.index') }}">トップ</a></li>
+    <li><a href="{{ url_for('membership.list') }}">会員権一覧</a></li>
+    <li><a href="{{ url_for("membership.holders", token_address=token_address) }}">保有者一覧</a></li>
+    <li class="active">保有者詳細</li>
+{% endblock %}
+
+{% block page_content %}
+<section class="content">
+  <div class="box box-solid">
+    <div class="box-header with-border">
+      <h3 class="box-title">保有者情報： {{personal_info['name']}} 様</h3>
+    </div>
+    <br>
+    <div class=row>
+      <div class="col-md-1"></div>
+      <div class="col-md-10">
+        <div class="box box-default box-solid">
+          <div class="box-header with-border">
+            <h3 class="box-title">住所</h3>
+          </div>
+          <form class="form-horizontal" role="form">
+            <div class="box-body">
+              <div class="row">
+                <label class="col-md-3">郵便番号</label>
+                <div class="form-group col-md-4">
+                  {{ personal_info['address']['postal_code'] }}
+                </div>
+              </div>
+              <div class="row">
+                <label class="col-md-3">都道府県</label>
+                <div class="form-group col-md-4">
+                  {{ personal_info['address']['prefecture'] }}
+                </div>
+              </div>
+              <div class="row">
+                <label class="col-md-3">市区町村</label>
+                <div class="form-group col-md-4">
+                  {{ personal_info['address']['city'] }}
+                </div>
+              </div>
+              <div class="row">
+                <label class="col-md-3">住所１</label>
+                <div class="form-group col-md-4">
+                  {{ personal_info['address']['address1'] }}
+                </div>
+              </div>
+              <div class="row">
+                <label class="col-md-3">住所２</label>
+                <div class="form-group col-md-4">
+                  {{ personal_info['address']['address2'] }}
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="box box-default box-solid">
+          <div class="box-header with-border">
+            <h3 class="box-title">金融機関口座情報</h3>
+          </div>
+          <form class="form-horizontal" role="form">
+            <div class="box-body">
+              <div class="row">
+                <label class="col-md-3">金融機関名</label>
+                <div class="form-group col-md-4">
+                  {{ personal_info['bank_account']['bank_name'] }}
+                </div>
+              </div>
+              <div class="row">
+                <label class="col-md-3">支店</label>
+                <div class="form-group col-md-4">
+                  {{ personal_info['bank_account']['branch_office'] }}
+                </div>
+              </div>
+              <div class="row">
+                <label class="col-md-3">口座種別</label>
+                <div class="form-group col-md-4">
+                  {% if personal_info['bank_account']['account_type'] == 1 %}
+                    普通
+                  {% elif personal_info['bank_account']['account_type'] == 2 %}
+                    当座
+                  {% elif personal_info['bank_account']['account_type'] == 4 %}
+                    貯蓄預金
+                  {% elif personal_info['bank_account']['account_type'] == 9 %}
+                    その他
+                  {% else %}
+                    {{ personal_info['bank_account']['account_type'] }}
+                  {% endif %}
+                </div>
+              </div>
+              <div class="row">
+                <label class="col-md-3">口座番号</label>
+                <div class="form-group col-md-4">
+                  {{ personal_info['bank_account']['account_number'] }}
+                </div>
+              </div>
+              <div class="row">
+                <label class="col-md-3">口座名義</label>
+                <div class="form-group col-md-4">
+                  {{ personal_info['bank_account']['account_holder'] }}
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="col-md-1"></div>
+    </div>
+    <div class="box-footer">
+        <button type="button" class="btn btn-default" onclick="location.href='{{ url_for("membership.holders", token_address=token_address) }}'">一覧に戻る</button>
+    </div>
+  </div>
+</section>
+{% endblock %}

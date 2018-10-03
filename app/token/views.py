@@ -98,47 +98,14 @@ def list():
             # Token-Contractから情報を取得する
             name = TokenContract.functions.name().call()
             symbol = TokenContract.functions.symbol().call()
-
-            # 償還（Redeem）のイベント情報を検索する
-            event_filter_redeem = TokenContract.eventFilter(
-                'Redeem', {
-                    'filter':{},
-                    'fromBlock':'earliest'
-                }
-            )
-            try:
-                entries_redeem = event_filter_redeem.get_all_entries()
-            except:
-                entries_redeem = []
-
-            if len(entries_redeem) > 0:
-                is_redeemed = True
-
-            # 第三者認定（Sign）のイベント情報を検索する
-            event_filter_sign = TokenContract.eventFilter(
-                'Sign', {
-                    'filter':{},
-                    'fromBlock':'earliest'
-                }
-            )
-            try:
-                entries_sign = event_filter_sign.get_all_entries()
-            except:
-                entries_sign = []
-
-            for entry in entries_sign:
-                if TokenContract.functions.\
-                    signatures(to_checksum_address(entry['args']['signer'])).call() == 2:
-                    is_signed = True
-
+            is_redeemed = TokenContract.functions.isRedeemed().call()
         token_list.append({
             'name':name,
             'symbol':symbol,
             'created':row.created,
             'tx_hash':row.tx_hash,
             'token_address':row.token_address,
-            'is_redeemed':is_redeemed,
-            'is_signed':is_signed
+            'is_redeemed':is_redeemed
         })
 
     return render_template('token/list.html', tokens=token_list)
@@ -198,6 +165,34 @@ def setting(token_address):
     image_small = TokenContract.functions.getImageURL(0).call()
     image_medium = TokenContract.functions.getImageURL(1).call()
     image_large = TokenContract.functions.getImageURL(2).call()
+
+    # token listに登録中か？
+    list_contract_address = Config.TOKEN_LIST_CONTRACT_ADDRESS
+    ListContract = Contract.get_contract(
+        'TokenList', list_contract_address)
+    token_struct = ListContract.functions.getTokenByAddress(token_address).call()
+    isRelease = False
+    if token_struct[0] == token_address:
+        isRelease = True
+
+    # 第三者認定（Sign）のイベント情報を検索する
+    signatures = []
+    event_filter_sign = TokenContract.eventFilter(
+        'Sign', {
+            'filter':{},
+            'fromBlock':'earliest'
+        }
+    )
+    try:
+        entries_sign = event_filter_sign.get_all_entries()
+    except:
+        entries_sign = []
+    
+    for entry in entries_sign:
+        if TokenContract.functions.\
+            signatures(to_checksum_address(entry['args']['signer'])).call() == 2:
+            signatures.append(entry['args']['signer'])
+
 
     form = TokenSettingForm()
 
@@ -267,7 +262,9 @@ def setting(token_address):
             'token/setting.html',
             form=form,
             token_address = token_address,
-            token_name = name
+            token_name = name,
+            isRelease = isRelease,
+            signatures = signatures
         )
 
 ####################################################
@@ -359,7 +356,7 @@ def release():
         return redirect(url_for('.setting', token_address=token_address))
 
     flash('公開中です。公開開始までに数分程かかることがあります。', 'success')
-    return redirect(url_for('.setting', token_address=token_address))
+    return redirect(url_for('.list'))
 
 ####################################################
 # 債券償還
@@ -789,3 +786,89 @@ def img_convert(icon):
         img = b64encode(icon)
         return img.decode('utf8')
     return None
+
+
+###
+# 債券トークンの保有者一覧、token_nameを返す
+###
+def get_holders_bond(token_address):
+    cipher = None
+    try:
+        key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
+        cipher = PKCS1_OAEP.new(key)
+    except:
+        traceback.print_exc()
+        pass
+
+    # Bond Token Contract
+    # Note: token_addressに対して、Bondトークンのものであるかはチェックしていない。
+    token = Token.query.filter(Token.token_address==token_address).first()
+    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+
+    TokenContract = web3.eth.contract(
+        address= token_address,
+        abi = token_abi
+    )
+
+    # Straight-Bond Exchange Contract
+    token_exchange_address = to_checksum_address(Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS)
+    ExchangeContract = Contract.get_contract(
+        'IbetStraightBondExchange', token_exchange_address)
+
+    # PersonalInfo Contract
+    personalinfo_address = to_checksum_address(Config.PERSONAL_INFO_CONTRACT_ADDRESS)
+    PersonalInfoContract = Contract.get_contract(
+        'PersonalInfo', personalinfo_address)
+
+    # 残高を保有している可能性のあるアドレスを抽出する
+    holders_temp = []
+    holders_temp.append(TokenContract.functions.owner().call())
+
+    event_filter = TokenContract.eventFilter(
+        'Transfer', {
+            'filter':{},
+            'fromBlock':'earliest'
+        }
+    )
+    entries = event_filter.get_all_entries()
+    for entry in entries:
+        holders_temp.append(entry['args']['to'])
+
+    # 口座リストをユニークにする
+    holders_uniq = []
+    for x in holders_temp:
+        if x not in holders_uniq:
+            holders_uniq.append(x)
+
+    token_owner = TokenContract.functions.owner().call()
+    token_name = TokenContract.functions.name().call()
+
+    # 残高（balance）、または注文中の残高（commitment）が存在する情報を抽出
+    holders = []
+    for account_address in holders_uniq:
+        balance = TokenContract.functions.balanceOf(account_address).call()
+        commitment = ExchangeContract.functions.\
+            commitments(account_address,token_address).call()
+        if balance > 0 or commitment > 0:
+            encrypted_info = PersonalInfoContract.functions.\
+                personal_info(account_address, token_owner).call()[2]
+            if encrypted_info == '' or cipher == None:
+                name = ''
+            else:
+                ciphertext = base64.decodestring(encrypted_info.encode('utf-8'))
+                try:
+                    message = cipher.decrypt(ciphertext)
+                    personal_info_json = json.loads(message)
+                    name = personal_info_json['name']
+                except:
+                    name = ''
+
+            holder = {
+                'account_address':account_address,
+                'name':name,
+                'balance':balance,
+                'commitment':commitment
+            }
+            holders.append(holder)
+
+    return holders, token_name

@@ -5,8 +5,6 @@ from wtforms import IntegerField, StringField, TextAreaField, \
     SubmitField, DateField, HiddenField, DecimalField
 from wtforms.validators import Required, Email, EqualTo, Length, Regexp
 from wtforms import ValidationError
-from ..models import Role, User
-from sqlalchemy import or_, and_
 
 class IssueTokenForm(Form):
     name = StringField("商品名", validators=[Required('商品名は必須です。')])
