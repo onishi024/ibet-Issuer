@@ -431,7 +431,7 @@ class TestToken(TestBase):
         assert '<title>債券詳細設定'.encode('utf-8') in response.data
         assert 'テスト債券'.encode('utf-8') in response.data
         assert '認定済みアドレス'.encode('utf-8') in response.data
-        assert eth_account['agent']['address'].encode('utf-8') in response.data
+        assert eth_account['agent']['account_address'].encode('utf-8') in response.data
 
     # ＜正常系15＞
     # 償還実施　→　発行済債券一覧で確認
