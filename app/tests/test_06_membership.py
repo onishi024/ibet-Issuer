@@ -54,6 +54,11 @@ class TestCoupon(TestBase):
     #     }
     # }
     trader_encrypted_info = 'oR3oSAdy1m6MR2nYKTsccjxdXlgLDx2MJZEir5qKpb9hpHEWisOn79GE8+o1ThG/BCzirZjx9z3gc40PmM+1l2VH+6c5ouSWkZ3JhoT4SUsf9YTAurj6jySzTcPkCMC9VPP+Nm4+XJyt3QroPzDOsJKaGycn63/B8BLTV6zZaDi9ZDBtZL0A1xMEx2aQJsXCj+cn6fGFy7VV8NG1+WYyUDZmXTK8nzR75J2onsiT4FzwtSCzZbM4/qME4O0rOlnaqjBoyn6Ae46S6LO72JPskT/b5pWM+mH8+/buLdGaxO3D1k6ICTvjNJaO7gxTNTsm3tWGotp9tzzkDsxYcVE+qr4/ufmsE6Qn3/pI1DtEZbMyXu51ucn7JYyQNiPN99OXbkTs2/DHsy7RtvujS+PXH4KHjH0//NbdyUxgEmGbf3XvZ2yDDRUKpi5jHs82mtECGPWN9hKzlwkV7UXp/BBHZP+MsyiU1pZCkqIGIrt9WlE/v9TlJXzarcJmqWL6LmG2b5g6ublux/AaYyYXjwNyKbP0kQJGYoGNV4KODNEQd6DNc5uI24laJd8GY7ucDcB2F/j1y1S5vWIQIOM9ksSr9K0xfsaiqGpNWtbquYrOv3lNVozFx22C8hTWDyMOCmkTEcha2nTnLUvSsopZeNlAfRxnNdqjtHqp8iBAqVlpxRpIgCjk9QTf1lYmNK3jb2/4Cyt8xAo0Z4ty6qOzeEcwd+BjGMbfWdxtGSJHDidr7nP56MOGKSzwOnLxLVYVL8YuV6MnzqDtbts/Vbw9mkX5zwddIfvsGlNvhbrDR8WSrXRVeWiwnbXnhc4njpsRLRlCXwvHVbhXzdUvEyfXmMdMGRScVBLLeb0BQK9Aea1ZuwKsK19JhK5QUrnYeimMRzJ/YUX5mMlJ4Skek7Lkn8py5hX3rZ3/SvLEXKe2GxkvqTPbwnyS+ZNAvGpyRl8AIthOHucW4Fnjl8KQpqS2GMJpj+SJRq8/HCpaR50743S5j6Ha0gx3D3/R032an+cgg7a875BNX0hgldffzoDr6+nHEtwsY/J96rkUFmeubmsISu0wAxH6C7XTsCFs90awBwIAydOgmbOovUub/yz/CJhbgbMrAMv1Mv2wnLIt0av8nC359AuRanIGr7q/ynDYqUS9mdUlpyfVbwWPJm0hMFfuJxdvVVHnyr2jg2GqtgvE8QcN18l1aI1FJDfqa7W7grlwn9+EQo+JXE1Xd7YZdeJNtKSD4aIQAFnIoIM3A7fkoPAS4sc+PdUzA3UNgomByNP3/cdcs/L3cvEpDjlTNzFLcQ2yojEXolcg2SZzpmb7MV3E5RQLnjOL+u/frwqk15up7jNiqfNp7N/o/wmjf6m+ceJq7b03o2oNLE+Ng6lNqLWNduII4Lq0N6qOgWJ/02LF1X/9oeBDPuPiLUZGkyy5y3FCuY4KN/hDUUpxGsxBOYfn+oFepAu6bz4UpxgaEu23DyCeKnkBlQITi1kSl7F7WHv1XBHF53eEY4fs4n0ZrOYWOzEFt/NfKm/oxiyIdSsCfGTcgmC/DGC90vM4sPPRXa7x7Xd8xJRbTnEuA88ALzCSeMt1NyNNtSKpw9xv+UIyFMkuDYsOoNRrdThZ/KvjYSMsAvNBXG0x6AYMz4x9oZ25VBiy/yWbivbN2nFPlWM7xyaQWMlTBVZZdCgnOoOR1tby7IAwlzTd1oGm+DJx9hA='
+    # URL
+    url_list = 'membership/list'
+    url_positions = 'membership/positions'
+    url_issue = 'membership/issue'
+    url_setting = 'membership/setting'
 
     # ＜正常系1＞
     # 一覧の参照(0件)
@@ -62,118 +67,459 @@ class TestCoupon(TestBase):
         Config.ETH_ACCOUNT = eth_account['issuer']['account_address']
         Config.ETH_ACCOUNT_PASSWORD = eth_account['issuer']['password']
         Config.AGENT_ADDRESS = eth_account['agent']['account_address']
-        Config.WHITE_LIST_CONTRACT_ADDRESS = shared_contract['WhiteList']['address']
         Config.TOKEN_LIST_CONTRACT_ADDRESS = shared_contract['TokenList']['address']
         Config.IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS = shared_contract['IbetMembershipExchange']['address']
 
-        # whitelist登録
-        register_terms(eth_account['agent'], shared_contract['WhiteList'])
-        register_whitelist(eth_account['issuer'], shared_contract['WhiteList'], self.issuer_encrypted_info)
+        # 一覧
+        client = self.client_with_admin_login(app)
+        response = client.get(self.url_list)
+        assert response.status_code == 200
+        assert '<title>会員権一覧'.encode('utf-8') in response.data
+        assert 'データが存在しません'.encode('utf-8') in response.data
 
-        # 会員権発行
-        attribute = {
-            'name': 'テスト債券',
-            'symbol': 'BOND',
-            'totalSupply': 1000000,
-            'details': '',
-            'returnDetails': '',
-            'expirationDate': '',
-            'memo': '',
-            'transferable': True
-        }
-        arguments = [
-            attribute['name'], attribute['symbol'], attribute['totalSupply'],
-            attribute['details'], attribute['returnDetails'],
-            attribute['expirationDate'], attribute['memo'],
-            attribute['transferable']
-        ]
-        web3.eth.defaultAccount = eth_account['issuer']['account_address']
-        web3.personal.unlockAccount(eth_account['issuer']['account_address'],
-                                    eth_account['issuer']['password'])
-        membership_contract_address, membership_abi, _ = Contract.deploy_contract('IbetMembership',
-         arguments, eth_account['issuer']['account_address'])
+    # ＜正常系2＞
+    # 募集管理(0件)
+    def test_normal_2(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
+        response = client.get(self.url_positions)
+        assert response.status_code == 200
+        assert '<title>募集管理'.encode('utf-8') in response.data
+        assert 'データが存在しません'.encode('utf-8') in response.data
 
-        # 売り注文
-        amount = 100
-        price = 10
-        
-        TokenContract = Contract.get_contract('IbetMembership', membership_contract_address)
+    # ＜正常系3＞
+    # 新規発行　→　DB登録処理 →　詳細画面
+    def test_normal_3(self, app, db, shared_contract):
+        client = self.client_with_admin_login(app)
+        # 新規発行
+        response = client.post(
+            self.url_issue,
+            data={
+                'name': 'テスト会員権',
+                'symbol': 'KAIINKEN',
+                'totalSupply': 1000000,
+                'details': 'details',
+                'returnDetails': 'returnDetails',
+                'expirationDate': '20191231',
+                'memo': 'memo',
+                'transferable': 'True',
+                'image_small': 'image_small',
+                'image_medium': 'image_medium',
+                'image_large': 'image_large'
+            }
+        )
+        assert response.status_code == 302
 
-        totalSupply = TokenContract.functions.totalSupply().call()
-        logger.info("totalSupply: " + str(totalSupply))
-        balances_membership = TokenContract.functions.balances(eth_account['issuer']['account_address']).call()
-        logger.info("balances_membership: " + str(balances_membership))
+        # 2秒待機
+        time.sleep(2)
 
-        # transfer
-        tx_hash = TokenContract.functions.transfer(shared_contract['IbetMembershipExchange']['address'], amount).\
-            transact({'from':eth_account['issuer']['account_address'], 'gas':4000000})
-        tx = web3.eth.waitForTransactionReceipt(tx_hash)
+        # DB登録処理
+        processorIssueEvent(db)
 
-        balances_membership = TokenContract.functions.balances(eth_account['issuer']['account_address']).call()
-        logger.info("balances_membership: " + str(balances_membership))
+        # 設定画面
+        token = Token.query.get(1)
+        response = client.get(self.url_setting + token.token_address)
+        assert response.status_code == 200
+        assert '<title>会員権 詳細設定'.encode('utf-8') in response.data
+        assert 'テスト会員権'.encode('utf-8') in response.data
+        assert 'KAIINKEN'.encode('utf-8') in response.data
+        assert 'details'.encode('utf-8') in response.data
+        assert 'returnDetails'.encode('utf-8') in response.data
+        assert '20191231'.encode('utf-8') in response.data
+        assert 'memo'.encode('utf-8') in response.data
+        assert '<option selected value="True">なし</option>'.encode('utf-8') in response.data
+        assert 'image_small'.encode('utf-8') in response.data
+        assert 'image_medium'.encode('utf-8') in response.data
+        assert 'image_large'.encode('utf-8') in response.data
 
-        ExchangeContract = Contract.get_contract('IbetMembershipExchange',
-         shared_contract['IbetMembershipExchange']['address'])
+    # ＜正常系4＞
+    # 会員権一覧の参照(1件)
+    def test_normal_4(self, app, shared_contract):
+        token = Token.query.get(1)
+        client = self.client_with_admin_login(app)
+        response = client.get(self.url_list)
+        assert response.status_code == 200
+        assert '<title>会員権一覧'.encode('utf-8') in response.data
+        assert 'テスト会員権'.encode('utf-8') in response.data
+        assert 'KAIINKEN'.encode('utf-8') in response.data
+        assert token.token_address.encode('utf-8') in response.data
+        assert '取扱中'.encode('utf-8') in response.data
 
-        lastPrice = ExchangeContract.functions.lastPrice(membership_contract_address).call()
-        logger.info("lastPrice: " + str(lastPrice))
-        balances_ex = ExchangeContract.functions.balances(eth_account['issuer']['account_address'], 
-            membership_contract_address).call()
-        logger.info("balances_ex: " + str(balances_ex))
+    # ＜正常系5＞
+    # 募集管理(1件)
+    def test_normal_5(self, app, shared_contract):
+        token = Token.query.get(1)
+        client = self.client_with_admin_login(app)
+        response = client.get(self.url_positions)
+        assert response.status_code == 200
+        assert '<title>募集管理'.encode('utf-8') in response.data
+        assert 'テスト会員権'.encode('utf-8') in response.data
+        assert 'KAIINKEN'.encode('utf-8') in response.data
+        assert token.token_address.encode('utf-8') in response.data
+        assert '1000000'.encode('utf-8') in response.data
 
-        # create order
-        gas = ExchangeContract.estimateGas().\
-            createOrder(membership_contract_address, amount, price, False, eth_account['agent']['account_address'])
-        tx_hash = ExchangeContract.functions.\
-            createOrder(membership_contract_address, amount, price, False, eth_account['agent']['account_address']).\
-            transact({'from':eth_account['issuer']['account_address'], 'gas':gas})
-        tx = web3.eth.waitForTransactionReceipt(tx_hash)
+    # # ＜正常系6＞
+    # # 新規募集画面の参照
+    # def test_normal_6(self, app, shared_contract):
+    #     token = Token.query.get(1)
+    #     client = self.client_with_admin_login(app)
+    #     response = client.get(self.url_sell + token.token_address)
+    #     assert response.status_code == 200
+    #     assert '<title>新規募集'.encode('utf-8') in response.data
+    #     assert 'テスト'.encode('utf-8') in response.data
+    #     assert 'BOND'.encode('utf-8') in response.data
+    #     assert '1000000'.encode('utf-8') in response.data
+    #     assert '1000'.encode('utf-8') in response.data
+    #     assert '0101'.encode('utf-8') in response.data
+    #     assert '0201'.encode('utf-8') in response.data
+    #     assert '0301'.encode('utf-8') in response.data
+    #     assert '0401'.encode('utf-8') in response.data
+    #     assert '0501'.encode('utf-8') in response.data
+    #     assert '0601'.encode('utf-8') in response.data
+    #     assert '0701'.encode('utf-8') in response.data
+    #     assert '0801'.encode('utf-8') in response.data
+    #     assert '0901'.encode('utf-8') in response.data
+    #     assert '1001'.encode('utf-8') in response.data
+    #     assert '1101'.encode('utf-8') in response.data
+    #     assert '1201'.encode('utf-8') in response.data
+    #     assert '20191231'.encode('utf-8') in response.data
+    #     assert '10000'.encode('utf-8') in response.data
+    #     assert '20191231'.encode('utf-8') in response.data
+    #     assert '商品券をプレゼント'.encode('utf-8') in response.data
+    #     assert '新商品の開発資金として利用。'.encode('utf-8') in response.data
+    #     assert 'メモ'.encode('utf-8') in response.data
 
-        latest_orderid = ExchangeContract.functions.latestOrderId().call() - 1
-        logger.info("latest_orderid: " + str(latest_orderid))
-        assert latest_orderid == 0
+    # # ＜正常系7＞
+    # # 募集 → personinfo登録 → 募集 → whitelist登録 →
+    # # 募集 → 募集管理で確認
+    # def test_normal_7(self, app, shared_contract):
+    #     client = self.client_with_admin_login(app)
+    #     token = Token.query.get(1)
+    #     url_sell = self.url_sell + token.token_address
+    #     # 募集
+    #     response = client.post(
+    #         url_sell,
+    #         data={
+    #             'sellPrice': 100,
+    #         }
+    #     )
+    #     assert response.status_code == 302
+    #     # 募集管理でエラーを確認
+    #     response = client.get(self.url_positions)
+    #     assert response.status_code == 200
+    #     assert '法人名、所在地の情報が未登録です。'.encode('utf-8') in response.data
 
-        commitments_ex = ExchangeContract.functions.commitments(eth_account['issuer']['account_address'], 
-            membership_contract_address).call()
-        logger.info("commitments_ex: " + str(commitments_ex))
+    #     # personalinfo登録
+    #     register_personalinfo(eth_account['issuer'], shared_contract['PersonalInfo'], self.issuer_encrypted_info)
+    #     # 募集
+    #     response = client.post(
+    #         url_sell,
+    #         data={
+    #             'sellPrice': 100,
+    #         }
+    #     )
+    #     assert response.status_code == 302
+    #     # 募集管理でエラーを確認
+    #     response = client.get(self.url_positions)
+    #     assert response.status_code == 200
+    #     assert '金融機関の情報が未登録です。'.encode('utf-8') in response.data
 
-        # 約定
-        web3.eth.defaultAccount = eth_account['trader']['account_address']
-        web3.personal.unlockAccount(eth_account['trader']['account_address'],
-                                    eth_account['trader']['password'])
+    #     # whitelist登録
+    #     register_terms(eth_account['agent'], shared_contract['WhiteList'])
+    #     register_whitelist(eth_account['issuer'], shared_contract['WhiteList'], self.issuer_encrypted_info)
+    #     # 募集
+    #     response = client.post(
+    #         url_sell,
+    #         data={
+    #             'sellPrice': 100,
+    #         }
+    #     )
+    #     assert response.status_code == 302
 
-        tx_hash = ExchangeContract.functions.\
-            executeOrder(latest_orderid, amount, True).\
-            transact({'from':eth_account['trader']['account_address'], 'gas':4000000})
-        tx = web3.eth.waitForTransactionReceipt(tx_hash)
+    #     # 待機（募集には時間がかかる）
+    #     time.sleep(5)
 
-        # 購入できてないこと(発行体のexのバランスがamount))
-        lastPrice = ExchangeContract.functions.lastPrice(membership_contract_address).call()
-        logger.info("lastPrice: " + str(lastPrice))
+    #     # 募集管理
+    #     response = client.get(self.url_positions)
+    #     assert response.status_code == 200
+    #     assert '<title>募集管理'.encode('utf-8') in response.data
+    #     assert '新規募集を受け付けました。募集開始までに数分程かかることがあります。'.encode('utf-8') in response.data
+    #     assert 'テスト'.encode('utf-8') in response.data
+    #     assert 'BOND'.encode('utf-8') in response.data
+    #     assert '募集停止'.encode('utf-8') in response.data
 
-        commitments_ex = ExchangeContract.functions.commitments(eth_account['issuer']['account_address'], 
-            membership_contract_address).call()
-        logger.info("commitments_ex: " + str(commitments_ex))
-        assert commitments_ex == amount
+    # # ＜正常系8＞
+    # # 募集停止 → 募集管理で確認
+    # def test_normal_8(self, app, shared_contract):
+    #     client = self.client_with_admin_login(app)
+    #     response = client.post(
+    #         self.url_cancel_order + '0',
+    #     )
+    #     assert response.status_code == 302
 
-        # 投資家のバランス 0 
-        balances_trader = ExchangeContract.functions.balances(eth_account['trader']['account_address'], 
-            membership_contract_address).call()
-        logger.info("balances_trader: " + str(balances_trader))
-        assert balances_trader == 0
+    #     # 待機
+    #     time.sleep(2)
 
-        # whitelist登録し、再度買う。
-        register_whitelist(eth_account['trader'], shared_contract['WhiteList'], self.issuer_encrypted_info)
-        web3.eth.defaultAccount = eth_account['trader']['account_address']
-        web3.personal.unlockAccount(eth_account['trader']['account_address'],
-                                    eth_account['trader']['password'])
+    #     # 募集管理
+    #     response = client.get(self.url_positions)
+    #     assert response.status_code == 200
+    #     assert '<title>募集管理'.encode('utf-8') in response.data
+    #     assert 'テスト'.encode('utf-8') in response.data
+    #     assert 'BOND'.encode('utf-8') in response.data
+    #     assert '募集開始'.encode('utf-8') in response.data
 
-        tx_hash = ExchangeContract.functions.\
-            executeOrder(latest_orderid, amount, True).\
-            transact({'from':eth_account['trader']['account_address'], 'gas':4000000})
-        tx = web3.eth.waitForTransactionReceipt(tx_hash)
+    # # ＜正常系9＞
+    # # 募集設定　画像URL登録 → 詳細画面で確認
+    # def test_normal_9(self, app, shared_contract):
+    #     token = Token.query.get(1)
+    #     url_setting = self.url_setting + token.token_address
+    #     client = self.client_with_admin_login(app)
+    #     # 募集設定
+    #     response = client.post(
+    #         url_setting,
+    #         data={
+    #             'image_small': 'https://test.com/image_small.jpg',
+    #             'image_medium': 'https://test.com/image_medium.jpg',
+    #             'image_large': 'https://test.com/image_large.jpg',
+    #         }
+    #     )
+    #     assert response.status_code == 302
 
-        # 購入できていること
-        lastPrice = ExchangeContract.functions.lastPrice(membership_contract_address).call()
-        logger.info("lastPrice: " + str(lastPrice))
+    #     # 待機
+    #     time.sleep(6)
 
+    #     # 詳細設定
+    #     response = client.get(url_setting)
+    #     assert response.status_code == 200
+    #     assert '<title>詳細設定'.encode('utf-8') in response.data
+    #     assert 'テスト'.encode('utf-8') in response.data
+    #     assert 'https://test.com/image_small.jpg'.encode('utf-8') in response.data
+    #     assert 'https://test.com/image_medium.jpg'.encode('utf-8') in response.data
+    #     assert 'https://test.com/image_large.jpg'.encode('utf-8') in response.data
+
+    # # ＜正常系10＞
+    # # 公開
+    # def test_normal_10(self, app, shared_contract):
+    #     token = Token.query.get(1)
+    #     client = self.client_with_admin_login(app)
+    #     response = client.post(
+    #         self.url_release,
+    #         data={
+    #             'token_address': token.token_address
+    #         }
+    #     )
+    #     assert response.status_code == 302
+
+    #     # 待機
+    #     time.sleep(2)
+
+    #     url_setting = self.url_setting + token.token_address
+    #     # 詳細設定
+    #     response = client.get(url_setting)
+    #     assert response.status_code == 200
+    #     assert '<title>詳細設定'.encode('utf-8') in response.data
+    #     assert '公開中です。公開開始までに数分程かかることがあります。'.encode('utf-8') in response.data
+
+    #     # tokenが登録されているか確認
+    #     res_token = get_token_list(shared_contract['TokenList'], token.token_address)
+    #     assert res_token[0] == token.token_address
+
+    # # ＜正常系11＞
+    # # 保有者一覧
+    # def test_normal_11(self, app, shared_contract):
+    #     token = Token.query.get(1)
+    #     client = self.client_with_admin_login(app)
+    #     response = client.get(self.url_holders + token.token_address)
+    #     assert response.status_code == 200
+    #     assert '<title>保有者一覧'.encode('utf-8') in response.data
+    #     assert eth_account['issuer']['account_address'].encode('utf-8') in response.data
+    #     assert '株式会社１'.encode('utf-8') in response.data
+    #     assert '1000000'.encode('utf-8') in response.data
+
+    # # ＜正常系12＞
+    # # 保有者詳細
+    # def test_normal_12(self, app, shared_contract):
+    #     token = Token.query.get(1)
+    #     client = self.client_with_admin_login(app)
+    #     response = client.get(self.url_holder + token.token_address + '/' + eth_account['issuer']['account_address'])
+    #     assert response.status_code == 200
+    #     assert '<title>保有者詳細'.encode('utf-8') in response.data
+    #     assert eth_account['issuer']['account_address'].encode('utf-8') in response.data
+    #     assert '株式会社１'.encode('utf-8') in response.data
+    #     assert '1234567'.encode('utf-8') in response.data
+    #     assert '東京都'.encode('utf-8') in response.data
+    #     assert '中央区'.encode('utf-8') in response.data
+    #     assert '日本橋11-1'.encode('utf-8') in response.data
+    #     assert '東京マンション１０１'.encode('utf-8') in response.data
+    #     assert '三菱UFJ銀行'.encode('utf-8') in response.data
+    #     assert '東恵比寿支店'.encode('utf-8') in response.data
+    #     assert '普通'.encode('utf-8') in response.data
+    #     assert 'ｶﾌﾞｼｷｶﾞｲｼﾔｹﾂｻｲﾀﾞｲｺｳ'.encode('utf-8') in response.data
+
+    # # ＜正常系13＞
+    # # 認定依頼
+    # def test_normal_13(self, app, shared_contract):
+    #     token = Token.query.get(1)
+    #     url_signature = self.url_signature + token.token_address
+    #     client = self.client_with_admin_login(app)
+
+    #     # 認定画面
+    #     response = client.get(url_signature)
+    #     assert response.status_code == 200
+    #     assert '<title>認定依頼'.encode('utf-8') in response.data
+
+    #     # 認定依頼
+    #     response = client.post(
+    #         url_signature,
+    #         data={
+    #             'token_address': token.token_address,
+    #             'signer': eth_account['agent']['account_address']
+    #         }
+    #     )
+    #     assert response.status_code == 302
+
+    #     # 待機
+    #     time.sleep(2)
+
+    #     # 詳細設定
+    #     response = client.get(self.url_setting + token.token_address)
+    #     assert response.status_code == 200
+    #     assert '<title>詳細設定'.encode('utf-8') in response.data
+    #     assert '認定依頼を受け付けました。'.encode('utf-8') in response.data
+
+    #     # トークンのsignatureが1になっていること
+    #     val = get_signature(token.token_address, eth_account['agent']['account_address'])
+    #     assert val == 1
+
+    # # ＜正常系14＞
+    # # 認定実施　→　発行済詳細で確認
+    # def test_normal_14(self, app, shared_contract):
+    #     # 認定実施
+    #     token = Token.query.get(1)
+    #     exec_sign(token.token_address, eth_account['agent'])
+
+    #     # 発行済一覧
+    #     url_setting = self.url_setting + token.token_address
+    #     client = self.client_with_admin_login(app)
+    #     response = client.get(url_setting)
+    #     assert response.status_code == 200
+    #     assert '<title>詳細設定'.encode('utf-8') in response.data
+    #     assert 'テスト'.encode('utf-8') in response.data
+    #     assert '認定済みアドレス'.encode('utf-8') in response.data
+    #     assert eth_account['agent']['account_address'].encode('utf-8') in response.data
+
+    # # ＜正常系15＞
+    # # 償還実施　→　発行済一覧で確認
+    # def test_normal_15(self, app, shared_contract):
+    #     token = Token.query.get(1)
+    #     client = self.client_with_admin_login(app)
+    #     response = client.post(
+    #         self.url_redeem,
+    #         data={
+    #             'token_address': token.token_address
+    #         }
+    #     )
+    #     assert response.status_code == 302
+
+    #     # 待機
+    #     time.sleep(2)
+
+    #     # 発行済一覧
+    #     client = self.client_with_admin_login(app)
+    #     response = client.get(self.url_tokenlist)
+    #     assert response.status_code == 200
+    #     assert '<title>発行済一覧'.encode('utf-8') in response.data
+    #     assert 'テスト'.encode('utf-8') in response.data
+    #     assert 'BOND'.encode('utf-8') in response.data
+    #     assert '償還済'.encode('utf-8') in response.data
+
+    # #############################################################################
+    # # エラー系
+    # #############################################################################
+    # # ＜エラー系1＞
+    # # 新規発行（必須エラー）
+    # def test_error_1(self, app, shared_contract):
+    #     client = self.client_with_admin_login(app)
+    #     # 新規発行
+    #     response = client.post(
+    #         self.url_issue,
+    #         data={
+    #         }
+    #     )
+    #     assert response.status_code == 200
+    #     assert '<title>新規発行'.encode('utf-8') in response.data
+    #     assert '商品名は必須です。'.encode('utf-8') in response.data
+    #     assert '略称は必須です。'.encode('utf-8') in response.data
+    #     assert '総発行量は必須です。'.encode('utf-8') in response.data
+    #     assert '発行目的は必須です。'.encode('utf-8') in response.data
+
+
+    # # ＜エラー系2＞
+    # # 募集（必須エラー）
+    # def test_error_2(self, app, shared_contract):
+    #     token = Token.query.get(1)
+    #     # 募集
+    #     client = self.client_with_admin_login(app)
+    #     response = client.post(
+    #         self.url_sell + token.token_address,
+    #         data={
+    #         }
+    #     )
+    #     assert response.status_code == 302
+    #     # 新規募集でエラーを確認
+    #     response = client.get(self.url_sell + token.token_address)
+    #     assert response.status_code == 200
+    #     assert '<title>新規募集'.encode('utf-8') in response.data
+    #     assert '売出価格は必須です。'.encode('utf-8') in response.data
+
+    # # ＜エラー系3＞
+    # # 認定（必須エラー）
+    # def test_error_3(self, app, shared_contract):
+    #     token = Token.query.get(1)
+    #     url_signature = self.url_signature + token.token_address
+    #     client = self.client_with_admin_login(app)
+    #     # 認定依頼
+    #     response = client.post(
+    #         url_signature,
+    #         data={
+    #             'token_address': token.token_address,
+    #         }
+
+    #     )
+    #     assert response.status_code == 200
+    #     assert '認定者は必須です。'.encode('utf-8') in response.data
+
+
+    # # ＜エラー系4＞
+    # # 認定（認定依頼先アドレスのフォーマットエラー）
+    # def test_error_4(self, app, shared_contract):
+    #     token = Token.query.get(1)
+    #     url_signature = self.url_signature + token.token_address
+    #     client = self.client_with_admin_login(app)
+    #     # 認定依頼
+    #     response = client.post(
+    #         url_signature,
+    #         data={
+    #             'token_address': token.token_address,
+    #             'signer': '0xc94b0d702422587e361dd6cd08b55dfe1961181f1' # 1桁多い
+    #         }
+    #     )
+    #     assert response.status_code == 200
+    #     assert '有効なアドレスではありません。'.encode('utf-8') in response.data
+
+
+    # # ＜エラー系5＞
+    # # 認定（認定依頼がすでに登録されている）
+    # def test_error_5(self, app, shared_contract):
+    #     token = Token.query.get(1)
+    #     url_signature = self.url_signature + token.token_address
+    #     client = self.client_with_admin_login(app)
+    #     # 認定依頼
+    #     response = client.post(
+    #         url_signature,
+    #         data={
+    #             'token_address': token.token_address,
+    #             'signer': eth_account['agent']['account_address']
+    #         }
+    #     )
+    #     assert response.status_code == 200
+    #     assert '既に情報が登録されています。'.encode('utf-8') in response.data
