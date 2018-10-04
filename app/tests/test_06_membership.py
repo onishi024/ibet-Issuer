@@ -59,7 +59,8 @@ class TestCoupon(TestBase):
     url_positions = 'membership/positions'
     url_issue = 'membership/issue'
     url_setting = 'membership/setting/'
-
+    url_sell = 'membership/sell/'
+    url_cancel_order = 'membership/cancel_order/'
     # ＜正常系1＞
     # 一覧の参照(0件)
     def test_normal_1(self, app, shared_contract):
@@ -238,116 +239,74 @@ class TestCoupon(TestBase):
         assert token2.token_address.encode('utf-8') in response.data
         assert '2000000'.encode('utf-8') in response.data
 
+    # ＜正常系9＞
+    # 新規募集画面の参照
+    def test_normal_9(self, app, shared_contract):
+        token = Token.query.get(1)
+        client = self.client_with_admin_login(app)
+        response = client.get(self.url_sell + token.token_address)
+        assert response.status_code == 200
+        assert '<title>新規募集'.encode('utf-8') in response.data
+        assert 'テスト会員権'.encode('utf-8') in response.data
+        assert 'KAIINKEN'.encode('utf-8') in response.data
+        assert '1000000'.encode('utf-8') in response.data
+        assert 'details'.encode('utf-8') in response.data
+        assert 'returnDetails'.encode('utf-8') in response.data
+        assert '20191231'.encode('utf-8') in response.data
+        assert 'memo'.encode('utf-8') in response.data
+        assert 'なし'.encode('utf-8') in response.data
 
-    # # ＜正常系6＞
-    # # 新規募集画面の参照
-    # def test_normal_6(self, app, shared_contract):
-    #     token = Token.query.get(1)
-    #     client = self.client_with_admin_login(app)
-    #     response = client.get(self.url_sell + token.token_address)
-    #     assert response.status_code == 200
-    #     assert '<title>新規募集'.encode('utf-8') in response.data
-    #     assert 'テスト'.encode('utf-8') in response.data
-    #     assert 'BOND'.encode('utf-8') in response.data
-    #     assert '1000000'.encode('utf-8') in response.data
-    #     assert '1000'.encode('utf-8') in response.data
-    #     assert '0101'.encode('utf-8') in response.data
-    #     assert '0201'.encode('utf-8') in response.data
-    #     assert '0301'.encode('utf-8') in response.data
-    #     assert '0401'.encode('utf-8') in response.data
-    #     assert '0501'.encode('utf-8') in response.data
-    #     assert '0601'.encode('utf-8') in response.data
-    #     assert '0701'.encode('utf-8') in response.data
-    #     assert '0801'.encode('utf-8') in response.data
-    #     assert '0901'.encode('utf-8') in response.data
-    #     assert '1001'.encode('utf-8') in response.data
-    #     assert '1101'.encode('utf-8') in response.data
-    #     assert '1201'.encode('utf-8') in response.data
-    #     assert '20191231'.encode('utf-8') in response.data
-    #     assert '10000'.encode('utf-8') in response.data
-    #     assert '20191231'.encode('utf-8') in response.data
-    #     assert '商品券をプレゼント'.encode('utf-8') in response.data
-    #     assert '新商品の開発資金として利用。'.encode('utf-8') in response.data
-    #     assert 'メモ'.encode('utf-8') in response.data
+    # ＜正常系10＞
+    # 募集 → 募集管理で確認
+    def test_normal_10(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
+        token = Token.query.get(1)
+        url_sell = self.url_sell + token.token_address
+        # 募集
+        response = client.post(
+            url_sell,
+            data={
+                'sellPrice': 100,
+            }
+        )
+        assert response.status_code == 302
 
-    # # ＜正常系7＞
-    # # 募集 → personinfo登録 → 募集 → whitelist登録 →
-    # # 募集 → 募集管理で確認
-    # def test_normal_7(self, app, shared_contract):
-    #     client = self.client_with_admin_login(app)
-    #     token = Token.query.get(1)
-    #     url_sell = self.url_sell + token.token_address
-    #     # 募集
-    #     response = client.post(
-    #         url_sell,
-    #         data={
-    #             'sellPrice': 100,
-    #         }
-    #     )
-    #     assert response.status_code == 302
-    #     # 募集管理でエラーを確認
-    #     response = client.get(self.url_positions)
-    #     assert response.status_code == 200
-    #     assert '法人名、所在地の情報が未登録です。'.encode('utf-8') in response.data
+        # 待機（募集には時間がかかる）
+        time.sleep(5)
 
-    #     # personalinfo登録
-    #     register_personalinfo(eth_account['issuer'], shared_contract['PersonalInfo'], self.issuer_encrypted_info)
-    #     # 募集
-    #     response = client.post(
-    #         url_sell,
-    #         data={
-    #             'sellPrice': 100,
-    #         }
-    #     )
-    #     assert response.status_code == 302
-    #     # 募集管理でエラーを確認
-    #     response = client.get(self.url_positions)
-    #     assert response.status_code == 200
-    #     assert '金融機関の情報が未登録です。'.encode('utf-8') in response.data
+        # 募集管理
+        response = client.get(self.url_positions)
+        assert response.status_code == 200
+        assert '<title>募集管理'.encode('utf-8') in response.data
+        assert '新規募集を受け付けました。募集開始までに数分程かかることがあります。'.encode('utf-8') in response.data
+        assert 'テスト会員権'.encode('utf-8') in response.data
+        assert 'KAIINKEN'.encode('utf-8') in response.data
+        assert '募集停止'.encode('utf-8') in response.data
+        assert '999900'.encode('utf-8') in response.data
+        assert '100'.encode('utf-8') in response.data
 
-    #     # whitelist登録
-    #     register_terms(eth_account['agent'], shared_contract['WhiteList'])
-    #     register_whitelist(eth_account['issuer'], shared_contract['WhiteList'], self.issuer_encrypted_info)
-    #     # 募集
-    #     response = client.post(
-    #         url_sell,
-    #         data={
-    #             'sellPrice': 100,
-    #         }
-    #     )
-    #     assert response.status_code == 302
+    # ＜正常系11＞
+    # 募集停止 → 募集管理で確認
+    def test_normal_11(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
+        response = client.post(
+            self.url_cancel_order + '0',
+        )
+        assert response.status_code == 302
 
-    #     # 待機（募集には時間がかかる）
-    #     time.sleep(5)
+        # 待機
+        time.sleep(5)
 
-    #     # 募集管理
-    #     response = client.get(self.url_positions)
-    #     assert response.status_code == 200
-    #     assert '<title>募集管理'.encode('utf-8') in response.data
-    #     assert '新規募集を受け付けました。募集開始までに数分程かかることがあります。'.encode('utf-8') in response.data
-    #     assert 'テスト'.encode('utf-8') in response.data
-    #     assert 'BOND'.encode('utf-8') in response.data
-    #     assert '募集停止'.encode('utf-8') in response.data
-
-    # # ＜正常系8＞
-    # # 募集停止 → 募集管理で確認
-    # def test_normal_8(self, app, shared_contract):
-    #     client = self.client_with_admin_login(app)
-    #     response = client.post(
-    #         self.url_cancel_order + '0',
-    #     )
-    #     assert response.status_code == 302
-
-    #     # 待機
-    #     time.sleep(2)
-
-    #     # 募集管理
-    #     response = client.get(self.url_positions)
-    #     assert response.status_code == 200
-    #     assert '<title>募集管理'.encode('utf-8') in response.data
-    #     assert 'テスト'.encode('utf-8') in response.data
-    #     assert 'BOND'.encode('utf-8') in response.data
-    #     assert '募集開始'.encode('utf-8') in response.data
+        # 募集管理
+        response = client.get(self.url_positions)
+        assert response.status_code == 200
+        assert '<title>募集管理'.encode('utf-8') in response.data
+        assert 'テスト会員権'.encode('utf-8') in response.data
+        assert 'KAIINKEN'.encode('utf-8') in response.data
+        assert '募集停止'.encode('utf-8') in response.data
+        assert '1000000'.encode('utf-8') not in response.data
+        assert '999900'.encode('utf-8') not in response.data
+        assert '100'.encode('utf-8') not in response.data
 
     # # ＜正常系9＞
     # # 募集設定　画像URL登録 → 詳細画面で確認
