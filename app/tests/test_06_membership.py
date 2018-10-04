@@ -61,9 +61,26 @@ class TestCoupon(TestBase):
     url_setting = 'membership/setting/'
     url_sell = 'membership/sell/'
     url_cancel_order = 'membership/cancel_order/'
-    # ＜正常系1＞
-    # 一覧の参照(0件)
-    def test_normal_1(self, app, shared_contract):
+    # 会員権Data
+    token_data1 = {
+        'name': 'テスト会員権',
+        'symbol': 'KAIINKEN',
+        'totalSupply': 1000000,
+        'details': 'details',
+        'returnDetails': 'returnDetails',
+        'expirationDate': '20191231',
+        'memo': 'memo',
+        'transferable': 'True',
+        'image_small': 'image_small',
+        'image_medium': 'image_medium',
+        'image_large': 'image_large'
+    }
+
+
+    # ＜正常系1_1＞
+    # ＜会員権の0件確認＞
+    # 会員権一覧の参照(0件)
+    def test_normal_1_1(self, app, shared_contract):
         # Config設定は1_1で全て実施
         Config.ETH_ACCOUNT = eth_account['issuer']['account_address']
         Config.ETH_ACCOUNT_PASSWORD = eth_account['issuer']['password']
@@ -78,35 +95,25 @@ class TestCoupon(TestBase):
         assert '<title>会員権一覧'.encode('utf-8') in response.data
         assert 'データが存在しません'.encode('utf-8') in response.data
 
-    # ＜正常系2＞
+    # ＜正常系1_2＞
+    # ＜会員権の0件確認＞
     # 募集管理(0件)
-    def test_normal_2(self, app, shared_contract):
+    def test_normal_1_2(self, app, shared_contract):
         client = self.client_with_admin_login(app)
         response = client.get(self.url_positions)
         assert response.status_code == 200
         assert '<title>募集管理'.encode('utf-8') in response.data
         assert 'データが存在しません'.encode('utf-8') in response.data
 
-    # ＜正常系3＞
+    # ＜正常系2_1＞
+    # ＜会員権の1件確認＞
     # 新規発行　→　DB登録処理 →　詳細画面
-    def test_normal_3(self, app, db, shared_contract):
+    def test_normal_2_1(self, app, db, shared_contract):
         client = self.client_with_admin_login(app)
         # 新規発行
         response = client.post(
             self.url_issue,
-            data={
-                'name': 'テスト会員権',
-                'symbol': 'KAIINKEN',
-                'totalSupply': 1000000,
-                'details': 'details',
-                'returnDetails': 'returnDetails',
-                'expirationDate': '20191231',
-                'memo': 'memo',
-                'transferable': 'True',
-                'image_small': 'image_small',
-                'image_medium': 'image_medium',
-                'image_large': 'image_large'
-            }
+            data=token_data1
         )
         assert response.status_code == 302
 
@@ -121,54 +128,57 @@ class TestCoupon(TestBase):
         response = client.get(self.url_setting + token.token_address)
         assert response.status_code == 200
         assert '<title>会員権 詳細設定'.encode('utf-8') in response.data
-        assert 'テスト会員権'.encode('utf-8') in response.data
-        assert 'KAIINKEN'.encode('utf-8') in response.data
-        assert '1000000'.encode('utf-8') in response.data
-        assert 'details'.encode('utf-8') in response.data
-        assert 'returnDetails'.encode('utf-8') in response.data
-        assert '20191231'.encode('utf-8') in response.data
-        assert 'memo'.encode('utf-8') in response.data
+        assert token_data1['name'].encode('utf-8') in response.data
+        assert token_data1['symbol'].encode('utf-8') in response.data
+        assert token_data1['totalSupply'].encode('utf-8') in response.data
+        assert token_data1['details'].encode('utf-8') in response.data
+        assert token_data1['returnDetails'].encode('utf-8') in response.data
+        assert token_data1['expirationDate'].encode('utf-8') in response.data
+        assert token_data1['memo'].encode('utf-8') in response.data
         assert '<option selected value="True">なし</option>'.encode('utf-8') in response.data
-        assert 'image_small'.encode('utf-8') in response.data
-        assert 'image_medium'.encode('utf-8') in response.data
-        assert 'image_large'.encode('utf-8') in response.data
+        assert token_data1['image_small'].encode('utf-8') in response.data
+        assert token_data1['image_medium'].encode('utf-8') in response.data
+        assert token_data1['image_large'].encode('utf-8') in response.data
 
-    # ＜正常系4＞
+    # ＜正常系2_2＞
+    # ＜会員権の1件確認＞
     # 会員権一覧の参照(1件)
-    def test_normal_4(self, app, shared_contract):
+    def test_normal_2_2(self, app, shared_contract):
         token = Token.query.get(1)
         client = self.client_with_admin_login(app)
         response = client.get(self.url_list)
         assert response.status_code == 200
         assert '<title>会員権一覧'.encode('utf-8') in response.data
-        assert 'テスト会員権'.encode('utf-8') in response.data
-        assert 'KAIINKEN'.encode('utf-8') in response.data
+        assert token_data1['name'].encode('utf-8') in response.data
+        assert token_data1['symbol'].encode('utf-8') in response.data
         assert token.token_address.encode('utf-8') in response.data
         assert '取扱中'.encode('utf-8') in response.data
 
-    # ＜正常系5＞
+    # ＜正常系2_3＞
+    # ＜会員権の1件確認＞
     # 募集管理(1件)
-    def test_normal_5(self, app, shared_contract):
+    def test_normal_2_3(self, app, shared_contract):
         token = Token.query.get(1)
         client = self.client_with_admin_login(app)
         response = client.get(self.url_positions)
         assert response.status_code == 200
         assert '<title>募集管理'.encode('utf-8') in response.data
-        assert 'テスト会員権'.encode('utf-8') in response.data
-        assert 'KAIINKEN'.encode('utf-8') in response.data
+        assert token_data1['name'].encode('utf-8') in response.data
+        assert token_data1['symbol'].encode('utf-8') in response.data
         assert token.token_address.encode('utf-8') in response.data
-        assert '1000000'.encode('utf-8') in response.data
+        assert '<td>1000000</td>\n            <td>1000000</td>\n            <td>0</td>'.encode('utf-8') in response.data
 
-    # ＜正常系6＞
+    # ＜正常系3_1＞
+    # ＜会員権の発行画面＞
     # 新規発行（画像URLなし）
-    def test_normal_6(self, app, db, shared_contract):
+    def test_normal_3_1(self, app, db, shared_contract):
         client = self.client_with_admin_login(app)
         # 新規発行
         response = client.post(
             self.url_issue,
             data={
                 'name': '2件目会員権',
-                'symbol': 'NIKENME',
+                'symbol': '2KENME',
                 'totalSupply': 2000000,
                 'details': '2details',
                 'returnDetails': '2returnDetails',
@@ -191,13 +201,57 @@ class TestCoupon(TestBase):
         assert response.status_code == 200
         assert '<title>会員権 詳細設定'.encode('utf-8') in response.data
         assert '2件目会員権'.encode('utf-8') in response.data
-        assert 'NIKENME'.encode('utf-8') in response.data
+        assert '2KENME'.encode('utf-8') in response.data
         assert '2000000'.encode('utf-8') in response.data
         assert '2details'.encode('utf-8') in response.data
         assert '2returnDetails'.encode('utf-8') in response.data
         assert '20201231'.encode('utf-8') in response.data
         assert '2memo'.encode('utf-8') in response.data
         assert '<option selected value="False">あり</option>'.encode('utf-8') in response.data
+
+    # ＜正常系3_2＞
+    # ＜会員権の発行画面＞
+    # 新規発行（image_smallのみあり）
+    def test_normal_3_2(self, app, db, shared_contract):
+        client = self.client_with_admin_login(app)
+        # 新規発行
+        response = client.post(
+            self.url_issue,
+            data={
+                'name': '3件目会員権',
+                'symbol': '3KENME',
+                'totalSupply': 2000000,
+                'details': '2details',
+                'returnDetails': '2returnDetails',
+                'expirationDate': '20201231',
+                'memo': '2memo',
+                'transferable': 'False',
+                'image_small': 'image_small2',
+            }
+        )
+        assert response.status_code == 302
+
+        # 2秒待機
+        time.sleep(2)
+
+        # DB登録処理
+        processorIssueEvent(db)
+
+        # 設定画面
+        token = Token.query.get(2)
+        response = client.get(self.url_setting + token.token_address)
+        assert response.status_code == 200
+        assert '<title>会員権 詳細設定'.encode('utf-8') in response.data
+        assert '2件目会員権'.encode('utf-8') in response.data
+        assert '2KENME'.encode('utf-8') in response.data
+        assert '2000000'.encode('utf-8') in response.data
+        assert '2details'.encode('utf-8') in response.data
+        assert '2returnDetails'.encode('utf-8') in response.data
+        assert '20201231'.encode('utf-8') in response.data
+        assert '2memo'.encode('utf-8') in response.data
+        assert '<option selected value="False">あり</option>'.encode('utf-8') in response.data
+
+
 
     # ＜正常系7＞
     # 会員権一覧（複数件）
@@ -215,7 +269,7 @@ class TestCoupon(TestBase):
         assert '取扱中'.encode('utf-8') in response.data
         # 2
         assert '2件目会員権'.encode('utf-8') in response.data
-        assert 'NIKENME'.encode('utf-8') in response.data
+        assert '2KENME'.encode('utf-8') in response.data
         assert token2.token_address.encode('utf-8') in response.data
         assert '取扱中'.encode('utf-8') in response.data
 
@@ -283,6 +337,7 @@ class TestCoupon(TestBase):
         assert 'テスト会員権'.encode('utf-8') in response.data
         assert 'KAIINKEN'.encode('utf-8') in response.data
         assert '募集停止'.encode('utf-8') in response.data
+        # 募集中の数量が存在する
         assert '<td>1000000</td>\n            <td>0</td>\n            <td>1000000</td>'.encode('utf-8') in response.data
 
     # ＜正常系11＞
@@ -304,6 +359,7 @@ class TestCoupon(TestBase):
         assert 'テスト会員権'.encode('utf-8') in response.data
         assert 'KAIINKEN'.encode('utf-8') in response.data
         assert '募集開始'.encode('utf-8') in response.data
+        # 募集中の数量が0
         assert '<td>1000000</td>\n            <td>1000000</td>\n            <td>0</td>'.encode('utf-8') in response.data
 
     # # ＜正常系9＞
