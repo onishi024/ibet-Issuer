@@ -304,7 +304,7 @@ class TestCoupon(TestBase):
         assert 'テスト会員権'.encode('utf-8') in response.data
         assert 'KAIINKEN'.encode('utf-8') in response.data
         assert '募集停止'.encode('utf-8') in response.data
-        assert '1000000'.encode('utf-8') not in response.data
+        assert '1000000'.encode('utf-8') in response.data
         assert '999900'.encode('utf-8') not in response.data
         assert '100'.encode('utf-8') not in response.data
 
