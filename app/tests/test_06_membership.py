@@ -282,7 +282,7 @@ class TestCoupon(TestBase):
         assert 'テスト会員権'.encode('utf-8') in response.data
         assert 'KAIINKEN'.encode('utf-8') in response.data
         assert '募集停止'.encode('utf-8') in response.data
-        assert '<td>1000000</td>\\n<td>0</td>\\n<td>1000000</td>'.encode('utf-8') in response.data
+        assert '<td>1000000</td>\n<td>0</td>\n<td>1000000</td>'.encode('utf-8') in response.data
 
     # ＜正常系11＞
     # 募集停止 → 募集管理で確認
@@ -303,7 +303,7 @@ class TestCoupon(TestBase):
         assert 'テスト会員権'.encode('utf-8') in response.data
         assert 'KAIINKEN'.encode('utf-8') in response.data
         assert '募集停止'.encode('utf-8') in response.data
-        assert '<td>1000000</td>\\n<td>1000000</td>\\n<td>0</td>'.encode('utf-8') in response.data
+        assert '<td>1000000</td>\n<td>1000000</td>\n<td>0</td>'.encode('utf-8') in response.data
 
     # # ＜正常系9＞
     # # 募集設定　画像URL登録 → 詳細画面で確認
