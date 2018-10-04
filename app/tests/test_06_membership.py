@@ -276,6 +276,9 @@ class TestCoupon(TestBase):
 
         # 募集管理
         response = client.get(self.url_positions)
+
+        logger.info(response.data)
+
         assert response.status_code == 200
         assert '<title>募集管理'.encode('utf-8') in response.data
         assert '新規募集を受け付けました。募集開始までに数分程かかることがあります。'.encode('utf-8') in response.data
