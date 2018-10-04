@@ -122,6 +122,7 @@ class TestCoupon(TestBase):
         assert '<title>会員権 詳細設定'.encode('utf-8') in response.data
         assert 'テスト会員権'.encode('utf-8') in response.data
         assert 'KAIINKEN'.encode('utf-8') in response.data
+        assert '1000000'.encode('utf-8') in response.data
         assert 'details'.encode('utf-8') in response.data
         assert 'returnDetails'.encode('utf-8') in response.data
         assert '20191231'.encode('utf-8') in response.data
@@ -156,6 +157,87 @@ class TestCoupon(TestBase):
         assert 'KAIINKEN'.encode('utf-8') in response.data
         assert token.token_address.encode('utf-8') in response.data
         assert '1000000'.encode('utf-8') in response.data
+
+    # ＜正常系6＞
+    # 新規発行（画像URLなし）
+    def test_normal_6(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
+        # 新規発行
+        response = client.post(
+            self.url_issue,
+            data={
+                'name': '2件目会員権',
+                'symbol': 'NIKENME',
+                'totalSupply': 2000000,
+                'details': '2details',
+                'returnDetails': '2returnDetails',
+                'expirationDate': '20201231',
+                'memo': '2memo',
+                'transferable': 'False'
+            }
+        )
+        assert response.status_code == 302
+
+        # 2秒待機
+        time.sleep(2)
+
+        # DB登録処理
+        processorIssueEvent(db)
+
+        # 設定画面
+        token = Token.query.get(2)
+        response = client.get(self.url_setting + token.token_address)
+        assert response.status_code == 200
+        assert '<title>会員権 詳細設定'.encode('utf-8') in response.data
+        assert '2件目会員権'.encode('utf-8') in response.data
+        assert 'NIKENME'.encode('utf-8') in response.data
+        assert '2000000'.encode('utf-8') in response.data
+        assert '2details'.encode('utf-8') in response.data
+        assert '2returnDetails'.encode('utf-8') in response.data
+        assert '20201231'.encode('utf-8') in response.data
+        assert '2memo'.encode('utf-8') in response.data
+        assert '<option selected value="False">あり</option>'.encode('utf-8') in response.data
+
+    # ＜正常系7＞
+    # 会員権一覧（複数件）
+    def test_normal_7(self, app, shared_contract):
+        token1 = Token.query.get(1)
+        token2 = Token.query.get(2)
+        client = self.client_with_admin_login(app)
+        response = client.get(self.url_list)
+        assert response.status_code == 200
+        assert '<title>会員権一覧'.encode('utf-8') in response.data
+        # 1
+        assert 'テスト会員権'.encode('utf-8') in response.data
+        assert 'KAIINKEN'.encode('utf-8') in response.data
+        assert token1.token_address.encode('utf-8') in response.data
+        assert '取扱中'.encode('utf-8') in response.data
+        # 2
+        assert '2件目会員権'.encode('utf-8') in response.data
+        assert 'NIKENME'.encode('utf-8') in response.data
+        assert token2.token_address.encode('utf-8') in response.data
+        assert '取扱中'.encode('utf-8') in response.data
+
+    # ＜正常系8＞
+    # 募集管理（複数件）
+    def test_normal_8(self, app, shared_contract):
+        token1 = Token.query.get(1)
+        token2 = Token.query.get(2)
+        client = self.client_with_admin_login(app)
+        response = client.get(self.url_positions)
+        assert response.status_code == 200
+        assert '<title>募集管理'.encode('utf-8') in response.data
+        # 1
+        assert 'テスト会員権'.encode('utf-8') in response.data
+        assert 'KAIINKEN'.encode('utf-8') in response.data
+        assert token1.token_address.encode('utf-8') in response.data
+        assert '1000000'.encode('utf-8') in response.data
+        # 2
+        assert '2件目会員権'.encode('utf-8') in response.data
+        assert 'NIKENME'.encode('utf-8') in response.data
+        assert token2.token_address.encode('utf-8') in response.data
+        assert '2000000'.encode('utf-8') in response.data
+
 
     # # ＜正常系6＞
     # # 新規募集画面の参照
