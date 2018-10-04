@@ -58,7 +58,7 @@ class TestCoupon(TestBase):
     url_list = 'membership/list'
     url_positions = 'membership/positions'
     url_issue = 'membership/issue'
-    url_setting = 'membership/setting'
+    url_setting = 'membership/setting/'
 
     # ＜正常系1＞
     # 一覧の参照(0件)
