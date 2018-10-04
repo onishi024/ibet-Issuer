@@ -160,7 +160,7 @@ class TestCoupon(TestBase):
 
     # ＜正常系6＞
     # 新規発行（画像URLなし）
-    def test_normal_6(self, app, shared_contract):
+    def test_normal_6(self, app, db, shared_contract):
         client = self.client_with_admin_login(app)
         # 新規発行
         response = client.post(
