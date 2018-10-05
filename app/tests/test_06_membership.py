@@ -256,12 +256,12 @@ class TestMembership(TestBase):
         assert self.token_data1['name'].encode('utf-8') in response.data
         assert self.token_data1['symbol'].encode('utf-8') in response.data
         assert token1.token_address.encode('utf-8') in response.data
-        assert '<td>1000000</td>\n            <td>0</td>\n            <td>1000000</td>'.encode('utf-8') in response.data
+        assert '<td>1000000</td>\n            <td>1000000</td>\n            <td>0</td>'.encode('utf-8') in response.data
         # 2
         assert self.token_data2['name'].encode('utf-8') in response.data
         assert self.token_data2['symbol'].encode('utf-8') in response.data
         assert token2.token_address.encode('utf-8') in response.data
-        assert '<td>2000000</td>\n            <td>0</td>\n            <td>2000000</td>'.encode('utf-8') in response.data
+        assert '<td>2000000</td>\n            <td>2000000</td>\n            <td>0</td>'.encode('utf-8') in response.data
 
     # ＜正常系9＞
     # 新規募集画面の参照
