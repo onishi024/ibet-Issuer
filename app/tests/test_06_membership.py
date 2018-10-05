@@ -76,7 +76,6 @@ class TestCoupon(TestBase):
         'image_large': 'image_large'
     }
 
-
     # ＜正常系1_1＞
     # ＜会員権の0件確認＞
     # 会員権一覧の参照(0件)
@@ -109,6 +108,11 @@ class TestCoupon(TestBase):
     # ＜会員権の1件確認＞
     # 新規発行　→　DB登録処理 →　詳細画面
     def test_normal_2_1(self, app, db, shared_contract):
+
+        logger.info(token_data1)
+
+
+
         client = self.client_with_admin_login(app)
         # 新規発行
         response = client.post(
