@@ -392,6 +392,36 @@ class TestMembership(TestBase):
         assert self.token_data3['image_large'].encode('utf-8') in response.data
 
 
+    # ＜正常系5_2＞
+    # ＜設定画面＞
+    # 同じ値で更新処理　→　各値に変更がないこと
+    def test_normal_5_2(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
+        token = Token.query.get(1)
+        url_setting = self.url_setting + token.token_address
+        response = client.post(
+            url_setting,
+            data=self.token_data3
+        )
+        assert response.status_code == 302
+        time.sleep(10)
+
+        response = client.get(url_setting)
+        assert response.status_code == 200
+        assert '<title>会員権 詳細設定'.encode('utf-8') in response.data
+        assert self.token_data3['name'].encode('utf-8') in response.data
+        assert self.token_data3['symbol'].encode('utf-8') in response.data
+        assert str(self.token_data3['totalSupply']).encode('utf-8') in response.data
+        assert self.token_data3['details'].encode('utf-8') in response.data
+        assert self.token_data3['returnDetails'].encode('utf-8') in response.data
+        assert self.token_data3['expirationDate'].encode('utf-8') in response.data
+        assert self.token_data3['memo'].encode('utf-8') in response.data
+        assert '<option selected value="False">あり</option>'.encode('utf-8') in response.data
+        assert self.token_data3['image_small'].encode('utf-8') in response.data
+        assert self.token_data3['image_medium'].encode('utf-8') in response.data
+        assert self.token_data3['image_large'].encode('utf-8') in response.data
+
+
     # # ＜正常系9＞
     # # 募集設定　画像URL登録 → 詳細画面で確認
     # def test_normal_9(self, app, shared_contract):
