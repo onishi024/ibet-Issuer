@@ -13,7 +13,7 @@ from app.contracts import Contract
 from logging import getLogger
 logger = getLogger('api')
 
-class TestCoupon(TestBase):
+class TestMembership(TestBase):
     # personal_info_json = {
     #     "name":"株式会社１",
     #     "address":{
