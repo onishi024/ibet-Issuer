@@ -139,7 +139,7 @@ class TestMembership(TestBase):
         assert '<title>会員権 詳細設定'.encode('utf-8') in response.data
         assert self.token_data1['name'].encode('utf-8') in response.data
         assert self.token_data1['symbol'].encode('utf-8') in response.data
-        assert self.token_data1['totalSupply'].encode('utf-8') in response.data
+        assert str(self.token_data1['totalSupply']).encode('utf-8') in response.data
         assert self.token_data1['details'].encode('utf-8') in response.data
         assert self.token_data1['returnDetails'].encode('utf-8') in response.data
         assert self.token_data1['expirationDate'].encode('utf-8') in response.data
@@ -202,7 +202,7 @@ class TestMembership(TestBase):
         assert '<title>会員権 詳細設定'.encode('utf-8') in response.data
         assert self.token_data2['name'].encode('utf-8') in response.data
         assert self.token_data2['symbol'].encode('utf-8') in response.data
-        assert self.token_data2['totalSupply'].encode('utf-8') in response.data
+        assert str(self.token_data2['totalSupply']).encode('utf-8') in response.data
         assert self.token_data2['details'].encode('utf-8') in response.data
         assert self.token_data2['returnDetails'].encode('utf-8') in response.data
         assert self.token_data2['expirationDate'].encode('utf-8') in response.data
