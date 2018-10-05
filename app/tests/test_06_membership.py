@@ -75,6 +75,16 @@ class TestCoupon(TestBase):
         'image_medium': 'image_medium',
         'image_large': 'image_large'
     }
+    token_data2 = {
+        'name': '2件目会員権',
+        'symbol': '2KENME',
+        'totalSupply': 2000000,
+        'details': '2details',
+        'returnDetails': '2returnDetails',
+        'expirationDate': '20201231',
+        'memo': '2memo',
+        'transferable': 'False'
+    }
 
     # ＜正常系1_1＞
     # ＜会員権の0件確認＞
@@ -108,16 +118,11 @@ class TestCoupon(TestBase):
     # ＜会員権の1件確認＞
     # 新規発行　→　DB登録処理 →　詳細画面
     def test_normal_2_1(self, app, db, shared_contract):
-
-        logger.info(token_data1)
-
-
-
         client = self.client_with_admin_login(app)
         # 新規発行
         response = client.post(
             self.url_issue,
-            data=token_data1
+            data=self.token_data1
         )
         assert response.status_code == 302
 
@@ -132,17 +137,17 @@ class TestCoupon(TestBase):
         response = client.get(self.url_setting + token.token_address)
         assert response.status_code == 200
         assert '<title>会員権 詳細設定'.encode('utf-8') in response.data
-        assert token_data1['name'].encode('utf-8') in response.data
-        assert token_data1['symbol'].encode('utf-8') in response.data
-        assert token_data1['totalSupply'].encode('utf-8') in response.data
-        assert token_data1['details'].encode('utf-8') in response.data
-        assert token_data1['returnDetails'].encode('utf-8') in response.data
-        assert token_data1['expirationDate'].encode('utf-8') in response.data
-        assert token_data1['memo'].encode('utf-8') in response.data
+        assert self.token_data1['name'].encode('utf-8') in response.data
+        assert self.token_data1['symbol'].encode('utf-8') in response.data
+        assert self.token_data1['totalSupply'].encode('utf-8') in response.data
+        assert self.token_data1['details'].encode('utf-8') in response.data
+        assert self.token_data1['returnDetails'].encode('utf-8') in response.data
+        assert self.token_data1['expirationDate'].encode('utf-8') in response.data
+        assert self.token_data1['memo'].encode('utf-8') in response.data
         assert '<option selected value="True">なし</option>'.encode('utf-8') in response.data
-        assert token_data1['image_small'].encode('utf-8') in response.data
-        assert token_data1['image_medium'].encode('utf-8') in response.data
-        assert token_data1['image_large'].encode('utf-8') in response.data
+        assert self.token_data1['image_small'].encode('utf-8') in response.data
+        assert self.token_data1['image_medium'].encode('utf-8') in response.data
+        assert self.token_data1['image_large'].encode('utf-8') in response.data
 
     # ＜正常系2_2＞
     # ＜会員権の1件確認＞
@@ -153,8 +158,8 @@ class TestCoupon(TestBase):
         response = client.get(self.url_list)
         assert response.status_code == 200
         assert '<title>会員権一覧'.encode('utf-8') in response.data
-        assert token_data1['name'].encode('utf-8') in response.data
-        assert token_data1['symbol'].encode('utf-8') in response.data
+        assert self.token_data1['name'].encode('utf-8') in response.data
+        assert self.token_data1['symbol'].encode('utf-8') in response.data
         assert token.token_address.encode('utf-8') in response.data
         assert '取扱中'.encode('utf-8') in response.data
 
@@ -167,8 +172,8 @@ class TestCoupon(TestBase):
         response = client.get(self.url_positions)
         assert response.status_code == 200
         assert '<title>募集管理'.encode('utf-8') in response.data
-        assert token_data1['name'].encode('utf-8') in response.data
-        assert token_data1['symbol'].encode('utf-8') in response.data
+        assert self.token_data1['name'].encode('utf-8') in response.data
+        assert self.token_data1['symbol'].encode('utf-8') in response.data
         assert token.token_address.encode('utf-8') in response.data
         assert '<td>1000000</td>\n            <td>1000000</td>\n            <td>0</td>'.encode('utf-8') in response.data
 
@@ -180,16 +185,7 @@ class TestCoupon(TestBase):
         # 新規発行
         response = client.post(
             self.url_issue,
-            data={
-                'name': '2件目会員権',
-                'symbol': '2KENME',
-                'totalSupply': 2000000,
-                'details': '2details',
-                'returnDetails': '2returnDetails',
-                'expirationDate': '20201231',
-                'memo': '2memo',
-                'transferable': 'False'
-            }
+            data=self.token_data2
         )
         assert response.status_code == 302
 
@@ -204,13 +200,13 @@ class TestCoupon(TestBase):
         response = client.get(self.url_setting + token.token_address)
         assert response.status_code == 200
         assert '<title>会員権 詳細設定'.encode('utf-8') in response.data
-        assert '2件目会員権'.encode('utf-8') in response.data
-        assert '2KENME'.encode('utf-8') in response.data
-        assert '2000000'.encode('utf-8') in response.data
-        assert '2details'.encode('utf-8') in response.data
-        assert '2returnDetails'.encode('utf-8') in response.data
-        assert '20201231'.encode('utf-8') in response.data
-        assert '2memo'.encode('utf-8') in response.data
+        assert self.token_data2['name'].encode('utf-8') in response.data
+        assert self.token_data2['symbol'].encode('utf-8') in response.data
+        assert self.token_data2['totalSupply'].encode('utf-8') in response.data
+        assert self.token_data2['details'].encode('utf-8') in response.data
+        assert self.token_data2['returnDetails'].encode('utf-8') in response.data
+        assert self.token_data2['expirationDate'].encode('utf-8') in response.data
+        assert self.token_data2['memo'].encode('utf-8') in response.data
         assert '<option selected value="False">あり</option>'.encode('utf-8') in response.data
 
     # ＜正常系3_2＞
