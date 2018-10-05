@@ -64,6 +64,7 @@ class TestMembership(TestBase):
     url_setting = 'membership/setting/'
     url_sell = 'membership/sell/'
     url_cancel_order = 'membership/cancel_order/'
+    url_release = 'membership/release'
 
     ##################
     # 会員権Data
@@ -391,7 +392,6 @@ class TestMembership(TestBase):
         assert self.token_data3['image_medium'].encode('utf-8') in response.data
         assert self.token_data3['image_large'].encode('utf-8') in response.data
 
-
     # ＜正常系5_2＞
     # ＜設定画面＞
     # 同じ値で更新処理　→　各値に変更がないこと
@@ -420,6 +420,40 @@ class TestMembership(TestBase):
         assert self.token_data3['image_small'].encode('utf-8') in response.data
         assert self.token_data3['image_medium'].encode('utf-8') in response.data
         assert self.token_data3['image_large'].encode('utf-8') in response.data
+        # 公開中でないことを確認
+        assert '公開 <i class="fa fa-arrow-circle-right">'.encode('utf-8') in response.data
+
+    # ＜正常系5_3＞
+    # ＜設定画面＞
+    # 公開　→　公開中になること、tokenlistに存在すること
+    def test_normal_5_3(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
+        token = Token.query.get(1)
+        response = client.post(
+            self.url_release,
+            data={
+                'token_address': token.token_address
+            }
+        )
+        assert response.status_code == 302
+        time.sleep(10)
+
+        url_setting = self.url_setting + token.token_address
+        response = client.get(url_setting)
+        assert response.status_code == 200
+        assert '<title>会員権 詳細設定'.encode('utf-8') in response.data
+        assert self.token_data3['name'].encode('utf-8') in response.data
+        assert self.token_data3['symbol'].encode('utf-8') in response.data
+        assert str(self.token_data3['totalSupply']).encode('utf-8') in response.data
+        assert self.token_data3['details'].encode('utf-8') in response.data
+        assert self.token_data3['returnDetails'].encode('utf-8') in response.data
+        assert self.token_data3['expirationDate'].encode('utf-8') in response.data
+        assert self.token_data3['memo'].encode('utf-8') in response.data
+        assert '<option selected value="False">あり</option>'.encode('utf-8') in response.data
+        assert self.token_data3['image_small'].encode('utf-8') in response.data
+        assert self.token_data3['image_medium'].encode('utf-8') in response.data
+        assert self.token_data3['image_large'].encode('utf-8') in response.data
+        assert '公開中'.encode('utf-8') in response.data
 
 
     # # ＜正常系9＞
