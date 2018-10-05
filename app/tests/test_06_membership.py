@@ -371,7 +371,7 @@ class TestMembership(TestBase):
         url_setting = self.url_setting + token.token_address
         response = client.post(
             url_setting,
-            data=token_data3
+            data=self.token_data3
         )
         assert response.status_code == 302
         time.sleep(10)
