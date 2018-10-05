@@ -353,6 +353,7 @@ class TestMembership(TestBase):
     # ＜設定画面＞
     # 再募集→設定画面→各値の更新→設定画面で確認
     def test_normal_5_1(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
         token = Token.query.get(1)
 
         ### 再度、募集実施 ###
@@ -368,7 +369,6 @@ class TestMembership(TestBase):
 
         ### 設定画面 ###
         url_setting = self.url_setting + token.token_address
-        client = self.client_with_admin_login(app)
         response = client.post(
             url_setting,
             data=token_data3
