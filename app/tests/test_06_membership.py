@@ -95,6 +95,20 @@ class TestMembership(TestBase):
         'image_medium': '',
         'image_large': ''
     }
+    # 設定画面での編集用
+    token_data3 = {
+        'name': 'テスト会員権',
+        'symbol': 'KAIINKEN',
+        'totalSupply': 1000000,
+        'details': '3details',
+        'returnDetails': '3returnDetails',
+        'expirationDate': '20211231',
+        'memo': '3memo',
+        'transferable': 'False',
+        'image_small': '3image_small',
+        'image_medium': '3image_medium',
+        'image_large': '3image_large'
+    }
 
     # ＜正常系1_1＞
     # ＜会員権の0件確認＞
@@ -263,26 +277,28 @@ class TestMembership(TestBase):
         assert token2.token_address.encode('utf-8') in response.data
         assert '<td>2000000</td>\n            <td>2000000</td>\n            <td>0</td>'.encode('utf-8') in response.data
 
-    # ＜正常系9＞
+    # ＜正常系4_1＞
+    # ＜募集画面＞
     # 新規募集画面の参照
-    def test_normal_9(self, app, shared_contract):
+    def test_normal_4_1(self, app, shared_contract):
         token = Token.query.get(1)
         client = self.client_with_admin_login(app)
         response = client.get(self.url_sell + token.token_address)
         assert response.status_code == 200
         assert '<title>新規募集'.encode('utf-8') in response.data
-        assert 'テスト会員権'.encode('utf-8') in response.data
-        assert 'KAIINKEN'.encode('utf-8') in response.data
-        assert '1000000'.encode('utf-8') in response.data
-        assert 'details'.encode('utf-8') in response.data
-        assert 'returnDetails'.encode('utf-8') in response.data
-        assert '20191231'.encode('utf-8') in response.data
-        assert 'memo'.encode('utf-8') in response.data
+        assert self.token_data1['name'].encode('utf-8') in response.data
+        assert self.token_data1['symbol'].encode('utf-8') in response.data
+        assert str(self.token_data1['totalSupply']).encode('utf-8') in response.data
+        assert self.token_data1['details'].encode('utf-8') in response.data
+        assert self.token_data1['returnDetails'].encode('utf-8') in response.data
+        assert self.token_data1['expirationDate'].encode('utf-8') in response.data
+        assert self.token_data1['memo'].encode('utf-8') in response.data
         assert 'なし'.encode('utf-8') in response.data
 
-    # ＜正常系10＞
+    # ＜正常系4_2＞
+    # ＜募集画面＞
     # 募集 → 募集管理で確認
-    def test_normal_10(self, app, shared_contract):
+    def test_normal_4_2(self, app, shared_contract):
         client = self.client_with_admin_login(app)
         token = Token.query.get(1)
         url_sell = self.url_sell + token.token_address
@@ -304,15 +320,16 @@ class TestMembership(TestBase):
         assert response.status_code == 200
         assert '<title>募集管理'.encode('utf-8') in response.data
         assert '新規募集を受け付けました。募集開始までに数分程かかることがあります。'.encode('utf-8') in response.data
-        assert 'テスト会員権'.encode('utf-8') in response.data
-        assert 'KAIINKEN'.encode('utf-8') in response.data
+        assert self.token_data1['name'].encode('utf-8') in response.data
+        assert self.token_data1['symbol'].encode('utf-8') in response.data
         assert '募集停止'.encode('utf-8') in response.data
         # 募集中の数量が存在する
         assert '<td>1000000</td>\n            <td>0</td>\n            <td>1000000</td>'.encode('utf-8') in response.data
 
-    # ＜正常系11＞
+    # ＜正常系4_3＞
+    # ＜募集画面＞
     # 募集停止 → 募集管理で確認
-    def test_normal_11(self, app, shared_contract):
+    def test_normal_4_3(self, app, shared_contract):
         client = self.client_with_admin_login(app)
         response = client.post(
             self.url_cancel_order + '0',
@@ -331,6 +348,49 @@ class TestMembership(TestBase):
         assert '募集開始'.encode('utf-8') in response.data
         # 募集中の数量が0
         assert '<td>1000000</td>\n            <td>1000000</td>\n            <td>0</td>'.encode('utf-8') in response.data
+
+    # ＜正常系5_1＞
+    # ＜設定画面＞
+    # 再募集→設定画面→各値の更新→設定画面で確認
+    def test_normal_5_1(self, app, shared_contract):
+        token = Token.query.get(1)
+
+        ### 再度、募集実施 ###
+        url_sell = self.url_sell + token.token_address
+        response = client.post(
+            url_sell,
+            data={
+                'sellPrice': 100,
+            }
+        )
+        assert response.status_code == 302
+        time.sleep(5)
+
+        ### 設定画面 ###
+        url_setting = self.url_setting + token.token_address
+        client = self.client_with_admin_login(app)
+        response = client.post(
+            url_setting,
+            data=token_data3
+        )
+        assert response.status_code == 302
+        time.sleep(10)
+
+        response = client.get(url_setting)
+        assert response.status_code == 200
+        assert '<title>会員権 詳細設定'.encode('utf-8') in response.data
+        assert self.token_data3['name'].encode('utf-8') in response.data
+        assert self.token_data3['symbol'].encode('utf-8') in response.data
+        assert str(self.token_data3['totalSupply']).encode('utf-8') in response.data
+        assert self.token_data3['details'].encode('utf-8') in response.data
+        assert self.token_data3['returnDetails'].encode('utf-8') in response.data
+        assert self.token_data3['expirationDate'].encode('utf-8') in response.data
+        assert self.token_data3['memo'].encode('utf-8') in response.data
+        assert '<option selected value="False">あり</option>'.encode('utf-8') in response.data
+        assert self.token_data3['image_small'].encode('utf-8') in response.data
+        assert self.token_data3['image_medium'].encode('utf-8') in response.data
+        assert self.token_data3['image_large'].encode('utf-8') in response.data
+
 
     # # ＜正常系9＞
     # # 募集設定　画像URL登録 → 詳細画面で確認
