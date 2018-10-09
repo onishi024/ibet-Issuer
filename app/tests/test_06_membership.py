@@ -582,6 +582,9 @@ class TestMembership(TestBase):
         token = Token.query.get(1)
         client = self.client_with_admin_login(app)
         response = client.get(self.url_holders + token.token_address)
+
+        logger.log(response.data)
+
         assert response.status_code == 200
         assert '<title>保有者一覧'.encode('utf-8') in response.data
         assert eth_account['issuer']['account_address'].encode('utf-8') in response.data
@@ -607,7 +610,6 @@ class TestMembership(TestBase):
         time.sleep(5)
 
         # 約定
-
         token = Token.query.get(1)
         client = self.client_with_admin_login(app)
         response = client.get(self.url_holders + token.token_address)
