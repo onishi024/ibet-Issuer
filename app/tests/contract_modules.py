@@ -279,6 +279,13 @@ def membership_confirm_agreement(invoker, membership_exchange, order_id, agreeme
         transact({'from':invoker['account_address'], 'gas':4000000})
     tx = web3.eth.waitForTransactionReceipt(tx_hash)
 
+# 直近価格
+def get_lastprice_membership(membership_exchange, token_address):
+    ExchangeContract = Contract.get_contract(
+        'IbetMembershipExchange', membership_exchange['address'])
+    return ExchangeContract.functions.lastPrice(token_address).call()
+
+
 # トークン数取得
 def get_token_list_length(token_list):
     TokenListContract = Contract.get_contract(

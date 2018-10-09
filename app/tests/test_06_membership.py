@@ -574,7 +574,7 @@ class TestMembership(TestBase):
 
     # ＜正常系6_1＞
     # ＜保有者＞
-    # 追加発行　→　詳細で確認
+    # 保有者一覧で確認(1件)
     def test_normal_6_1(self, app, shared_contract):
         # 発行体のpersonalInfo
         register_personalinfo(eth_account['issuer'], shared_contract['PersonalInfo'], self.issuer_encrypted_info)
@@ -591,21 +591,25 @@ class TestMembership(TestBase):
 
     # ＜正常系6_2＞
     # ＜保有者＞
-    # 約定　→　保有者一覧で確認
+    # 約定　→　保有者一覧で確認（複数件）
     def test_normal_6_2(self, app, shared_contract):
+        token = Token.query.get(1)
+
         # 投資家のpersonalInfo
         register_personalinfo(eth_account['trader'], shared_contract['PersonalInfo'], self.trader_encrypted_info)
         
         ## 約定 ##
         amount = 20
         orderid = get_latest_orderid_membership(shared_contract['IbetMembershipExchange']) - 1
-        logger.info("orderid:" + str(orderid))
         take_buy_membership_token(eth_account['trader'], shared_contract['IbetMembershipExchange'], orderid, amount)
+        logger.info(get_lastprice_membership(shared_contract['IbetMembershipExchange'], token.token_address))
+
+
         agreementid = get_latest_agreementid_membership(shared_contract['IbetMembershipExchange'], orderid) - 1
+        logger.info("orderid:" + str(orderid))
         logger.info("agreementid:" + str(agreementid))
         membership_confirm_agreement(eth_account['agent'], shared_contract['IbetMembershipExchange'], orderid, agreementid)
         
-        token = Token.query.get(1)
         client = self.client_with_admin_login(app)
         response = client.get(self.url_holders + token.token_address)
 
