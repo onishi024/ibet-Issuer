@@ -649,94 +649,40 @@ class TestMembership(TestBase):
         assert 'ｶﾌﾞｼｷｶﾞｲｼﾔｹﾂｻｲﾀﾞｲｺｳ'.encode('utf-8') in response.data
 
 
-    # #############################################################################
-    # # エラー系
-    # #############################################################################
-    # # ＜エラー系1＞
-    # # 新規発行（必須エラー）
-    # def test_error_1(self, app, shared_contract):
-    #     client = self.client_with_admin_login(app)
-    #     # 新規発行
-    #     response = client.post(
-    #         self.url_issue,
-    #         data={
-    #         }
-    #     )
-    #     assert response.status_code == 200
-    #     assert '<title>新規発行'.encode('utf-8') in response.data
-    #     assert '商品名は必須です。'.encode('utf-8') in response.data
-    #     assert '略称は必須です。'.encode('utf-8') in response.data
-    #     assert '総発行量は必須です。'.encode('utf-8') in response.data
-    #     assert '発行目的は必須です。'.encode('utf-8') in response.data
+    #############################################################################
+    # エラー系
+    #############################################################################
+    # ＜エラー系1＞
+    # 新規発行（必須エラー）
+    def test_error_1(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
+        # 新規発行
+        response = client.post(
+            self.url_issue,
+            data={
+            }
+        )
+        assert response.status_code == 200
+        assert '<title>会員権新規発行'.encode('utf-8') in response.data
+        assert '名称は必須です。'.encode('utf-8') in response.data
+        assert '略称は必須です。'.encode('utf-8') in response.data
+        assert '総発行量は必須です。'.encode('utf-8') in response.data
 
 
-    # # ＜エラー系2＞
-    # # 募集（必須エラー）
-    # def test_error_2(self, app, shared_contract):
-    #     token = Token.query.get(1)
-    #     # 募集
-    #     client = self.client_with_admin_login(app)
-    #     response = client.post(
-    #         self.url_sell + token.token_address,
-    #         data={
-    #         }
-    #     )
-    #     assert response.status_code == 302
-    #     # 新規募集でエラーを確認
-    #     response = client.get(self.url_sell + token.token_address)
-    #     assert response.status_code == 200
-    #     assert '<title>新規募集'.encode('utf-8') in response.data
-    #     assert '売出価格は必須です。'.encode('utf-8') in response.data
-
-    # # ＜エラー系3＞
-    # # 認定（必須エラー）
-    # def test_error_3(self, app, shared_contract):
-    #     token = Token.query.get(1)
-    #     url_signature = self.url_signature + token.token_address
-    #     client = self.client_with_admin_login(app)
-    #     # 認定依頼
-    #     response = client.post(
-    #         url_signature,
-    #         data={
-    #             'token_address': token.token_address,
-    #         }
-
-    #     )
-    #     assert response.status_code == 200
-    #     assert '認定者は必須です。'.encode('utf-8') in response.data
-
-
-    # # ＜エラー系4＞
-    # # 認定（認定依頼先アドレスのフォーマットエラー）
-    # def test_error_4(self, app, shared_contract):
-    #     token = Token.query.get(1)
-    #     url_signature = self.url_signature + token.token_address
-    #     client = self.client_with_admin_login(app)
-    #     # 認定依頼
-    #     response = client.post(
-    #         url_signature,
-    #         data={
-    #             'token_address': token.token_address,
-    #             'signer': '0xc94b0d702422587e361dd6cd08b55dfe1961181f1' # 1桁多い
-    #         }
-    #     )
-    #     assert response.status_code == 200
-    #     assert '有効なアドレスではありません。'.encode('utf-8') in response.data
-
-
-    # # ＜エラー系5＞
-    # # 認定（認定依頼がすでに登録されている）
-    # def test_error_5(self, app, shared_contract):
-    #     token = Token.query.get(1)
-    #     url_signature = self.url_signature + token.token_address
-    #     client = self.client_with_admin_login(app)
-    #     # 認定依頼
-    #     response = client.post(
-    #         url_signature,
-    #         data={
-    #             'token_address': token.token_address,
-    #             'signer': eth_account['agent']['account_address']
-    #         }
-    #     )
-    #     assert response.status_code == 200
-    #     assert '既に情報が登録されています。'.encode('utf-8') in response.data
+    # ＜エラー系2＞
+    # 募集（必須エラー）
+    def test_error_2(self, app, shared_contract):
+        token = Token.query.get(1)
+        # 募集
+        client = self.client_with_admin_login(app)
+        response = client.post(
+            self.url_sell + token.token_address,
+            data={
+            }
+        )
+        assert response.status_code == 302
+        # 新規募集でエラーを確認
+        response = client.get(self.url_sell + token.token_address)
+        assert response.status_code == 200
+        assert '<title>新規募集'.encode('utf-8') in response.data
+        assert '売出価格は必須です。'.encode('utf-8') in response.data
