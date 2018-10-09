@@ -600,14 +600,12 @@ class TestMembership(TestBase):
         amount = 20
         orderid = get_latest_orderid_membership(shared_contract['IbetMembershipExchange']) - 1
         take_buy_membership_token(eth_account['trader'], shared_contract['IbetMembershipExchange'], orderid, amount)
-        agreementid = get_latest_agreementid_membership(shared_contract['IbetMembershipExchange'], orderid)
+        agreementid = get_latest_agreementid_membership(shared_contract['IbetMembershipExchange'], orderid) - 1
         membership_confirm_agreement(eth_account['trader'], shared_contract['IbetMembershipExchange'], orderid, agreementid)
-
         
         token = Token.query.get(1)
         client = self.client_with_admin_login(app)
         response = client.get(self.url_holders + token.token_address)
-
         assert response.status_code == 200
         assert '<title>保有者一覧'.encode('utf-8') in response.data
         # 発行体
