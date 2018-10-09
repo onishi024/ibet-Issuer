@@ -598,7 +598,7 @@ class TestMembership(TestBase):
         
         ## 約定 ##
         amount = 20
-        orderid = get_latest_orderid_membership(shared_contract['IbetMembershipExchange'])
+        orderid = get_latest_orderid_membership(shared_contract['IbetMembershipExchange']) - 1
         take_buy_membership_token(eth_account['trader'], shared_contract['IbetMembershipExchange'], orderid, amount)
         agreementid = get_latest_agreementid_membership(shared_contract['IbetMembershipExchange'], orderid)
         membership_confirm_agreement(eth_account['trader'], shared_contract['IbetMembershipExchange'], orderid, agreementid)
