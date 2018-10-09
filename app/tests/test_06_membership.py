@@ -67,6 +67,7 @@ class TestMembership(TestBase):
     url_release = 'membership/release'
     url_invalid = 'membership/invalid'
     url_valid = 'membership/valid'
+    url_add_supply = 'membership/add_supply/'
 
     ##################
     # 会員権Data
@@ -532,6 +533,43 @@ class TestMembership(TestBase):
         assert '公開中'.encode('utf-8') in response.data
         assert '取扱停止'.encode('utf-8') in response.data
 
+    # ＜正常系5_6＞
+    # ＜設定画面＞
+    # 追加発行　→　詳細で確認
+    def test_normal_5_6(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
+        token = Token.query.get(1)
+        url_add_supply = self.url_add_supply + token.token_address
+        response = client.get(url_setting)
+        assert '<title>追加発行'.encode('utf-8') in response.data
+
+        response = client.post(
+            url_add_supply,
+            data={
+                'addSupply': 10,
+
+            }
+        )
+        assert response.status_code == 302
+        time.sleep(2)
+
+        url_setting = self.url_setting + token.token_address
+        response = client.get(url_setting)
+        assert response.status_code == 200
+        assert '<title>会員権 詳細設定'.encode('utf-8') in response.data
+        assert self.token_data3['name'].encode('utf-8') in response.data
+        assert self.token_data3['symbol'].encode('utf-8') in response.data
+        assert str(self.token_data3['totalSupply'] + 10).encode('utf-8') in response.data
+        assert self.token_data3['details'].encode('utf-8') in response.data
+        assert self.token_data3['returnDetails'].encode('utf-8') in response.data
+        assert self.token_data3['expirationDate'].encode('utf-8') in response.data
+        assert self.token_data3['memo'].encode('utf-8') in response.data
+        assert '<option selected value="False">あり</option>'.encode('utf-8') in response.data
+        assert self.token_data3['image_small'].encode('utf-8') in response.data
+        assert self.token_data3['image_medium'].encode('utf-8') in response.data
+        assert self.token_data3['image_large'].encode('utf-8') in response.data
+        assert '公開中'.encode('utf-8') in response.data
+        assert '取扱停止'.encode('utf-8') in response.data
 
 
     # # ＜正常系11＞
