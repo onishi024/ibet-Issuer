@@ -280,7 +280,7 @@ def membership_confirm_agreement(invoker, membership_exchange, order_id, agreeme
     tx = web3.eth.waitForTransactionReceipt(tx_hash)
 
 # 会員権の直近価格
-def get_lastprice_membership(membership_exchange, token_address):
+def get_membership_lastprice(membership_exchange, token_address):
     ExchangeContract = Contract.get_contract(
         'IbetMembershipExchange', membership_exchange['address'])
     return ExchangeContract.functions.lastPrice(token_address).call()
@@ -292,6 +292,18 @@ def get_membership_ex_commitments(membership_exchange, account_address, token_ad
     commitment = ExchangeContract.functions.\
         commitments(account_address, token_address).call()
     return commitment
+
+# 会員権のオーダー取得
+def get_membership_orderBook(membership_exchange, order_id):
+    ExchangeContract = Contract.get_contract(
+        'IbetMembershipExchange', membership_exchange['address'])
+    return ExchangeContract.functions.orderBook(order_id).call()
+
+# 会員権の約定取得
+def get_membership_agreements(membership_exchange, order_id, agreement_id):
+    ExchangeContract = Contract.get_contract(
+        'IbetMembershipExchange', membership_exchange['address'])
+    return ExchangeContract.functions.agreements(order_id, agreement_id).call()
 
 # トークン数取得
 def get_token_list_length(token_list):
