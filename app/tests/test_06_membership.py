@@ -65,6 +65,8 @@ class TestMembership(TestBase):
     url_sell = 'membership/sell/'
     url_cancel_order = 'membership/cancel_order/'
     url_release = 'membership/release'
+    url_invalid = 'membership/invalid'
+    url_valid = 'membership/valid'
 
     ##################
     # 会員権Data
@@ -404,7 +406,7 @@ class TestMembership(TestBase):
             data=self.token_data3
         )
         assert response.status_code == 302
-        time.sleep(10)
+        time.sleep(2)
 
         response = client.get(url_setting)
         assert response.status_code == 200
@@ -436,7 +438,7 @@ class TestMembership(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(10)
+        time.sleep(2)
 
         url_setting = self.url_setting + token.token_address
         response = client.get(url_setting)
@@ -455,62 +457,82 @@ class TestMembership(TestBase):
         assert self.token_data3['image_large'].encode('utf-8') in response.data
         assert '公開中'.encode('utf-8') in response.data
 
+        # tokenが登録されているか確認
+        res_token = get_token_list(shared_contract['TokenList'], token.token_address)
+        assert res_token[0] == token.token_address
 
-    # # ＜正常系9＞
-    # # 募集設定　画像URL登録 → 詳細画面で確認
-    # def test_normal_9(self, app, shared_contract):
-    #     token = Token.query.get(1)
-    #     url_setting = self.url_setting + token.token_address
-    #     client = self.client_with_admin_login(app)
-    #     # 募集設定
-    #     response = client.post(
-    #         url_setting,
-    #         data={
-    #             'image_small': 'https://test.com/image_small.jpg',
-    #             'image_medium': 'https://test.com/image_medium.jpg',
-    #             'image_large': 'https://test.com/image_large.jpg',
-    #         }
-    #     )
-    #     assert response.status_code == 302
+    # ＜正常系5_4＞
+    # ＜設定画面＞
+    # 取扱停止　→　一覧・詳細で確認
+    def test_normal_5_4(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
+        token = Token.query.get(1)
+        response = client.post(
+            self.url_invalid,
+            data={
+                'token_address': token.token_address
+            }
+        )
+        assert response.status_code == 302
+        time.sleep(2)
 
-    #     # 待機
-    #     time.sleep(6)
+        url_setting = self.url_setting + token.token_address
+        response = client.get(url_setting)
+        assert response.status_code == 200
+        assert '<title>会員権 詳細設定'.encode('utf-8') in response.data
+        assert self.token_data3['name'].encode('utf-8') in response.data
+        assert self.token_data3['symbol'].encode('utf-8') in response.data
+        assert str(self.token_data3['totalSupply']).encode('utf-8') in response.data
+        assert self.token_data3['details'].encode('utf-8') in response.data
+        assert self.token_data3['returnDetails'].encode('utf-8') in response.data
+        assert self.token_data3['expirationDate'].encode('utf-8') in response.data
+        assert self.token_data3['memo'].encode('utf-8') in response.data
+        assert '<option selected value="False">あり</option>'.encode('utf-8') in response.data
+        assert self.token_data3['image_small'].encode('utf-8') in response.data
+        assert self.token_data3['image_medium'].encode('utf-8') in response.data
+        assert self.token_data3['image_large'].encode('utf-8') in response.data
+        assert '公開中'.encode('utf-8') in response.data
+        assert '取扱開始'.encode('utf-8') in response.data
+ 
+        # 一覧
+        response = client.get(self.url_list)
+        assert response.status_code == 200
+        assert '取扱停止'.encode('utf-8') in response.data
 
-    #     # 詳細設定
-    #     response = client.get(url_setting)
-    #     assert response.status_code == 200
-    #     assert '<title>詳細設定'.encode('utf-8') in response.data
-    #     assert 'テスト'.encode('utf-8') in response.data
-    #     assert 'https://test.com/image_small.jpg'.encode('utf-8') in response.data
-    #     assert 'https://test.com/image_medium.jpg'.encode('utf-8') in response.data
-    #     assert 'https://test.com/image_large.jpg'.encode('utf-8') in response.data
+    # ＜正常系5_5＞
+    # ＜設定画面＞
+    # 取扱開始　→　詳細で確認
+    def test_normal_5_5(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
+        token = Token.query.get(1)
+        response = client.post(
+            self.url_valid,
+            data={
+                'token_address': token.token_address
+            }
+        )
+        assert response.status_code == 302
+        time.sleep(2)
 
-    # # ＜正常系10＞
-    # # 公開
-    # def test_normal_10(self, app, shared_contract):
-    #     token = Token.query.get(1)
-    #     client = self.client_with_admin_login(app)
-    #     response = client.post(
-    #         self.url_release,
-    #         data={
-    #             'token_address': token.token_address
-    #         }
-    #     )
-    #     assert response.status_code == 302
+        url_setting = self.url_setting + token.token_address
+        response = client.get(url_setting)
+        assert response.status_code == 200
+        assert '<title>会員権 詳細設定'.encode('utf-8') in response.data
+        assert self.token_data3['name'].encode('utf-8') in response.data
+        assert self.token_data3['symbol'].encode('utf-8') in response.data
+        assert str(self.token_data3['totalSupply']).encode('utf-8') in response.data
+        assert self.token_data3['details'].encode('utf-8') in response.data
+        assert self.token_data3['returnDetails'].encode('utf-8') in response.data
+        assert self.token_data3['expirationDate'].encode('utf-8') in response.data
+        assert self.token_data3['memo'].encode('utf-8') in response.data
+        assert '<option selected value="False">あり</option>'.encode('utf-8') in response.data
+        assert self.token_data3['image_small'].encode('utf-8') in response.data
+        assert self.token_data3['image_medium'].encode('utf-8') in response.data
+        assert self.token_data3['image_large'].encode('utf-8') in response.data
+        assert '公開中'.encode('utf-8') in response.data
+        assert '取扱停止'.encode('utf-8') in response.data
 
-    #     # 待機
-    #     time.sleep(2)
 
-    #     url_setting = self.url_setting + token.token_address
-    #     # 詳細設定
-    #     response = client.get(url_setting)
-    #     assert response.status_code == 200
-    #     assert '<title>詳細設定'.encode('utf-8') in response.data
-    #     assert '公開中です。公開開始までに数分程かかることがあります。'.encode('utf-8') in response.data
-
-    #     # tokenが登録されているか確認
-    #     res_token = get_token_list(shared_contract['TokenList'], token.token_address)
-    #     assert res_token[0] == token.token_address
 
     # # ＜正常系11＞
     # # 保有者一覧
