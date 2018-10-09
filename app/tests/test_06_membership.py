@@ -565,7 +565,7 @@ class TestMembership(TestBase):
         assert self.token_data2['returnDetails'].encode('utf-8') in response.data
         assert self.token_data2['expirationDate'].encode('utf-8') in response.data
         assert self.token_data2['memo'].encode('utf-8') in response.data
-        assert '<option selected value="True">なし</option>'.encode('utf-8') in response.data
+        assert '<option selected value="False">あり</option>'.encode('utf-8') in response.data
         assert self.token_data2['image_small'].encode('utf-8') in response.data
         assert self.token_data2['image_medium'].encode('utf-8') in response.data
         assert self.token_data2['image_large'].encode('utf-8') in response.data
