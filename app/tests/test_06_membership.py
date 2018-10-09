@@ -69,6 +69,7 @@ class TestMembership(TestBase):
     url_valid = 'membership/valid'
     url_add_supply = 'membership/add_supply/'
     url_holders = 'membership/holders/'
+    url_holder = 'membership/url_holder/'
     ##################
     # 会員権Data
     ##################
@@ -614,21 +615,7 @@ class TestMembership(TestBase):
         agreementid = get_latest_agreementid_membership(shared_contract['IbetMembershipExchange'], orderid) - 1
         membership_confirm_agreement(eth_account['agent'], shared_contract['IbetMembershipExchange'], orderid, agreementid)
 
-        # orderBook = get_membership_orderBook(shared_contract['IbetMembershipExchange'], orderid)
-        # agreement = get_membership_agreements(shared_contract['IbetMembershipExchange'], orderid, agreementid)
-        # logger.info(eth_account['agent'])
-        # logger.info(orderBook)
-        # logger.info(agreement)
-        # issuer_commit = get_membership_ex_commitments(shared_contract['IbetMembershipExchange'], eth_account['issuer']['account_address'], token.token_address)
-        # logger.info("issuer_commit:" + str(issuer_commit))
-        # trader_commit = get_membership_ex_commitments(shared_contract['IbetMembershipExchange'], eth_account['trader']['account_address'], token.token_address)
-        # logger.info("trader_commit:" + str(trader_commit))
-
         response = client.get(self.url_holders + token.token_address)
-
-
-        logger.info(response.data)
-
         assert response.status_code == 200
         assert '<title>保有者一覧'.encode('utf-8') in response.data
         # 発行体
@@ -640,103 +627,27 @@ class TestMembership(TestBase):
         assert 'ﾀﾝﾀｲﾃｽﾄ'.encode('utf-8') in response.data
         assert '<td>20</td>\n            <td>0</td>'.encode('utf-8') in response.data
 
+    # ＜正常系6_3＞
+    # ＜保有者＞
+    # 保有者詳細
+    def test_normal_6_3(self, app, shared_contract):
+        token = Token.query.get(1)
+        client = self.client_with_admin_login(app)
+        response = client.get(self.url_holder + token.token_address + '/' + eth_account['issuer']['account_address'])
+        assert response.status_code == 200
+        assert '<title>保有者詳細'.encode('utf-8') in response.data
+        assert eth_account['issuer']['account_address'].encode('utf-8') in response.data
+        assert '株式会社１'.encode('utf-8') in response.data
+        assert '1234567'.encode('utf-8') in response.data
+        assert '東京都'.encode('utf-8') in response.data
+        assert '中央区'.encode('utf-8') in response.data
+        assert '日本橋11-1'.encode('utf-8') in response.data
+        assert '東京マンション１０１'.encode('utf-8') in response.data
+        assert '三菱UFJ銀行'.encode('utf-8') in response.data
+        assert '東恵比寿支店'.encode('utf-8') in response.data
+        assert '普通'.encode('utf-8') in response.data
+        assert 'ｶﾌﾞｼｷｶﾞｲｼﾔｹﾂｻｲﾀﾞｲｺｳ'.encode('utf-8') in response.data
 
-    # # ＜正常系12＞
-    # # 保有者詳細
-    # def test_normal_12(self, app, shared_contract):
-    #     token = Token.query.get(1)
-    #     client = self.client_with_admin_login(app)
-    #     response = client.get(self.url_holder + token.token_address + '/' + eth_account['issuer']['account_address'])
-    #     assert response.status_code == 200
-    #     assert '<title>保有者詳細'.encode('utf-8') in response.data
-    #     assert eth_account['issuer']['account_address'].encode('utf-8') in response.data
-    #     assert '株式会社１'.encode('utf-8') in response.data
-    #     assert '1234567'.encode('utf-8') in response.data
-    #     assert '東京都'.encode('utf-8') in response.data
-    #     assert '中央区'.encode('utf-8') in response.data
-    #     assert '日本橋11-1'.encode('utf-8') in response.data
-    #     assert '東京マンション１０１'.encode('utf-8') in response.data
-    #     assert '三菱UFJ銀行'.encode('utf-8') in response.data
-    #     assert '東恵比寿支店'.encode('utf-8') in response.data
-    #     assert '普通'.encode('utf-8') in response.data
-    #     assert 'ｶﾌﾞｼｷｶﾞｲｼﾔｹﾂｻｲﾀﾞｲｺｳ'.encode('utf-8') in response.data
-
-    # # ＜正常系13＞
-    # # 認定依頼
-    # def test_normal_13(self, app, shared_contract):
-    #     token = Token.query.get(1)
-    #     url_signature = self.url_signature + token.token_address
-    #     client = self.client_with_admin_login(app)
-
-    #     # 認定画面
-    #     response = client.get(url_signature)
-    #     assert response.status_code == 200
-    #     assert '<title>認定依頼'.encode('utf-8') in response.data
-
-    #     # 認定依頼
-    #     response = client.post(
-    #         url_signature,
-    #         data={
-    #             'token_address': token.token_address,
-    #             'signer': eth_account['agent']['account_address']
-    #         }
-    #     )
-    #     assert response.status_code == 302
-
-    #     # 待機
-    #     time.sleep(2)
-
-    #     # 詳細設定
-    #     response = client.get(self.url_setting + token.token_address)
-    #     assert response.status_code == 200
-    #     assert '<title>詳細設定'.encode('utf-8') in response.data
-    #     assert '認定依頼を受け付けました。'.encode('utf-8') in response.data
-
-    #     # トークンのsignatureが1になっていること
-    #     val = get_signature(token.token_address, eth_account['agent']['account_address'])
-    #     assert val == 1
-
-    # # ＜正常系14＞
-    # # 認定実施　→　発行済詳細で確認
-    # def test_normal_14(self, app, shared_contract):
-    #     # 認定実施
-    #     token = Token.query.get(1)
-    #     exec_sign(token.token_address, eth_account['agent'])
-
-    #     # 発行済一覧
-    #     url_setting = self.url_setting + token.token_address
-    #     client = self.client_with_admin_login(app)
-    #     response = client.get(url_setting)
-    #     assert response.status_code == 200
-    #     assert '<title>詳細設定'.encode('utf-8') in response.data
-    #     assert 'テスト'.encode('utf-8') in response.data
-    #     assert '認定済みアドレス'.encode('utf-8') in response.data
-    #     assert eth_account['agent']['account_address'].encode('utf-8') in response.data
-
-    # # ＜正常系15＞
-    # # 償還実施　→　発行済一覧で確認
-    # def test_normal_15(self, app, shared_contract):
-    #     token = Token.query.get(1)
-    #     client = self.client_with_admin_login(app)
-    #     response = client.post(
-    #         self.url_redeem,
-    #         data={
-    #             'token_address': token.token_address
-    #         }
-    #     )
-    #     assert response.status_code == 302
-
-    #     # 待機
-    #     time.sleep(2)
-
-    #     # 発行済一覧
-    #     client = self.client_with_admin_login(app)
-    #     response = client.get(self.url_tokenlist)
-    #     assert response.status_code == 200
-    #     assert '<title>発行済一覧'.encode('utf-8') in response.data
-    #     assert 'テスト'.encode('utf-8') in response.data
-    #     assert 'BOND'.encode('utf-8') in response.data
-    #     assert '償還済'.encode('utf-8') in response.data
 
     # #############################################################################
     # # エラー系
