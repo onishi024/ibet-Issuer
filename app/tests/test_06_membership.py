@@ -124,6 +124,7 @@ class TestMembership(TestBase):
         Config.AGENT_ADDRESS = eth_account['agent']['account_address']
         Config.TOKEN_LIST_CONTRACT_ADDRESS = shared_contract['TokenList']['address']
         Config.IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS = shared_contract['IbetMembershipExchange']['address']
+        Config.PERSONAL_INFO_CONTRACT_ADDRESS = shared_contract['PersonalInfo']['address']
 
         # 一覧
         client = self.client_with_admin_login(app)
@@ -586,6 +587,36 @@ class TestMembership(TestBase):
         assert eth_account['issuer']['account_address'].encode('utf-8') in response.data
         assert '株式会社１'.encode('utf-8') in response.data
         assert '<td>1000010</td>\n            <td>0</td>'.encode('utf-8') in response.data
+
+    # ＜正常系6_2＞
+    # ＜保有者＞
+    # 募集　→　約定　→　保有者一覧で確認
+    def test_normal_6_2(self, app, shared_contract):
+        # 投資家のpersonalInfo
+        register_personalinfo(eth_account['trader'], shared_contract['PersonalInfo'], self.trader_encrypted_info)
+
+        # 募集
+        url_sell = self.url_sell + token.token_address
+        response = client.post(
+            url_sell,
+            data={
+                'sellPrice': 100,
+            }
+        )
+        assert response.status_code == 302
+        time.sleep(5)
+
+        # 約定
+
+        token = Token.query.get(1)
+        client = self.client_with_admin_login(app)
+        response = client.get(self.url_holders + token.token_address)
+        assert response.status_code == 200
+        assert '<title>保有者一覧'.encode('utf-8') in response.data
+        assert eth_account['issuer']['account_address'].encode('utf-8') in response.data
+        assert '株式会社１'.encode('utf-8') in response.data
+        assert '<td>1000010</td>\n            <td>0</td>'.encode('utf-8') in response.data
+
 
     # # ＜正常系12＞
     # # 保有者詳細
