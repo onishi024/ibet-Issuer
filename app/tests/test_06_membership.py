@@ -602,14 +602,12 @@ class TestMembership(TestBase):
         amount = 20
         orderid = get_latest_orderid_membership(shared_contract['IbetMembershipExchange']) - 1
         take_buy_membership_token(eth_account['trader'], shared_contract['IbetMembershipExchange'], orderid, amount)
-        lastprice = get_membership_lastprice(shared_contract['IbetMembershipExchange'], token.token_address)
-        assert lastprice == 100
-        
         agreementid = get_latest_agreementid_membership(shared_contract['IbetMembershipExchange'], orderid) - 1
         membership_confirm_agreement(eth_account['agent'], shared_contract['IbetMembershipExchange'], orderid, agreementid)
 
         orderBook = get_membership_orderBook(shared_contract['IbetMembershipExchange'], orderid)
         agreement = get_membership_agreements(shared_contract['IbetMembershipExchange'], orderid, agreementid)
+        logger.info(eth_account['agent'])
         logger.info(orderBook)
         logger.info(agreement)
         issuer_commit = get_membership_ex_commitments(shared_contract['IbetMembershipExchange'], eth_account['issuer']['account_address'], token.token_address)
