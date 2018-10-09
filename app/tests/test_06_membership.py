@@ -540,7 +540,7 @@ class TestMembership(TestBase):
         client = self.client_with_admin_login(app)
         token = Token.query.get(1)
         url_add_supply = self.url_add_supply + token.token_address
-        response = client.get(url_setting)
+        response = client.get(url_add_supply)
         assert '<title>追加発行'.encode('utf-8') in response.data
 
         response = client.post(
