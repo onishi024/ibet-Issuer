@@ -591,13 +591,22 @@ class TestMembership(TestBase):
 
     # ＜正常系6_2＞
     # ＜保有者＞
-    # 約定　→　保有者一覧で確認（複数件）
+    # 会員権を譲渡可能に変更　→　約定　→　保有者一覧で確認（複数件）
     def test_normal_6_2(self, app, shared_contract):
-        token = Token.query.get(1)
-
         # 投資家のpersonalInfo
         register_personalinfo(eth_account['trader'], shared_contract['PersonalInfo'], self.trader_encrypted_info)
-        
+
+        ### 設定画面 ###
+        token = Token.query.get(1)
+        client = self.client_with_admin_login(app)
+        url_setting = self.url_setting + token.token_address
+        response = client.post(
+            url_setting,
+            data=self.token_data1
+        )
+        assert response.status_code == 302
+        time.sleep(10)
+
         ## 約定 ##
         amount = 20
         orderid = get_latest_orderid_membership(shared_contract['IbetMembershipExchange']) - 1
@@ -605,17 +614,16 @@ class TestMembership(TestBase):
         agreementid = get_latest_agreementid_membership(shared_contract['IbetMembershipExchange'], orderid) - 1
         membership_confirm_agreement(eth_account['agent'], shared_contract['IbetMembershipExchange'], orderid, agreementid)
 
-        orderBook = get_membership_orderBook(shared_contract['IbetMembershipExchange'], orderid)
-        agreement = get_membership_agreements(shared_contract['IbetMembershipExchange'], orderid, agreementid)
-        logger.info(eth_account['agent'])
-        logger.info(orderBook)
-        logger.info(agreement)
-        issuer_commit = get_membership_ex_commitments(shared_contract['IbetMembershipExchange'], eth_account['issuer']['account_address'], token.token_address)
-        logger.info("issuer_commit:" + str(issuer_commit))
-        trader_commit = get_membership_ex_commitments(shared_contract['IbetMembershipExchange'], eth_account['trader']['account_address'], token.token_address)
-        logger.info("trader_commit:" + str(trader_commit))
+        # orderBook = get_membership_orderBook(shared_contract['IbetMembershipExchange'], orderid)
+        # agreement = get_membership_agreements(shared_contract['IbetMembershipExchange'], orderid, agreementid)
+        # logger.info(eth_account['agent'])
+        # logger.info(orderBook)
+        # logger.info(agreement)
+        # issuer_commit = get_membership_ex_commitments(shared_contract['IbetMembershipExchange'], eth_account['issuer']['account_address'], token.token_address)
+        # logger.info("issuer_commit:" + str(issuer_commit))
+        # trader_commit = get_membership_ex_commitments(shared_contract['IbetMembershipExchange'], eth_account['trader']['account_address'], token.token_address)
+        # logger.info("trader_commit:" + str(trader_commit))
 
-        client = self.client_with_admin_login(app)
         response = client.get(self.url_holders + token.token_address)
 
 
