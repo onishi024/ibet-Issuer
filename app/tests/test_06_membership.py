@@ -539,7 +539,7 @@ class TestMembership(TestBase):
     # 追加発行　→　詳細で確認
     def test_normal_5_6(self, app, shared_contract):
         client = self.client_with_admin_login(app)
-        token = Token.query.get(2)
+        token = Token.query.get(1)
         url_add_supply = self.url_add_supply + token.token_address
         response = client.get(url_add_supply)
         assert '<title>追加発行'.encode('utf-8') in response.data
@@ -558,17 +558,17 @@ class TestMembership(TestBase):
         response = client.get(url_setting)
         assert response.status_code == 200
         assert '<title>会員権 詳細設定'.encode('utf-8') in response.data
-        assert self.token_data2['name'].encode('utf-8') in response.data
-        assert self.token_data2['symbol'].encode('utf-8') in response.data
-        assert str(self.token_data2['totalSupply'] + 10).encode('utf-8') in response.data
-        assert self.token_data2['details'].encode('utf-8') in response.data
-        assert self.token_data2['returnDetails'].encode('utf-8') in response.data
-        assert self.token_data2['expirationDate'].encode('utf-8') in response.data
-        assert self.token_data2['memo'].encode('utf-8') in response.data
+        assert self.token_data3['name'].encode('utf-8') in response.data
+        assert self.token_data3['symbol'].encode('utf-8') in response.data
+        assert str(self.token_data3['totalSupply'] + 10).encode('utf-8') in response.data
+        assert self.token_data3['details'].encode('utf-8') in response.data
+        assert self.token_data3['returnDetails'].encode('utf-8') in response.data
+        assert self.token_data3['expirationDate'].encode('utf-8') in response.data
+        assert self.token_data3['memo'].encode('utf-8') in response.data
         assert '<option selected value="False">あり</option>'.encode('utf-8') in response.data
-        assert self.token_data2['image_small'].encode('utf-8') in response.data
-        assert self.token_data2['image_medium'].encode('utf-8') in response.data
-        assert self.token_data2['image_large'].encode('utf-8') in response.data
+        assert self.token_data3['image_small'].encode('utf-8') in response.data
+        assert self.token_data3['image_medium'].encode('utf-8') in response.data
+        assert self.token_data3['image_large'].encode('utf-8') in response.data
         assert '公開中'.encode('utf-8') in response.data
         assert '取扱停止'.encode('utf-8') in response.data
 
@@ -579,43 +579,45 @@ class TestMembership(TestBase):
         # 発行体のpersonalInfo
         register_personalinfo(eth_account['issuer'], shared_contract['PersonalInfo'], self.issuer_encrypted_info)
 
-        token = Token.query.get(2)
-        client = self.client_with_admin_login(app)
-        response = client.get(self.url_holders + token.token_address)
-
-        assert response.status_code == 200
-        assert '<title>保有者一覧'.encode('utf-8') in response.data
-        assert eth_account['issuer']['account_address'].encode('utf-8') in response.data
-        assert '株式会社１'.encode('utf-8') in response.data
-        assert '<td>2000010</td>\n            <td>0</td>'.encode('utf-8') in response.data
-
-    # ＜正常系6_2＞
-    # ＜保有者＞
-    # 募集　→　約定　→　保有者一覧で確認
-    def test_normal_6_2(self, app, shared_contract):
-        # 投資家のpersonalInfo
-        register_personalinfo(eth_account['trader'], shared_contract['PersonalInfo'], self.trader_encrypted_info)
-
-        # 募集
-        url_sell = self.url_sell + token.token_address
-        response = client.post(
-            url_sell,
-            data={
-                'sellPrice': 100,
-            }
-        )
-        assert response.status_code == 302
-        time.sleep(5)
-
-        # 約定
         token = Token.query.get(1)
         client = self.client_with_admin_login(app)
         response = client.get(self.url_holders + token.token_address)
+
         assert response.status_code == 200
         assert '<title>保有者一覧'.encode('utf-8') in response.data
         assert eth_account['issuer']['account_address'].encode('utf-8') in response.data
         assert '株式会社１'.encode('utf-8') in response.data
-        assert '<td>1000010</td>\n            <td>0</td>'.encode('utf-8') in response.data
+        assert '<td>10</td>\n            <td>1000000</td>'.encode('utf-8') in response.data
+
+    # ＜正常系6_2＞
+    # ＜保有者＞
+    # 約定　→　保有者一覧で確認
+    def test_normal_6_2(self, app, shared_contract):
+        # 投資家のpersonalInfo
+        register_personalinfo(eth_account['trader'], shared_contract['PersonalInfo'], self.trader_encrypted_info)
+        
+        ## 約定 ##
+        amount = 20
+        orderid = get_latest_orderid_membership(shared_contract['IbetMembershipExchange'])
+        take_buy_membership_token(eth_account['trader'], shared_contract['IbetMembershipExchange'], orderid, amount)
+        agreementid = get_latest_agreementid_membership(shared_contract['IbetMembershipExchange'], orderid)
+        membership_confirm_agreement(eth_account['trader'], shared_contract['IbetMembershipExchange'], orderid, agreementid)
+
+        
+        token = Token.query.get(1)
+        client = self.client_with_admin_login(app)
+        response = client.get(self.url_holders + token.token_address)
+
+        assert response.status_code == 200
+        assert '<title>保有者一覧'.encode('utf-8') in response.data
+        # 発行体
+        assert eth_account['issuer']['account_address'].encode('utf-8') in response.data
+        assert '株式会社１'.encode('utf-8') in response.data
+        assert '<td>10</td>\n            <td>999980</td>'.encode('utf-8') in response.data
+        # 投資家
+        assert eth_account['trader']['account_address'].encode('utf-8') in response.data
+        assert 'ﾀﾝﾀｲﾃｽﾄ'.encode('utf-8') in response.data
+        assert '<td>20</td>\n            <td>0</td>'.encode('utf-8') in response.data
 
 
     # # ＜正常系12＞
