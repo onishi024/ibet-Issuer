@@ -579,7 +579,7 @@ class TestMembership(TestBase):
         # 発行体のpersonalInfo
         register_personalinfo(eth_account['issuer'], shared_contract['PersonalInfo'], self.issuer_encrypted_info)
 
-        token = Token.query.get(2))
+        token = Token.query.get(2)
         client = self.client_with_admin_login(app)
         response = client.get(self.url_holders + token.token_address)
 
