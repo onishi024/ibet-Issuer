@@ -69,7 +69,7 @@ class TestMembership(TestBase):
     url_valid = 'membership/valid'
     url_add_supply = 'membership/add_supply/'
     url_holders = 'membership/holders/'
-    url_holder = 'membership/url_holder/'
+    url_holder = 'membership/holder/'
     ##################
     # 会員権Data
     ##################
