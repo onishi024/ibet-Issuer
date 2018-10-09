@@ -602,7 +602,7 @@ class TestMembership(TestBase):
         logger.info("orderid:" + str(orderid))
         take_buy_membership_token(eth_account['trader'], shared_contract['IbetMembershipExchange'], orderid, amount)
         agreementid = get_latest_agreementid_membership(shared_contract['IbetMembershipExchange'], orderid) - 1
-        logger.info("agreementid:" + str(orderidagreementid))
+        logger.info("agreementid:" + str(agreementid))
         membership_confirm_agreement(eth_account['trader'], shared_contract['IbetMembershipExchange'], orderid, agreementid)
         
         token = Token.query.get(1)
