@@ -583,7 +583,7 @@ class TestMembership(TestBase):
         client = self.client_with_admin_login(app)
         response = client.get(self.url_holders + token.token_address)
 
-        logger.log(response.data)
+        logger.info(response.data)
 
         assert response.status_code == 200
         assert '<title>保有者一覧'.encode('utf-8') in response.data
