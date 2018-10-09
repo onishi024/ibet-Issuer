@@ -68,7 +68,7 @@ class TestMembership(TestBase):
     url_invalid = 'membership/invalid'
     url_valid = 'membership/valid'
     url_add_supply = 'membership/add_supply/'
-
+    url_holders = 'membership/url_holders/'
     ##################
     # 会員権Data
     ##################
@@ -571,18 +571,21 @@ class TestMembership(TestBase):
         assert '公開中'.encode('utf-8') in response.data
         assert '取扱停止'.encode('utf-8') in response.data
 
+    # ＜正常系6_1＞
+    # ＜保有者＞
+    # 追加発行　→　詳細で確認
+    def test_normal_6_1(self, app, shared_contract):
+        # 発行体のpersonalInfo
+        register_personalinfo(eth_account['issuer'], shared_contract['PersonalInfo'], self.issuer_encrypted_info)
 
-    # # ＜正常系11＞
-    # # 保有者一覧
-    # def test_normal_11(self, app, shared_contract):
-    #     token = Token.query.get(1)
-    #     client = self.client_with_admin_login(app)
-    #     response = client.get(self.url_holders + token.token_address)
-    #     assert response.status_code == 200
-    #     assert '<title>保有者一覧'.encode('utf-8') in response.data
-    #     assert eth_account['issuer']['account_address'].encode('utf-8') in response.data
-    #     assert '株式会社１'.encode('utf-8') in response.data
-    #     assert '1000000'.encode('utf-8') in response.data
+        token = Token.query.get(1)
+        client = self.client_with_admin_login(app)
+        response = client.get(self.url_holders + token.token_address)
+        assert response.status_code == 200
+        assert '<title>保有者一覧'.encode('utf-8') in response.data
+        assert eth_account['issuer']['account_address'].encode('utf-8') in response.data
+        assert '株式会社１'.encode('utf-8') in response.data
+        assert '<td>1000010</td>\n            <td>0</td>'.encode('utf-8') in response.data
 
     # # ＜正常系12＞
     # # 保有者詳細
