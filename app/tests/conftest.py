@@ -138,6 +138,7 @@ class TestBase(object):
 
     def client_with_no_login(self, param_app):
         client = param_app.test_client()
+        client.post(url_for('auth.logout'), data={})
         return client
 #---------------------------------------------------------------------------------------------
 # quorum系
