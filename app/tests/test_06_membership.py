@@ -687,15 +687,3 @@ class TestMembership(TestBase):
         assert response.status_code == 200
         assert '<title>新規募集'.encode('utf-8') in response.data
         assert '売出価格は必須です。'.encode('utf-8') in response.data
-
-    # ＜エラー系2_1＞
-    # ＜未ログインエラー＞
-    # 新規登録画面
-    def test_error_2_1(self, app):
-        client = self.client_with_no_login(app)
-        response = client.get(self.url_issue)
-        
-        logger.info(response.data)
-
-        assert response.status_code == 302
-
