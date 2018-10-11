@@ -652,9 +652,10 @@ class TestMembership(TestBase):
     #############################################################################
     # エラー系
     #############################################################################
-    # ＜エラー系1＞
+    # ＜エラー系1_1＞
+    # ＜入力値チェック＞
     # 新規発行（必須エラー）
-    def test_error_1(self, app, shared_contract):
+    def test_error_1_1(self, app, shared_contract):
         client = self.client_with_admin_login(app)
         # 新規発行
         response = client.post(
@@ -668,10 +669,10 @@ class TestMembership(TestBase):
         assert '略称は必須です。'.encode('utf-8') in response.data
         assert '総発行量は必須です。'.encode('utf-8') in response.data
 
-
-    # ＜エラー系2＞
+    # ＜エラー系1_2＞
+    # ＜入力値チェック＞
     # 募集（必須エラー）
-    def test_error_2(self, app, shared_contract):
+    def test_error_1_2(self, app, shared_contract):
         token = Token.query.get(1)
         # 募集
         client = self.client_with_admin_login(app)
@@ -686,3 +687,12 @@ class TestMembership(TestBase):
         assert response.status_code == 200
         assert '<title>新規募集'.encode('utf-8') in response.data
         assert '売出価格は必須です。'.encode('utf-8') in response.data
+
+    # ＜エラー系2_1＞
+    # ＜未ログインエラー＞
+    # 新規登録画面
+    def test_error_2_1(self, app, shared_contract):
+        client = self.client_with_no_login(app)
+        response = client.get(self.url_issue)
+        assert response.status_code == 302
+

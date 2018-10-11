@@ -136,6 +136,9 @@ class TestBase(object):
         client.post(url_for('auth.login'), data={'login_id': 'admin', 'password': '1234'})
         return client
 
+    def client_with_no_login(self, param_app):
+        client = param_app.test_client()
+        return client
 #---------------------------------------------------------------------------------------------
 # quorum系
 #---------------------------------------------------------------------------------------------
