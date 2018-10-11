@@ -163,7 +163,8 @@ class TestMembership(TestBase):
         processorIssueEvent(db)
 
         # 設定画面
-        token = Token.query.get(1)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
+        token = tokens[0]
         response = client.get(self.url_setting + token.token_address)
         assert response.status_code == 200
         assert '<title>会員権 詳細設定'.encode('utf-8') in response.data
@@ -183,7 +184,8 @@ class TestMembership(TestBase):
     # ＜会員権の1件確認＞
     # 会員権一覧の参照(1件)
     def test_normal_2_2(self, app, shared_contract):
-        token = Token.query.get(1)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
+        token = tokens[0]
         client = self.client_with_admin_login(app)
         response = client.get(self.url_list)
         assert response.status_code == 200
@@ -197,7 +199,8 @@ class TestMembership(TestBase):
     # ＜会員権の1件確認＞
     # 募集管理(1件)
     def test_normal_2_3(self, app, shared_contract):
-        token = Token.query.get(1)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
+        token = tokens[0]
         client = self.client_with_admin_login(app)
         response = client.get(self.url_positions)
         assert response.status_code == 200
@@ -226,7 +229,8 @@ class TestMembership(TestBase):
         processorIssueEvent(db)
 
         # 設定画面
-        token = Token.query.get(2)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
+        token = tokens[1]
         response = client.get(self.url_setting + token.token_address)
         assert response.status_code == 200
         assert '<title>会員権 詳細設定'.encode('utf-8') in response.data
@@ -246,8 +250,9 @@ class TestMembership(TestBase):
     # ＜会員権一覧（複数件）＞
     # 会員権一覧（複数件）
     def test_normal_3_2(self, app, shared_contract):
-        token1 = Token.query.get(1)
-        token2 = Token.query.get(2)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
+        token1 = tokens[0]
+        token2 = tokens[1]
         client = self.client_with_admin_login(app)
         response = client.get(self.url_list)
         assert response.status_code == 200
@@ -266,8 +271,9 @@ class TestMembership(TestBase):
     # ＜会員権一覧（複数件）＞
     # 募集管理（複数件）
     def test_normal_3_3(self, app, shared_contract):
-        token1 = Token.query.get(1)
-        token2 = Token.query.get(2)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
+        token1 = tokens[0]
+        token2 = tokens[1]
         client = self.client_with_admin_login(app)
         response = client.get(self.url_positions)
         assert response.status_code == 200
@@ -287,7 +293,8 @@ class TestMembership(TestBase):
     # ＜募集画面＞
     # 新規募集画面の参照
     def test_normal_4_1(self, app, shared_contract):
-        token = Token.query.get(1)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
+        token = tokens[0]
         client = self.client_with_admin_login(app)
         response = client.get(self.url_sell + token.token_address)
         assert response.status_code == 200
@@ -306,7 +313,8 @@ class TestMembership(TestBase):
     # 募集 → 募集管理で確認
     def test_normal_4_2(self, app, shared_contract):
         client = self.client_with_admin_login(app)
-        token = Token.query.get(1)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
+        token = tokens[0]
         url_sell = self.url_sell + token.token_address
         # 募集
         response = client.post(
@@ -360,7 +368,8 @@ class TestMembership(TestBase):
     # 再募集→設定画面→各値の更新→設定画面で確認
     def test_normal_5_1(self, app, shared_contract):
         client = self.client_with_admin_login(app)
-        token = Token.query.get(1)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
+        token = tokens[0]
 
         ### 再度、募集実施 ###
         url_sell = self.url_sell + token.token_address
@@ -402,7 +411,8 @@ class TestMembership(TestBase):
     # 同じ値で更新処理　→　各値に変更がないこと
     def test_normal_5_2(self, app, shared_contract):
         client = self.client_with_admin_login(app)
-        token = Token.query.get(1)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
+        token = tokens[0]
         url_setting = self.url_setting + token.token_address
         response = client.post(
             url_setting,
@@ -433,7 +443,8 @@ class TestMembership(TestBase):
     # 公開　→　公開中になること、tokenlistに存在すること
     def test_normal_5_3(self, app, shared_contract):
         client = self.client_with_admin_login(app)
-        token = Token.query.get(1)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
+        token = tokens[0]
         response = client.post(
             self.url_release,
             data={
@@ -469,7 +480,8 @@ class TestMembership(TestBase):
     # 取扱停止　→　一覧・詳細で確認
     def test_normal_5_4(self, app, shared_contract):
         client = self.client_with_admin_login(app)
-        token = Token.query.get(1)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
+        token = tokens[0]
         response = client.post(
             self.url_invalid,
             data={
@@ -507,7 +519,8 @@ class TestMembership(TestBase):
     # 取扱開始　→　詳細で確認
     def test_normal_5_5(self, app, shared_contract):
         client = self.client_with_admin_login(app)
-        token = Token.query.get(1)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
+        token = tokens[0]
         response = client.post(
             self.url_valid,
             data={
@@ -540,7 +553,8 @@ class TestMembership(TestBase):
     # 追加発行　→　詳細で確認
     def test_normal_5_6(self, app, shared_contract):
         client = self.client_with_admin_login(app)
-        token = Token.query.get(1)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
+        token = tokens[0]
         url_add_supply = self.url_add_supply + token.token_address
         response = client.get(url_add_supply)
         assert '<title>追加発行'.encode('utf-8') in response.data
@@ -580,7 +594,8 @@ class TestMembership(TestBase):
         # 発行体のpersonalInfo
         register_personalinfo(eth_account['issuer'], shared_contract['PersonalInfo'], self.issuer_encrypted_info)
 
-        token = Token.query.get(1)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
+        token = tokens[0]
         client = self.client_with_admin_login(app)
         response = client.get(self.url_holders + token.token_address)
 
@@ -598,7 +613,8 @@ class TestMembership(TestBase):
         register_personalinfo(eth_account['trader'], shared_contract['PersonalInfo'], self.trader_encrypted_info)
 
         ### 設定画面 ###
-        token = Token.query.get(1)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
+        token = tokens[0]
         client = self.client_with_admin_login(app)
         url_setting = self.url_setting + token.token_address
         response = client.post(
@@ -631,7 +647,8 @@ class TestMembership(TestBase):
     # ＜保有者＞
     # 保有者詳細
     def test_normal_6_3(self, app, shared_contract):
-        token = Token.query.get(1)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
+        token = tokens[0]
         client = self.client_with_admin_login(app)
         response = client.get(self.url_holder + token.token_address + '/' + eth_account['issuer']['account_address'])
         assert response.status_code == 200
@@ -673,7 +690,8 @@ class TestMembership(TestBase):
     # ＜入力値チェック＞
     # 募集（必須エラー）
     def test_error_1_2(self, app, shared_contract):
-        token = Token.query.get(1)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
+        token = tokens[0]
         # 募集
         client = self.client_with_admin_login(app)
         response = client.post(
