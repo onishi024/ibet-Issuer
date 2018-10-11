@@ -417,19 +417,21 @@ class TestToken(TestBase):
         assert val == 1
 
     # ＜正常系14＞
-    # 認定実施　→　発行済債券一覧で確認
+    # 認定実施　→　発行済債券詳細で確認
     def test_normal_14(self, app, shared_contract):
         # 認定実施
         token = Token.query.get(1)
         exec_sign(token.token_address, eth_account['agent'])
 
         # 発行済債券一覧
+        url_setting = self.url_setting + token.token_address
         client = self.client_with_admin_login(app)
-        response = client.get(self.url_tokenlist)
+        response = client.get(url_setting)
         assert response.status_code == 200
-        assert '<title>発行済債券一覧'.encode('utf-8') in response.data
+        assert '<title>債券詳細設定'.encode('utf-8') in response.data
         assert 'テスト債券'.encode('utf-8') in response.data
-        assert 'BOND'.encode('utf-8') in response.data
+        assert '認定済みアドレス'.encode('utf-8') in response.data
+        assert eth_account['agent']['account_address'].encode('utf-8') in response.data
 
     # ＜正常系15＞
     # 償還実施　→　発行済債券一覧で確認

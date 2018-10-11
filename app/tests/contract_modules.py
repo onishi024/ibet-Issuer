@@ -209,7 +209,6 @@ def take_buy_bond_token(invoker, bond_exchange, order_id, amount):
         transact({'from':invoker['account_address'], 'gas':4000000})
     tx = web3.eth.waitForTransactionReceipt(tx_hash)
 
-
 # 直近注文IDを取得
 def get_latest_orderid(bond_exchange):
     ExchangeContract = Contract.get_contract(
@@ -217,14 +216,12 @@ def get_latest_orderid(bond_exchange):
     latest_orderid = ExchangeContract.functions.latestOrderId().call()
     return latest_orderid
 
-
 # 直近約定IDを取得
 def get_latest_agreementid(bond_exchange, order_id):
     ExchangeContract = Contract.get_contract(
         'IbetStraightBondExchange', bond_exchange['address'])
     latest_agreementid = ExchangeContract.functions.latestAgreementIds(order_id).call()
     return latest_agreementid
-
 
 # 債券約定の資金決済
 def bond_confirm_agreement(invoker, bond_exchange, order_id, agreement_id):
@@ -240,6 +237,73 @@ def bond_confirm_agreement(invoker, bond_exchange, order_id, agreement_id):
         transact({'from':invoker['account_address'], 'gas':4000000})
     tx = web3.eth.waitForTransactionReceipt(tx_hash)
 
+# 直近注文IDを取得
+def get_latest_orderid_membership(membership_exchange):
+    ExchangeContract = Contract.get_contract(
+        'IbetMembershipExchange', membership_exchange['address'])
+    latest_orderid = ExchangeContract.functions.latestOrderId().call()
+    return latest_orderid
+
+# 会員権トークンの買いTake注文
+def take_buy_membership_token(invoker, membership_exchange, order_id, amount):
+    web3.eth.defaultAccount = invoker['account_address']
+    web3.personal.unlockAccount(invoker['account_address'],
+                                invoker['password'])
+
+    ExchangeContract = Contract.get_contract(
+        'IbetMembershipExchange', membership_exchange['address'])
+
+    tx_hash = ExchangeContract.functions.\
+        executeOrder(order_id, amount, True).\
+        transact({'from':invoker['account_address'], 'gas':4000000})
+    tx = web3.eth.waitForTransactionReceipt(tx_hash)
+
+# 直近約定IDを取得
+def get_latest_agreementid_membership(membership_exchange, order_id):
+    ExchangeContract = Contract.get_contract(
+        'IbetMembershipExchange', membership_exchange['address'])
+    latest_agreementid = ExchangeContract.functions.latestAgreementIds(order_id).call()
+    return latest_agreementid
+
+# 会員権約定の資金決済
+def membership_confirm_agreement(invoker, membership_exchange, order_id, agreement_id):
+    web3.eth.defaultAccount = invoker['account_address']
+    web3.personal.unlockAccount(invoker['account_address'],
+                                invoker['password'])
+
+    ExchangeContract = Contract.get_contract(
+        'IbetMembershipExchange', membership_exchange['address'])
+
+    tx_hash = ExchangeContract.functions.\
+        confirmAgreement(order_id, agreement_id).\
+        transact({'from':invoker['account_address'], 'gas':4000000})
+    tx = web3.eth.waitForTransactionReceipt(tx_hash)
+
+# 会員権の直近価格
+def get_membership_lastprice(membership_exchange, token_address):
+    ExchangeContract = Contract.get_contract(
+        'IbetMembershipExchange', membership_exchange['address'])
+    return ExchangeContract.functions.lastPrice(token_address).call()
+
+# 会員権取引コントラクトの拘束数量
+def get_membership_ex_commitments(membership_exchange, account_address, token_address):
+    ExchangeContract = Contract.get_contract(
+        'IbetMembershipExchange', membership_exchange['address'])
+    commitment = ExchangeContract.functions.\
+        commitments(account_address, token_address).call()
+    return commitment
+
+# 会員権のオーダー取得
+def get_membership_orderBook(membership_exchange, order_id):
+    ExchangeContract = Contract.get_contract(
+        'IbetMembershipExchange', membership_exchange['address'])
+    return ExchangeContract.functions.orderBook(order_id).call()
+
+# 会員権の約定取得
+def get_membership_agreements(membership_exchange, order_id, agreement_id):
+    ExchangeContract = Contract.get_contract(
+        'IbetMembershipExchange', membership_exchange['address'])
+    return ExchangeContract.functions.agreements(order_id, agreement_id).call()
 
 # トークン数取得
 def get_token_list_length(token_list):
