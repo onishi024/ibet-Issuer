@@ -145,6 +145,11 @@
   border-bottom-right-radius: 2px;
   border-bottom-left-radius: 0;
 }
+.skin-green-light .main-footer {
+  background: #66b079;
+  padding: 15px;
+  color: #fff;
+}
 @media (min-width: 768px) {
   .skin-green-light.sidebar-mini.sidebar-collapse .sidebar-menu > li > .treeview-menu {
     border-left: 1px solid #d2d6de;
