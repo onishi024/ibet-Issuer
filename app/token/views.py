@@ -46,27 +46,6 @@ def flash_errors(form):
         for error in errors:
             flash(error, 'error')
 
-# トランザクションがブロックに取り込まれるまで待つ
-# 10秒以上経過した場合は失敗とみなす（Falseを返す）
-def wait_transaction_receipt(tx_hash):
-    count = 0
-    tx = None
-
-    while True:
-        time.sleep(0.1)
-        try:
-            tx = web3.eth.getTransactionReceipt(tx_hash)
-        except:
-            continue
-
-        count += 1
-        if tx is not None:
-            break
-        elif count > 120:
-            raise Exception
-
-    return tx
-
 ####################################################
 # 発行済債券一覧
 ####################################################
@@ -162,6 +141,7 @@ def setting(token_address):
     returnAmount = TokenContract.functions.returnAmount().call()
     purpose = TokenContract.functions.purpose().call()
     memo = TokenContract.functions.memo().call()
+    tradableExchange = TokenContract.functions.tradableExchange().call()
     image_small = TokenContract.functions.getImageURL(0).call()
     image_medium = TokenContract.functions.getImageURL(1).call()
     image_large = TokenContract.functions.getImageURL(2).call()
@@ -193,10 +173,18 @@ def setting(token_address):
             signatures(to_checksum_address(entry['args']['signer'])).call() == 2:
             signatures.append(entry['args']['signer'])
 
-
     form = TokenSettingForm()
-
     if request.method == 'POST':
+        if not Web3.isAddress(form.tradableExchange.data):
+            flash('取引所コントラクトアドレスは有効なアドレスではありません。','error')
+            return render_template(
+                'token/setting.html',
+                form=form,
+                token_address = token_address,
+                token_name = name,
+                isRelease = isRelease,
+                signatures = signatures
+            )
         web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
         if form.image_small.data != image_small:
             gas = TokenContract.estimateGas().setImageURL(0, form.image_small.data)
@@ -213,7 +201,11 @@ def setting(token_address):
             txid = TokenContract.functions.setImageURL(2, form.image_large.data).transact(
                 {'from':Config.ETH_ACCOUNT, 'gas':gas}
             )
-
+        if form.tradableExchange.data != tradableExchange:
+            gas = TokenContract.estimateGas().setTradableExchange(to_checksum_address(form.tradableExchange.data))
+            txid = TokenContract.functions.setTradableExchange(to_checksum_address(form.tradableExchange.data)).transact(
+                {'from':Config.ETH_ACCOUNT, 'gas':gas}
+            )
         flash('設定変更を受け付けました。変更完了までに数分程かかることがあります。', 'success')
         return redirect(url_for('.list'))
     else: # GET
@@ -399,8 +391,11 @@ def issue():
     form = IssueTokenForm()
     if request.method == 'POST':
         if form.validate():
-            web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
+            if not Web3.isAddress(form.tradableExchange.data):
+                flash('取引所コントラクトアドレスは有効なアドレスではありません。','error')
+                return render_template('token/issue.html', form=form)
 
+            web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
             interestPaymentDate = {
                 'interestPaymentDate1': form.interestPaymentDate1.data,
                 'interestPaymentDate2': form.interestPaymentDate2.data,
@@ -415,13 +410,13 @@ def issue():
                 'interestPaymentDate11': form.interestPaymentDate11.data,
                 'interestPaymentDate12': form.interestPaymentDate12.data
             }
-
             interestPaymentDate_string = json.dumps(interestPaymentDate)
 
             arguments = [
                 form.name.data,
                 form.symbol.data,
                 form.totalSupply.data,
+                to_checksum_address(form.tradableExchange.data),
                 form.faceValue.data,
                 int(form.interestRate.data * 1000),
                 interestPaymentDate_string,
@@ -570,6 +565,7 @@ def sell(token_address):
     returnAmount = TokenContract.functions.returnAmount().call()
     purpose = TokenContract.functions.purpose().call()
     memo = TokenContract.functions.memo().call()
+    tradableExchange = TokenContract.functions.tradableExchange().call()
 
     owner = to_checksum_address(Config.ETH_ACCOUNT)
     balance = TokenContract.functions.balanceOf(owner).call()
@@ -594,6 +590,9 @@ def sell(token_address):
                 return redirect(url_for('.sell', token_address=token_address))
             elif WhiteListContract.functions.isRegistered(eth_account, agent_account).call() == False:
                 flash('金融機関の情報が未登録です。', 'error')
+                return redirect(url_for('.sell', token_address=token_address))
+            elif tradableExchange == '':
+                flash('取引所コントラクトのアドレスが未登録です。', 'error')
                 return redirect(url_for('.sell', token_address=token_address))
             else:
                 web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
@@ -692,6 +691,7 @@ def sell(token_address):
         form.returnAmount.data = returnAmount
         form.purpose.data = purpose
         form.memo.data = memo
+        form.tradableExchange.data = tradableExchange
         form.abi.data = token.abi
         form.bytecode.data = token.bytecode
         form.sellPrice.data = None
