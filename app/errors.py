@@ -35,6 +35,7 @@ def internal_server_error(e):
 
 @app.errorhandler(Exception)
 def exception_handler(e):
+    logger.exception(e)
     if request.accept_mimetypes.accept_json and \
             not request.accept_mimetypes.accept_html:
         response = jsonify({'error': 'internal server error'})
