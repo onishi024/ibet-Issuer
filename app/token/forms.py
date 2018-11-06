@@ -30,7 +30,7 @@ class IssueTokenForm(Form):
     returnAmount = TextAreaField("リターン内容", validators=[])
     purpose = TextAreaField("発行目的", validators=[Required('発行目的は必須です。')])
     memo = TextAreaField("メモ", validators=[])
-    tradableExchange = StringField("取引所コントラクトアドレス", validators=[])
+    tradableExchange = StringField("DEXアドレス", validators=[])
     submit = SubmitField('新規発行')
 
     def __init__(self, issue_token=None, *args, **kwargs):
@@ -65,7 +65,7 @@ class TokenSettingForm(Form):
     image_small = StringField("商品画像（小）URL", validators=[])
     image_medium = StringField("商品画像（中）URL", validators=[])
     image_large = StringField("商品画像（大）URL", validators=[])
-    tradableExchange = StringField("取引所コントラクトアドレス", validators=[])
+    tradableExchange = StringField("DEXアドレス", validators=[])
     abi = TextAreaField("インターフェース", validators=[])
     bytecode = TextAreaField("バイトコード", validators=[])
     submit = SubmitField('設定変更')
@@ -99,7 +99,7 @@ class SellTokenForm(Form):
     returnAmount = StringField("リターン内容", validators=[])
     purpose = StringField("発行目的", validators=[])
     memo = TextAreaField("メモ", validators=[])
-    tradableExchange = StringField("取引所コントラクトアドレス", validators=[])
+    tradableExchange = StringField("DEXアドレス", validators=[])
     abi = TextAreaField("インターフェース", validators=[])
     bytecode = TextAreaField("バイトコード", validators=[])
     sellPrice = IntegerField("売出価格（額面当り）", validators=[Required('売出価格は必須です。')])

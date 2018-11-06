@@ -176,7 +176,7 @@ def setting(token_address):
     form = TokenSettingForm()
     if request.method == 'POST':
         if not Web3.isAddress(form.tradableExchange.data):
-            flash('取引所コントラクトアドレスは有効なアドレスではありません。','error')
+            flash('DEXアドレスは有効なアドレスではありません。','error')
             return render_template(
                 'token/setting.html',
                 form=form,
@@ -392,7 +392,7 @@ def issue():
     if request.method == 'POST':
         if form.validate():
             if not Web3.isAddress(form.tradableExchange.data):
-                flash('取引所コントラクトアドレスは有効なアドレスではありません。','error')
+                flash('DEXアドレスは有効なアドレスではありません。','error')
                 return render_template('token/issue.html', form=form)
 
             web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
@@ -592,7 +592,7 @@ def sell(token_address):
                 flash('金融機関の情報が未登録です。', 'error')
                 return redirect(url_for('.sell', token_address=token_address))
             elif tradableExchange == '':
-                flash('取引所コントラクトのアドレスが未登録です。', 'error')
+                flash('DEXアドレスが未登録です。', 'error')
                 return redirect(url_for('.sell', token_address=token_address))
             else:
                 web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)

@@ -158,6 +158,7 @@ def setting(token_address):
     expirationDate = TokenContract.functions.expirationDate().call()
     memo = TokenContract.functions.memo().call()
     transferable = str(TokenContract.functions.transferable().call())
+    tradableExchange = TokenContract.functions.tradableExchange().call()
     status = TokenContract.functions.status().call()
     image_small = TokenContract.functions.getImageURL(0).call()
     image_medium = TokenContract.functions.getImageURL(1).call()
