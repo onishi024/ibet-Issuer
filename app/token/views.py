@@ -175,7 +175,7 @@ def setting(token_address):
 
     form = TokenSettingForm()
     if request.method == 'POST':
-        if not Web3.isAddress(form.tradableExchange.data):
+        if form.tradableExchange.data != '' and not Web3.isAddress(form.tradableExchange.data):
             flash('DEXアドレスは有効なアドレスではありません。','error')
             return redirect(url_for('.setting', token_address=token_address))
 
@@ -363,7 +363,7 @@ def issue():
     form = IssueTokenForm()
     if request.method == 'POST':
         if form.validate():
-            if not Web3.isAddress(form.tradableExchange.data):
+            if form.tradableExchange.data != '' not Web3.isAddress(form.tradableExchange.data):
                 flash('DEXアドレスは有効なアドレスではありません。','error')
                 return render_template('token/issue.html', form=form)
 
