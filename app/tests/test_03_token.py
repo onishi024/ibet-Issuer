@@ -312,7 +312,7 @@ class TestToken(TestBase):
                 'image_small': 'https://test.com/image_small.jpg',
                 'image_medium': 'https://test.com/image_medium.jpg',
                 'image_large': 'https://test.com/image_large.jpg',
-                'tradableExchange': '0xd85a292e77628e4027250d46abaeeac1d3d192b5'
+                'tradableExchange': shared_contract['WhiteList']['address']
             }
         )
         assert response.status_code == 302
@@ -328,7 +328,7 @@ class TestToken(TestBase):
         assert 'https://test.com/image_small.jpg'.encode('utf-8') in response.data
         assert 'https://test.com/image_medium.jpg'.encode('utf-8') in response.data
         assert 'https://test.com/image_large.jpg'.encode('utf-8') in response.data
-        assert '0xd85a292e77628e4027250d46abaeeac1d3d192b5'.encode('utf-8') in response.data
+        assert shared_contract['WhiteList']['address'].encode('utf-8') in response.data
 
         # DEXアドレスを戻す
         response = client.post(
@@ -553,7 +553,7 @@ class TestToken(TestBase):
                 'tradableExchange': self.dex_address_error
             }
         )
-        assert response.status_code == 200
+        assert response.status_code == 302
         assert '<title>債券詳細設定'.encode('utf-8') in response.data
         assert 'DEXアドレスは有効なアドレスではありません。'.encode('utf-8') in response.data
 
