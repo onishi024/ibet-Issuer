@@ -175,6 +175,8 @@ def setting(token_address):
 
     form = TokenSettingForm()
     if request.method == 'POST':
+        logger.info('tradableExchange: ' + tradableExchange)
+        logger.info('form.tradableExchange.data: ' + form.tradableExchange.data)
         if not Web3.isAddress(form.tradableExchange.data):
             flash('DEXアドレスは有効なアドレスではありません。','error')
             return redirect(url_for('.setting', token_address=token_address))
