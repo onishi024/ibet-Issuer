@@ -43,7 +43,11 @@
           {% endif %}
           <td>{{ token.symbol }}</td>
     			<td>{{ token.created | format_date }}</td>
-          <td style="word-break : break-all;"><small>{{token.token_address}}</small></td>
+          {% if token.token_address != None %}
+            <td style="word-break : break-all;"><small>{{ token.token_address }}</small></td>
+          {% else %}
+            <td>-</td>
+          {% endif %}
           <td align="center">
             <button type="button" class="btn btn-default btn-sm" onclick="viewTxHash('{{token.tx_hash}}')">表示</button>
           </td>
