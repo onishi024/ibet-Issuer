@@ -533,7 +533,7 @@ class TestToken(TestBase):
                 'returnDate': '20191231',
                 'returnAmount': '商品券をプレゼント',
                 'purpose': '新商品の開発資金として利用。',
-                'tradableExchange': dex_address_error,
+                'tradableExchange': self.dex_address_error,
                 'memo': 'メモ'
             }
         )
@@ -552,7 +552,7 @@ class TestToken(TestBase):
                 'image_small': 'https://test.com/image_small.jpg',
                 'image_medium': 'https://test.com/image_medium.jpg',
                 'image_large': 'https://test.com/image_large.jpg',
-                'tradableExchange': dex_address_error
+                'tradableExchange': self.dex_address_error
             }
         )
         assert response.status_code == 200
