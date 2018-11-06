@@ -197,8 +197,6 @@ def setting(token_address):
             txid = TokenContract.functions.setMemo(form.memo.data).transact(
                 {'from':Config.ETH_ACCOUNT, 'gas':gas}
             )
-        logger.info('form.transferable.data')
-        logger.info(form.transferable.data)
         if form.transferable.data != transferable:
             tmpVal = True
             if form.transferable.data == 'False':
@@ -285,6 +283,10 @@ def issue():
     form = IssueForm()
     if request.method == 'POST':
         if form.validate():
+            if not Web3.isAddress(form.tradableExchange.data):
+                flash('DEXアドレスは有効なアドレスではありません。','error')
+                return render_template('membership/issue.html', form=form)
+
             web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
             tmpVal = True
             if form.transferable.data == 'False':
@@ -293,6 +295,7 @@ def issue():
                 form.name.data,
                 form.symbol.data,
                 form.totalSupply.data,
+                to_checksum_address(form.tradableExchange.data),
                 form.details.data,
                 form.returnDetails.data,
                 form.expirationDate.data,
@@ -454,6 +457,7 @@ def sell(token_address):
     expirationDate = TokenContract.functions.expirationDate().call()
     memo = TokenContract.functions.memo().call()
     transferable = TokenContract.functions.transferable().call()
+    tradableExchange = TokenContract.functions.tradableExchange().call()
     status = TokenContract.functions.status().call()
 
     owner = to_checksum_address(Config.ETH_ACCOUNT)
@@ -509,7 +513,7 @@ def sell(token_address):
         form.memo.data = memo
         form.transferable.data = transferable
         form.status.data = status
-
+        form.tradableExchange.data = tradableExchange
         form.abi.data = token.abi
         form.bytecode.data = token.bytecode
         form.sellPrice.data = None

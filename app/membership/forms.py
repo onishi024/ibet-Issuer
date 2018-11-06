@@ -18,7 +18,7 @@ class IssueForm(Form):
     image_small = StringField("画像（小）URL", validators=[])
     image_medium = StringField("画像（中）URL", validators=[])
     image_large = StringField("画像（大）URL", validators=[])
-    tradableExchange = StringField("DEXアドレス", validators=[])
+    tradableExchange = StringField("DEXアドレス", validators=[Required('DEXアドレスは必須です。')])
     submit = SubmitField('新規発行')
 
     def __init__(self, issue_data=None, *args, **kwargs):

@@ -65,7 +65,8 @@
                         {% else %}
                             <td class="col-md-2" >あり</td>
                         {% endif %}
-                        <td class="col-md-2" style="background-color:#f7f7f7;"></td><td class="col-md-2" ></td>
+                        <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.tradableExchange.label }}</td>
+                        <td class="col-md-2">{{ form.tradableExchange.data }}</td>
                     </tr>
                 </tbody>
             </table>
