@@ -537,6 +537,7 @@ def sell(token_address):
     returnAmount = TokenContract.functions.returnAmount().call()
     purpose = TokenContract.functions.purpose().call()
     memo = TokenContract.functions.memo().call()
+    tradableExchange = TokenContract.functions.tradableExchange().call()
 
     owner = to_checksum_address(Config.ETH_ACCOUNT)
     balance = TokenContract.functions.balanceOf(owner).call()
