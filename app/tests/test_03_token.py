@@ -554,6 +554,9 @@ class TestToken(TestBase):
             }
         )
         assert response.status_code == 302
+
+        response = client.get(url_setting)
+        assert response.status_code == 200
         assert '<title>債券詳細設定'.encode('utf-8') in response.data
         assert 'DEXアドレスは有効なアドレスではありません。'.encode('utf-8') in response.data
 
