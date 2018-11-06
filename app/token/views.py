@@ -586,7 +586,7 @@ def sell(token_address):
             agent_account = to_checksum_address(Config.AGENT_ADDRESS)
 
             if PersonalInfoContract.functions.isRegistered(eth_account,eth_account).call() == False:
-                flash('法人名、所在地の情報が未登録です。', 'error')
+                flash('金融機関の情報が未登録です。', 'error')
                 return redirect(url_for('.sell', token_address=token_address))
             elif WhiteListContract.functions.isRegistered(eth_account, agent_account).call() == False:
                 flash('金融機関の情報が未登録です。', 'error')
