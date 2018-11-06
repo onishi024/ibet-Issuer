@@ -32,8 +32,8 @@ def internal_server_error(e):
         return response
     return render_template('500.html'), 500
 
-@index_blueprint.errorhandler(Exception)
-def error_handler(e):
+@app.errorhandler(Exception)
+def exception_handler(e):
     if request.accept_mimetypes.accept_json and \
             not request.accept_mimetypes.accept_html:
         response = jsonify({'error': 'internal server error'})
