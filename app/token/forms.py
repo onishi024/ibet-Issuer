@@ -30,7 +30,7 @@ class IssueTokenForm(Form):
     returnAmount = TextAreaField("リターン内容", validators=[])
     purpose = TextAreaField("発行目的", validators=[Required('発行目的は必須です。')])
     memo = TextAreaField("メモ", validators=[])
-    tradableExchange = StringField("DEXアドレス", validators=[])
+    tradableExchange = StringField("DEXアドレス", validators=[Required('DEXアドレスは必須です。')])
     submit = SubmitField('新規発行')
 
     def __init__(self, issue_token=None, *args, **kwargs):
