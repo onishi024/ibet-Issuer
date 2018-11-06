@@ -537,7 +537,6 @@ def sell(token_address):
     returnAmount = TokenContract.functions.returnAmount().call()
     purpose = TokenContract.functions.purpose().call()
     memo = TokenContract.functions.memo().call()
-    tradableExchange = TokenContract.functions.tradableExchange().call()
 
     owner = to_checksum_address(Config.ETH_ACCOUNT)
     balance = TokenContract.functions.balanceOf(owner).call()
@@ -562,9 +561,6 @@ def sell(token_address):
                 return redirect(url_for('.sell', token_address=token_address))
             elif WhiteListContract.functions.isRegistered(eth_account, agent_account).call() == False:
                 flash('金融機関の情報が未登録です。', 'error')
-                return redirect(url_for('.sell', token_address=token_address))
-            elif tradableExchange == '':
-                flash('DEXアドレスが未登録です。', 'error')
                 return redirect(url_for('.sell', token_address=token_address))
             else:
                 web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
