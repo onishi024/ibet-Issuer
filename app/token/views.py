@@ -248,6 +248,7 @@ def setting(token_address):
         form.image_small.data = image_small
         form.image_medium.data = image_medium
         form.image_large.data = image_large
+        form.tradableExchange.data = tradableExchange
         form.abi.data = token.abi
         form.bytecode.data = token.bytecode
         return render_template(
