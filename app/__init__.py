@@ -51,13 +51,4 @@ def create_app(config_name):
     from .auth import auth as auth_blueprint
     app.register_blueprint(auth_blueprint, url_prefix='/auth')
 
-    @app.errorhandler(Exception)
-    def exception_handler(e):
-        if request.accept_mimetypes.accept_json and \
-                not request.accept_mimetypes.accept_html:
-            response = jsonify({'error': 'internal server error'})
-            response.status_code = 500
-            return response
-        return render_template('500.html'), 500
-
     return app
