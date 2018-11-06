@@ -1,7 +1,7 @@
 from flask import render_template, request, jsonify
 from flask_login import login_required
 from .index import index_blueprint
-from app import app
+from tmr-issuer import app
 
 from logging import getLogger
 logger = getLogger('api')
