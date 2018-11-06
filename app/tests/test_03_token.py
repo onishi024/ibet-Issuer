@@ -318,7 +318,7 @@ class TestToken(TestBase):
         assert response.status_code == 302
 
         # 待機
-        time.sleep(6)
+        time.sleep(10)
 
         # 債券詳細設定
         response = client.get(url_setting)
