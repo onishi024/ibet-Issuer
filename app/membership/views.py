@@ -174,6 +174,10 @@ def setting(token_address):
     form = SettingForm()
 
     if request.method == 'POST':
+        if not Web3.isAddress(form.tradableExchange.data):
+            flash('DEXアドレスは有効なアドレスではありません。','error')
+            return redirect(url_for('.setting', token_address=token_address))
+
         web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
         if form.details.data != details:
             gas = TokenContract.estimateGas().setDetails(form.details.data)
@@ -218,6 +222,11 @@ def setting(token_address):
             txid = TokenContract.functions.setImageURL(2, form.image_large.data).transact(
                 {'from':Config.ETH_ACCOUNT, 'gas':gas}
             )
+        if form.tradableExchange.data != tradableExchange:
+            gas = TokenContract.estimateGas().setTradableExchange(to_checksum_address(form.tradableExchange.data))
+            txid = TokenContract.functions.setTradableExchange(to_checksum_address(form.tradableExchange.data)).transact(
+                {'from':Config.ETH_ACCOUNT, 'gas':gas}
+            )
 
         flash('変更を受け付けました。変更完了までに数分程かかることがあります。', 'success')
         return redirect(url_for('.list'))
@@ -235,6 +244,7 @@ def setting(token_address):
         form.image_small.data = image_small
         form.image_medium.data = image_medium
         form.image_large.data = image_large
+        form.tradableExchange.data = tradableExchange
         form.abi.data = token.abi
         form.bytecode.data = token.bytecode
         return render_template(

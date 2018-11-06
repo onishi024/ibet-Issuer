@@ -85,7 +85,6 @@ def list():
             name = '<処理中>'
             symbol = '<処理中>'
             is_valid = '<処理中>'
-            token_address = None
         else:
             # Token-Contractへの接続
             TokenContract = web3.eth.contract(
@@ -97,14 +96,13 @@ def list():
             name = TokenContract.functions.name().call()
             symbol = TokenContract.functions.symbol().call()
             is_valid = TokenContract.functions.isValid().call()
-            token_address = row.token_address
         token_list.append({
             'name':name,
             'symbol':symbol,
             'is_valid':is_valid,
             'tx_hash':row.tx_hash,
             'created':row.created,
-            'token_address':token_address
+            'token_address':row.token_address
         })
 
     return render_template('coupon/list.html', tokens=token_list)
