@@ -756,7 +756,7 @@ class TestMembership(TestBase):
                 'image_small': '',
                 'image_medium': '',
                 'image_large': '',
-
+                'tradableExchange': self.dex_address_error
             }
         )
         assert response.status_code == 200
