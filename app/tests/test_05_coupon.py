@@ -53,6 +53,9 @@ class TestCoupon(TestBase):
     #     }
     # }
     trader_encrypted_info = 'oR3oSAdy1m6MR2nYKTsccjxdXlgLDx2MJZEir5qKpb9hpHEWisOn79GE8+o1ThG/BCzirZjx9z3gc40PmM+1l2VH+6c5ouSWkZ3JhoT4SUsf9YTAurj6jySzTcPkCMC9VPP+Nm4+XJyt3QroPzDOsJKaGycn63/B8BLTV6zZaDi9ZDBtZL0A1xMEx2aQJsXCj+cn6fGFy7VV8NG1+WYyUDZmXTK8nzR75J2onsiT4FzwtSCzZbM4/qME4O0rOlnaqjBoyn6Ae46S6LO72JPskT/b5pWM+mH8+/buLdGaxO3D1k6ICTvjNJaO7gxTNTsm3tWGotp9tzzkDsxYcVE+qr4/ufmsE6Qn3/pI1DtEZbMyXu51ucn7JYyQNiPN99OXbkTs2/DHsy7RtvujS+PXH4KHjH0//NbdyUxgEmGbf3XvZ2yDDRUKpi5jHs82mtECGPWN9hKzlwkV7UXp/BBHZP+MsyiU1pZCkqIGIrt9WlE/v9TlJXzarcJmqWL6LmG2b5g6ublux/AaYyYXjwNyKbP0kQJGYoGNV4KODNEQd6DNc5uI24laJd8GY7ucDcB2F/j1y1S5vWIQIOM9ksSr9K0xfsaiqGpNWtbquYrOv3lNVozFx22C8hTWDyMOCmkTEcha2nTnLUvSsopZeNlAfRxnNdqjtHqp8iBAqVlpxRpIgCjk9QTf1lYmNK3jb2/4Cyt8xAo0Z4ty6qOzeEcwd+BjGMbfWdxtGSJHDidr7nP56MOGKSzwOnLxLVYVL8YuV6MnzqDtbts/Vbw9mkX5zwddIfvsGlNvhbrDR8WSrXRVeWiwnbXnhc4njpsRLRlCXwvHVbhXzdUvEyfXmMdMGRScVBLLeb0BQK9Aea1ZuwKsK19JhK5QUrnYeimMRzJ/YUX5mMlJ4Skek7Lkn8py5hX3rZ3/SvLEXKe2GxkvqTPbwnyS+ZNAvGpyRl8AIthOHucW4Fnjl8KQpqS2GMJpj+SJRq8/HCpaR50743S5j6Ha0gx3D3/R032an+cgg7a875BNX0hgldffzoDr6+nHEtwsY/J96rkUFmeubmsISu0wAxH6C7XTsCFs90awBwIAydOgmbOovUub/yz/CJhbgbMrAMv1Mv2wnLIt0av8nC359AuRanIGr7q/ynDYqUS9mdUlpyfVbwWPJm0hMFfuJxdvVVHnyr2jg2GqtgvE8QcN18l1aI1FJDfqa7W7grlwn9+EQo+JXE1Xd7YZdeJNtKSD4aIQAFnIoIM3A7fkoPAS4sc+PdUzA3UNgomByNP3/cdcs/L3cvEpDjlTNzFLcQ2yojEXolcg2SZzpmb7MV3E5RQLnjOL+u/frwqk15up7jNiqfNp7N/o/wmjf6m+ceJq7b03o2oNLE+Ng6lNqLWNduII4Lq0N6qOgWJ/02LF1X/9oeBDPuPiLUZGkyy5y3FCuY4KN/hDUUpxGsxBOYfn+oFepAu6bz4UpxgaEu23DyCeKnkBlQITi1kSl7F7WHv1XBHF53eEY4fs4n0ZrOYWOzEFt/NfKm/oxiyIdSsCfGTcgmC/DGC90vM4sPPRXa7x7Xd8xJRbTnEuA88ALzCSeMt1NyNNtSKpw9xv+UIyFMkuDYsOoNRrdThZ/KvjYSMsAvNBXG0x6AYMz4x9oZ25VBiy/yWbivbN2nFPlWM7xyaQWMlTBVZZdCgnOoOR1tby7IAwlzTd1oGm+DJx9hA='
+    # DEXアドレス
+    dex_address_error = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
+    # URL
     url_list = 'coupon/list' # クーポン一覧
     url_issue = 'coupon/issue' # 発行
     url_setting = 'coupon/setting/' # 設定画面
@@ -102,7 +105,8 @@ class TestCoupon(TestBase):
                 'memo': 'memoメモ',
                 'image_small': 'https://test.com/image_small.jpg',
                 'image_medium': 'https://test.com/image_medium.jpg',
-                'image_large': 'https://test.com/image_large.jpg'
+                'image_large': 'https://test.com/image_large.jpg',
+                'tradableExchange': shared_contract['IbetCouponExchange']['address']
             }
         )
         assert response.status_code == 302
@@ -129,6 +133,7 @@ class TestCoupon(TestBase):
         assert 'https://test.com/image_small.jpg'.encode('utf-8') in response.data
         assert 'https://test.com/image_medium.jpg'.encode('utf-8') in response.data
         assert 'https://test.com/image_large.jpg'.encode('utf-8') in response.data
+        assert shared_contract['IbetCouponExchange']['address'].encode('utf-8') in response.data
 
     # ＜正常系3＞
     # 一覧の参照(1件)
@@ -153,6 +158,7 @@ class TestCoupon(TestBase):
             data={
                 'details': 'details詳細2',
                 'memo': 'memoメモ2',
+                'tradableExchange': shared_contract['IbetCouponExchange']['address'],
                 'image_small': 'https://test.com/image_small2.jpg',
                 'image_medium': 'https://test.com/image_medium2.jpg',
                 'image_large': 'https://test.com/image_large2.jpg',
@@ -176,6 +182,7 @@ class TestCoupon(TestBase):
         assert 'https://test.com/image_small2.jpg'.encode('utf-8') in response.data
         assert 'https://test.com/image_medium2.jpg'.encode('utf-8') in response.data
         assert 'https://test.com/image_large2.jpg'.encode('utf-8') in response.data
+        assert shared_contract['IbetCouponExchange']['address'].encode('utf-8') in response.data
 
     # ＜正常系5＞
     # 有効化/無効化
@@ -330,6 +337,7 @@ class TestCoupon(TestBase):
         assert 'クーポン名は必須です。'.encode('utf-8') in response.data
         assert '略称は必須です。'.encode('utf-8') in response.data
         assert '総発行量は必須です。'.encode('utf-8') in response.data
+        assert 'DEXアドレスは必須です。'.encode('utf-8') in response.data
 
     # ＜エラー系2＞
     # 追加発行（必須エラー）
@@ -359,3 +367,55 @@ class TestCoupon(TestBase):
         assert 'クーポンアドレスは必須です。'.encode('utf-8') in response.data
         assert '割当先アドレスは必須です。'.encode('utf-8') in response.data
         assert '割当数量は必須です。'.encode('utf-8') in response.data
+
+
+    # ＜エラー系2_1＞
+    # ＜入力値チェック＞
+    # 新規発行（DEXアドレス形式エラー）
+    def test_error_2_1(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
+        # 新規発行
+        response = client.post(
+            self.url_issue,
+            data={
+                'name': 'テストクーポン',
+                'symbol': 'COUPON',
+                'totalSupply': 2000000,
+                'expirationDate': '20191231',
+                'transferable': True,
+                'details': 'details詳細',
+                'memo': 'memoメモ',
+                'image_small': 'https://test.com/image_small.jpg',
+                'image_medium': 'https://test.com/image_medium.jpg',
+                'image_large': 'https://test.com/image_large.jpg',
+                'tradableExchange': self.dex_address_error
+            }
+        )
+        assert response.status_code == 200
+        assert '<title>クーポン発行'.encode('utf-8') in response.data
+        assert 'DEXアドレスは有効なアドレスではありません。'.encode('utf-8') in response.data
+
+   # ＜エラー系2_2＞
+    # ＜入力値チェック＞
+    # 設定画面（DEXアドレス形式エラー）
+    def test_error_2_2(self, app, shared_contract):
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        url_setting = self.url_setting + tokens[0].token_address
+        client = self.client_with_admin_login(app)
+        response = client.post(
+            url_setting,
+            data={
+                'details': 'details詳細2',
+                'memo': 'memoメモ2',
+                'tradableExchange': self.dex_address_error,
+                'image_small': 'https://test.com/image_small2.jpg',
+                'image_medium': 'https://test.com/image_medium2.jpg',
+                'image_large': 'https://test.com/image_large2.jpg',
+            }
+        )
+        assert response.status_code == 302
+        time.sleep(2)
+
+        response = client.get(url_setting)
+        assert response.status_code == 200
+        assert 'DEXアドレスは有効なアドレスではありません。'.encode('utf-8') in response.data
