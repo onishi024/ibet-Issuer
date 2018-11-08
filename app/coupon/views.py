@@ -435,8 +435,8 @@ def coupon_valid(token_address, isvalid):
     )
     web3.personal.unlockAccount(owner,Config.ETH_ACCOUNT_PASSWORD,1000)
 
-    gas = TokenContract.estimateGas().updateStatus(isvalid)
-    tx = TokenContract.functions.updateStatus(isvalid).\
+    gas = TokenContract.estimateGas().setStatus(isvalid)
+    tx = TokenContract.functions.setStatus(isvalid).\
                 transact({'from':owner, 'gas':gas})
 
     wait_transaction_receipt(tx)
