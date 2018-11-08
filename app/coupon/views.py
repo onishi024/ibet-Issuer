@@ -131,7 +131,7 @@ def issue():
                 form.name.data,
                 form.symbol.data,
                 form.totalSupply.data,
-                form.tradableExchange.data,
+                to_checksum_address(form.tradableExchange.data),
                 form.details.data,
                 form.memo.data,
                 form.expirationDate.data,
