@@ -85,7 +85,6 @@ def list():
             name = '<処理中>'
             symbol = '<処理中>'
             is_valid = '<処理中>'
-            token_address = None
         else:
             # Token-Contractへの接続
             TokenContract = web3.eth.contract(
@@ -97,14 +96,13 @@ def list():
             name = TokenContract.functions.name().call()
             symbol = TokenContract.functions.symbol().call()
             is_valid = TokenContract.functions.isValid().call()
-            token_address = row.token_address
         token_list.append({
             'name':name,
             'symbol':symbol,
             'is_valid':is_valid,
             'tx_hash':row.tx_hash,
             'created':row.created,
-            'token_address':token_address
+            'token_address':row.token_address
         })
 
     return render_template('coupon/list.html', tokens=token_list)
@@ -119,6 +117,10 @@ def issue():
     form = IssueCouponForm()
     if request.method == 'POST':
         if form.validate():
+            if not Web3.isAddress(form.tradableExchange.data):
+                flash('DEXアドレスは有効なアドレスではありません。','error')
+                return render_template('coupon/issue.html', form=form)
+
             ####### トークン発行処理 #######
             web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
             tmpVal = True
@@ -129,6 +131,7 @@ def issue():
                 form.name.data,
                 form.symbol.data,
                 form.totalSupply.data,
+                to_checksum_address(form.tradableExchange.data),
                 form.details.data,
                 form.memo.data,
                 form.expirationDate.data,
@@ -252,21 +255,31 @@ def setting(token_address):
     image_small = TokenContract.functions.getImageURL(0).call()
     image_medium = TokenContract.functions.getImageURL(1).call()
     image_large = TokenContract.functions.getImageURL(2).call()
+    tradableExchange = TokenContract.functions.tradableExchange().call()
 
     form = IssueCouponForm()
 
     if request.method == 'POST':
+        if not Web3.isAddress(form.tradableExchange.data):
+            flash('DEXアドレスは有効なアドレスではありません。','error')
+            return redirect(url_for('.setting', token_address=token_address))
         web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
+        # DEXアドレス
+        if form.tradableExchange.data != tradableExchange:
+            gas = TokenContract.estimateGas().setTradableExchange(to_checksum_address(form.tradableExchange.data))
+            txid = TokenContract.functions.setTradableExchange(to_checksum_address(form.tradableExchange.data)).transact(
+                {'from':Config.ETH_ACCOUNT, 'gas':gas}
+            )
         # 詳細
         if form.details.data != details:
-            gas = TokenContract.estimateGas().updateDetails(form.details.data)
-            txid = TokenContract.functions.updateDetails(form.details.data).transact(
+            gas = TokenContract.estimateGas().setDetails(form.details.data)
+            txid = TokenContract.functions.setDetails(form.details.data).transact(
                 {'from':Config.ETH_ACCOUNT, 'gas':gas}
             )
         # memo
         if form.memo.data != memo:
-            gas = TokenContract.estimateGas().updateMemo(form.memo.data)
-            txid = TokenContract.functions.updateMemo(form.memo.data).transact(
+            gas = TokenContract.estimateGas().setMemo(form.memo.data)
+            txid = TokenContract.functions.setMemo(form.memo.data).transact(
                 {'from':Config.ETH_ACCOUNT, 'gas':gas}
             )
         # 画像 小
@@ -299,6 +312,7 @@ def setting(token_address):
         form.expirationDate.data = expirationDate
         form.transferable.data = transferable
         form.memo.data = memo
+        form.tradableExchange.data = tradableExchange
         form.image_small.data = image_small
         form.image_medium.data = image_medium
         form.image_large.data = image_large
@@ -421,8 +435,8 @@ def coupon_valid(token_address, isvalid):
     )
     web3.personal.unlockAccount(owner,Config.ETH_ACCOUNT_PASSWORD,1000)
 
-    gas = TokenContract.estimateGas().updateStatus(isvalid)
-    tx = TokenContract.functions.updateStatus(isvalid).\
+    gas = TokenContract.estimateGas().setStatus(isvalid)
+    tx = TokenContract.functions.setStatus(isvalid).\
                 transact({'from':owner, 'gas':gas})
 
     wait_transaction_receipt(tx)

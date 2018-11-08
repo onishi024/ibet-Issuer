@@ -46,27 +46,6 @@ def flash_errors(form):
         for error in errors:
             flash(error, 'error')
 
-# トランザクションがブロックに取り込まれるまで待つ
-# 10秒以上経過した場合は失敗とみなす（Falseを返す）
-def wait_transaction_receipt(tx_hash):
-    count = 0
-    tx = None
-
-    while True:
-        time.sleep(0.1)
-        try:
-            tx = web3.eth.getTransactionReceipt(tx_hash)
-        except:
-            continue
-
-        count += 1
-        if tx is not None:
-            break
-        elif count > 120:
-            raise Exception
-
-    return tx
-
 ####################################################
 # 発行済債券一覧
 ####################################################
@@ -162,6 +141,7 @@ def setting(token_address):
     returnAmount = TokenContract.functions.returnAmount().call()
     purpose = TokenContract.functions.purpose().call()
     memo = TokenContract.functions.memo().call()
+    tradableExchange = TokenContract.functions.tradableExchange().call()
     image_small = TokenContract.functions.getImageURL(0).call()
     image_medium = TokenContract.functions.getImageURL(1).call()
     image_large = TokenContract.functions.getImageURL(2).call()
@@ -193,10 +173,12 @@ def setting(token_address):
             signatures(to_checksum_address(entry['args']['signer'])).call() == 2:
             signatures.append(entry['args']['signer'])
 
-
     form = TokenSettingForm()
-
     if request.method == 'POST':
+        if not Web3.isAddress(form.tradableExchange.data):
+            flash('DEXアドレスは有効なアドレスではありません。','error')
+            return redirect(url_for('.setting', token_address=token_address))
+
         web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
         if form.image_small.data != image_small:
             gas = TokenContract.estimateGas().setImageURL(0, form.image_small.data)
@@ -213,7 +195,11 @@ def setting(token_address):
             txid = TokenContract.functions.setImageURL(2, form.image_large.data).transact(
                 {'from':Config.ETH_ACCOUNT, 'gas':gas}
             )
-
+        if form.tradableExchange.data != tradableExchange:
+            gas = TokenContract.estimateGas().setTradableExchange(to_checksum_address(form.tradableExchange.data))
+            txid = TokenContract.functions.setTradableExchange(to_checksum_address(form.tradableExchange.data)).transact(
+                {'from':Config.ETH_ACCOUNT, 'gas':gas}
+            )
         flash('設定変更を受け付けました。変更完了までに数分程かかることがあります。', 'success')
         return redirect(url_for('.list'))
     else: # GET
@@ -223,30 +209,7 @@ def setting(token_address):
         form.totalSupply.data = totalSupply
         form.faceValue.data = faceValue
         form.interestRate.data = interestRate
-        if 'interestPaymentDate1' in interestPaymentDate:
-            form.interestPaymentDate1.data = interestPaymentDate['interestPaymentDate1']
-        if 'interestPaymentDate2' in interestPaymentDate:
-            form.interestPaymentDate2.data = interestPaymentDate['interestPaymentDate2']
-        if 'interestPaymentDate3' in interestPaymentDate:
-            form.interestPaymentDate3.data = interestPaymentDate['interestPaymentDate3']
-        if 'interestPaymentDate4' in interestPaymentDate:
-            form.interestPaymentDate4.data = interestPaymentDate['interestPaymentDate4']
-        if 'interestPaymentDate5' in interestPaymentDate:
-            form.interestPaymentDate5.data = interestPaymentDate['interestPaymentDate5']
-        if 'interestPaymentDate6' in interestPaymentDate:
-            form.interestPaymentDate6.data = interestPaymentDate['interestPaymentDate6']
-        if 'interestPaymentDate7' in interestPaymentDate:
-            form.interestPaymentDate7.data = interestPaymentDate['interestPaymentDate7']
-        if 'interestPaymentDate8' in interestPaymentDate:
-            form.interestPaymentDate8.data = interestPaymentDate['interestPaymentDate8']
-        if 'interestPaymentDate9' in interestPaymentDate:
-            form.interestPaymentDate9.data = interestPaymentDate['interestPaymentDate9']
-        if 'interestPaymentDate10' in interestPaymentDate:
-            form.interestPaymentDate10.data = interestPaymentDate['interestPaymentDate10']
-        if 'interestPaymentDate11' in interestPaymentDate:
-            form.interestPaymentDate11.data = interestPaymentDate['interestPaymentDate11']
-        if 'interestPaymentDate12' in interestPaymentDate:
-            form.interestPaymentDate12.data = interestPaymentDate['interestPaymentDate12']
+        set_interestPaymentDate(form, interestPaymentDate)
         form.redemptionDate.data = redemptionDate
         form.redemptionAmount.data = redemptionAmount
         form.returnDate.data = returnDate
@@ -256,6 +219,7 @@ def setting(token_address):
         form.image_small.data = image_small
         form.image_medium.data = image_medium
         form.image_large.data = image_large
+        form.tradableExchange.data = tradableExchange
         form.abi.data = token.abi
         form.bytecode.data = token.bytecode
         return render_template(
@@ -399,8 +363,11 @@ def issue():
     form = IssueTokenForm()
     if request.method == 'POST':
         if form.validate():
-            web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
+            if not Web3.isAddress(form.tradableExchange.data):
+                flash('DEXアドレスは有効なアドレスではありません。','error')
+                return render_template('token/issue.html', form=form)
 
+            web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
             interestPaymentDate = {
                 'interestPaymentDate1': form.interestPaymentDate1.data,
                 'interestPaymentDate2': form.interestPaymentDate2.data,
@@ -415,13 +382,13 @@ def issue():
                 'interestPaymentDate11': form.interestPaymentDate11.data,
                 'interestPaymentDate12': form.interestPaymentDate12.data
             }
-
             interestPaymentDate_string = json.dumps(interestPaymentDate)
 
             arguments = [
                 form.name.data,
                 form.symbol.data,
                 form.totalSupply.data,
+                to_checksum_address(form.tradableExchange.data),
                 form.faceValue.data,
                 int(form.interestRate.data * 1000),
                 interestPaymentDate_string,
@@ -570,6 +537,7 @@ def sell(token_address):
     returnAmount = TokenContract.functions.returnAmount().call()
     purpose = TokenContract.functions.purpose().call()
     memo = TokenContract.functions.memo().call()
+    tradableExchange = TokenContract.functions.tradableExchange().call()
 
     owner = to_checksum_address(Config.ETH_ACCOUNT)
     balance = TokenContract.functions.balanceOf(owner).call()
@@ -590,7 +558,7 @@ def sell(token_address):
             agent_account = to_checksum_address(Config.AGENT_ADDRESS)
 
             if PersonalInfoContract.functions.isRegistered(eth_account,eth_account).call() == False:
-                flash('法人名、所在地の情報が未登録です。', 'error')
+                flash('金融機関の情報が未登録です。', 'error')
                 return redirect(url_for('.sell', token_address=token_address))
             elif WhiteListContract.functions.isRegistered(eth_account, agent_account).call() == False:
                 flash('金融機関の情報が未登録です。', 'error')
@@ -638,60 +606,14 @@ def sell(token_address):
         form.totalSupply.data = totalSupply
         form.faceValue.data = faceValue
         form.interestRate.data = interestRate
-        if 'interestPaymentDate1' in interestPaymentDate:
-            form.interestPaymentDate1.data = interestPaymentDate['interestPaymentDate1']
-        else:
-            form.interestPaymentDate1.data = ""
-        if 'interestPaymentDate2' in interestPaymentDate:
-            form.interestPaymentDate2.data = interestPaymentDate['interestPaymentDate2']
-        else:
-            form.interestPaymentDate2.data = ""
-        if 'interestPaymentDate3' in interestPaymentDate:
-            form.interestPaymentDate3.data = interestPaymentDate['interestPaymentDate3']
-        else:
-            form.interestPaymentDate3.data = ""
-        if 'interestPaymentDate4' in interestPaymentDate:
-            form.interestPaymentDate4.data = interestPaymentDate['interestPaymentDate4']
-        else:
-            form.interestPaymentDate4.data = ""
-        if 'interestPaymentDate5' in interestPaymentDate:
-            form.interestPaymentDate5.data = interestPaymentDate['interestPaymentDate5']
-        else:
-            form.interestPaymentDate5.data = ""
-        if 'interestPaymentDate6' in interestPaymentDate:
-            form.interestPaymentDate6.data = interestPaymentDate['interestPaymentDate6']
-        else:
-            form.interestPaymentDate6.data = ""
-        if 'interestPaymentDate7' in interestPaymentDate:
-            form.interestPaymentDate7.data = interestPaymentDate['interestPaymentDate7']
-        else:
-            form.interestPaymentDate7.data = ""
-        if 'interestPaymentDate8' in interestPaymentDate:
-            form.interestPaymentDate8.data = interestPaymentDate['interestPaymentDate8']
-        else:
-            form.interestPaymentDate8.data = ""
-        if 'interestPaymentDate9' in interestPaymentDate:
-            form.interestPaymentDate9.data = interestPaymentDate['interestPaymentDate9']
-        else:
-            form.interestPaymentDate9.data = ""
-        if 'interestPaymentDate10' in interestPaymentDate:
-            form.interestPaymentDate10.data = interestPaymentDate['interestPaymentDate10']
-        else:
-            form.interestPaymentDate10.data = ""
-        if 'interestPaymentDate11' in interestPaymentDate:
-            form.interestPaymentDate11.data = interestPaymentDate['interestPaymentDate11']
-        else:
-            form.interestPaymentDate11.data = ""
-        if 'interestPaymentDate12' in interestPaymentDate:
-            form.interestPaymentDate12.data = interestPaymentDate['interestPaymentDate12']
-        else:
-            form.interestPaymentDate12.data = ""
+        set_interestPaymentDate(form, interestPaymentDate)
         form.redemptionDate.data = redemptionDate
         form.redemptionAmount.data = redemptionAmount
         form.returnDate.data = returnDate
         form.returnAmount.data = returnAmount
         form.purpose.data = purpose
         form.memo.data = memo
+        form.tradableExchange.data = tradableExchange
         form.abi.data = token.abi
         form.bytecode.data = token.bytecode
         form.sellPrice.data = None
@@ -786,6 +708,33 @@ def img_convert(icon):
         img = b64encode(icon)
         return img.decode('utf8')
     return None
+
+# 利払日をformにセットする
+def set_interestPaymentDate(form, interestPaymentDate):
+    if 'interestPaymentDate1' in interestPaymentDate:
+        form.interestPaymentDate1.data = interestPaymentDate['interestPaymentDate1']
+    if 'interestPaymentDate2' in interestPaymentDate:
+        form.interestPaymentDate2.data = interestPaymentDate['interestPaymentDate2']
+    if 'interestPaymentDate3' in interestPaymentDate:
+        form.interestPaymentDate3.data = interestPaymentDate['interestPaymentDate3']
+    if 'interestPaymentDate4' in interestPaymentDate:
+        form.interestPaymentDate4.data = interestPaymentDate['interestPaymentDate4']
+    if 'interestPaymentDate5' in interestPaymentDate:
+        form.interestPaymentDate5.data = interestPaymentDate['interestPaymentDate5']
+    if 'interestPaymentDate6' in interestPaymentDate:
+        form.interestPaymentDate6.data = interestPaymentDate['interestPaymentDate6']
+    if 'interestPaymentDate7' in interestPaymentDate:
+        form.interestPaymentDate7.data = interestPaymentDate['interestPaymentDate7']
+    if 'interestPaymentDate8' in interestPaymentDate:
+        form.interestPaymentDate8.data = interestPaymentDate['interestPaymentDate8']
+    if 'interestPaymentDate9' in interestPaymentDate:
+        form.interestPaymentDate9.data = interestPaymentDate['interestPaymentDate9']
+    if 'interestPaymentDate10' in interestPaymentDate:
+        form.interestPaymentDate10.data = interestPaymentDate['interestPaymentDate10']
+    if 'interestPaymentDate11' in interestPaymentDate:
+        form.interestPaymentDate11.data = interestPaymentDate['interestPaymentDate11']
+    if 'interestPaymentDate12' in interestPaymentDate:
+        form.interestPaymentDate12.data = interestPaymentDate['interestPaymentDate12']
 
 
 ###

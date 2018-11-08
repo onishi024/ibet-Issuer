@@ -53,6 +53,9 @@ class TestToken(TestBase):
     #     }
     # }
     trader_encrypted_info = 'oR3oSAdy1m6MR2nYKTsccjxdXlgLDx2MJZEir5qKpb9hpHEWisOn79GE8+o1ThG/BCzirZjx9z3gc40PmM+1l2VH+6c5ouSWkZ3JhoT4SUsf9YTAurj6jySzTcPkCMC9VPP+Nm4+XJyt3QroPzDOsJKaGycn63/B8BLTV6zZaDi9ZDBtZL0A1xMEx2aQJsXCj+cn6fGFy7VV8NG1+WYyUDZmXTK8nzR75J2onsiT4FzwtSCzZbM4/qME4O0rOlnaqjBoyn6Ae46S6LO72JPskT/b5pWM+mH8+/buLdGaxO3D1k6ICTvjNJaO7gxTNTsm3tWGotp9tzzkDsxYcVE+qr4/ufmsE6Qn3/pI1DtEZbMyXu51ucn7JYyQNiPN99OXbkTs2/DHsy7RtvujS+PXH4KHjH0//NbdyUxgEmGbf3XvZ2yDDRUKpi5jHs82mtECGPWN9hKzlwkV7UXp/BBHZP+MsyiU1pZCkqIGIrt9WlE/v9TlJXzarcJmqWL6LmG2b5g6ublux/AaYyYXjwNyKbP0kQJGYoGNV4KODNEQd6DNc5uI24laJd8GY7ucDcB2F/j1y1S5vWIQIOM9ksSr9K0xfsaiqGpNWtbquYrOv3lNVozFx22C8hTWDyMOCmkTEcha2nTnLUvSsopZeNlAfRxnNdqjtHqp8iBAqVlpxRpIgCjk9QTf1lYmNK3jb2/4Cyt8xAo0Z4ty6qOzeEcwd+BjGMbfWdxtGSJHDidr7nP56MOGKSzwOnLxLVYVL8YuV6MnzqDtbts/Vbw9mkX5zwddIfvsGlNvhbrDR8WSrXRVeWiwnbXnhc4njpsRLRlCXwvHVbhXzdUvEyfXmMdMGRScVBLLeb0BQK9Aea1ZuwKsK19JhK5QUrnYeimMRzJ/YUX5mMlJ4Skek7Lkn8py5hX3rZ3/SvLEXKe2GxkvqTPbwnyS+ZNAvGpyRl8AIthOHucW4Fnjl8KQpqS2GMJpj+SJRq8/HCpaR50743S5j6Ha0gx3D3/R032an+cgg7a875BNX0hgldffzoDr6+nHEtwsY/J96rkUFmeubmsISu0wAxH6C7XTsCFs90awBwIAydOgmbOovUub/yz/CJhbgbMrAMv1Mv2wnLIt0av8nC359AuRanIGr7q/ynDYqUS9mdUlpyfVbwWPJm0hMFfuJxdvVVHnyr2jg2GqtgvE8QcN18l1aI1FJDfqa7W7grlwn9+EQo+JXE1Xd7YZdeJNtKSD4aIQAFnIoIM3A7fkoPAS4sc+PdUzA3UNgomByNP3/cdcs/L3cvEpDjlTNzFLcQ2yojEXolcg2SZzpmb7MV3E5RQLnjOL+u/frwqk15up7jNiqfNp7N/o/wmjf6m+ceJq7b03o2oNLE+Ng6lNqLWNduII4Lq0N6qOgWJ/02LF1X/9oeBDPuPiLUZGkyy5y3FCuY4KN/hDUUpxGsxBOYfn+oFepAu6bz4UpxgaEu23DyCeKnkBlQITi1kSl7F7WHv1XBHF53eEY4fs4n0ZrOYWOzEFt/NfKm/oxiyIdSsCfGTcgmC/DGC90vM4sPPRXa7x7Xd8xJRbTnEuA88ALzCSeMt1NyNNtSKpw9xv+UIyFMkuDYsOoNRrdThZ/KvjYSMsAvNBXG0x6AYMz4x9oZ25VBiy/yWbivbN2nFPlWM7xyaQWMlTBVZZdCgnOoOR1tby7IAwlzTd1oGm+DJx9hA='
+    # DEXアドレス
+    dex_address_error = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
+    # URL
     url_tokenlist = '/token/tokenlist' # 発行済債券一覧
     url_positions = '/token/positions' # 債券募集管理
     url_issue = '/token/issue' # 債券新規発行
@@ -123,6 +126,7 @@ class TestToken(TestBase):
                 'returnDate': '20191231',
                 'returnAmount': '商品券をプレゼント',
                 'purpose': '新商品の開発資金として利用。',
+                'tradableExchange': shared_contract['IbetStraightBondExchange']['address'],
                 'memo': 'メモ'
             }
         )
@@ -161,6 +165,7 @@ class TestToken(TestBase):
         assert '20191231'.encode('utf-8') in response.data
         assert '商品券をプレゼント'.encode('utf-8') in response.data
         assert '新商品の開発資金として利用。'.encode('utf-8') in response.data
+        assert shared_contract['IbetStraightBondExchange']['address'].encode('utf-8') in response.data
         assert 'メモ'.encode('utf-8') in response.data
 
     # ＜正常系4＞
@@ -213,6 +218,7 @@ class TestToken(TestBase):
         assert '商品券をプレゼント'.encode('utf-8') in response.data
         assert '新商品の開発資金として利用。'.encode('utf-8') in response.data
         assert 'メモ'.encode('utf-8') in response.data
+        assert shared_contract['IbetStraightBondExchange']['address'].encode('utf-8') in response.data
 
     # ＜正常系7＞
     # 募集 → personinfo登録 → 募集 → whitelist登録 →
@@ -232,7 +238,7 @@ class TestToken(TestBase):
         # 債券募集管理でエラーを確認
         response = client.get(self.url_positions)
         assert response.status_code == 200
-        assert '法人名、所在地の情報が未登録です。'.encode('utf-8') in response.data
+        assert '金融機関の情報が未登録です。'.encode('utf-8') in response.data
 
         # personalinfo登録
         register_personalinfo(eth_account['issuer'], shared_contract['PersonalInfo'], self.issuer_encrypted_info)
@@ -306,12 +312,13 @@ class TestToken(TestBase):
                 'image_small': 'https://test.com/image_small.jpg',
                 'image_medium': 'https://test.com/image_medium.jpg',
                 'image_large': 'https://test.com/image_large.jpg',
+                'tradableExchange': shared_contract['WhiteList']['address']
             }
         )
         assert response.status_code == 302
 
         # 待機
-        time.sleep(6)
+        time.sleep(10)
 
         # 債券詳細設定
         response = client.get(url_setting)
@@ -321,6 +328,22 @@ class TestToken(TestBase):
         assert 'https://test.com/image_small.jpg'.encode('utf-8') in response.data
         assert 'https://test.com/image_medium.jpg'.encode('utf-8') in response.data
         assert 'https://test.com/image_large.jpg'.encode('utf-8') in response.data
+        assert shared_contract['WhiteList']['address'].encode('utf-8') in response.data
+
+        # DEXアドレスを戻す
+        response = client.post(
+            url_setting,
+            data={
+                'image_small': 'https://test.com/image_small.jpg',
+                'image_medium': 'https://test.com/image_medium.jpg',
+                'image_large': 'https://test.com/image_large.jpg',
+                'tradableExchange': shared_contract['IbetStraightBondExchange']['address']
+            }
+        )
+        assert response.status_code == 302
+        # 待機
+        time.sleep(6)
+
 
     # ＜正常系10＞
     # 公開
@@ -477,7 +500,65 @@ class TestToken(TestBase):
         assert '略称は必須です。'.encode('utf-8') in response.data
         assert '総発行量は必須です。'.encode('utf-8') in response.data
         assert '発行目的は必須です。'.encode('utf-8') in response.data
+        assert 'DEXアドレスは必須です。'.encode('utf-8') in response.data
 
+    # ＜エラー系1＞
+    # 債券新規発行（DEXアドレスのフォーマットエラー）
+    def test_error_1_2(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
+        # 新規発行
+        response = client.post(
+            self.url_issue,
+            data={
+                'name': 'テスト債券',
+                'symbol': 'BOND',
+                'totalSupply': 1000000,
+                'faceValue': 1000,
+                'interestRate': 1000,
+                'interestPaymentDate1': '0101',
+                'interestPaymentDate2': '0201',
+                'interestPaymentDate3': '0301',
+                'interestPaymentDate4': '0401',
+                'interestPaymentDate5': '0501',
+                'interestPaymentDate6': '0601',
+                'interestPaymentDate7': '0701',
+                'interestPaymentDate8': '0801',
+                'interestPaymentDate9': '0901',
+                'interestPaymentDate10': '1001',
+                'interestPaymentDate11': '1101',
+                'interestPaymentDate12': '1201',
+                'redemptionDate': '20191231',
+                'redemptionAmount': 10000,
+                'returnDate': '20191231',
+                'returnAmount': '商品券をプレゼント',
+                'purpose': '新商品の開発資金として利用。',
+                'tradableExchange': self.dex_address_error,
+                'memo': 'メモ'
+            }
+        )
+        assert response.status_code == 200
+        assert '<title>債券新規発行'.encode('utf-8') in response.data
+        assert 'DEXアドレスは有効なアドレスではありません。'.encode('utf-8') in response.data
+
+    # ＜エラー系1＞
+    # 設定画面（DEXアドレスのフォーマットエラー）
+    def test_error_1_3(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
+        # 募集設定
+        token = Token.query.get(1)
+        url_setting = self.url_setting + token.token_address
+        response = client.post(
+            url_setting,
+            data={
+                'tradableExchange': self.dex_address_error
+            }
+        )
+        assert response.status_code == 302
+
+        response = client.get(url_setting)
+        assert response.status_code == 200
+        assert '<title>債券詳細設定'.encode('utf-8') in response.data
+        assert 'DEXアドレスは有効なアドレスではありません。'.encode('utf-8') in response.data
 
     # ＜エラー系2＞
     # 募集（必須エラー）

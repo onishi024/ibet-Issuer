@@ -20,6 +20,7 @@ class IssueCouponForm(Form):
     image_small = StringField("商品画像（小）URL", validators=[])
     image_medium = StringField("商品画像（中）URL", validators=[])
     image_large = StringField("商品画像（大）URL", validators=[])
+    tradableExchange = StringField("DEXアドレス", validators=[Required('DEXアドレスは必須です。')])
     abi = TextAreaField("インターフェース", validators=[])
     bytecode = TextAreaField("バイトコード", validators=[])
     submit = SubmitField('登録')

@@ -16,7 +16,7 @@ login_manager.login_message = u"ログインが必要です。"
 login_manager.login_message_category = "info"
 
 def create_app(config_name):
-    app = Flask(__name__)
+    from .app import app
     app.config.from_object(config[config_name])
     config[config_name].init_app(app)
 
