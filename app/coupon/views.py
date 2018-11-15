@@ -108,6 +108,32 @@ def list():
     return render_template('coupon/list.html', tokens=token_list)
 
 ####################################################
+# 公開
+####################################################
+@coupon.route('/release', methods=['POST'])
+@login_required
+def release():
+    logger.info('coupon/release')
+    token_address = request.form.get('token_address')
+
+    list_contract_address = Config.TOKEN_LIST_CONTRACT_ADDRESS
+    ListContract = Contract.\
+        get_contract('TokenList', list_contract_address)
+    web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
+
+    try:
+        gas = ListContract.estimateGas().register(token_address, 'IbetCoupon')
+        register_txid = ListContract.functions.\
+            register(token_address, 'IbetCoupon').\
+            transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
+    except ValueError:
+        flash('既に公開されています。', 'error')
+        return redirect(url_for('.setting', token_address=token_address))
+
+    flash('公開中です。公開開始までに数分程かかることがあります。', 'success')
+    return redirect(url_for('.list'))
+
+####################################################
 # クーポン発行
 ####################################################
 @coupon.route('/issue', methods=['GET', 'POST'])
@@ -257,8 +283,18 @@ def setting(token_address):
     image_large = TokenContract.functions.getImageURL(2).call()
     tradableExchange = TokenContract.functions.tradableExchange().call()
 
-    form = IssueCouponForm()
+    # TokenListへの登録有無
+    list_contract_address = Config.TOKEN_LIST_CONTRACT_ADDRESS
+    ListContract = Contract.\
+        get_contract('TokenList', list_contract_address)
+    token_struct = ListContract.functions.\
+        getTokenByAddress(token_address).call()
 
+    isReleased = False
+    if token_struct[0] == token_address:
+        isReleased = True
+
+    form = IssueCouponForm()
     if request.method == 'POST':
         if not Web3.isAddress(form.tradableExchange.data):
             flash('DEXアドレスは有効なアドレスではありません。','error')
@@ -322,7 +358,8 @@ def setting(token_address):
             'coupon/setting.html',
             form = form,
             token_address = token_address,
-            token_name = name
+            token_name = name,
+            isReleased = isReleased
         )
 
 ####################################################
