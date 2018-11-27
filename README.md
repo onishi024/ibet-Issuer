@@ -71,8 +71,8 @@ python script/INSERT_token.py 3 "IbetCoupon"
 ### ２．トークン保有者登録
 引数
 - 登録件数(int)
-- トークン種別(string):IbetStraightBond, IbetMembership, IbetCoupon
-
+- トークン種別(string): IbetStraightBond, IbetMembership, IbetCoupon
+- セカンダリー売り注文フラグ(string): 0:売らない, 1:投資家が売り注文を出す
 issuerのノードに接続して実行
 
 ```
@@ -86,9 +86,9 @@ export IBET_SB_EXCHANGE_CONTRACT_ADDRESS=0xd85a292e77628e4027250d46abaeeac1d3d19
 export IBET_CP_EXCHANGE_CONTRACT_ADDRESS=0x601be715b01ebe56af3518b1e98341668a35798e
 export IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS=0x2b46c5ea536914f22998cdfe6a9bbf2d63e6e6b1
 
-python script/INSERT_token_holders.py 3 "IbetStraightBond"
-python script/INSERT_token_holders.py 3 "IbetMembership"
-python script/INSERT_token_holders.py 3 "IbetCoupon"
+python script/INSERT_token_holders.py 3 "IbetStraightBond" "0"
+python script/INSERT_token_holders.py 3 "IbetMembership" "1"
+python script/INSERT_token_holders.py 3 "IbetCoupon" "1"
 ```
 
 ### ３．クーポン利用履歴登録

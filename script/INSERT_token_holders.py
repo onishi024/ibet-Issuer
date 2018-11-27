@@ -284,10 +284,10 @@ def main(data_count, token_type, secondary_sell_flag):
         # 決済の承認
         web3.eth.defaultAccount = agent_address
         web3.personal.unlockAccount(agent_address, 'password', 10000)
-        gas = ExchangeContract.estimateGas().confirmAgreement(order_id, agreement_id)
-        ExchangeContract.functions.confirmAgreement(order_id, agreement_id).transact(
-            {'from':agent_address, 'gas':gas}
+        tx_hash = ExchangeContract.functions.confirmAgreement(order_id, agreement_id).transact(
+            {'from':agent_address, 'gas':400000}
         )
+        tx = web3.eth.waitForTransactionReceipt(tx_hash)
         if secondary_sell_flag == "1":
             offer_token(trader_address, agent_address, exchange_address, token_dict, 1, token_type, ExchangeContract)
 
