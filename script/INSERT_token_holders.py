@@ -15,6 +15,11 @@ from eth_utils import to_checksum_address
 from app.contracts import Contract
 from app.models import Agreement
 
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, scoped_session
+from app.models import Token
+from config import Config
+
 # personal_info_json = {
 #     "name":"株式会社１",
 #     "address":{
@@ -73,6 +78,12 @@ IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS = \
 IBET_CP_EXCHANGE_CONTRACT_ADDRESS = \
     to_checksum_address(os.environ.get('IBET_CP_EXCHANGE_CONTRACT_ADDRESS'))
 
+# DB
+URI = os.environ.get("DATABASE_URL")
+engine = create_engine(URI, echo=False)
+db_session = scoped_session(sessionmaker())
+db_session.configure(bind=engine)
+
 # トークン発行
 def issue_token(exchange_address, data_count, token_type):
     attribute = {}
@@ -104,6 +115,7 @@ def issue_token(exchange_address, data_count, token_type):
             attribute['returnDate'], attribute['returnAmount'],
             attribute['purpose'], attribute['memo']
         ]
+        template_id = Config.TEMPLATE_ID_SB
     elif token_type == 'IbetMembership':
         attribute['returnDetails'] = 'returnDetails'
         arguments = [
@@ -113,6 +125,7 @@ def issue_token(exchange_address, data_count, token_type):
             attribute['expirationDate'], attribute['memo'],
             attribute['transferable']
         ]
+        template_id = Config.TEMPLATE_ID_MEMBERSHIP
     elif token_type == 'IbetCoupon':
         arguments = [
             attribute['name'], attribute['symbol'], attribute['totalSupply'],
@@ -120,11 +133,24 @@ def issue_token(exchange_address, data_count, token_type):
             attribute['details'],  attribute['memo'], attribute['expirationDate'],
             attribute['transferable']
         ]
+        template_id = Config.TEMPLATE_ID_COUPON
 
     web3.eth.defaultAccount = ETH_ACCOUNT
     web3.personal.unlockAccount(ETH_ACCOUNT, ETH_ACCOUNT_PASSWORD)
+    _, bytecode, bytecode_runtime = Contract.get_contract_info(token_type)
     contract_address, abi, _  = Contract.deploy_contract(token_type, arguments, ETH_ACCOUNT)
 
+    # db_session
+    token = Token()
+    token.template_id = template_id
+    token.tx_hash = tx_hash
+    token.admin_address = None
+    token.token_address = None
+    token.abi = str(abi)
+    token.bytecode = bytecode
+    token.bytecode_runtime = bytecode_runtime
+    db_session.merge(token)
+    db_session.commit()
     return {'address': contract_address, 'abi': abi}
 
 # トークンリスト登録
