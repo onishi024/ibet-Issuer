@@ -79,7 +79,7 @@ def issue_token(exchange_address, data_count, token_type):
 
     web3.eth.defaultAccount = ETH_ACCOUNT
     web3.personal.unlockAccount(ETH_ACCOUNT, ETH_ACCOUNT_PASSWORD)
-    contract_address, abi = Contract.deploy_contract(token_type, arguments, ETH_ACCOUNT)
+    contract_address, abi, _ = Contract.deploy_contract(token_type, arguments, ETH_ACCOUNT)
 
     return {'address': contract_address, 'abi': abi}
 
