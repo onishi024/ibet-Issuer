@@ -47,9 +47,10 @@ testのオプションについては`python manage.py test --help`で確認し�
 
 ## データ増幅スクリプト
 ### １．トークン登録
-・引数
-・登録件数(int)
-・トークン種別(string):IbetStraightBond, IbetMembership, IbetCoupon
+引数
+- 登録件数(int)
+- トークン種別(string):IbetStraightBond, IbetMembership, IbetCoupon
+
 
 issuerのノードに接続して実行
 
@@ -68,9 +69,9 @@ python script/INSERT_token.py 3 "IbetCoupon"
 ```
 
 ### ２．トークン保有者登録
-・引数
-・登録件数(int)
-・トークン種別(string):IbetStraightBond, IbetMembership, IbetCoupon
+引数
+- 登録件数(int)
+- トークン種別(string):IbetStraightBond, IbetMembership, IbetCoupon
 
 issuerのノードに接続して実行
 
@@ -91,8 +92,8 @@ python script/INSERT_token_holders.py 3 "IbetCoupon"
 ```
 
 ### ３．クーポン利用履歴登録
-・引数
-・登録件数(int)
+引数
+- 登録件数(int)
 
 issuerのノードに接続して実行
 
