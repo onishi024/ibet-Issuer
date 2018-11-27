@@ -233,10 +233,21 @@ def register_whitelist(address, encrypted_info, agent_address):
     tx = web3.eth.waitForTransactionReceipt(tx_hash)
     print("register WhiteListContract:" + str(WhiteListContract.functions.isRegistered(address, ETH_ACCOUNT).call()))
 
+# 決済業者の規約登録
+def register_terms(agent_address):
+    web3.eth.defaultAccount = agent_address
+    web3.personal.unlockAccount(agent_address, 'password', 10000)
+    gas = WhiteListContract.estimateGas().register_terms("kiyaku")
+    tx_hash = WhiteListContract.functions.register_terms("kiyaku").transact(
+        {'from':agent_address, 'gas':gas}
+    )
+    tx = web3.eth.waitForTransactionReceipt(tx_hash)
+
 def main(data_count, token_type):
     web3.personal.unlockAccount(ETH_ACCOUNT, ETH_ACCOUNT_PASSWORD, 10000)
     # agentをつくり、whitelistの登録を行う
     agent_address = web3.personal.newAccount('password')
+    register_terms(agent_address)
     register_whitelist(ETH_ACCOUNT, issuer_encrypted_info, agent_address)
     print("agent_address: " + agent_address)
     if token_type == 'IbetStraightBond':
