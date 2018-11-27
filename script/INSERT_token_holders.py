@@ -86,7 +86,7 @@ db_session.configure(bind=engine)
 # トークン発行
 def issue_token(exchange_address, data_count, token_type):
     attribute = {}
-    attribute['name'] = 'SEINO_TEST_TOKEN_HOLDER'
+    attribute['name'] = 'SEINO_TEST_TOKEN_HOLDER_' + str(data_count)
     attribute['symbol'] = 'SEINO'
     attribute['totalSupply'] = data_count
     attribute['tradableExchange'] = exchange_address
@@ -231,7 +231,7 @@ def register_whitelist(address, encrypted_info, agent_address):
     tx_hash = WhiteListContract.functions.approve(address).\
         transact({'from':agent_address, 'gas':4000000})
     tx = web3.eth.waitForTransactionReceipt(tx_hash)
-    print("register WhiteListContract:" + str(WhiteListContract.functions.isRegistered(address, ETH_ACCOUNT).call()))
+    print("register WhiteListContract:" + str(WhiteListContract.functions.isRegistered(address, agent_address).call()))
 
 # 決済業者の規約登録
 def register_terms(agent_address):
