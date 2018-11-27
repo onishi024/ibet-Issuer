@@ -94,7 +94,7 @@ def register_token_list(token_dict, token_type):
     print("TokenListContract Length:" + str(TokenListContract.functions.getListLength().call()))
 
 
-def main(data_count, token_type, status):
+def main(data_count, token_type):
     web3.personal.unlockAccount(ETH_ACCOUNT, ETH_ACCOUNT_PASSWORD, 10000)
     if token_type == 'IbetStraightBond':
         exchange_address = IBET_SB_EXCHANGE_CONTRACT_ADDRESS
