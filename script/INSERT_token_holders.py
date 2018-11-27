@@ -163,29 +163,29 @@ def register_token_list(token_dict, token_type):
     print("TokenListContract Length:" + str(TokenListContract.functions.getListLength().call()))
 
 # トークン募集(売り)
-def offer_token(agent_address, exchange_address, token_dict, amount, token_type, ExchangeContract):
-    transfer_to_exchange(exchange_address, token_dict, amount, token_type)
-    make_sell_token(agent_address, exchange_address, token_dict, amount, ExchangeContract)
+def offer_token(invoker_address, agent_address, exchange_address, token_dict, amount, token_type, ExchangeContract):
+    transfer_to_exchange(invoker_address, exchange_address, token_dict, amount, token_type)
+    make_sell_token(invoker_address, agent_address, exchange_address, token_dict, amount, ExchangeContract)
 
 # 取引コントラクトにトークンをチャージ
-def transfer_to_exchange(exchange_address, token_dict, amount, token_type):
-    web3.eth.defaultAccount = ETH_ACCOUNT
-    web3.personal.unlockAccount(ETH_ACCOUNT, ETH_ACCOUNT_PASSWORD)
+def transfer_to_exchange(invoker_address, exchange_address, token_dict, amount, token_type):
+    web3.eth.defaultAccount = invoker_address
+    web3.personal.unlockAccount(invoker_address, ETH_ACCOUNT_PASSWORD)
     TokenContract = Contract.get_contract(token_type, token_dict['address'])
     tx_hash = TokenContract.functions.transfer(exchange_address, amount).\
-        transact({'from':ETH_ACCOUNT, 'gas':4000000})
+        transact({'from':invoker_address, 'gas':4000000})
     tx = web3.eth.waitForTransactionReceipt(tx_hash)
     print("transfer_to_exchange:balanceOf exchange_address:" + str(TokenContract.functions.balanceOf(exchange_address).call()))
 
 # トークンの売りMake注文
-def make_sell_token(agent_address, exchange_address, token_dict, amount, ExchangeContract):
-    web3.eth.defaultAccount = ETH_ACCOUNT
-    web3.personal.unlockAccount(ETH_ACCOUNT, ETH_ACCOUNT_PASSWORD)
+def make_sell_token(invoker_address, agent_address, exchange_address, token_dict, amount, ExchangeContract):
+    web3.eth.defaultAccount = invoker_address
+    web3.personal.unlockAccount(invoker_address, ETH_ACCOUNT_PASSWORD)
     gas = ExchangeContract.estimateGas().\
         createOrder(token_dict['address'], amount, 100, False, agent_address)
     tx_hash = ExchangeContract.functions.\
         createOrder(token_dict['address'], amount, 100, False, agent_address).\
-        transact({'from':ETH_ACCOUNT, 'gas':gas})
+        transact({'from':invoker_address, 'gas':gas})
     tx = web3.eth.waitForTransactionReceipt(tx_hash)
 
 # 直近注文IDを取得
@@ -246,7 +246,7 @@ def register_terms(agent_address):
     tx = web3.eth.waitForTransactionReceipt(tx_hash)
     print("register_terms:" + str(WhiteListContract.functions.latest_terms_version(agent_address).call()))
 
-def main(data_count, token_type):
+def main(data_count, token_type, secondary_sell_flag):
     web3.personal.unlockAccount(ETH_ACCOUNT, ETH_ACCOUNT_PASSWORD, 10000)
     # agentをつくり、whitelistの登録を行う
     agent_address = web3.personal.newAccount('password')
@@ -268,7 +268,7 @@ def main(data_count, token_type):
     # トークンリストに登録
     register_token_list(token_dict, token_type)
     # 募集
-    offer_token(agent_address, exchange_address, token_dict, data_count, token_type, ExchangeContract)
+    offer_token(ETH_ACCOUNT, agent_address, exchange_address, token_dict, data_count, token_type, ExchangeContract)
     # orderID取得
     order_id = get_latest_orderid(ExchangeContract) - 1
     print("token_address: " + token_dict['address'])
@@ -284,10 +284,13 @@ def main(data_count, token_type):
         # 決済の承認
         web3.eth.defaultAccount = agent_address
         web3.personal.unlockAccount(agent_address, 'password', 10000)
-        gas = ExchangeContract.estimateGas().confirmAgreement(order_id, agreement_id)
-        ExchangeContract.functions.confirmAgreement(order_id, agreement_id).transact(
-            {'from':agent_address, 'gas':gas}
+        tx_hash = ExchangeContract.functions.confirmAgreement(order_id, agreement_id).transact(
+            {'from':agent_address, 'gas':400000}
         )
+        tx = web3.eth.waitForTransactionReceipt(tx_hash)
+        if secondary_sell_flag == "1":
+            offer_token(trader_address, agent_address, exchange_address, token_dict, 1, token_type, ExchangeContract)
+
         print("agreement_id: " + str(agreement_id))
 
 
@@ -295,6 +298,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="tokenホルダーの登録")
     parser.add_argument("data_count", type=int, help="登録件数")
     parser.add_argument("token_type", type=str, help="IbetStraightBond, IbetMembership, IbetCoupon")
+    parser.add_argument("secondary_sell_flag", type=str, help="0:売らない, 1:投資家が売り注文を出す")
     args = parser.parse_args()
 
     if not args.data_count:
@@ -303,4 +307,7 @@ if __name__ == "__main__":
     if not args.token_type:
         raise Exception("IbetStraightBond, IbetMembership, IbetCoupon")
 
-    main(args.data_count, args.token_type)
+    if not args.secondary_sell_flag:
+        raise Exception("0:売らない, 1:投資家が売り注文を出す")
+
+    main(args.data_count, args.token_type, args.secondary_sell_flag)
