@@ -241,7 +241,7 @@ def main(data_count):
     web3.eth.defaultAccount = agent_address
     web3.personal.unlockAccount(agent_address, 'password', 10000)
     gas = ExchangeContract.estimateGas().confirmAgreement(order_id, 0)
-    ExchangeContract.functions.confirmAgreement(order_id, agreement_id).transact(
+    ExchangeContract.functions.confirmAgreement(order_id, 0).transact(
         {'from':agent_address, 'gas':gas}
     )
     # クーポン消費
