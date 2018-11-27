@@ -13,7 +13,6 @@ from web3 import Web3
 from web3.middleware import geth_poa_middleware
 from eth_utils import to_checksum_address
 from app.contracts import Contract
-from app.models import Agreement
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
