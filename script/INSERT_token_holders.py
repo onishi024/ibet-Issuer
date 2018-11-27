@@ -203,35 +203,36 @@ def buy_bond_token(trader_address, ExchangeContract, order_id, amount):
     tx = web3.eth.waitForTransactionReceipt(tx_hash)
 
 # 株主名簿用個人情報登録
-def register_personalinfo(address, encrypted_info):
-    web3.eth.defaultAccount = address
-    web3.personal.unlockAccount(address, 'password')
+def register_personalinfo(invoker_address, encrypted_info):
+    web3.eth.defaultAccount = invoker_address
+    web3.personal.unlockAccount(invoker_address, 'password')
     PersonalInfoContract = Contract.get_contract('PersonalInfo', PERSONAL_INFO_CONTRACT_ADDRESS)
 
     tx_hash = PersonalInfoContract.functions.register(ETH_ACCOUNT, encrypted_info).\
-        transact({'from':address, 'gas':4000000})
+        transact({'from':invoker_address, 'gas':4000000})
     tx = web3.eth.waitForTransactionReceipt(tx_hash)
+    print("register_personalinfo:" + str(PersonalInfoContract.functions.isRegistered(invoker_address, ETH_ACCOUNT).call()))
 
 # 決済用銀行口座情報登録（認可まで）
-def register_whitelist(address, encrypted_info, agent_address):
+def register_whitelist(invoker_address, invoker_password, encrypted_info, agent_address):
     WhiteListContract = Contract.get_contract('WhiteList', WHITE_LIST_CONTRACT_ADDRESS)
 
     # 1) 登録 from Invoker
-    web3.eth.defaultAccount = address
-    web3.personal.unlockAccount(address, 'password')
+    web3.eth.defaultAccount = invoker_address
+    web3.personal.unlockAccount(invoker_address, invoker_password)
 
-    tx_hash = WhiteListContract.functions.register(ETH_ACCOUNT, encrypted_info).\
-        transact({'from':address, 'gas':4000000})
+    tx_hash = WhiteListContract.functions.register(agent_address, encrypted_info).\
+        transact({'from':invoker_address, 'gas':4000000})
     tx = web3.eth.waitForTransactionReceipt(tx_hash)
 
     # 2) 認可 from Agent
     web3.eth.defaultAccount = agent_address
     web3.personal.unlockAccount(agent_address, 'password', 10000)
 
-    tx_hash = WhiteListContract.functions.approve(address).\
+    tx_hash = WhiteListContract.functions.approve(invoker_address).\
         transact({'from':agent_address, 'gas':4000000})
     tx = web3.eth.waitForTransactionReceipt(tx_hash)
-    print("register WhiteListContract:" + str(WhiteListContract.functions.isRegistered(address, agent_address).call()))
+    print("register WhiteListContract:" + str(WhiteListContract.functions.isRegistered(invoker_address, agent_address).call()))
 
 # 決済業者の規約登録
 def register_terms(agent_address):
@@ -243,13 +244,14 @@ def register_terms(agent_address):
         {'from':agent_address, 'gas':gas}
     )
     tx = web3.eth.waitForTransactionReceipt(tx_hash)
+    print("register_terms:" + str(WhiteListContract.functions.latest_terms_version(agent_address).call()))
 
 def main(data_count, token_type):
     web3.personal.unlockAccount(ETH_ACCOUNT, ETH_ACCOUNT_PASSWORD, 10000)
     # agentをつくり、whitelistの登録を行う
     agent_address = web3.personal.newAccount('password')
     register_terms(agent_address)
-    register_whitelist(ETH_ACCOUNT, issuer_encrypted_info, agent_address)
+    register_whitelist(ETH_ACCOUNT, ETH_ACCOUNT_PASSWORD, issuer_encrypted_info, agent_address)
     print("agent_address: " + agent_address)
     if token_type == 'IbetStraightBond':
         ExchangeContract = Contract.get_contract('IbetStraightBondExchange', IBET_SB_EXCHANGE_CONTRACT_ADDRESS)
@@ -276,7 +278,7 @@ def main(data_count, token_type):
         # 投資家アドレスの作成
         trader_address = web3.personal.newAccount('password')
         register_personalinfo(trader_address, trader_encrypted_info)
-        register_whitelist(trader_address, trader_encrypted_info, agent_address)
+        register_whitelist(trader_address, 'password', trader_encrypted_info, agent_address)
         # 決済を入れる
         buy_bond_token(trader_address, ExchangeContract, order_id, 1)
         # 決済の承認
