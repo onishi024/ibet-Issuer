@@ -1,6 +1,7 @@
 #!/usr/local/bin/python
 # -*- coding:utf-8 -*-
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask import render_template, request, jsonify, url_for, redirect
 from flask_login import UserMixin
 from . import db, login_manager
 from datetime import datetime
@@ -45,7 +46,14 @@ class User(UserMixin, db.Model):
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    try:
+        return User.query.get(int(user_id))
+    except Exception:
+        pass
+
+@login_manager.unauthorized_handler
+def unauthorized_handler():
+    return redirect(url_for('auth.login'))
 
 class Token(db.Model):
     __tablename__ = 'tokens'
