@@ -235,6 +235,7 @@ def register_whitelist(address, encrypted_info, agent_address):
 
 # 決済業者の規約登録
 def register_terms(agent_address):
+    WhiteListContract = Contract.get_contract('WhiteList', WHITE_LIST_CONTRACT_ADDRESS)
     web3.eth.defaultAccount = agent_address
     web3.personal.unlockAccount(agent_address, 'password', 10000)
     gas = WhiteListContract.estimateGas().register_terms("kiyaku")
