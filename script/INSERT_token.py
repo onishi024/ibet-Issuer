@@ -107,6 +107,7 @@ def issue_token(exchange_address, data_count, token_type):
     token.bytecode = bytecode
     token.bytecode_runtime = bytecode_runtime
     db_session.merge(token)
+    db_session.commit()
     return {'address': contract_address, 'abi': abi}
 
 # トークンリスト登録
