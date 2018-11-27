@@ -137,7 +137,7 @@ def issue_token(exchange_address, data_count, token_type):
     web3.eth.defaultAccount = ETH_ACCOUNT
     web3.personal.unlockAccount(ETH_ACCOUNT, ETH_ACCOUNT_PASSWORD)
     _, bytecode, bytecode_runtime = Contract.get_contract_info(token_type)
-    contract_address, abi, _  = Contract.deploy_contract(token_type, arguments, ETH_ACCOUNT)
+    contract_address, abi, tx_hash  = Contract.deploy_contract(token_type, arguments, ETH_ACCOUNT)
 
     # db_session
     token = Token()
