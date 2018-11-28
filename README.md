@@ -73,12 +73,14 @@ python script/INSERT_token.py 3 "IbetCoupon"
 - 登録件数(int)
 - トークン種別(string): IbetStraightBond, IbetMembership, IbetCoupon
 - セカンダリー売り注文フラグ(string): 0:売らない, 1:投資家が売り注文を出す
-issuerのノードに接続して実行
+issuerノード・agentノードに接続して実行
 
 ```
 export DATABASE_URL=postgresql://issueruser:issueruserpass@172.16.239.2:5432/issuerdb
 export WEB3_HTTP_PROVIDER=http://172.16.239.10:8545
+export WEB3_HTTP_PROVIDER_AGENT=http://172.16.239.13:8545
 export ETH_ACCOUNT_PASSWORD=nvillage201803+
+export AGENT_ACCOUNT_PASSWORD=nvillage201803+
 export TOKEN_LIST_CONTRACT_ADDRESS=0x8e55f8cd1bf13dad83bfe91344feec60f70fd280
 export PERSONAL_INFO_CONTRACT_ADDRESS=0x1378ed51e8d6d7aa42862ce2d0497a2cca1bd2ff
 export WHITE_LIST_CONTRACT_ADDRESS=0x419d3c7461a97ccbecf2153d0195497260b48d9e
