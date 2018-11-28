@@ -246,7 +246,7 @@ def register_whitelist(invoker_address, invoker_password, encrypted_info):
     tx_hash = WhiteListContractAgent.functions.approve(invoker_address).\
         transact({'from':AGENT_ACCOUNT, 'gas':4000000})
     tx = web3.eth.waitForTransactionReceipt(tx_hash)
-    print("register WhiteListContract:" + str(WhiteListContract.functions.isRegistered(invoker_address, agent_address).call()))
+    print("register WhiteListContract:" + str(WhiteListContract.functions.isRegistered(invoker_address, AGENT_ACCOUNT).call()))
 
 def main(data_count, token_type, secondary_sell_flag):
     web3.personal.unlockAccount(ETH_ACCOUNT, ETH_ACCOUNT_PASSWORD, 10000)
@@ -285,7 +285,7 @@ def main(data_count, token_type, secondary_sell_flag):
         web3_agent.eth.defaultAccount = AGENT_ACCOUNT
         web3_agent.personal.unlockAccount(AGENT_ACCOUNT, AGENT_ACCOUNT_PASSWORD, 10000)
         tx_hash = ExchangeContractAgent.functions.confirmAgreement(order_id, agreement_id).transact(
-            {'from':agent_address, 'gas':400000}
+            {'from':AGENT_ACCOUNT, 'gas':400000}
         )
         tx = web3.eth.waitForTransactionReceipt(tx_hash)
         if secondary_sell_flag == "1":
