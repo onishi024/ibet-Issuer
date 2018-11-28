@@ -263,6 +263,7 @@ def main(data_count, token_type, secondary_sell_flag):
         ExchangeContractAgent = get_agent_contract('IbetCouponExchange', IBET_CP_EXCHANGE_CONTRACT_ADDRESS)
         exchange_address = IBET_CP_EXCHANGE_CONTRACT_ADDRESS
     print("exchange_address: " + exchange_address)
+    print("agent_address: " + AGENT_ACCOUNT)
     # トークン発行
     token_dict = issue_token(exchange_address, data_count, token_type)
     # トークンリストに登録
