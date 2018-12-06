@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block head %}
+  {{ super() }}
+  <!-- DataTables -->
+  <link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
+{% endblock %}
+{% set active_page = "coupon_position" %}
+
+{% block title %}新規募集 - {% endblock %}
+{% block page_header %}新規募集{% endblock %}
+{% block page_description %}{% endblock %}
+{% block breadcrumb %}
+    <li><a href="{{ url_for('index.index') }}">トップ</a></li>
+    <li class="active">新規募集</li>
+{% endblock %}
+
+{% block page_content %}
+<section class="content">
+    <div class="box box-default">
+        <div class="box-header with-border">
+            <h3 class="box-title">{{ token_name }} <small>{{ token_address }}</small></h3>
+        </div>
+        <form class="form-horizontal" method="POST" role="form" action="{{ url_for('coupon.sell', token_address=form.token_address.data) }}">
+            {{ form.csrf_token }}
+            <div class="box-body">
+                <div class="form-group">
+                    {{ form.sellPrice.label(class="col-md-2") }}
+                    <div class="col-md-2">
+                        {{ form.sellPrice(class="form-control") }}
+                    </div>
+                </div>
+            </div>
+            <div class="box-footer">
+                <button type="button" class="btn btn-default" onclick="location.href= '{{ url_for("coupon.positions") }}'">キャンセル</button>
+                {{ form.submit(class="btn btn-success") }}
+            </div>
+        </form>
+    </div>
+    <div class="box box-default box-solid">
+        <div class="box-header with-border">
+            <h3 class="box-title">クーポン詳細</h3>
+        </div>
+        <div class="box-body">
+            <table id="data_table" class="table table-bordered table-hover">
+                <tbody>
+                    <tr>
+                        <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.name.label }}</td><td class="col-md-2" >{{ form.name.data }}</td>
+                        <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.symbol.label }}</td><td class="col-md-2" >{{ form.symbol.data }}</td>
+                        <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.totalSupply.label }}</td><td class="col-md-2" >{{ form.totalSupply.data }}</td>
+                    </tr>
+                    <tr>
+                        <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.details.label }}</td><td colspan="5">{{ form.details(class="form-control", disabled=True) }}</td>
+                    </tr>
+                    <tr>
+                        <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.memo.label }}</td><td colspan="5">{{ form.memo(class="form-control", disabled=True) }}</td>
+                    </tr>
+                    <tr>
+                        <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.expirationDate.label }}</td><td class="col-md-2" >{{ form.expirationDate.data }}</td>
+                        <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.transferable.label }}</td>
+                        {% if form.transferable.data %}
+                            <td class="col-md-2" >なし</td>
+                        {% else %}
+                            <td class="col-md-2" >あり</td>
+                        {% endif %}
+                        <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.tradableExchange.label }}</td>
+                        <td class="col-md-2">{{ form.tradableExchange.data }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block required_js %}
+{{ super() }}
+{% endblock %}

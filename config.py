@@ -51,6 +51,7 @@ class Config:
         ('coupon', 'glyphicon glyphicon-list-alt', 'クーポン発行管理', [
             ('coupon_list', 'fa fa-list', 'クーポン一覧', 'coupon.list'),
             ('coupon_issue', 'fa fa-plus-square-o', 'クーポン発行', 'coupon.issue'),
+            ('coupon_position', 'fa fa-yen', 'クーポン募集管理', 'coupon.positions'),
             ('coupon_transfer', 'fa fa-send', 'クーポン割当', 'coupon.transfer')
         ]),
     ]
