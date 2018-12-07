@@ -430,7 +430,7 @@ class TestCoupon(TestBase):
     #############################################################################
     # ＜エラー系1＞
     # 新規発行（必須エラー）
-    def test_error_1(self, app, shared_contract):
+    def test_error_1_1(self, app, shared_contract):
         client = self.client_with_admin_login(app)
         # 新規発行
         response = client.post(
@@ -447,7 +447,7 @@ class TestCoupon(TestBase):
 
     # ＜エラー系2＞
     # 追加発行（必須エラー）
-    def test_error_2(self, app, shared_contract):
+    def test_error_1_2(self, app, shared_contract):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
         url_add_supply = self.url_add_supply + tokens[0].token_address
         client = self.client_with_admin_login(app)
@@ -462,7 +462,7 @@ class TestCoupon(TestBase):
 
     # ＜エラー系3＞
     # 割当（必須エラー）
-    def test_error_3(self, app, shared_contract):
+    def test_error_1_3(self, app, shared_contract):
         client = self.client_with_admin_login(app)
         response = client.post(
             self.url_transfer,
@@ -474,6 +474,25 @@ class TestCoupon(TestBase):
         assert '割当先アドレスは必須です。'.encode('utf-8') in response.data
         assert '割当数量は必須です。'.encode('utf-8') in response.data
 
+    # ＜エラー系1_2＞
+    # ＜入力値チェック＞
+    # 募集（必須エラー）
+    def test_error_1_4(self, app, shared_contract):
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        token = tokens[0]
+        # 募集
+        client = self.client_with_admin_login(app)
+        response = client.post(
+            self.url_sell + token.token_address,
+            data={
+            }
+        )
+        assert response.status_code == 302
+        # 新規募集でエラーを確認
+        response = client.get(self.url_sell + token.token_address)
+        assert response.status_code == 200
+        assert '<title>新規募集'.encode('utf-8') in response.data
+        assert '売出価格は必須です。'.encode('utf-8') in response.data
 
     # ＜エラー系2_1＞
     # ＜入力値チェック＞
