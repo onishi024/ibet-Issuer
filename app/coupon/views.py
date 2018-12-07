@@ -363,6 +363,235 @@ def setting(token_address):
         )
 
 ####################################################
+# 保有一覧（募集管理画面）
+####################################################
+@coupon.route('/positions', methods=['GET'])
+@login_required
+def positions():
+    logger.info('coupon/positions')
+
+    # 自社が発行したトークンの一覧を取得
+    tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+
+    # Exchangeコントラクトに接続
+    token_exchange_address = to_checksum_address(Config.IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS)
+    ExchangeContract = Contract.get_contract(
+        'IbetCouponExchange', token_exchange_address)
+
+    position_list = []
+    for row in tokens:
+        if row.token_address != None:
+
+            # Tokenコントラクトに接続
+            TokenContract = web3.eth.contract(
+                address=row.token_address,
+                abi = json.loads(
+                    row.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+            )
+
+            owner = to_checksum_address(row.admin_address)
+
+            # 自身が保有している預かりの残高を取得
+            balance = TokenContract.functions.balanceOf(owner).call()
+
+            # 拘束中数量を取得する
+            commitment = ExchangeContract.functions.\
+                commitments(owner, row.token_address).call()
+
+            # 新規注文（NewOrder）のイベント情報を検索する
+            event_filter = ExchangeContract.eventFilter(
+                'NewOrder', {
+                    'filter':{
+                        'tokenAddress':row.token_address,
+                        'accountAddress':owner
+                    },
+                    'fromBlock':'earliest'
+                }
+            )
+
+            order_id = 0
+            try:
+                entries = event_filter.get_all_entries()
+                # キャンセル済みではない注文の注文IDを取得する
+                for entry in entries:
+                    order_id_tmp = dict(entry['args'])['orderId']
+                    canceled = ExchangeContract.functions.orderBook(order_id_tmp).call()[6]
+                    if canceled == False:
+                        order_id = order_id_tmp
+            except:
+                continue
+
+            # 拘束数量がゼロよりも大きい場合、募集中のステータスを返す
+            on_sale = False
+            if balance == 0:
+                on_sale = True
+
+            # 残高がゼロよりも大きい場合、または募集中のステータスの場合、リストを返す
+            if balance > 0 or on_sale == True:
+                name = TokenContract.functions.name().call()
+                symbol = TokenContract.functions.symbol().call()
+                totalSupply = TokenContract.functions.totalSupply().call()
+                position_list.append({
+                    'token_address':row.token_address,
+                    'name':name,
+                    'symbol':symbol,
+                    'totalSupply':totalSupply,
+                    'balance':balance,
+                    'created':row.created,
+                    'commitment':commitment,
+                    'on_sale':on_sale,
+                    'order_id':order_id,
+                })
+
+    return render_template('coupon/positions.html', position_list=position_list)
+
+####################################################
+# 売出(募集)
+####################################################
+@coupon.route('/sell/<string:token_address>', methods=['GET', 'POST'])
+@login_required
+def sell(token_address):
+    logger.info('coupon/sell')
+    form = SellForm()
+
+    token = Token.query.filter(Token.token_address==token_address).first()
+    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+
+    TokenContract = web3.eth.contract(
+        address= token.token_address,
+        abi = token_abi
+    )
+
+    name = TokenContract.functions.name().call()
+    symbol = TokenContract.functions.symbol().call()
+    totalSupply = TokenContract.functions.totalSupply().call()
+    details = TokenContract.functions.details().call()
+    expirationDate = TokenContract.functions.expirationDate().call()
+    memo = TokenContract.functions.memo().call()
+    transferable = TokenContract.functions.transferable().call()
+    tradableExchange = TokenContract.functions.tradableExchange().call()
+    isValid = TokenContract.functions.isValid().call()
+
+    owner = to_checksum_address(Config.ETH_ACCOUNT)
+    balance = TokenContract.functions.balanceOf(owner).call()
+
+    if request.method == 'POST':
+        if form.validate():
+            eth_account = to_checksum_address(Config.ETH_ACCOUNT)
+            agent_account = to_checksum_address(Config.AGENT_ADDRESS)
+
+            web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
+            token_exchange_address = to_checksum_address(Config.IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS)
+            agent_address = to_checksum_address(Config.AGENT_ADDRESS)
+
+            deposit_gas = TokenContract.estimateGas().transfer(token_exchange_address, balance)
+            deposit_txid = TokenContract.functions.transfer(token_exchange_address, balance).\
+                transact({'from':owner, 'gas':deposit_gas})
+
+            count = 0
+            deposit_tx_receipt = None
+            while True:
+                try:
+                    deposit_tx_receipt = web3.eth.getTransactionReceipt(deposit_txid)
+                except:
+                    time.sleep(1)
+                count += 1
+                if deposit_tx_receipt is not None or count > 30:
+                    break
+
+            ExchangeContract = Contract.get_contract(
+                'IbetCouponExchange', token_exchange_address)
+
+            sell_gas = ExchangeContract.estimateGas().\
+                createOrder(token_address, balance, form.sellPrice.data, False, agent_address)
+            sell_txid = ExchangeContract.functions.\
+                createOrder(token_address, balance, form.sellPrice.data, False, agent_address).\
+                transact({'from':owner, 'gas':sell_gas})
+
+            flash('新規募集を受け付けました。募集開始までに数分程かかることがあります。', 'success')
+            return redirect(url_for('.positions'))
+        else:
+            flash_errors(form)
+            return redirect(url_for('.sell', token_address=token_address))
+
+    else: # GET
+        form.token_address.data = token.token_address
+        form.name.data = name
+        form.symbol.data = symbol
+        form.totalSupply.data = totalSupply
+        form.details.data = details
+        form.expirationDate.data = expirationDate
+        form.memo.data = memo
+        form.transferable.data = transferable
+        form.status.data = isValid
+        form.tradableExchange.data = tradableExchange
+        form.abi.data = token.abi
+        form.bytecode.data = token.bytecode
+        form.sellPrice.data = None
+        return render_template(
+            'coupon/sell.html',
+            token_address = token_address,
+            token_name = name,
+            form = form
+        )
+
+####################################################
+# 売出停止
+####################################################
+@coupon.route('/cancel_order/<int:order_id>', methods=['GET', 'POST'])
+@login_required
+def cancel_order(order_id):
+    logger.info('coupon/cancel_order')
+    form = CancelOrderForm()
+
+    # Exchangeコントラクトに接続
+    token_exchange_address = to_checksum_address(Config.IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS)
+    ExchangeContract = Contract.get_contract(
+        'IbetCouponExchange', token_exchange_address)
+
+    # 注文情報を取得する
+    orderBook = ExchangeContract.functions.orderBook(order_id).call()
+    token_address = orderBook[1]
+    amount = orderBook[2]
+    price = orderBook[3]
+
+    # トークンのABIを取得する
+    token = Token.query.filter(Token.token_address==token_address).first()
+    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+
+    # トークンコントラクトに接続する
+    TokenContract = web3.eth.contract(
+        address= to_checksum_address(token_address),
+        abi = token_abi
+    )
+
+    # トークンの商品名、略称、総発行量を取得する
+    name = TokenContract.functions.name().call()
+    symbol = TokenContract.functions.symbol().call()
+    totalSupply = TokenContract.functions.totalSupply().call()
+
+    if request.method == 'POST':
+        if form.validate():
+            web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
+            gas = ExchangeContract.estimateGas().cancelOrder(order_id)
+            txid = ExchangeContract.functions.cancelOrder(order_id).\
+                transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
+            flash('募集停止処理を受け付けました。停止されるまでに数分程かかることがあります。', 'success')
+            return redirect(url_for('.positions'))
+        else:
+            flash_errors(form)
+            return redirect(url_for('.cancel_order', order_id=order_id))
+    else: # GET
+        form.order_id.data = order_id
+        form.token_address.data = token_address
+        form.name.data = name
+        form.symbol.data = symbol
+        form.totalSupply.data = totalSupply
+        form.amount.data = amount
+        form.price.data = price
+        return render_template('coupon/cancel_order.html', form=form)
+
+####################################################
 # クーポン割当
 ####################################################
 @coupon.route('/transfer', methods=['GET', 'POST'])
