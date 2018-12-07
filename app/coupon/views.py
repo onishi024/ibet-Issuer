@@ -470,7 +470,7 @@ def sell(token_address):
     memo = TokenContract.functions.memo().call()
     transferable = TokenContract.functions.transferable().call()
     tradableExchange = TokenContract.functions.tradableExchange().call()
-    status = TokenContract.functions.status().call()
+    isValid = TokenContract.functions.isValid().call()
 
     owner = to_checksum_address(Config.ETH_ACCOUNT)
     balance = TokenContract.functions.balanceOf(owner).call()
@@ -523,7 +523,7 @@ def sell(token_address):
         form.expirationDate.data = expirationDate
         form.memo.data = memo
         form.transferable.data = transferable
-        form.status.data = status
+        form.status.data = isValid
         form.tradableExchange.data = tradableExchange
         form.abi.data = token.abi
         form.bytecode.data = token.bytecode
