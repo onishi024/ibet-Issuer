@@ -167,8 +167,8 @@ class TestCoupon(TestBase):
         response = client.get(self.url_positions)
         assert response.status_code == 200
         assert '<title>募集管理'.encode('utf-8') in response.data
-        assert self.token_data1['name'].encode('utf-8') in response.data
-        assert self.token_data1['symbol'].encode('utf-8') in response.data
+        assert 'テストクーポン'.encode('utf-8') in response.data
+        assert 'COUPON'.encode('utf-8') in response.data
         assert token.token_address.encode('utf-8') in response.data
         assert '<td>2000000</td>\n            <td>2000000</td>\n            <td>0</td>'.encode('utf-8') in response.data
 
@@ -390,8 +390,8 @@ class TestCoupon(TestBase):
         assert response.status_code == 200
         assert '<title>募集管理'.encode('utf-8') in response.data
         assert '新規募集を受け付けました。募集開始までに数分程かかることがあります。'.encode('utf-8') in response.data
-        assert self.token_data1['name'].encode('utf-8') in response.data
-        assert self.token_data1['symbol'].encode('utf-8') in response.data
+        assert 'テストクーポン'.encode('utf-8') in response.data
+        assert 'COUPON'.encode('utf-8') in response.data
         assert '募集停止'.encode('utf-8') in response.data
         # 募集中の数量が存在する
         assert '<td>2000100</td>\n            <td>0</td>\n            <td>2000000</td>'.encode('utf-8') in response.data
