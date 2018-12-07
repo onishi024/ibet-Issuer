@@ -151,6 +151,8 @@ class TestCoupon(TestBase):
     # ＜正常系3＞
     # 一覧の参照(1件)
     def test_normal_3(self, app, shared_contract):
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        token = tokens[0]
         client = self.client_with_admin_login(app)
         response = client.get(self.url_list)
         assert response.status_code == 200
@@ -158,11 +160,14 @@ class TestCoupon(TestBase):
         assert 'テストクーポン'.encode('utf-8') in response.data
         assert 'COUPON'.encode('utf-8') in response.data
         assert '有効'.encode('utf-8') in response.data
+        assert token.token_address.encode('utf-8') in response.data
 
     # ＜正常系3_2＞
     # ＜1件確認＞
     # 募集管理(1件)
     def test_normal_3_2(self, app, shared_contract):
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        token = tokens[0]
         client = self.client_with_admin_login(app)
         response = client.get(self.url_positions)
         assert response.status_code == 200
