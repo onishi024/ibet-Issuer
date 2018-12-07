@@ -65,6 +65,9 @@ class TestCoupon(TestBase):
     url_transfer = 'coupon/transfer' # 割当
     url_holders = 'coupon/holders/' # 保有者一覧
     url_holder = 'coupon/holder/' # 保有者詳細
+    url_positions = 'coupon/positions'
+    url_sell = 'coupon/sell/'
+    url_cancel_order = 'coupon/cancel_order/'
 
     # ＜正常系1＞
     # 一覧の参照(0件)
@@ -86,6 +89,16 @@ class TestCoupon(TestBase):
         response = client.get(self.url_list)
         assert response.status_code == 200
         assert '<title>クーポン一覧'.encode('utf-8') in response.data
+        assert 'データが存在しません'.encode('utf-8') in response.data
+
+    # ＜正常系1_2＞
+    # ＜0件確認＞
+    # 募集管理(0件)
+    def test_normal_1_2(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
+        response = client.get(self.url_positions)
+        assert response.status_code == 200
+        assert '<title>募集管理'.encode('utf-8') in response.data
         assert 'データが存在しません'.encode('utf-8') in response.data
 
     # ＜正常系2＞
@@ -145,6 +158,19 @@ class TestCoupon(TestBase):
         assert 'テストクーポン'.encode('utf-8') in response.data
         assert 'COUPON'.encode('utf-8') in response.data
         assert '有効'.encode('utf-8') in response.data
+
+    # ＜正常系3_2＞
+    # ＜1件確認＞
+    # 募集管理(1件)
+    def test_normal_3_2(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
+        response = client.get(self.url_positions)
+        assert response.status_code == 200
+        assert '<title>募集管理'.encode('utf-8') in response.data
+        assert self.token_data1['name'].encode('utf-8') in response.data
+        assert self.token_data1['symbol'].encode('utf-8') in response.data
+        assert token.token_address.encode('utf-8') in response.data
+        assert '<td>2000000</td>\n            <td>2000000</td>\n            <td>0</td>'.encode('utf-8') in response.data
 
     # ＜正常系4＞
     # クーポン編集　→　画面で確認
@@ -318,6 +344,81 @@ class TestCoupon(TestBase):
         assert '東恵比寿支店'.encode('utf-8') in response.data
         assert '普通'.encode('utf-8') in response.data
         assert 'ｶﾌﾞｼｷｶﾞｲｼﾔｹﾂｻｲﾀﾞｲｺｳ'.encode('utf-8') in response.data
+
+    # ＜正常系9_1＞
+    # ＜募集画面＞
+    # 新規募集画面の参照
+    def test_normal_9_1(self, app, shared_contract):
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        token = tokens[0]
+        client = self.client_with_admin_login(app)
+        response = client.get(self.url_sell + token.token_address)
+        assert response.status_code == 200
+        assert '<title>新規募集'.encode('utf-8') in response.data
+        assert 'テストクーポン'.encode('utf-8') in response.data
+        assert 'COUPON'.encode('utf-8') in response.data
+        assert '2000100'.encode('utf-8') in response.data
+        assert 'details詳細'.encode('utf-8') in response.data
+        assert '20191231'.encode('utf-8') in response.data
+        assert 'memoメモ'.encode('utf-8') in response.data
+        assert 'なし'.encode('utf-8') in response.data
+        assert shared_contract['IbetCouponExchange']['address'].encode('utf-8') in response.data
+
+    # ＜正常系9_2＞
+    # ＜募集画面＞
+    # 募集 → 募集管理で確認
+    def test_normal_9_2(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        token = tokens[0]
+        url_sell = self.url_sell + token.token_address
+        # 募集
+        response = client.post(
+            url_sell,
+            data={
+                'sellPrice': 100,
+            }
+        )
+        assert response.status_code == 302
+
+        # 待機（募集には時間がかかる）
+        time.sleep(5)
+
+        # 募集管理
+        response = client.get(self.url_positions)
+
+        assert response.status_code == 200
+        assert '<title>募集管理'.encode('utf-8') in response.data
+        assert '新規募集を受け付けました。募集開始までに数分程かかることがあります。'.encode('utf-8') in response.data
+        assert self.token_data1['name'].encode('utf-8') in response.data
+        assert self.token_data1['symbol'].encode('utf-8') in response.data
+        assert '募集停止'.encode('utf-8') in response.data
+        # 募集中の数量が存在する
+        assert '<td>2000100</td>\n            <td>0</td>\n            <td>2000000</td>'.encode('utf-8') in response.data
+
+    # ＜正常系9_3＞
+    # ＜募集画面＞
+    # 募集停止 → 募集管理で確認
+    def test_normal_9_3(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
+        response = client.post(
+            self.url_cancel_order + '0',
+        )
+        assert response.status_code == 302
+
+        # 待機
+        time.sleep(5)
+
+        # 募集管理
+        response = client.get(self.url_positions)
+        assert response.status_code == 200
+        assert '<title>募集管理'.encode('utf-8') in response.data
+        assert 'テストクーポン'.encode('utf-8') in response.data
+        assert 'COUPON'.encode('utf-8') in response.data
+        assert '募集開始'.encode('utf-8') in response.data
+        # 募集中の数量が0
+        assert '<td>2000100</td>\n            <td>2000000</td>\n            <td>0</td>'.encode('utf-8') in response.data
+
 
     #############################################################################
     # エラー系
