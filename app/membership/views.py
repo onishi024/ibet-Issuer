@@ -67,8 +67,89 @@ def wait_transaction_receipt(tx_hash):
 
     return tx
 
+# トークンの保有者一覧、token_nameを返す
+def get_holders(token_address):
+    cipher = None
+    try:
+        key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
+        cipher = PKCS1_OAEP.new(key)
+    except:
+        traceback.print_exc()
+        pass
+
+    token = Token.query.filter(Token.token_address==token_address).first()
+    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+
+    TokenContract = web3.eth.contract(
+        address= token_address,
+        abi = token_abi
+    )
+
+    # Exchange Contract
+    token_exchange_address = to_checksum_address(Config.IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS)
+    ExchangeContract = Contract.get_contract(
+        'IbetMembershipExchange', token_exchange_address)
+
+    # PersonalInfo Contract
+    personalinfo_address = to_checksum_address(Config.PERSONAL_INFO_CONTRACT_ADDRESS)
+    PersonalInfoContract = Contract.get_contract(
+        'PersonalInfo', personalinfo_address)
+
+    # 残高を保有している可能性のあるアドレスを抽出する
+    holders_temp = []
+    holders_temp.append(TokenContract.functions.owner().call())
+
+    event_filter = TokenContract.eventFilter(
+        'Transfer', {
+            'filter':{},
+            'fromBlock':'earliest'
+        }
+    )
+    entries = event_filter.get_all_entries()
+    for entry in entries:
+        holders_temp.append(entry['args']['to'])
+
+    # 口座リストをユニークにする
+    holders_uniq = []
+    for x in holders_temp:
+        if x not in holders_uniq:
+            holders_uniq.append(x)
+
+    token_owner = TokenContract.functions.owner().call()
+    token_name = TokenContract.functions.name().call()
+
+    # 残高（balance）、または注文中の残高（commitment）が存在する情報を抽出
+    holders = []
+    for account_address in holders_uniq:
+        balance = TokenContract.functions.balanceOf(account_address).call()
+        commitment = ExchangeContract.functions.\
+            commitments(account_address,token_address).call()
+        if balance > 0 or commitment > 0:
+            encrypted_info = PersonalInfoContract.functions.\
+                personal_info(account_address, token_owner).call()[2]
+            if encrypted_info == '' or cipher == None:
+                name = ''
+            else:
+                ciphertext = base64.decodestring(encrypted_info.encode('utf-8'))
+                try:
+                    message = cipher.decrypt(ciphertext)
+                    personal_info_json = json.loads(message)
+                    name = personal_info_json['name']
+                except:
+                    name = ''
+
+            holder = {
+                'account_address':account_address,
+                'name':name,
+                'balance':balance,
+                'commitment':commitment
+            }
+            holders.append(holder)
+
+    return holders, token_name
+
 ####################################################
-# 発行済一覧
+# [会員権]発行済一覧
 ####################################################
 @membership.route('/list', methods=['GET'])
 @login_required
@@ -113,7 +194,7 @@ def list():
     return render_template('membership/list.html', tokens=token_list)
 
 ####################################################
-# 債券保有者一覧
+# [会員権]保有者一覧
 ####################################################
 @membership.route('/holders/<string:token_address>', methods=['GET'])
 @login_required
@@ -124,7 +205,7 @@ def holders(token_address):
         holders=holders, token_address=token_address, token_name=token_name)
 
 ####################################################
-# 債券保有者詳細
+# [会員権]保有者詳細
 ####################################################
 @membership.route('/holder/<string:token_address>/<string:account_address>', methods=['GET'])
 @login_required
@@ -134,7 +215,7 @@ def holder(token_address, account_address):
     return render_template('membership/holder.html', personal_info=personal_info, token_address=token_address)
 
 ####################################################
-# 会員権の内容修正
+# [会員権]設定内容修正
 ####################################################
 @membership.route('/setting/<string:token_address>', methods=['GET', 'POST'])
 @login_required
@@ -170,7 +251,7 @@ def setting(token_address):
     isRelease = False
     if token_struct[0] == token_address:
         isRelease = True
-    
+
     form = SettingForm()
 
     if request.method == 'POST':
@@ -256,7 +337,7 @@ def setting(token_address):
         )
 
 ####################################################
-# 公開
+# [会員権]公開
 ####################################################
 @membership.route('/release', methods=['POST'])
 @login_required
@@ -282,7 +363,7 @@ def release():
     return redirect(url_for('.list'))
 
 ####################################################
-# 新規発行
+# [会員権]新規発行
 ####################################################
 @membership.route('/issue', methods=['GET', 'POST'])
 @login_required
@@ -348,7 +429,7 @@ def issue():
                         txid = TokenContract.functions.setImageURL(2, form.image_large.data).transact(
                             {'from':Config.ETH_ACCOUNT, 'gas':gas}
                         )
-            
+
             flash('新規発行を受け付けました。発行完了までに数分程かかることがあります。', 'success')
             return redirect(url_for('.list'))
         else:
@@ -358,7 +439,7 @@ def issue():
         return render_template('membership/issue.html', form=form)
 
 ####################################################
-# 保有一覧（募集管理画面）
+# [会員権]保有一覧（募集管理画面）
 ####################################################
 @membership.route('/positions', methods=['GET'])
 @login_required
@@ -441,7 +522,7 @@ def positions():
     return render_template('membership/positions.html', position_list=position_list)
 
 ####################################################
-# 売出(募集)
+# [会員権]売出(募集)
 ####################################################
 @membership.route('/sell/<string:token_address>', methods=['GET', 'POST'])
 @login_required
@@ -533,7 +614,7 @@ def sell(token_address):
         )
 
 ####################################################
-# 売出停止
+# [会員権]売出停止
 ####################################################
 @membership.route('/cancel_order/<int:order_id>', methods=['GET', 'POST'])
 @login_required
@@ -588,9 +669,8 @@ def cancel_order(order_id):
         form.price.data = price
         return render_template('membership/cancel_order.html', form=form)
 
-
 ####################################################
-# 追加発行
+# [会員権]追加発行
 ####################################################
 @membership.route('/add_supply/<string:token_address>', methods=['GET', 'POST'])
 @login_required
@@ -638,7 +718,7 @@ def add_supply(token_address):
         )
 
 ####################################################
-# 有効化/無効化
+# [会員権]有効化/無効化
 ####################################################
 @membership.route('/valid', methods=['POST'])
 @login_required
@@ -674,92 +754,9 @@ def membership_valid(token_address, isvalid):
     flash('処理を受け付けました。完了までに数分程かかることがあります。', 'success')
 
 ####################################################
-# 権限エラー
+# [会員権]権限エラー
 ####################################################
 @membership.route('/PermissionDenied', methods=['GET', 'POST'])
 @login_required
 def permissionDenied():
     return render_template('permissiondenied.html')
-
-###
-# トークンの保有者一覧、token_nameを返す
-###
-def get_holders(token_address):
-    cipher = None
-    try:
-        key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
-        cipher = PKCS1_OAEP.new(key)
-    except:
-        traceback.print_exc()
-        pass
-
-    token = Token.query.filter(Token.token_address==token_address).first()
-    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
-
-    TokenContract = web3.eth.contract(
-        address= token_address,
-        abi = token_abi
-    )
-
-    # Exchange Contract
-    token_exchange_address = to_checksum_address(Config.IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS)
-    ExchangeContract = Contract.get_contract(
-        'IbetMembershipExchange', token_exchange_address)
-
-    # PersonalInfo Contract
-    personalinfo_address = to_checksum_address(Config.PERSONAL_INFO_CONTRACT_ADDRESS)
-    PersonalInfoContract = Contract.get_contract(
-        'PersonalInfo', personalinfo_address)
-
-    # 残高を保有している可能性のあるアドレスを抽出する
-    holders_temp = []
-    holders_temp.append(TokenContract.functions.owner().call())
-
-    event_filter = TokenContract.eventFilter(
-        'Transfer', {
-            'filter':{},
-            'fromBlock':'earliest'
-        }
-    )
-    entries = event_filter.get_all_entries()
-    for entry in entries:
-        holders_temp.append(entry['args']['to'])
-
-    # 口座リストをユニークにする
-    holders_uniq = []
-    for x in holders_temp:
-        if x not in holders_uniq:
-            holders_uniq.append(x)
-
-    token_owner = TokenContract.functions.owner().call()
-    token_name = TokenContract.functions.name().call()
-
-    # 残高（balance）、または注文中の残高（commitment）が存在する情報を抽出
-    holders = []
-    for account_address in holders_uniq:
-        balance = TokenContract.functions.balanceOf(account_address).call()
-        commitment = ExchangeContract.functions.\
-            commitments(account_address,token_address).call()
-        if balance > 0 or commitment > 0:
-            encrypted_info = PersonalInfoContract.functions.\
-                personal_info(account_address, token_owner).call()[2]
-            if encrypted_info == '' or cipher == None:
-                name = ''
-            else:
-                ciphertext = base64.decodestring(encrypted_info.encode('utf-8'))
-                try:
-                    message = cipher.decrypt(ciphertext)
-                    personal_info_json = json.loads(message)
-                    name = personal_info_json['name']
-                except:
-                    name = ''
-
-            holder = {
-                'account_address':account_address,
-                'name':name,
-                'balance':balance,
-                'commitment':commitment
-            }
-            holders.append(holder)
-
-    return holders, token_name
