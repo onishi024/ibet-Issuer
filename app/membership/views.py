@@ -376,7 +376,11 @@ def issue():
                 flash('DEXアドレスは有効なアドレスではありません。','error')
                 return render_template('membership/issue.html', form=form)
 
-            web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
+            web3.personal.unlockAccount(
+                to_checksum_address(Config.ETH_ACCOUNT),
+                Config.ETH_ACCOUNT_PASSWORD,1000)
+
+            ####### トークン発行処理 #######
             tmpVal = True
             if form.transferable.data == 'False':
                 tmpVal = False
@@ -392,8 +396,10 @@ def issue():
                 tmpVal
             ]
             _, bytecode, bytecode_runtime = Contract.get_contract_info('IbetMembership')
-            contract_address, abi, tx_hash = Contract.deploy_contract(
-                'IbetMembership', arguments, Config.ETH_ACCOUNT)
+            contract_address, abi, tx_hash = \
+                Contract.deploy_contract(
+                    'IbetMembership', arguments,
+                    to_checksum_address(Config.ETH_ACCOUNT))
 
             token = Token()
             token.template_id = Config.TEMPLATE_ID_MEMBERSHIP

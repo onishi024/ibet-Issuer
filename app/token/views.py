@@ -167,7 +167,7 @@ def setting(token_address):
         entries_sign = event_filter_sign.get_all_entries()
     except:
         entries_sign = []
-    
+
     for entry in entries_sign:
         if TokenContract.functions.\
             signatures(to_checksum_address(entry['args']['signer'])).call() == 2:
@@ -367,7 +367,11 @@ def issue():
                 flash('DEXアドレスは有効なアドレスではありません。','error')
                 return render_template('token/issue.html', form=form)
 
-            web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
+            web3.personal.unlockAccount(
+                to_checksum_address(Config.ETH_ACCOUNT),
+                Config.ETH_ACCOUNT_PASSWORD,1000)
+
+            ####### トークン発行処理 #######
             interestPaymentDate = {
                 'interestPaymentDate1': form.interestPaymentDate1.data,
                 'interestPaymentDate2': form.interestPaymentDate2.data,
@@ -400,8 +404,10 @@ def issue():
                 form.memo.data
             ]
             _, bytecode, bytecode_runtime = Contract.get_contract_info('IbetStraightBond')
-            contract_address, abi, tx_hash = Contract.deploy_contract(
-                'IbetStraightBond', arguments, Config.ETH_ACCOUNT)
+            contract_address, abi, tx_hash = \
+                Contract.deploy_contract(
+                    'IbetStraightBond', arguments,
+                    to_checksum_address(Config.ETH_ACCOUNT))
 
             token = Token()
             token.template_id = Config.TEMPLATE_ID_SB
