@@ -271,7 +271,7 @@ def setting(token_address):
                 )
 
             eth_account = to_checksum_address(Config.ETH_ACCOUNT)
-            web3.personal.unlockAccount(eth_account, Config.ETH_ACCOUNT_PASSWORD, 1000)
+            eth_unlock_account()
 
             if form.details.data != details:
                 gas = TokenContract.estimateGas().setDetails(form.details.data)
@@ -369,14 +369,14 @@ def setting(token_address):
 @login_required
 def release():
     logger.info('membership/release')
-    token_address = request.form.get('token_address')
+    eth_unlock_account()
 
+    token_address = request.form.get('token_address')
     list_contract_address = Config.TOKEN_LIST_CONTRACT_ADDRESS
     ListContract = Contract.get_contract(
         'TokenList', list_contract_address)
 
     eth_account = to_checksum_address(Config.ETH_ACCOUNT)
-    web3.personal.unlockAccount(eth_account,Config.ETH_ACCOUNT_PASSWORD,1000)
 
     try:
         gas = ListContract.estimateGas().\
@@ -405,9 +405,7 @@ def issue():
                 flash('DEXアドレスは有効なアドレスではありません。','error')
                 return render_template('membership/issue.html', form=form)
 
-            web3.personal.unlockAccount(
-                to_checksum_address(Config.ETH_ACCOUNT),
-                Config.ETH_ACCOUNT_PASSWORD,1000)
+            eth_unlock_account()
 
             ####### トークン発行処理 #######
             tmpVal = True
@@ -589,10 +587,10 @@ def sell(token_address):
 
     if request.method == 'POST':
         if form.validate():
+            eth_unlock_account()
+
             eth_account = to_checksum_address(Config.ETH_ACCOUNT)
             agent_account = to_checksum_address(Config.AGENT_ADDRESS)
-
-            web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
             token_exchange_address = to_checksum_address(Config.IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS)
             agent_address = to_checksum_address(Config.AGENT_ADDRESS)
 
@@ -685,7 +683,7 @@ def cancel_order(order_id):
 
     if request.method == 'POST':
         if form.validate():
-            web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
+            eth_unlock_account()
             gas = ExchangeContract.estimateGas().cancelOrder(order_id)
             txid = ExchangeContract.functions.cancelOrder(order_id).\
                 transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
@@ -727,8 +725,7 @@ def add_supply(token_address):
 
     if request.method == 'POST':
         if form.validate():
-            web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
-
+            eth_unlock_account()
             gas = TokenContract.estimateGas().issue(form.addSupply.data)
             tx = TokenContract.functions.issue(form.addSupply.data).\
                         transact({'from':owner, 'gas':gas})
@@ -770,6 +767,7 @@ def invalid():
     return redirect(url_for('.list'))
 
 def membership_valid(token_address, isvalid):
+    eth_unlock_account()
     token = Token.query.filter(Token.token_address==token_address).first()
     token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
 
@@ -778,7 +776,6 @@ def membership_valid(token_address, isvalid):
         address= token.token_address,
         abi = token_abi
     )
-    web3.personal.unlockAccount(owner,Config.ETH_ACCOUNT_PASSWORD,1000)
 
     gas = TokenContract.estimateGas().setStatus(isvalid)
     tx = TokenContract.functions.setStatus(isvalid).\
