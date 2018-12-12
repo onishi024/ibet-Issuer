@@ -17,9 +17,15 @@ from web3.middleware import geth_poa_middleware
 web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
 web3.middleware_stack.inject(geth_poa_middleware, layer=0)
 
-###
+####################################################
+# EOAのアカウントロック解除
+####################################################
+def eth_unlock_account():
+    web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,60)
+
+####################################################
 # トークン保有者のPersonalInfoを返す
-###
+####################################################
 def get_holder(token_address, account_address):
     cipher = None
     try:
@@ -74,44 +80,3 @@ def get_holder(token_address, account_address):
         except:
             pass
     return personal_info
-
-###
-# クーポントークンの利用履歴を返す
-###
-def get_usege_history_coupon(token_address):
-    # Coupon Token Contract
-    # Note: token_addressに対して、Couponトークンのものであるかはチェックしていない。
-    token = Token.query.filter(Token.token_address==token_address).first()
-    token_abi = json.loads(token.abi.replace("'", '"').\
-        replace('True', 'true').replace('False', 'false'))
-    CouponContract = web3.eth.contract(
-        address= token_address, abi = token_abi)
-
-    # クーポン名を取得
-    token_name = CouponContract.functions.name().call()
-
-    # クーポントークンの消費イベント（Consume）を検索
-    try:
-        event_filter = CouponContract.eventFilter(
-            'Consume', {
-                'filter':{},
-                'fromBlock':'earliest'
-            }
-        )
-        entries = event_filter.get_all_entries()
-        web3.eth.uninstallFilter(event_filter.filter_id)
-    except:
-        entries = []
-
-    usage_list = []
-    for entry in entries:
-        usage = {
-            'block_timestamp': datetime.fromtimestamp(
-                web3.eth.getBlock(entry['blockNumber'])['timestamp'],JST).\
-                strftime("%Y/%m/%d %H:%M:%S"),
-            'consumer': entry['args']['consumer'],
-            'value': entry['args']['value']
-        }
-        usage_list.append(usage)
-
-    return token_address, token_name, usage_list

@@ -22,11 +22,11 @@
             <h3 class="box-title">{{token_name}}　<small>{{ token_address }}</small></h3>
             <div class="pull-right box-tools">
                 {% if isReleased %}
-                    <button class="btn btn-warning" type="button" style="width: 150px">公開中</button>
+                    <button class="btn btn-gray" type="button" style="width: 150px" disabled>公開済</button>
                 {% else %}
                     <button id="release" class="btn btn-warning" type="button" style="width: 150px">公開 <i class="fa fa-arrow-circle-right"></i></button>
                 {% endif %}
-                {% if form.isValid.data %}
+                {% if isValid %}
                     <button type="button" class="btn btn-success" style="width: 150px" onclick="location.href='{{ url_for("coupon.add_supply", token_address=token_address)}}'">追加発行 <i class="fa fa-arrow-circle-right"></i></button>
                     <button id="invalid" type="button" class="btn btn-danger" style="width: 150px">クーポン無効化 <i class="fa fa-arrow-circle-right"></i></button>
                 {% else %}
