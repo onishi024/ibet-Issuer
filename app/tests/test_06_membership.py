@@ -595,7 +595,7 @@ class TestMembership(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(2)
+        time.sleep(5)
 
         url_setting = self.url_setting + token.token_address
         response = client.get(url_setting)

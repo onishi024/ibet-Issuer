@@ -86,12 +86,12 @@ def get_holders(token_address):
     )
 
     # Exchange Contract
-    token_exchange_address = to_checksum_address(Config.IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS)
+    token_exchange_address = Config.IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS
     ExchangeContract = Contract.get_contract(
         'IbetMembershipExchange', token_exchange_address)
 
     # PersonalInfo Contract
-    personalinfo_address = to_checksum_address(Config.PERSONAL_INFO_CONTRACT_ADDRESS)
+    personalinfo_address = Config.PERSONAL_INFO_CONTRACT_ADDRESS
     PersonalInfoContract = Contract.get_contract(
         'PersonalInfo', personalinfo_address)
 
@@ -270,28 +270,27 @@ def setting(token_address):
                     isRelease = isRelease, status = status, token_name = name
                 )
 
-            eth_account = to_checksum_address(Config.ETH_ACCOUNT)
             eth_unlock_account()
 
             if form.details.data != details:
                 gas = TokenContract.estimateGas().setDetails(form.details.data)
                 txid = TokenContract.functions.setDetails(form.details.data).transact(
-                    {'from':eth_account, 'gas':gas}
+                    {'from':Config.ETH_ACCOUNT, 'gas':gas}
                 )
             if form.returnDetails.data != returnDetails:
                 gas = TokenContract.estimateGas().setReturnDetails(form.returnDetails.data)
                 txid = TokenContract.functions.setReturnDetails(form.returnDetails.data).transact(
-                    {'from':eth_account, 'gas':gas}
+                    {'from':Config.ETH_ACCOUNT, 'gas':gas}
                 )
             if form.expirationDate.data != expirationDate:
                 gas = TokenContract.estimateGas().setExpirationDate(form.expirationDate.data)
                 txid = TokenContract.functions.setExpirationDate(form.expirationDate.data).transact(
-                    {'from':eth_account, 'gas':gas}
+                    {'from':Config.ETH_ACCOUNT, 'gas':gas}
                 )
             if form.memo.data != memo:
                 gas = TokenContract.estimateGas().setMemo(form.memo.data)
                 txid = TokenContract.functions.setMemo(form.memo.data).transact(
-                    {'from':eth_account, 'gas':gas}
+                    {'from':Config.ETH_ACCOUNT, 'gas':gas}
                 )
             if form.transferable.data != transferable:
                 tmpVal = True
@@ -299,27 +298,27 @@ def setting(token_address):
                     tmpVal = False
                 gas = TokenContract.estimateGas().setTransferable(tmpVal)
                 txid = TokenContract.functions.setTransferable(tmpVal).transact(
-                    {'from':eth_account, 'gas':gas}
+                    {'from':Config.ETH_ACCOUNT, 'gas':gas}
                 )
             if form.image_small.data != image_small:
                 gas = TokenContract.estimateGas().setImageURL(0, form.image_small.data)
                 txid_small = TokenContract.functions.setImageURL(0, form.image_small.data).transact(
-                    {'from':eth_account, 'gas':gas}
+                    {'from':Config.ETH_ACCOUNT, 'gas':gas}
                 )
             if form.image_medium.data != image_medium:
                 gas = TokenContract.estimateGas().setImageURL(1, form.image_medium.data)
                 txid_medium = TokenContract.functions.setImageURL(1, form.image_medium.data).transact(
-                    {'from':eth_account, 'gas':gas}
+                    {'from':Config.ETH_ACCOUNT, 'gas':gas}
                 )
             if form.image_large.data != image_large:
                 gas = TokenContract.estimateGas().setImageURL(2, form.image_large.data)
                 txid = TokenContract.functions.setImageURL(2, form.image_large.data).transact(
-                    {'from':eth_account, 'gas':gas}
+                    {'from':Config.ETH_ACCOUNT, 'gas':gas}
                 )
             if form.tradableExchange.data != tradableExchange:
                 gas = TokenContract.estimateGas().setTradableExchange(to_checksum_address(form.tradableExchange.data))
                 txid = TokenContract.functions.setTradableExchange(to_checksum_address(form.tradableExchange.data)).transact(
-                    {'from':eth_account, 'gas':gas}
+                    {'from':Config.ETH_ACCOUNT, 'gas':gas}
                 )
 
             flash('変更を受け付けました。変更完了までに数分程かかることがあります。', 'success')
@@ -376,14 +375,12 @@ def release():
     ListContract = Contract.get_contract(
         'TokenList', list_contract_address)
 
-    eth_account = to_checksum_address(Config.ETH_ACCOUNT)
-
     try:
         gas = ListContract.estimateGas().\
             register(token_address, 'IbetMembership')
         register_txid = ListContract.functions.\
             register(token_address, 'IbetMembership').\
-            transact({'from':eth_account, 'gas':gas})
+            transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
     except ValueError:
         flash('既に公開されています。', 'error')
         return redirect(url_for('.setting', token_address=token_address))
@@ -424,9 +421,7 @@ def issue():
             ]
             _, bytecode, bytecode_runtime = Contract.get_contract_info('IbetMembership')
             contract_address, abi, tx_hash = \
-                Contract.deploy_contract(
-                    'IbetMembership', arguments,
-                    to_checksum_address(Config.ETH_ACCOUNT))
+                Contract.deploy_contract('IbetMembership', arguments, Config.ETH_ACCOUNT)
 
             token = Token()
             token.template_id = Config.TEMPLATE_ID_MEMBERSHIP
@@ -483,7 +478,7 @@ def positions():
     tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
 
     # Exchangeコントラクトに接続
-    token_exchange_address = to_checksum_address(Config.IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS)
+    token_exchange_address = Config.IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS
     ExchangeContract = Contract.get_contract(
         'IbetMembershipExchange', token_exchange_address)
 
@@ -581,42 +576,28 @@ def sell(token_address):
     transferable = TokenContract.functions.transferable().call()
     tradableExchange = TokenContract.functions.tradableExchange().call()
     status = TokenContract.functions.status().call()
-
-    owner = to_checksum_address(Config.ETH_ACCOUNT)
-    balance = TokenContract.functions.balanceOf(owner).call()
+    balance = TokenContract.functions.balanceOf(Config.ETH_ACCOUNT).call()
 
     if request.method == 'POST':
         if form.validate():
             eth_unlock_account()
 
-            eth_account = to_checksum_address(Config.ETH_ACCOUNT)
-            agent_account = to_checksum_address(Config.AGENT_ADDRESS)
-            token_exchange_address = to_checksum_address(Config.IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS)
-            agent_address = to_checksum_address(Config.AGENT_ADDRESS)
+            token_exchange_address = Config.IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS
+            agent_address = Config.AGENT_ADDRESS
 
-            deposit_gas = TokenContract.estimateGas().transfer(token_exchange_address, balance)
-            deposit_txid = TokenContract.functions.transfer(token_exchange_address, balance).\
-                transact({'from':owner, 'gas':deposit_gas})
-
-            count = 0
-            deposit_tx_receipt = None
-            while True:
-                try:
-                    deposit_tx_receipt = web3.eth.getTransactionReceipt(deposit_txid)
-                except:
-                    time.sleep(1)
-                count += 1
-                if deposit_tx_receipt is not None or count > 30:
-                    break
+            deposit_gas = TokenContract.estimateGas().\
+                transfer(token_exchange_address, balance)
+            TokenContract.functions.\
+                transfer(token_exchange_address, balance).\
+                transact({'from':Config.ETH_ACCOUNT, 'gas':deposit_gas})
 
             ExchangeContract = Contract.get_contract(
                 'IbetMembershipExchange', token_exchange_address)
-
             sell_gas = ExchangeContract.estimateGas().\
                 createOrder(token_address, balance, form.sellPrice.data, False, agent_address)
-            sell_txid = ExchangeContract.functions.\
+            ExchangeContract.functions.\
                 createOrder(token_address, balance, form.sellPrice.data, False, agent_address).\
-                transact({'from':owner, 'gas':sell_gas})
+                transact({'from':Config.ETH_ACCOUNT, 'gas':sell_gas})
 
             flash('新規募集を受け付けました。募集開始までに数分程かかることがあります。', 'success')
             return redirect(url_for('.positions'))
@@ -656,7 +637,7 @@ def cancel_order(order_id):
     form = CancelOrderForm()
 
     # Exchangeコントラクトに接続
-    token_exchange_address = to_checksum_address(Config.IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS)
+    token_exchange_address = Config.IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS
     ExchangeContract = Contract.get_contract(
         'IbetMembershipExchange', token_exchange_address)
 
@@ -712,7 +693,6 @@ def add_supply(token_address):
 
     token = Token.query.filter(Token.token_address==token_address).first()
     token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
-    owner = to_checksum_address(Config.ETH_ACCOUNT)
     TokenContract = web3.eth.contract(
         address= token.token_address,
         abi = token_abi
@@ -728,9 +708,7 @@ def add_supply(token_address):
             eth_unlock_account()
             gas = TokenContract.estimateGas().issue(form.addSupply.data)
             tx = TokenContract.functions.issue(form.addSupply.data).\
-                        transact({'from':owner, 'gas':gas})
-            wait_transaction_receipt(tx)
-
+                        transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
             flash('追加発行を受け付けました。発行完了までに数分程かかることがあります。', 'success')
             return redirect(url_for('.list'))
         else:
@@ -771,7 +749,6 @@ def membership_valid(token_address, isvalid):
     token = Token.query.filter(Token.token_address==token_address).first()
     token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
 
-    owner = to_checksum_address(Config.ETH_ACCOUNT)
     TokenContract = web3.eth.contract(
         address= token.token_address,
         abi = token_abi
@@ -779,9 +756,7 @@ def membership_valid(token_address, isvalid):
 
     gas = TokenContract.estimateGas().setStatus(isvalid)
     tx = TokenContract.functions.setStatus(isvalid).\
-                transact({'from':owner, 'gas':gas})
-
-    wait_transaction_receipt(tx)
+                transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
 
     flash('処理を受け付けました。完了までに数分程かかることがあります。', 'success')
 
