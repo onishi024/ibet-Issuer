@@ -37,7 +37,7 @@
   		{% for token in tokens %}
         <tr>
           {% if token.token_address != None %}
-    			  <td><a href="{{ url_for('membership.setting', token_address=token.token_address) }}">{{ token.name }}</a></td>
+    			  <td style="word-break : break-all; width: 400px;"><a href="{{ url_for('membership.setting', token_address=token.token_address) }}">{{ token.name }}</a></td>
           {% else %}
             <td>{{ token.name }}</td>
           {% endif %}

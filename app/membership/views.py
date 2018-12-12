@@ -243,7 +243,7 @@ def setting(token_address):
     image_medium = TokenContract.functions.getImageURL(1).call()
     image_large = TokenContract.functions.getImageURL(2).call()
 
-    # token listに登録中か？
+    # TokenList登録状態取得
     list_contract_address = Config.TOKEN_LIST_CONTRACT_ADDRESS
     ListContract = Contract.get_contract(
         'TokenList', list_contract_address)
@@ -253,64 +253,90 @@ def setting(token_address):
         isRelease = True
 
     form = SettingForm()
-
     if request.method == 'POST':
-        if not Web3.isAddress(form.tradableExchange.data):
-            flash('DEXアドレスは有効なアドレスではありません。','error')
-            return redirect(url_for('.setting', token_address=token_address))
+        if form.validate(): # Validationチェック
+            # Addressフォーマットチェック
+            if not Web3.isAddress(form.tradableExchange.data):
+                flash('DEXアドレスは有効なアドレスではありません。','error')
+                form.token_address.data = token.token_address
+                form.name.data = name
+                form.symbol.data = symbol
+                form.totalSupply.data = totalSupply
+                form.abi.data = token.abi
+                form.bytecode.data = token.bytecode
+                return render_template(
+                    'membership/setting.html',
+                    form=form, token_address = token_address,
+                    isRelease = isRelease, status = status, token_name = name
+                )
 
-        web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
-        if form.details.data != details:
-            gas = TokenContract.estimateGas().setDetails(form.details.data)
-            txid = TokenContract.functions.setDetails(form.details.data).transact(
-                {'from':Config.ETH_ACCOUNT, 'gas':gas}
-            )
-        if form.returnDetails.data != returnDetails:
-            gas = TokenContract.estimateGas().setReturnDetails(form.returnDetails.data)
-            txid = TokenContract.functions.setReturnDetails(form.returnDetails.data).transact(
-                {'from':Config.ETH_ACCOUNT, 'gas':gas}
-            )
-        if form.expirationDate.data != expirationDate:
-            gas = TokenContract.estimateGas().setExpirationDate(form.expirationDate.data)
-            txid = TokenContract.functions.setExpirationDate(form.expirationDate.data).transact(
-                {'from':Config.ETH_ACCOUNT, 'gas':gas}
-            )
-        if form.memo.data != memo:
-            gas = TokenContract.estimateGas().setMemo(form.memo.data)
-            txid = TokenContract.functions.setMemo(form.memo.data).transact(
-                {'from':Config.ETH_ACCOUNT, 'gas':gas}
-            )
-        if form.transferable.data != transferable:
-            tmpVal = True
-            if form.transferable.data == 'False':
-                tmpVal = False
-            gas = TokenContract.estimateGas().setTransferable(tmpVal)
-            txid = TokenContract.functions.setTransferable(tmpVal).transact(
-                {'from':Config.ETH_ACCOUNT, 'gas':gas}
-            )
-        if form.image_small.data != image_small:
-            gas = TokenContract.estimateGas().setImageURL(0, form.image_small.data)
-            txid_small = TokenContract.functions.setImageURL(0, form.image_small.data).transact(
-                {'from':Config.ETH_ACCOUNT, 'gas':gas}
-            )
-        if form.image_medium.data != image_medium:
-            gas = TokenContract.estimateGas().setImageURL(1, form.image_medium.data)
-            txid_medium = TokenContract.functions.setImageURL(1, form.image_medium.data).transact(
-                {'from':Config.ETH_ACCOUNT, 'gas':gas}
-            )
-        if form.image_large.data != image_large:
-            gas = TokenContract.estimateGas().setImageURL(2, form.image_large.data)
-            txid = TokenContract.functions.setImageURL(2, form.image_large.data).transact(
-                {'from':Config.ETH_ACCOUNT, 'gas':gas}
-            )
-        if form.tradableExchange.data != tradableExchange:
-            gas = TokenContract.estimateGas().setTradableExchange(to_checksum_address(form.tradableExchange.data))
-            txid = TokenContract.functions.setTradableExchange(to_checksum_address(form.tradableExchange.data)).transact(
-                {'from':Config.ETH_ACCOUNT, 'gas':gas}
-            )
+            eth_account = to_checksum_address(Config.ETH_ACCOUNT)
+            web3.personal.unlockAccount(eth_account, Config.ETH_ACCOUNT_PASSWORD, 1000)
 
-        flash('変更を受け付けました。変更完了までに数分程かかることがあります。', 'success')
-        return redirect(url_for('.list'))
+            if form.details.data != details:
+                gas = TokenContract.estimateGas().setDetails(form.details.data)
+                txid = TokenContract.functions.setDetails(form.details.data).transact(
+                    {'from':eth_account, 'gas':gas}
+                )
+            if form.returnDetails.data != returnDetails:
+                gas = TokenContract.estimateGas().setReturnDetails(form.returnDetails.data)
+                txid = TokenContract.functions.setReturnDetails(form.returnDetails.data).transact(
+                    {'from':eth_account, 'gas':gas}
+                )
+            if form.expirationDate.data != expirationDate:
+                gas = TokenContract.estimateGas().setExpirationDate(form.expirationDate.data)
+                txid = TokenContract.functions.setExpirationDate(form.expirationDate.data).transact(
+                    {'from':eth_account, 'gas':gas}
+                )
+            if form.memo.data != memo:
+                gas = TokenContract.estimateGas().setMemo(form.memo.data)
+                txid = TokenContract.functions.setMemo(form.memo.data).transact(
+                    {'from':eth_account, 'gas':gas}
+                )
+            if form.transferable.data != transferable:
+                tmpVal = True
+                if form.transferable.data == 'False':
+                    tmpVal = False
+                gas = TokenContract.estimateGas().setTransferable(tmpVal)
+                txid = TokenContract.functions.setTransferable(tmpVal).transact(
+                    {'from':eth_account, 'gas':gas}
+                )
+            if form.image_small.data != image_small:
+                gas = TokenContract.estimateGas().setImageURL(0, form.image_small.data)
+                txid_small = TokenContract.functions.setImageURL(0, form.image_small.data).transact(
+                    {'from':eth_account, 'gas':gas}
+                )
+            if form.image_medium.data != image_medium:
+                gas = TokenContract.estimateGas().setImageURL(1, form.image_medium.data)
+                txid_medium = TokenContract.functions.setImageURL(1, form.image_medium.data).transact(
+                    {'from':eth_account, 'gas':gas}
+                )
+            if form.image_large.data != image_large:
+                gas = TokenContract.estimateGas().setImageURL(2, form.image_large.data)
+                txid = TokenContract.functions.setImageURL(2, form.image_large.data).transact(
+                    {'from':eth_account, 'gas':gas}
+                )
+            if form.tradableExchange.data != tradableExchange:
+                gas = TokenContract.estimateGas().setTradableExchange(to_checksum_address(form.tradableExchange.data))
+                txid = TokenContract.functions.setTradableExchange(to_checksum_address(form.tradableExchange.data)).transact(
+                    {'from':eth_account, 'gas':gas}
+                )
+
+            flash('変更を受け付けました。変更完了までに数分程かかることがあります。', 'success')
+            return redirect(url_for('.list'))
+        else:
+            flash_errors(form)
+            form.token_address.data = token.token_address
+            form.name.data = name
+            form.symbol.data = symbol
+            form.totalSupply.data = totalSupply
+            form.abi.data = token.abi
+            form.bytecode.data = token.bytecode
+            return render_template(
+                'membership/setting.html',
+                form=form, token_address = token_address,
+                isRelease = isRelease, status = status, token_name = name
+            )
     else: # GET
         form.token_address.data = token.token_address
         form.name.data = name
@@ -321,7 +347,6 @@ def setting(token_address):
         form.expirationDate.data = expirationDate
         form.memo.data = memo
         form.transferable.data = transferable
-        form.status.data = status
         form.image_small.data = image_small
         form.image_medium.data = image_medium
         form.image_large.data = image_large
@@ -333,7 +358,8 @@ def setting(token_address):
             form=form,
             token_address = token_address,
             token_name = name,
-            isRelease = isRelease
+            isRelease = isRelease,
+            status = status
         )
 
 ####################################################
@@ -349,12 +375,15 @@ def release():
     ListContract = Contract.get_contract(
         'TokenList', list_contract_address)
 
-    web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
+    eth_account = to_checksum_address(Config.ETH_ACCOUNT)
+    web3.personal.unlockAccount(eth_account,Config.ETH_ACCOUNT_PASSWORD,1000)
 
     try:
-        gas = ListContract.estimateGas().register(token_address, 'IbetMembership')
-        register_txid = ListContract.functions.register(token_address, 'IbetMembership').\
-            transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
+        gas = ListContract.estimateGas().\
+            register(token_address, 'IbetMembership')
+        register_txid = ListContract.functions.\
+            register(token_address, 'IbetMembership').\
+            transact({'from':eth_account, 'gas':gas})
     except ValueError:
         flash('既に公開されています。', 'error')
         return redirect(url_for('.setting', token_address=token_address))
