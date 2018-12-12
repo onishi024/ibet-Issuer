@@ -36,14 +36,14 @@ class IssueForm(Form):
     details = TextAreaField(
         "会員権詳細",
         validators = [
-            Length(max=2000, message='会員権詳細は2,000文字以内の半角英数字で入力してください。')
+            Length(max=2000, message='会員権詳細は2,000文字以内で入力してください。')
         ]
     )
 
     returnDetails = TextAreaField(
         "リターン詳細",
         validators = [
-            Length(max=2000, message='リターン詳細は2,000文字以内の半角英数字で入力してください。')
+            Length(max=2000, message='リターン詳細は2,000文字以内で入力してください。')
         ]
     )
 
@@ -58,7 +58,7 @@ class IssueForm(Form):
     memo = TextAreaField(
         "メモ",
         validators = [
-            Length(max=2000, message='メモは2,000文字以内の半角英数字で入力してください。')
+            Length(max=2000, message='メモは2,000文字以内で入力してください。')
         ]
     )
 
