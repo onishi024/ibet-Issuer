@@ -22,7 +22,7 @@
             <div class="pull-right box-tools">
               <button type="button" class="btn btn-success" style="width: 100px" onclick="location.href='{{ url_for("bond.request_signature", token_address=token_address)}}'">認定依頼 <i class="fa fa-arrow-circle-right"></i></button>
                 {% if isRelease %}
-                    <button class="btn btn-warning" type="button" style="width: 100px">公開中</button>
+                    <button class="btn btn-gray" type="button" style="width: 100px" disabled>公開済</button>
                 {% else %}
                     <button id="release" class="btn btn-warning" type="button" style="width: 100px">公開 <i class="fa fa-arrow-circle-right"></i></button>
                 {% endif %}
