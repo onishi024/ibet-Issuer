@@ -26,7 +26,7 @@ from . import bond
 from .. import db
 from ..util import *
 from ..models import Role, User, Token, Certification
-from .forms import IssueTokenForm, TokenSettingForm, SellTokenForm, CancelOrderForm, RequestSignatureForm
+from .forms import IssueForm, SettingForm, SellTokenForm, CancelOrderForm, RequestSignatureForm
 from ..decorators import admin_required
 from config import Config
 from app.contracts import Contract
@@ -59,7 +59,8 @@ def get_holders_bond(token_address):
     # Bond Token Contract
     # Note: token_addressに対して、Bondトークンのものであるかはチェックしていない。
     token = Token.query.filter(Token.token_address==token_address).first()
-    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+    token_abi = json.loads(token.abi.replace("'", '"').\
+        replace('True', 'true').replace('False', 'false'))
 
     TokenContract = web3.eth.contract(
         address= token_address,
@@ -67,14 +68,14 @@ def get_holders_bond(token_address):
     )
 
     # Straight-Bond Exchange Contract
-    token_exchange_address = to_checksum_address(Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS)
+    token_exchange_address = Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS
     ExchangeContract = Contract.get_contract(
         'IbetStraightBondExchange', token_exchange_address)
 
     # PersonalInfo Contract
-    personalinfo_address = to_checksum_address(Config.PERSONAL_INFO_CONTRACT_ADDRESS)
-    PersonalInfoContract = Contract.get_contract(
-        'PersonalInfo', personalinfo_address)
+    personalinfo_address = Config.PERSONAL_INFO_CONTRACT_ADDRESS
+    PersonalInfoContract = \
+        Contract.get_contract('PersonalInfo', personalinfo_address)
 
     # 残高を保有している可能性のあるアドレスを抽出する
     holders_temp = []
@@ -205,7 +206,8 @@ def holder(token_address, account_address):
 def setting(token_address):
     logger.info('bond.setting')
     token = Token.query.filter(Token.token_address==token_address).first()
-    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+    token_abi = json.loads(token.abi.replace("'", '"').\
+        replace('True', 'true').replace('False', 'false'))
 
     TokenContract = web3.eth.contract(
         address= token.token_address,
@@ -217,11 +219,10 @@ def setting(token_address):
     totalSupply = TokenContract.functions.totalSupply().call()
     faceValue = TokenContract.functions.faceValue().call()
     interestRate = TokenContract.functions.interestRate().call() * 0.001
-
     interestPaymentDate_string = TokenContract.functions.interestPaymentDate().call()
     interestPaymentDate = json.loads(
-        interestPaymentDate_string.replace("'", '"').replace('True', 'true').replace('False', 'false'))
-
+        interestPaymentDate_string.replace("'", '"').\
+            replace('True', 'true').replace('False', 'false'))
     redemptionDate = TokenContract.functions.redemptionDate().call()
     redemptionAmount = TokenContract.functions.redemptionAmount().call()
     returnDate = TokenContract.functions.returnDate().call()
@@ -233,7 +234,7 @@ def setting(token_address):
     image_medium = TokenContract.functions.getImageURL(1).call()
     image_large = TokenContract.functions.getImageURL(2).call()
 
-    # token listに登録中か？
+    # TokenList登録状態取得
     list_contract_address = Config.TOKEN_LIST_CONTRACT_ADDRESS
     ListContract = Contract.get_contract(
         'TokenList', list_contract_address)
@@ -254,41 +255,83 @@ def setting(token_address):
         entries_sign = event_filter_sign.get_all_entries()
     except:
         entries_sign = []
-
     for entry in entries_sign:
         if TokenContract.functions.\
             signatures(to_checksum_address(entry['args']['signer'])).call() == 2:
             signatures.append(entry['args']['signer'])
 
-    form = TokenSettingForm()
+    form = SettingForm()
     if request.method == 'POST':
-        if not Web3.isAddress(form.tradableExchange.data):
-            flash('DEXアドレスは有効なアドレスではありません。','error')
-            return redirect(url_for('.setting', token_address=token_address))
+        if form.validate(): # Validationチェック
+            if not Web3.isAddress(form.tradableExchange.data):
+                flash('DEXアドレスは有効なアドレスではありません。','error')
+                form.token_address.data = token.token_address
+                form.name.data = name
+                form.symbol.data = symbol
+                form.totalSupply.data = totalSupply
+                form.faceValue.data = faceValue
+                form.interestRate.data = interestRate
+                set_interestPaymentDate(form, interestPaymentDate)
+                form.redemptionDate.data = redemptionDate
+                form.redemptionAmount.data = redemptionAmount
+                form.returnDate.data = returnDate
+                form.returnAmount.data = returnAmount
+                form.purpose.data = purpose
+                form.memo.data = memo
+                form.abi.data = token.abi
+                form.bytecode.data = token.bytecode
+                return render_template(
+                    'bond/setting.html',
+                    form=form, token_address = token_address,
+                    token_name = name, isRelease = isRelease ,
+                    signatures = signatures
+                )
 
-        web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
-        if form.image_small.data != image_small:
-            gas = TokenContract.estimateGas().setImageURL(0, form.image_small.data)
-            txid_small = TokenContract.functions.setImageURL(0, form.image_small.data).transact(
-                {'from':Config.ETH_ACCOUNT, 'gas':gas}
+            eth_unlock_account()
+
+            if form.image_small.data != image_small:
+                gas = TokenContract.estimateGas().setImageURL(0, form.image_small.data)
+                txid_small = TokenContract.functions.setImageURL(0, form.image_small.data).\
+                    transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
+            if form.image_medium.data != image_medium:
+                gas = TokenContract.estimateGas().setImageURL(1, form.image_medium.data)
+                txid_medium = TokenContract.functions.setImageURL(1, form.image_medium.data).\
+                    transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
+            if form.image_large.data != image_large:
+                gas = TokenContract.estimateGas().setImageURL(2, form.image_large.data)
+                txid = TokenContract.functions.setImageURL(2, form.image_large.data).\
+                    transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
+            if form.tradableExchange.data != tradableExchange:
+                gas = TokenContract.estimateGas().\
+                    setTradableExchange(to_checksum_address(form.tradableExchange.data))
+                txid = TokenContract.functions.\
+                    setTradableExchange(to_checksum_address(form.tradableExchange.data)).\
+                    transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
+            flash('設定変更を受け付けました。変更完了までに数分程かかることがあります。', 'success')
+            return redirect(url_for('.list'))
+        else:
+            flash_errors(form)
+            form.token_address.data = token.token_address
+            form.name.data = name
+            form.symbol.data = symbol
+            form.totalSupply.data = totalSupply
+            form.faceValue.data = faceValue
+            form.interestRate.data = interestRate
+            set_interestPaymentDate(form, interestPaymentDate)
+            form.redemptionDate.data = redemptionDate
+            form.redemptionAmount.data = redemptionAmount
+            form.returnDate.data = returnDate
+            form.returnAmount.data = returnAmount
+            form.purpose.data = purpose
+            form.memo.data = memo
+            form.abi.data = token.abi
+            form.bytecode.data = token.bytecode
+            return render_template(
+                'bond/setting.html',
+                form=form, token_address = token_address,
+                token_name = name, isRelease = isRelease ,
+                signatures = signatures
             )
-        if form.image_medium.data != image_medium:
-            gas = TokenContract.estimateGas().setImageURL(1, form.image_medium.data)
-            txid_medium = TokenContract.functions.setImageURL(1, form.image_medium.data).transact(
-                {'from':Config.ETH_ACCOUNT, 'gas':gas}
-            )
-        if form.image_large.data != image_large:
-            gas = TokenContract.estimateGas().setImageURL(2, form.image_large.data)
-            txid = TokenContract.functions.setImageURL(2, form.image_large.data).transact(
-                {'from':Config.ETH_ACCOUNT, 'gas':gas}
-            )
-        if form.tradableExchange.data != tradableExchange:
-            gas = TokenContract.estimateGas().setTradableExchange(to_checksum_address(form.tradableExchange.data))
-            txid = TokenContract.functions.setTradableExchange(to_checksum_address(form.tradableExchange.data)).transact(
-                {'from':Config.ETH_ACCOUNT, 'gas':gas}
-            )
-        flash('設定変更を受け付けました。変更完了までに数分程かかることがあります。', 'success')
-        return redirect(url_for('.list'))
     else: # GET
         form.token_address.data = token.token_address
         form.name.data = name
@@ -319,7 +362,7 @@ def setting(token_address):
         )
 
 ####################################################
-# 認定申請
+# [債券]第三者認定申請
 ####################################################
 @bond.route('/request_signature/<string:token_address>', methods=['GET','POST'])
 @login_required
@@ -334,10 +377,9 @@ def request_signature(token_address):
         abi = token_abi
     )
 
-    web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
+    eth_unlock_account()
 
     form = RequestSignatureForm()
-
     if request.method == 'POST':
         if form.validate():
 
@@ -384,7 +426,7 @@ def request_signature(token_address):
         return render_template('bond/request_signature.html', form=form)
 
 ####################################################
-# 債券公開
+# [債券]公開
 ####################################################
 @bond.route('/release', methods=['POST'])
 @login_required
@@ -396,11 +438,13 @@ def release():
     ListContract = Contract.get_contract(
         'TokenList', list_contract_address)
 
-    web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
+    eth_unlock_account()
 
     try:
-        gas = ListContract.estimateGas().register(token_address, 'IbetStraightBond')
-        register_txid = ListContract.functions.register(token_address, 'IbetStraightBond').\
+        gas = ListContract.estimateGas().\
+            register(token_address, 'IbetStraightBond')
+        register_txid = ListContract.functions.\
+            register(token_address, 'IbetStraightBond').\
             transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
     except ValueError:
         flash('既に公開されています。', 'error')
@@ -410,7 +454,7 @@ def release():
     return redirect(url_for('.list'))
 
 ####################################################
-# 債券償還
+# [債券]償還
 ####################################################
 @bond.route('/redeem', methods=['POST'])
 @login_required
@@ -418,7 +462,6 @@ def redeem():
     logger.info('bond.redeem')
 
     token_address = request.form.get('token_address')
-
     token = Token.query.filter(Token.token_address==token_address).first()
     token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
 
@@ -427,7 +470,7 @@ def redeem():
         abi = token_abi
     )
 
-    web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
+    eth_unlock_account()
 
     try:
         gas = TokenContract.estimateGas().redeem()
@@ -441,22 +484,20 @@ def redeem():
     return redirect(url_for('.setting', token_address=token_address))
 
 ####################################################
-# 債券新規発行
+# [債券]新規発行
 ####################################################
 @bond.route('/issue', methods=['GET', 'POST'])
 @login_required
 def issue():
     logger.info('bond.issue')
-    form = IssueTokenForm()
+    form = IssueForm()
     if request.method == 'POST':
         if form.validate():
             if not Web3.isAddress(form.tradableExchange.data):
                 flash('DEXアドレスは有効なアドレスではありません。','error')
                 return render_template('bond/issue.html', form=form)
 
-            web3.personal.unlockAccount(
-                to_checksum_address(Config.ETH_ACCOUNT),
-                Config.ETH_ACCOUNT_PASSWORD,1000)
+            eth_unlock_account()
 
             ####### トークン発行処理 #######
             interestPaymentDate = {
@@ -493,8 +534,7 @@ def issue():
             _, bytecode, bytecode_runtime = Contract.get_contract_info('IbetStraightBond')
             contract_address, abi, tx_hash = \
                 Contract.deploy_contract(
-                    'IbetStraightBond', arguments,
-                    to_checksum_address(Config.ETH_ACCOUNT))
+                    'IbetStraightBond', arguments, Config.ETH_ACCOUNT)
 
             token = Token()
             token.template_id = Config.TEMPLATE_ID_SB
@@ -515,7 +555,7 @@ def issue():
         return render_template('bond/issue.html', form=form)
 
 ####################################################
-# 保有債券一覧
+# [債券]保有一覧
 ####################################################
 @bond.route('/positions', methods=['GET'])
 @login_required
@@ -526,7 +566,7 @@ def positions():
     tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
 
     # Exchangeコントラクトに接続
-    token_exchange_address = to_checksum_address(Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS)
+    token_exchange_address = Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS
     ExchangeContract = Contract.get_contract(
         'IbetStraightBondExchange', token_exchange_address)
 
@@ -598,7 +638,7 @@ def positions():
     return render_template('bond/positions.html', position_list=position_list)
 
 ####################################################
-# 債券売出
+# [債券]売出
 ####################################################
 @bond.route('/sell/<string:token_address>', methods=['GET', 'POST'])
 @login_required
@@ -607,7 +647,8 @@ def sell(token_address):
     form = SellTokenForm()
 
     token = Token.query.filter(Token.token_address==token_address).first()
-    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+    token_abi = json.loads(token.abi.replace("'", '"').\
+        replace('True', 'true').replace('False', 'false'))
 
     TokenContract = web3.eth.contract(
         address= token.token_address,
@@ -619,11 +660,10 @@ def sell(token_address):
     totalSupply = TokenContract.functions.totalSupply().call()
     faceValue = TokenContract.functions.faceValue().call()
     interestRate = TokenContract.functions.interestRate().call() * 0.001
-
     interestPaymentDate_string = TokenContract.functions.interestPaymentDate().call()
     interestPaymentDate = json.loads(
-        interestPaymentDate_string.replace("'", '"').replace('True', 'true').replace('False', 'false'))
-
+        interestPaymentDate_string.replace("'", '"').\
+            replace('True', 'true').replace('False', 'false'))
     redemptionDate = TokenContract.functions.redemptionDate().call()
     redemptionAmount = TokenContract.functions.redemptionAmount().call()
     returnDate = TokenContract.functions.returnDate().call()
@@ -632,23 +672,23 @@ def sell(token_address):
     memo = TokenContract.functions.memo().call()
     tradableExchange = TokenContract.functions.tradableExchange().call()
 
-    owner = to_checksum_address(Config.ETH_ACCOUNT)
+    owner = Config.ETH_ACCOUNT
     balance = TokenContract.functions.balanceOf(owner).call()
 
     if request.method == 'POST':
         if form.validate():
             # PersonalInfo Contract
-            personalinfo_address = to_checksum_address(Config.PERSONAL_INFO_CONTRACT_ADDRESS)
+            personalinfo_address = Config.PERSONAL_INFO_CONTRACT_ADDRESS
             PersonalInfoContract = Contract.get_contract(
                 'PersonalInfo', personalinfo_address)
 
             # WhiteList Contract
-            whitelist_address = to_checksum_address(Config.WHITE_LIST_CONTRACT_ADDRESS)
+            whitelist_address = Config.WHITE_LIST_CONTRACT_ADDRESS
             WhiteListContract = Contract.get_contract(
                 'WhiteList', whitelist_address)
 
-            eth_account = to_checksum_address(Config.ETH_ACCOUNT)
-            agent_account = to_checksum_address(Config.AGENT_ADDRESS)
+            eth_account = Config.ETH_ACCOUNT
+            agent_account = Config.AGENT_ADDRESS
 
             if PersonalInfoContract.functions.isRegistered(eth_account,eth_account).call() == False:
                 flash('金融機関の情報が未登録です。', 'error')
@@ -657,37 +697,24 @@ def sell(token_address):
                 flash('金融機関の情報が未登録です。', 'error')
                 return redirect(url_for('.sell', token_address=token_address))
             else:
-                web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
-                token_exchange_address = to_checksum_address(Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS)
-                agent_address = to_checksum_address(Config.AGENT_ADDRESS)
+                eth_unlock_account()
+                token_exchange_address = Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS
+                agent_address = Config.AGENT_ADDRESS
 
                 deposit_gas = TokenContract.estimateGas().transfer(token_exchange_address, balance)
-                deposit_txid = TokenContract.functions.transfer(token_exchange_address, balance).\
-                    transact({'from':owner, 'gas':deposit_gas})
-
-                count = 0
-                deposit_tx_receipt = None
-                while True:
-                    try:
-                        deposit_tx_receipt = web3.eth.getTransactionReceipt(deposit_txid)
-                    except:
-                        time.sleep(1)
-                    count += 1
-                    if deposit_tx_receipt is not None or count > 30:
-                        break
+                TokenContract.functions.transfer(token_exchange_address, balance).\
+                    transact({'from':eth_account, 'gas':deposit_gas})
 
                 ExchangeContract = Contract.get_contract(
                     'IbetStraightBondExchange', token_exchange_address)
-
                 sell_gas = ExchangeContract.estimateGas().\
                     createOrder(token_address, balance, form.sellPrice.data, False, agent_address)
-                sell_txid = ExchangeContract.functions.\
+                ExchangeContract.functions.\
                     createOrder(token_address, balance, form.sellPrice.data, False, agent_address).\
-                    transact({'from':owner, 'gas':sell_gas})
+                    transact({'from':eth_account, 'gas':sell_gas})
 
                 flash('新規募集を受け付けました。募集開始までに数分程かかることがあります。', 'success')
                 return redirect(url_for('.positions'))
-
         else:
             flash_errors(form)
             return redirect(url_for('.sell', token_address=token_address))
@@ -718,7 +745,7 @@ def sell(token_address):
         )
 
 ####################################################
-# 債券売出停止
+# [債券]売出停止
 ####################################################
 @bond.route('/cancel_order/<int:order_id>', methods=['GET', 'POST'])
 @login_required
@@ -727,7 +754,7 @@ def cancel_order(order_id):
     form = CancelOrderForm()
 
     # Exchangeコントラクトに接続
-    token_exchange_address = to_checksum_address(Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS)
+    token_exchange_address = Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS
     ExchangeContract = Contract.get_contract(
         'IbetStraightBondExchange', token_exchange_address)
 
@@ -739,7 +766,8 @@ def cancel_order(order_id):
 
     # トークンのABIを取得する
     token = Token.query.filter(Token.token_address==token_address).first()
-    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+    token_abi = json.loads(token.abi.replace("'", '"').\
+        replace('True', 'true').replace('False', 'false'))
 
     # トークンコントラクトに接続する
     TokenContract = web3.eth.contract(
@@ -755,7 +783,7 @@ def cancel_order(order_id):
 
     if request.method == 'POST':
         if form.validate():
-            web3.personal.unlockAccount(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT_PASSWORD,1000)
+            eth_unlock_account()
             gas = ExchangeContract.estimateGas().cancelOrder(order_id)
             txid = ExchangeContract.functions.cancelOrder(order_id).\
                 transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
