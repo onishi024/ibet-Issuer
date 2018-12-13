@@ -45,7 +45,7 @@
             {% if position.on_sale != True %}
               <td align="center"><button type="button" class="btn btn-success" onclick="location.href= '{{ url_for("bond.sell", token_address=position.token_address) }}'">募集開始</button></td>
             {% else %}
-              <td align="center"><button type="button" class="btn btn-danger" onclick="location.href= '{{ url_for("bond.cancel_order", order_id=position.order_id) }}'">募集停止</button></td>
+              <td align="center"><button type="button" class="btn btn-danger" onclick="location.href= '{{ url_for("bond.cancel_order", token_address=position.token_address) }}'">募集停止</button></td>
             {% endif %}
           </tr>
     		{% endfor %}
