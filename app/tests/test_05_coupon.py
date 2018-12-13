@@ -316,7 +316,7 @@ class TestCoupon(TestBase):
         )
         assert response.status_code == 200
 
-        time.sleep(2)
+        time.sleep(5)
 
         response = client.get(self.url_holders + tokens[0].token_address)
         assert response.status_code == 200

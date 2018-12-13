@@ -4,54 +4,50 @@
   <!-- DataTables -->
   <link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
 {% endblock %}
-{% set active_page = "token_position" %}
+{% set active_page = "bond_list" %}
 
-{% block title %}債券募集管理 - {% endblock %}
-{% block page_header %}債券募集管理{% endblock %}
+{% block title %}債券保有者一覧 - {% endblock %}
+{% block page_header %}債券保有者一覧{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
     <li><a href="{{ url_for('index.index') }}">トップ</a></li>
-    <li class="active">債券募集管理</li>
+    <li><a href="{{ url_for('bond.list') }}">発行済債券一覧</a></li>
+    <li class="active">債券保有者一覧</li>
 {% endblock %}
 
 {% block page_content %}
 <section class="content">
   <div class="box box-default">
     <div class="box-header">
-      <h3 class="box-title">債券一覧</h3>
+      <h3 class="box-title">{{ token_name }}　<small>{{ token_address }}</small></h3>
     </div>
     <div class="box-body">
   	  <table id="data_table" class="table table-bordered table-hover">
     		<thead>
     		  <tr>
-            <th>名称</th>
-      			<th>略称</th>
-            <th>アドレス</th>
-      			<th style="width: 100px">総発行量</th>
-            <th style="width: 100px">残高</th>
-            <th style="width: 100px">募集中</th>
+            <th>アカウントアドレス</th>
+      			<th>氏名</th>
+            <th>保有数量</th>
+            <th>注文中数量</th>
             <th></th>
       		</tr>
     		</thead>
     		<tbody>
-    		{% for position in position_list %}
+    		{% for holder in holders %}
           <tr>
-            <td>{{ position.name }}</td>
-            <td>{{ position.symbol }}</td>
-            <td><small>{{ position.token_address }}</small></td>
-            <td>{{ position.totalSupply }}</td>
-            <td>{{ position.balance }}</td>
-            <td>{{ position.commitment }}</td>
-            {% if position.on_sale != True %}
-              <td align="center"><button type="button" class="btn btn-success" onclick="location.href= '{{ url_for("token.sell", token_address=position.token_address) }}'">募集開始</button></td>
-            {% else %}
-              <td align="center"><button type="button" class="btn btn-danger" onclick="location.href= '{{ url_for("token.cancel_order", order_id=position.order_id) }}'">募集停止</button></td>
-            {% endif %}
+            <td><small>{{ holder.account_address }}</small></td>
+            <td>{{ holder.name }}</td>
+            <td>{{ holder.balance }}</td>
+            <td>{{ holder.commitment }}</td>
+            <td><a href="{{ url_for('bond.holder', token_address=token_address, account_address=holder.account_address) }}">保有者情報詳細</a></td>
           </tr>
     		{% endfor %}
     		</tbody>
   	  </table>
   	</div>
+    <div class="box-footer">
+        <button type="button" class="btn btn-default" onclick="location.href='{{ url_for("bond.list") }}'">一覧に戻る</button>
+    </div>
   </div>
 </section>
 {% endblock %}

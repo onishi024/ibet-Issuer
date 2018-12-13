@@ -6,6 +6,7 @@ import logging
 import qrcode
 
 from web3 import Web3
+from eth_utils import to_checksum_address
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -38,10 +39,10 @@ class Config:
     }
 
     NAVI_MENU_USER = [
-        ('token', 'glyphicon glyphicon-list-alt', '債券発行管理', [
-            ('token_list', 'fa fa-list', '発行済債券一覧', 'token.list'),
-            ('token_issue', 'fa fa-plus-square-o', '債券新規発行', 'token.issue'),
-            ('token_position', 'fa fa-yen', '債券募集管理', 'token.positions'),
+        ('bond', 'glyphicon glyphicon-list-alt', '債券発行管理', [
+            ('bond_list', 'fa fa-list', '発行済債券一覧', 'bond.list'),
+            ('bond_issue', 'fa fa-plus-square-o', '債券新規発行', 'bond.issue'),
+            ('bond_position', 'fa fa-yen', '債券募集管理', 'bond.positions'),
         ]),
         ('membership', 'glyphicon glyphicon-list-alt', '会員権発行管理', [
             ('membership_list', 'fa fa-list', '会員権一覧', 'membership.list'),
@@ -86,30 +87,37 @@ class Config:
     WEB3_HTTP_PROVIDER = os.environ.get('WEB3_HTTP_PROVIDER') or 'http://localhost:8545'
 
     web3 = Web3(Web3.HTTPProvider(WEB3_HTTP_PROVIDER))
-    ETH_ACCOUNT = os.environ.get('ETH_ACCOUNT') or web3.eth.accounts[0]
+    ETH_ACCOUNT = to_checksum_address(os.environ.get('ETH_ACCOUNT')) or \
+        web3.eth.accounts[0]
     ETH_ACCOUNT_PASSWORD = os.environ.get('ETH_ACCOUNT_PASSWORD')
     img = qrcode.make(ETH_ACCOUNT)
     img.save('app/static/eth_address.png')
 
     # TokenList-Contract
-    TOKEN_LIST_CONTRACT_ADDRESS = os.environ.get('TOKEN_LIST_CONTRACT_ADDRESS')
+    TOKEN_LIST_CONTRACT_ADDRESS = \
+        to_checksum_address(os.environ.get('TOKEN_LIST_CONTRACT_ADDRESS'))
 
     # WhiteList-Contract
-    WHITE_LIST_CONTRACT_ADDRESS = os.environ.get('WHITE_LIST_CONTRACT_ADDRESS')
+    WHITE_LIST_CONTRACT_ADDRESS = \
+        to_checksum_address(os.environ.get('WHITE_LIST_CONTRACT_ADDRESS'))
 
     # PersonalInfo-Contract
-    PERSONAL_INFO_CONTRACT_ADDRESS = os.environ.get('PERSONAL_INFO_CONTRACT_ADDRESS')
+    PERSONAL_INFO_CONTRACT_ADDRESS = \
+        to_checksum_address(os.environ.get('PERSONAL_INFO_CONTRACT_ADDRESS'))
 
     # IbetStraightBondExchange-Contract
-    IBET_SB_EXCHANGE_CONTRACT_ADDRESS = os.environ.get('IBET_SB_EXCHANGE_CONTRACT_ADDRESS')
+    IBET_SB_EXCHANGE_CONTRACT_ADDRESS = \
+        to_checksum_address(os.environ.get('IBET_SB_EXCHANGE_CONTRACT_ADDRESS'))
 
     # IbetCouponExchange-Contract
-    IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS = os.environ.get('IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS')
+    IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS = \
+        to_checksum_address(os.environ.get('IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS'))
 
     # IbetMembershipExchange-Contract
-    IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS = os.environ.get('IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS')
+    IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS = \
+        to_checksum_address(os.environ.get('IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS'))
 
-    AGENT_ADDRESS = os.environ.get('AGENT_ADDRESS')
+    AGENT_ADDRESS = to_checksum_address(os.environ.get('AGENT_ADDRESS'))
 
     #RSA鍵ファイルのパスワード
     RSA_PASSWORD = os.environ.get('RSA_PASSWORD')

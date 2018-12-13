@@ -83,9 +83,9 @@ class TestMembership(TestBase):
         'expirationDate': '20191231',
         'memo': 'memo',
         'transferable': 'True',
-        'image_small': 'image_small',
-        'image_medium': 'image_medium',
-        'image_large': 'image_large',
+        'image_small': 'http://hoge.co.jp',
+        'image_medium': 'http://hoge.co.jp',
+        'image_large': 'http://hoge.co.jp',
     }
     # imageなし, transferable:False
     token_data2 = {
@@ -111,9 +111,9 @@ class TestMembership(TestBase):
         'expirationDate': '20211231',
         'memo': '3memo',
         'transferable': 'False',
-        'image_small': '3image_small',
-        'image_medium': '3image_medium',
-        'image_large': '3image_large'
+        'image_small': 'http://hoge.co.jp',
+        'image_medium': 'http://hoge.co.jp',
+        'image_large': 'http://hoge.co.jp'
     }
 
     # ＜正常系1_1＞
@@ -443,7 +443,7 @@ class TestMembership(TestBase):
         assert self.token_data3['image_medium'].encode('utf-8') in response.data
         assert self.token_data3['image_large'].encode('utf-8') in response.data
         assert self.token_data3['tradableExchange'].encode('utf-8') in response.data
-        # 公開中でないことを確認
+        # 公開済でないことを確認
         assert '公開 <i class="fa fa-arrow-circle-right">'.encode('utf-8') in response.data
 
     # ＜正常系5_3＞
@@ -468,7 +468,7 @@ class TestMembership(TestBase):
 
     # ＜正常系5_3＞
     # ＜設定画面＞
-    # 公開　→　公開中になること、tokenlistに存在すること
+    # 公開　→　公開済になること、tokenlistに存在すること
     def test_normal_5_3(self, app, shared_contract):
         client = self.client_with_admin_login(app)
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
@@ -497,7 +497,7 @@ class TestMembership(TestBase):
         assert self.token_data3['image_small'].encode('utf-8') in response.data
         assert self.token_data3['image_medium'].encode('utf-8') in response.data
         assert self.token_data3['image_large'].encode('utf-8') in response.data
-        assert '公開中'.encode('utf-8') in response.data
+        assert '公開済'.encode('utf-8') in response.data
 
         # tokenが登録されているか確認
         res_token = get_token_list(shared_contract['TokenList'], token.token_address)
@@ -534,9 +534,9 @@ class TestMembership(TestBase):
         assert self.token_data3['image_small'].encode('utf-8') in response.data
         assert self.token_data3['image_medium'].encode('utf-8') in response.data
         assert self.token_data3['image_large'].encode('utf-8') in response.data
-        assert '公開中'.encode('utf-8') in response.data
+        assert '公開済'.encode('utf-8') in response.data
         assert '取扱開始'.encode('utf-8') in response.data
- 
+
         # 一覧
         response = client.get(self.url_list)
         assert response.status_code == 200
@@ -573,7 +573,7 @@ class TestMembership(TestBase):
         assert self.token_data3['image_small'].encode('utf-8') in response.data
         assert self.token_data3['image_medium'].encode('utf-8') in response.data
         assert self.token_data3['image_large'].encode('utf-8') in response.data
-        assert '公開中'.encode('utf-8') in response.data
+        assert '公開済'.encode('utf-8') in response.data
         assert '取扱停止'.encode('utf-8') in response.data
 
     # ＜正常系5_6＞
@@ -595,7 +595,7 @@ class TestMembership(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(2)
+        time.sleep(5)
 
         url_setting = self.url_setting + token.token_address
         response = client.get(url_setting)
@@ -612,7 +612,7 @@ class TestMembership(TestBase):
         assert self.token_data3['image_small'].encode('utf-8') in response.data
         assert self.token_data3['image_medium'].encode('utf-8') in response.data
         assert self.token_data3['image_large'].encode('utf-8') in response.data
-        assert '公開中'.encode('utf-8') in response.data
+        assert '公開済'.encode('utf-8') in response.data
         assert '取扱停止'.encode('utf-8') in response.data
 
     # ＜正常系6_1＞
@@ -778,9 +778,5 @@ class TestMembership(TestBase):
                 'tradableExchange': self.dex_address_error
             }
         )
-        assert response.status_code == 302
-        time.sleep(2)
-
-        response = client.get(url_setting)
         assert response.status_code == 200
         assert 'DEXアドレスは有効なアドレスではありません。'.encode('utf-8') in response.data

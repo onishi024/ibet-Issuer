@@ -4,7 +4,7 @@
   <!-- DataTables -->
   <link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
 {% endblock %}
-{% set active_page = "token_list" %}
+{% set active_page = "bond_list" %}
 
 {% block title %}認定依頼 - {% endblock %}
 {% block page_header %}債券詳細設定（第三者認定依頼）{% endblock %}
@@ -21,7 +21,7 @@
         <div class="box-header with-border">
             <h3 class="box-title">第三者認定依頼　<small>{{ form.token_address.data }}</small></h3>
         </div>
-        <form class="form-horizontal" method="POST" role="form" action="{{ url_for('token.request_signature', token_address=form.token_address.data) }}">
+        <form class="form-horizontal" method="POST" role="form" action="{{ url_for('bond.request_signature', token_address=form.token_address.data) }}">
             {{ form.csrf_token }}
             {{ form.token_address }}
             <div class="box-body">
@@ -33,7 +33,7 @@
               </div>
             </div>
             <div class="box-footer">
-                <button type="button" class="btn btn-default" onclick="location.href='{{ url_for("token.setting", token_address=form.token_address.data) }}'">キャンセル</button>
+                <button type="button" class="btn btn-default" onclick="location.href='{{ url_for("bond.setting", token_address=form.token_address.data) }}'">キャンセル</button>
                 {{ form.submit(class="btn btn-success") }}
             </div>
         </form>
