@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 from flask import Blueprint
 
-token = Blueprint('token', __name__, url_prefix='/token')
+bond = Blueprint('bond', __name__, url_prefix='/bond')
 
 from . import views

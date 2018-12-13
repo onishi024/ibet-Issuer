@@ -37,7 +37,7 @@
   		{% for token in tokens %}
         <tr>
           {% if token.token_address != None %}
-            <td><a href="{{ url_for('token.setting', token_address=token.token_address) }}">{{ token.name }}</a></td>
+            <td><a href="{{ url_for('bond.setting', token_address=token.token_address) }}">{{ token.name }}</a></td>
           {% else %}
             <td>{{ token.name }}</td>
           {% endif %}
@@ -57,7 +57,7 @@
             <td align="center">--</td>
           {% endif %}
           {% if token.token_address != None %}
-            <td align="center"><a href="{{ url_for('token.holders', token_address=token.token_address) }}">保有者一覧</a></td>
+            <td align="center"><a href="{{ url_for('bond.holders', token_address=token.token_address) }}">保有者一覧</a></td>
           {% else %}
             <td></td>
           {% endif %}

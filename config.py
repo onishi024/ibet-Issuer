@@ -39,10 +39,10 @@ class Config:
     }
 
     NAVI_MENU_USER = [
-        ('token', 'glyphicon glyphicon-list-alt', '債券発行管理', [
-            ('token_list', 'fa fa-list', '発行済債券一覧', 'token.list'),
-            ('token_issue', 'fa fa-plus-square-o', '債券新規発行', 'token.issue'),
-            ('token_position', 'fa fa-yen', '債券募集管理', 'token.positions'),
+        ('bond', 'glyphicon glyphicon-list-alt', '債券発行管理', [
+            ('bond_list', 'fa fa-list', '発行済債券一覧', 'bond.list'),
+            ('bond_issue', 'fa fa-plus-square-o', '債券新規発行', 'bond.issue'),
+            ('bond_position', 'fa fa-yen', '債券募集管理', 'bond.positions'),
         ]),
         ('membership', 'glyphicon glyphicon-list-alt', '会員権発行管理', [
             ('membership_list', 'fa fa-list', '会員権一覧', 'membership.list'),

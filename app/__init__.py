@@ -39,7 +39,7 @@ def create_app(config_name):
     from .account import account as account_blueprint
     app.register_blueprint(account_blueprint)
 
-    from .token import token as token_blueprint
+    from .bond import bond as token_blueprint
     app.register_blueprint(token_blueprint)
 
     from .coupon import coupon as coupon_blueprint

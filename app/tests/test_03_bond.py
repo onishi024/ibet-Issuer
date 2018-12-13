@@ -56,17 +56,17 @@ class TestToken(TestBase):
     # DEXアドレス
     dex_address_error = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
     # URL
-    url_tokenlist = '/token/tokenlist' # 発行済債券一覧
-    url_positions = '/token/positions' # 債券募集管理
-    url_issue = '/token/issue' # 債券新規発行
-    url_setting = '/token/setting/' # 設定画面
-    url_sell = 'token/sell/' # 募集画面
-    url_cancel_order = 'token/cancel_order/' # 募集停止
-    url_release = 'token/release' # リリース
-    url_holders = 'token/holders/' # 債券保有者一覧
-    url_holder = 'token/holder/' # 債券保有者詳細
-    url_signature = 'token/request_signature/' # 認定依頼
-    url_redeem = 'token/redeem' # 償還
+    url_list = '/bond/list' # 発行済債券一覧
+    url_positions = '/bond/positions' # 債券募集管理
+    url_issue = '/bond/issue' # 債券新規発行
+    url_setting = '/bond/setting/' # 設定画面
+    url_sell = 'bond/sell/' # 募集画面
+    url_cancel_order = 'bond/cancel_order/' # 募集停止
+    url_release = 'bond/release' # リリース
+    url_holders = 'bond/holders/' # 債券保有者一覧
+    url_holder = 'bond/holder/' # 債券保有者詳細
+    url_signature = 'bond/request_signature/' # 認定依頼
+    url_redeem = 'bond/redeem' # 償還
 
     # ＜正常系1＞
     # 発行済債券一覧の参照(0件)
@@ -82,7 +82,7 @@ class TestToken(TestBase):
 
         # 発行済債券一覧
         client = self.client_with_admin_login(app)
-        response = client.get(self.url_tokenlist)
+        response = client.get(self.url_list)
         assert response.status_code == 200
         assert '<title>発行済債券一覧'.encode('utf-8') in response.data
         assert 'データが存在しません'.encode('utf-8') in response.data
@@ -172,7 +172,7 @@ class TestToken(TestBase):
     # 発行済債券一覧の参照(1件)
     def test_normal_4(self, app, shared_contract):
         client = self.client_with_admin_login(app)
-        response = client.get(self.url_tokenlist)
+        response = client.get(self.url_list)
         assert response.status_code == 200
         assert '<title>発行済債券一覧'.encode('utf-8') in response.data
         assert 'テスト債券'.encode('utf-8') in response.data
@@ -474,7 +474,7 @@ class TestToken(TestBase):
 
         # 発行済債券一覧
         client = self.client_with_admin_login(app)
-        response = client.get(self.url_tokenlist)
+        response = client.get(self.url_list)
         assert response.status_code == 200
         assert '<title>発行済債券一覧'.encode('utf-8') in response.data
         assert 'テスト債券'.encode('utf-8') in response.data
