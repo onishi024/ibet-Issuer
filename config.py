@@ -88,7 +88,7 @@ class Config:
 
     web3 = Web3(Web3.HTTPProvider(WEB3_HTTP_PROVIDER))
 
-    if os.environ.get('ETH_ACCOUNT') != None:
+    if os.environ.get('ETH_ACCOUNT') is not None:
         ETH_ACCOUNT = to_checksum_address(os.environ.get('ETH_ACCOUNT'))
     else:
         ETH_ACCOUNT = web3.eth.accounts[0]
@@ -99,30 +99,44 @@ class Config:
     img.save('app/static/eth_address.png')
 
     # TokenList-Contract
-    TOKEN_LIST_CONTRACT_ADDRESS = \
-        to_checksum_address(os.environ.get('TOKEN_LIST_CONTRACT_ADDRESS'))
+    TOKEN_LIST_CONTRACT_ADDRESS = ''
+    if os.environ.get('TOKEN_LIST_CONTRACT_ADDRESS') is not None:
+        TOKEN_LIST_CONTRACT_ADDRESS = \
+            to_checksum_address(os.environ.get('TOKEN_LIST_CONTRACT_ADDRESS'))
 
     # WhiteList-Contract
-    WHITE_LIST_CONTRACT_ADDRESS = \
-        to_checksum_address(os.environ.get('WHITE_LIST_CONTRACT_ADDRESS'))
+    WHITE_LIST_CONTRACT_ADDRESS = ''
+    if os.environ.get('WHITE_LIST_CONTRACT_ADDRESS') is not None:
+        WHITE_LIST_CONTRACT_ADDRESS = \
+            to_checksum_address(os.environ.get('WHITE_LIST_CONTRACT_ADDRESS'))
 
     # PersonalInfo-Contract
-    PERSONAL_INFO_CONTRACT_ADDRESS = \
-        to_checksum_address(os.environ.get('PERSONAL_INFO_CONTRACT_ADDRESS'))
+    PERSONAL_INFO_CONTRACT_ADDRESS = ''
+    if os.environ.get('PERSONAL_INFO_CONTRACT_ADDRESS') is not None:
+        PERSONAL_INFO_CONTRACT_ADDRESS = \
+            to_checksum_address(os.environ.get('PERSONAL_INFO_CONTRACT_ADDRESS'))
 
     # IbetStraightBondExchange-Contract
-    IBET_SB_EXCHANGE_CONTRACT_ADDRESS = \
-        to_checksum_address(os.environ.get('IBET_SB_EXCHANGE_CONTRACT_ADDRESS'))
+    IBET_SB_EXCHANGE_CONTRACT_ADDRESS = ''
+    if os.environ.get('IBET_SB_EXCHANGE_CONTRACT_ADDRESS') is not None:
+        IBET_SB_EXCHANGE_CONTRACT_ADDRESS = \
+            to_checksum_address(os.environ.get('IBET_SB_EXCHANGE_CONTRACT_ADDRESS'))
 
     # IbetCouponExchange-Contract
-    IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS = \
-        to_checksum_address(os.environ.get('IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS'))
+    IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS = ''
+    if os.environ.get('IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS') is not None:
+        IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS = \
+            to_checksum_address(os.environ.get('IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS'))
 
     # IbetMembershipExchange-Contract
-    IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS = \
-        to_checksum_address(os.environ.get('IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS'))
+    IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS = ''
+    if os.environ.get('IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS') is not None:
+        IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS = \
+            to_checksum_address(os.environ.get('IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS'))
 
-    AGENT_ADDRESS = to_checksum_address(os.environ.get('AGENT_ADDRESS'))
+    AGENT_ADDRESS = ''
+    if os.environ.get('AGENT_ADDRESS') is not None:
+        AGENT_ADDRESS = to_checksum_address(os.environ.get('AGENT_ADDRESS'))
 
     #RSA鍵ファイルのパスワード
     RSA_PASSWORD = os.environ.get('RSA_PASSWORD')
