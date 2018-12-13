@@ -108,7 +108,7 @@ class TestToken(TestBase):
                 'symbol': 'BOND',
                 'totalSupply': 1000000,
                 'faceValue': 1000,
-                'interestRate': 1000,
+                'interestRate': 100,
                 'interestPaymentDate1': '0101',
                 'interestPaymentDate2': '0201',
                 'interestPaymentDate3': '0301',
@@ -514,7 +514,7 @@ class TestToken(TestBase):
                 'symbol': 'BOND',
                 'totalSupply': 1000000,
                 'faceValue': 1000,
-                'interestRate': 1000,
+                'interestRate': 100,
                 'interestPaymentDate1': '0101',
                 'interestPaymentDate2': '0201',
                 'interestPaymentDate3': '0301',
@@ -553,9 +553,6 @@ class TestToken(TestBase):
                 'tradableExchange': self.dex_address_error
             }
         )
-        assert response.status_code == 302
-
-        response = client.get(url_setting)
         assert response.status_code == 200
         assert '<title>債券詳細設定'.encode('utf-8') in response.data
         assert 'DEXアドレスは有効なアドレスではありません。'.encode('utf-8') in response.data
