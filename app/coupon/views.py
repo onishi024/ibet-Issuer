@@ -12,9 +12,8 @@ from Crypto.Cipher import PKCS1_OAEP
 from flask import Flask, request, redirect, url_for, flash, session
 from flask_restful import Resource, Api
 from flask import render_template
-from flask import jsonify, abort
+from flask import abort
 from flask_login import login_required, current_user
-from flask import Markup, jsonify
 from flask import current_app
 
 from web3 import Web3
@@ -149,6 +148,9 @@ def get_usege_history_coupon(token_address):
     # Coupon Token Contract
     # Note: token_addressに対して、Couponトークンのものであるかはチェックしていない。
     token = Token.query.filter(Token.token_address==token_address).first()
+    if token is None:
+        abort(404)
+
     token_abi = json.loads(token.abi.replace("'", '"').\
         replace('True', 'true').replace('False', 'false'))
     CouponContract = web3.eth.contract(
@@ -338,6 +340,9 @@ def add_supply(token_address):
     logger.info('coupon/add_supply')
 
     token = Token.query.filter(Token.token_address==token_address).first()
+    if token is None:
+        abort(404)
+
     token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
     TokenContract = web3.eth.contract(
         address= token.token_address,
@@ -381,6 +386,9 @@ def add_supply(token_address):
 def setting(token_address):
     logger.info('coupon/setting')
     token = Token.query.filter(Token.token_address==token_address).first()
+    if token is None:
+        abort(404)
+
     token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
 
     TokenContract = web3.eth.contract(
@@ -600,6 +608,9 @@ def sell(token_address):
     form = SellForm()
 
     token = Token.query.filter(Token.token_address==token_address).first()
+    if token is None:
+        abort(404)
+
     token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
 
     TokenContract = web3.eth.contract(

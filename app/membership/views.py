@@ -222,6 +222,9 @@ def holder(token_address, account_address):
 def setting(token_address):
     logger.info('membership.setting')
     token = Token.query.filter(Token.token_address==token_address).first()
+    if token is None:
+        abort(404)
+
     token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
 
     TokenContract = web3.eth.contract(
@@ -559,6 +562,9 @@ def sell(token_address):
     form = SellForm()
 
     token = Token.query.filter(Token.token_address==token_address).first()
+    if token is None:
+        abort(404)
+
     token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
 
     TokenContract = web3.eth.contract(
@@ -692,6 +698,9 @@ def add_supply(token_address):
     logger.info('membership/add_supply')
 
     token = Token.query.filter(Token.token_address==token_address).first()
+    if token is None:
+        abort(404)
+        
     token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
     TokenContract = web3.eth.contract(
         address= token.token_address,
