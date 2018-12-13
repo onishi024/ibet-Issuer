@@ -87,9 +87,14 @@ class Config:
     WEB3_HTTP_PROVIDER = os.environ.get('WEB3_HTTP_PROVIDER') or 'http://localhost:8545'
 
     web3 = Web3(Web3.HTTPProvider(WEB3_HTTP_PROVIDER))
-    ETH_ACCOUNT = to_checksum_address(os.environ.get('ETH_ACCOUNT')) or \
-        web3.eth.accounts[0]
+
+    if os.environ.get('ETH_ACCOUNT') != None:
+        ETH_ACCOUNT = to_checksum_address(os.environ.get('ETH_ACCOUNT'))
+    else:
+        ETH_ACCOUNT = web3.eth.accounts[0]
+
     ETH_ACCOUNT_PASSWORD = os.environ.get('ETH_ACCOUNT_PASSWORD')
+
     img = qrcode.make(ETH_ACCOUNT)
     img.save('app/static/eth_address.png')
 
