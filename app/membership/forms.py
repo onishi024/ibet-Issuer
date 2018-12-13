@@ -51,7 +51,7 @@ class IssueForm(Form):
         "有効期限",
         validators = [
             Optional(),
-            Regexp('^[0-9]+$', message='有効期限はYYYMMDDで入力してください。'),
+            Regexp('^[0-9]+$', message='有効期限はYYYYMMDDで入力してください。'),
         ]
     )
 
@@ -129,7 +129,7 @@ class SettingForm(Form):
         "有効期限",
         validators = [
             Optional(),
-            Regexp('^[0-9]+$', message='有効期限はYYYMMDDで入力してください。'),
+            Regexp('^[0-9]+$', message='有効期限はYYYYMMDDで入力してください。'),
         ]
     )
 
