@@ -551,29 +551,6 @@ def positions():
             commitment = ExchangeContract.functions.\
                 commitments(owner, row.token_address).call()
 
-            # 新規注文（NewOrder）のイベント情報を検索する
-            event_filter = ExchangeContract.eventFilter(
-                'NewOrder', {
-                    'filter':{
-                        'tokenAddress':row.token_address,
-                        'accountAddress':owner
-                    },
-                    'fromBlock':'earliest'
-                }
-            )
-
-            order_id = 0
-            try:
-                entries = event_filter.get_all_entries()
-                # キャンセル済みではない注文の注文IDを取得する
-                for entry in entries:
-                    order_id_tmp = dict(entry['args'])['orderId']
-                    canceled = ExchangeContract.functions.orderBook(order_id_tmp).call()[6]
-                    if canceled == False:
-                        order_id = order_id_tmp
-            except:
-                continue
-
             # 拘束数量がゼロよりも大きい場合、募集中のステータスを返す
             on_sale = False
             if balance == 0:
@@ -593,7 +570,6 @@ def positions():
                     'created':row.created,
                     'commitment':commitment,
                     'on_sale':on_sale,
-                    'order_id':order_id,
                 })
 
     return render_template('coupon/positions.html', position_list=position_list)
@@ -680,16 +656,41 @@ def sell(token_address):
 ####################################################
 # [クーポン]売出停止
 ####################################################
-@coupon.route('/cancel_order/<int:order_id>', methods=['GET', 'POST'])
+@coupon.route('/cancel_order/<string:token_address>', methods=['GET', 'POST'])
 @login_required
-def cancel_order(order_id):
+def cancel_order(token_address):
     logger.info('coupon/cancel_order')
     form = CancelOrderForm()
 
+    # トークンのABIを取得する
+    token = Token.query.filter(Token.token_address==token_address).first()
+    if token is None:
+        abort(404)
+    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+
     # Exchangeコントラクトに接続
     token_exchange_address = Config.IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS
-    ExchangeContract = Contract.get_contract(
-        'IbetCouponExchange', token_exchange_address)
+    ExchangeContract = Contract.\
+        get_contract('IbetCouponExchange', token_exchange_address)
+
+    # 新規注文（NewOrder）のイベント情報を検索する
+    event_filter = ExchangeContract.eventFilter(
+        'NewOrder', {
+            'filter':{
+                'tokenAddress':token_address,
+                'accountAddress':Config.ETH_ACCOUNT
+            },
+            'fromBlock':'earliest'
+        }
+    )
+
+    entries = event_filter.get_all_entries()
+    # キャンセル済みではない注文の注文IDを取得する
+    for entry in entries:
+        order_id_tmp = dict(entry['args'])['orderId']
+        canceled = ExchangeContract.functions.orderBook(order_id_tmp).call()[6]
+        if canceled == False:
+            order_id = order_id_tmp
 
     if request.method == 'POST':
         if form.validate():
@@ -710,17 +711,11 @@ def cancel_order(order_id):
         amount = orderBook[2]
         price = orderBook[3]
 
-        # トークンのABIを取得する
-        token = Token.query.filter(Token.token_address==token_address).first()
-        token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
-
-        # トークンコントラクトに接続する
+        # トークンの商品名、略称、総発行量を取得する
         TokenContract = web3.eth.contract(
             address= to_checksum_address(token_address),
             abi = token_abi
         )
-
-        # トークンの商品名、略称、総発行量を取得する
         name = TokenContract.functions.name().call()
         symbol = TokenContract.functions.symbol().call()
         totalSupply = TokenContract.functions.totalSupply().call()
