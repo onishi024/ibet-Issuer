@@ -4,6 +4,8 @@ from base64 import b64encode
 from datetime import datetime, timezone, timedelta
 JST = timezone(timedelta(hours=+9), 'JST')
 
+from flask import abort
+
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 
@@ -27,6 +29,9 @@ def eth_unlock_account():
 # トークン保有者のPersonalInfoを返す
 ####################################################
 def get_holder(token_address, account_address):
+    if not Web3.isAddress(account_address):
+        abort(404)
+
     cipher = None
     try:
         key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
@@ -36,6 +41,9 @@ def get_holder(token_address, account_address):
 
     # Token Contract
     token = Token.query.filter(Token.token_address==token_address).first()
+    if token is None:
+        abort(404)
+
     token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
     TokenContract = web3.eth.contract(
         address= token_address,
