@@ -9,6 +9,8 @@ from wtforms import ValidationError
 from sqlalchemy import or_, and_
 
 class IssueCouponForm(Form):
+    yyyymmdd_regexp = '^(19[0-9]{2}|20[0-9]{2})(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])$'
+
     name = StringField(
         "クーポン名",
         validators = [
@@ -38,7 +40,7 @@ class IssueCouponForm(Form):
         "有効期限",
         validators = [
             Optional(),
-            Regexp('^[0-9]+$', message='有効期限はYYYYMMDDで入力してください。'),
+            Regexp(yyyymmdd_regexp, message='有効期限はYYYYMMDDで入力してください。'),
         ]
     )
 

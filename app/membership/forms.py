@@ -8,6 +8,8 @@ from wtforms.validators import Required, URL, Optional, Length, Regexp, \
 from wtforms import ValidationError
 
 class IssueForm(Form):
+    yyyymmdd_regexp = '^(19[0-9]{2}|20[0-9]{2})(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])$'
+
     name = StringField(
         "名称",
         validators = [
@@ -51,7 +53,7 @@ class IssueForm(Form):
         "有効期限",
         validators = [
             Optional(),
-            Regexp('^[0-9]+$', message='有効期限はYYYYMMDDで入力してください。'),
+            Regexp(yyyymmdd_regexp, message='有効期限はYYYYMMDDで入力してください。'),
         ]
     )
 
@@ -107,6 +109,8 @@ class IssueForm(Form):
 
 
 class SettingForm(Form):
+    yyyymmdd_regexp = '^(19[0-9]{2}|20[0-9]{2})(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])$'
+    
     token_address = StringField("トークンアドレス", validators=[])
     name = StringField("名称", validators=[])
     symbol = StringField("略称", validators=[])
@@ -129,7 +133,7 @@ class SettingForm(Form):
         "有効期限",
         validators = [
             Optional(),
-            Regexp('^[0-9]+$', message='有効期限はYYYYMMDDで入力してください。'),
+            Regexp(yyyymmdd_regexp, message='有効期限はYYYYMMDDで入力してください。'),
         ]
     )
 
