@@ -622,10 +622,10 @@ def sell(token_address):
 
             sell_gas = ExchangeContract.estimateGas().\
                 createOrder(token_address, balance, form.sellPrice.data, False, agent_address)
-            ExchangeContract.functions.\
+            txid = ExchangeContract.functions.\
                 createOrder(token_address, balance, form.sellPrice.data, False, agent_address).\
                 transact({'from':owner, 'gas':sell_gas})
-
+            wait_transaction_receipt(txid)
             flash('新規募集を受け付けました。募集開始までに数分程かかることがあります。', 'success')
             return redirect(url_for('.positions'))
         else:
@@ -696,8 +696,9 @@ def cancel_order(token_address):
         if form.validate():
             eth_unlock_account()
             gas = ExchangeContract.estimateGas().cancelOrder(order_id)
-            ExchangeContract.functions.cancelOrder(order_id).\
+            txid = ExchangeContract.functions.cancelOrder(order_id).\
                 transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
+            wait_transaction_receipt(txid)
             flash('募集停止処理を受け付けました。停止されるまでに数分程かかることがあります。', 'success')
             return redirect(url_for('.positions'))
         else:

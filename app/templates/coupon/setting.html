@@ -123,7 +123,7 @@
             </div>
             <div class="box-footer">
                 <button type="button" class="btn btn-default" onclick="location.href= '{{ url_for("coupon.list") }}'">キャンセル</button>
-                {{ form.submit(class="btn btn-success") }}
+                <button type="submit" class="btn btn-success" id="load" data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中">設定変更</button>
             </div>
         </form>
     </div>
@@ -176,6 +176,15 @@
               return false;
           }
       });
+  });
+</script>
+<script type="text/javascript">
+  $('#load.btn').on('click', function() {
+    var $this = $(this);
+    $this.button('loading');
+    setTimeout(function() {
+      $this.button('reset');
+    }, 8000);
   });
 </script>
 {% endblock %}

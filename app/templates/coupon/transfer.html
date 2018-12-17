@@ -42,7 +42,7 @@
                 </div>
             </div>
             <div class="box-footer">
-                {{ form.submit(class="btn btn-success") }}
+                <button type="submit" class="btn btn-success" id="load" data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中">割当</button>
             </div>
         </form>
     </div>
@@ -51,4 +51,13 @@
 
 {% block required_js %}
 {{ super() }}
+<script type="text/javascript">
+  $('#load.btn').on('click', function() {
+    var $this = $(this);
+    $this.button('loading');
+    setTimeout(function() {
+      $this.button('reset');
+    }, 8000);
+  });
+</script>
 {% endblock %}
