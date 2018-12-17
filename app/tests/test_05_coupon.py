@@ -264,7 +264,7 @@ class TestCoupon(TestBase):
         assert '有効'.encode('utf-8') in response.data
 
     # ＜正常系6＞
-    # 追加発効
+    # 追加発行
     def test_normal_6(self, app, shared_contract):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
         url_add_supply = self.url_add_supply + tokens[0].token_address
@@ -388,9 +388,6 @@ class TestCoupon(TestBase):
         )
         assert response.status_code == 302
 
-        # 待機（募集には時間がかかる）
-        time.sleep(5)
-
         # 募集管理
         response = client.get(self.url_positions)
 
@@ -415,9 +412,6 @@ class TestCoupon(TestBase):
             self.url_cancel_order + token.token_address,
         )
         assert response.status_code == 302
-
-        # 待機
-        time.sleep(5)
 
         # 募集管理
         response = client.get(self.url_positions)

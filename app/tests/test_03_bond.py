@@ -269,9 +269,6 @@ class TestToken(TestBase):
         )
         assert response.status_code == 302
 
-        # 待機（募集には時間がかかる）
-        time.sleep(5)
-
         # 債券募集管理
         response = client.get(self.url_positions)
         assert response.status_code == 200
@@ -290,9 +287,6 @@ class TestToken(TestBase):
             self.url_cancel_order + token.token_address,
         )
         assert response.status_code == 302
-
-        # 待機
-        time.sleep(2)
 
         # 債券募集管理
         response = client.get(self.url_positions)
