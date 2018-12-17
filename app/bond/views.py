@@ -45,6 +45,27 @@ def flash_errors(form):
         for error in errors:
             flash(error, 'error')
 
+# トランザクションがブロックに取り込まれるまで待つ
+# 10秒以上経過した場合は失敗とみなす（Falseを返す）
+def wait_transaction_receipt(tx_hash):
+    count = 0
+    tx = None
+
+    while True:
+        time.sleep(0.1)
+        try:
+            tx = web3.eth.getTransactionReceipt(tx_hash)
+        except:
+            continue
+
+        count += 1
+        if tx is not None:
+            break
+        elif count > 120:
+            raise Exception
+
+    return tx
+
 # 債券トークンの保有者一覧、token_nameを返す
 def get_holders_bond(token_address):
     cipher = None
