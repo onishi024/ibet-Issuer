@@ -48,7 +48,7 @@ def test(v_opt, s_opt, x_opt, module, cov, pdb):
     if cov:
         pytest_args.append("--cov")
         pytest_args.append("--cov-report=xml")
-        pytest_args.append("--branch")
+        pytest_args.append("--cov-branch")
     if pdb:
         pytest_args.append("--pdb")
     if module is None:
