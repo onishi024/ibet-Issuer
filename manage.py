@@ -47,7 +47,7 @@ def test(v_opt, s_opt, x_opt, module, cov, pdb):
         pytest_args.append("-x")
     if cov:
         pytest_args.append("--cov")
-        pytest_args.append("--cov-report=html")
+        pytest_args.append("--cov-report=xml")
     if pdb:
         pytest_args.append("--pdb")
     if module is None:
