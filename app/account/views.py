@@ -4,26 +4,26 @@ import datetime
 import json
 import base64
 import requests
+from Crypto.Cipher import PKCS1_OAEP
+from Crypto.PublicKey import RSA
+
 from flask import Flask, request, redirect, url_for, flash, session
 from flask_restful import Resource, Api
 from flask import render_template
 from flask import jsonify, abort
 from flask_login import login_required, current_user
 from flask import Markup, jsonify
-from ..decorators import admin_required
-from config import Config
-
+from flask import current_app
 from sqlalchemy import desc
 
 from . import account
 from .. import db
 from ..models import Role, User
 from .forms import *
-from flask import current_app
-from cryptography.fernet import Fernet
-
-from logging import getLogger
-logger = getLogger('api')
+from ..util import *
+from ..decorators import admin_required
+from config import Config
+from app.contracts import Contract
 
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
@@ -31,9 +31,8 @@ web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
 web3.middleware_stack.inject(geth_poa_middleware, layer=0)
 from eth_utils import to_checksum_address
 
-from Crypto.Cipher import PKCS1_OAEP
-from Crypto.PublicKey import RSA
-from app.contracts import Contract
+from logging import getLogger
+logger = getLogger('api')
 
 #+++++++++++++++++++++++++++++++
 # Utils
@@ -181,98 +180,23 @@ def permissionDenied():
     return render_template('permissiondenied.html')
 
 #################################################
-# 銀行情報の登録
+# 銀行口座情報の登録
 #################################################
 @account.route('/bankinfo', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def bankinfo():
     logger.info('account/bankinfo')
-
-    personalinfo_address = to_checksum_address(Config.PERSONAL_INFO_CONTRACT_ADDRESS)
-    PersonalInfoContract = Contract.get_contract(
-        'PersonalInfo', personalinfo_address)
-
     form = BankInfoForm()
     if request.method == 'POST':
         if form.validate():
-            # unlock
-            web3.personal.unlockAccount(Config.ETH_ACCOUNT, Config.ETH_ACCOUNT_PASSWORD, 1000)
+            eth_unlock_account()
+            # PersonalInfoコントラクトに情報登録
+            personalinfo_regist(form)
+            # WhiteListコントラクトに情報登録
+            whitelist_regist(form)
 
-            # public key（発行体）
-            key = RSA.importKey(open('data/rsa/public.pem').read())
-            cipher = PKCS1_OAEP.new(key)
-
-            # address
-            agent_address = to_checksum_address(Config.AGENT_ADDRESS)
-
-            # personInfo暗号文字列
-            personal_info_json = {
-                "name": form.name.data,
-                "address":{
-                    "postal_code":"",
-                    "prefecture":"",
-                    "city":"",
-                    "address1":"",
-                    "address2":""
-                },
-                "bank_account":{
-                    "bank_name": form.bank_name.data,
-                    "bank_code": form.bank_code.data,
-                    "branch_office": form.branch_name.data,
-                    "branch_code": form.branch_code.data,
-                    "account_type": int(form.account_type.data),
-                    "account_number": form.account_number.data,
-                    "account_holder": form.account_holder.data
-                }
-            }
-            personal_info_message_string = json.dumps(personal_info_json)
-            personal_info_ciphertext = base64.encodestring(cipher.encrypt(personal_info_message_string.encode('utf-8')))
-
-            # personInfo register
-            p_gas = PersonalInfoContract.estimateGas().register(Config.ETH_ACCOUNT, personal_info_ciphertext)
-            p_txid = PersonalInfoContract.functions.register(Config.ETH_ACCOUNT, personal_info_ciphertext).\
-                transact({'from':Config.ETH_ACCOUNT, 'gas':p_gas})
-
-            # public key
-            company_list = []
-            isExist = False
-            try:
-                company_list = requests.get(Config.PAYMENT_AGENT_LIST_URL).json()
-            except:
-                pass
-            for company_info in company_list:
-                if to_checksum_address(company_info['address']) == agent_address:
-                    isExist = True
-                    key_bank = RSA.importKey(company_info['rsa_publickey'].replace('\\n',''))
-            if isExist == False:
-                flash('決済代行業者の情報を取得できません。アプリケーション起動時の決済代行業者のアドレスが正しいか確認してください。', 'error')
-                return render_template('account/bankinfo.html', form=form)
-            cipher = PKCS1_OAEP.new(key_bank)
-
-            # whitelist暗号文字列
-            whitelist_json = {
-                "name": form.name.data,
-                "bank_account":{
-                    "bank_name": form.bank_name.data,
-                    "bank_code": form.bank_code.data,
-                    "branch_office": form.branch_name.data,
-                    "branch_code": form.branch_code.data,
-                    "account_type": int(form.account_type.data),
-                    "account_number": form.account_number.data,
-                    "account_holder": form.account_holder.data
-                }
-            }
-            whitelist_message_string = json.dumps(whitelist_json)
-            whitelist_ciphertext = base64.encodestring(cipher.encrypt(whitelist_message_string.encode('utf-8')))
-
-            # WhiteList Contract
-            whitelist_address = to_checksum_address(Config.WHITE_LIST_CONTRACT_ADDRESS)
-            WhiteListContract = Contract.get_contract('WhiteList', whitelist_address)
-            w_gas = WhiteListContract.estimateGas().register(agent_address, whitelist_ciphertext)
-            w_txid = WhiteListContract.functions.register(agent_address, whitelist_ciphertext).\
-                transact({'from':Config.ETH_ACCOUNT, 'gas':w_gas})
-            flash('登録完了しました。', 'success')
+            flash('登録処理を受付ました。登録完了まで数分かかることがあります。', 'success')
             return render_template('account/bankinfo.html', form=form)
         else:
             flash_errors(form)
@@ -287,10 +211,17 @@ def bankinfo():
         form.account_number.data = ''
         form.account_holder.data = ''
 
+        PersonalInfoContract = Contract.get_contract(
+            'PersonalInfo',
+            to_checksum_address(Config.PERSONAL_INFO_CONTRACT_ADDRESS)
+        )
+
+        # PersonalInfoコントラクトへの登録状態を取得
         isRegistered = PersonalInfoContract.functions.\
             isRegistered(Config.ETH_ACCOUNT, Config.ETH_ACCOUNT).call()
 
         if isRegistered:
+            # 登録済みの場合は登録されている情報を取得
             personal_info = PersonalInfoContract.functions.\
                 personal_info(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT).call()
             try:
@@ -312,6 +243,100 @@ def bankinfo():
                 pass
 
         return render_template('account/bankinfo.html', form=form)
+
+def personalinfo_regist(form):
+    # ローカルに保存されている発行体のRSA公開鍵を取得
+    key = RSA.importKey(open('data/rsa/public.pem').read())
+    cipher = PKCS1_OAEP.new(key)
+
+    personal_info_json = {
+        "name": form.name.data,
+        "address":{
+            "postal_code":"",
+            "prefecture":"",
+            "city":"",
+            "address1":"",
+            "address2":""
+        },
+        "bank_account":{
+            "bank_name": form.bank_name.data,
+            "bank_code": form.bank_code.data,
+            "branch_office": form.branch_name.data,
+            "branch_code": form.branch_code.data,
+            "account_type": int(form.account_type.data),
+            "account_number": form.account_number.data,
+            "account_holder": form.account_holder.data
+        }
+    }
+
+    # 銀行口座情報の暗号化
+    personal_info_ciphertext = \
+        base64.encodestring(
+            cipher.encrypt(json.dumps(personal_info_json).encode('utf-8')))
+
+    # PersonalInfo登録
+    PersonalInfoContract = Contract.get_contract(
+        'PersonalInfo',
+        to_checksum_address(Config.PERSONAL_INFO_CONTRACT_ADDRESS)
+    )
+    p_gas = PersonalInfoContract.estimateGas().\
+        register(Config.ETH_ACCOUNT, personal_info_ciphertext)
+    p_txid = PersonalInfoContract.functions.\
+        register(Config.ETH_ACCOUNT, personal_info_ciphertext).\
+        transact({'from':Config.ETH_ACCOUNT, 'gas':p_gas})
+
+def whitelist_regist(form):
+    # 収納代行業社のアドレス
+    agent_address = to_checksum_address(Config.AGENT_ADDRESS)
+
+    # 収納代行業社のRSA公開鍵を取得
+    if Config.APP_ENV == 'production':
+        company_list = []
+        isExist = False
+        try:
+            company_list = requests.get(Config.PAYMENT_AGENT_LIST_URL).json()
+        except:
+            pass
+        for company_info in company_list:
+            if to_checksum_address(company_info['address']) == agent_address:
+                isExist = True
+                key_bank = RSA.importKey(company_info['rsa_publickey'].replace('\\n',''))
+        if isExist == False:
+            flash('決済代行業者の情報を取得できません。決済代行業者のアドレスが正しいか確認してください。', 'error')
+            return render_template('account/bankinfo.html', form=form)
+    else:
+        # ローカルのRSA公開鍵（発行体自身の公開鍵）を取得
+        key_bank = RSA.importKey(open('data/rsa/public.pem').read())
+
+    cipher = PKCS1_OAEP.new(key_bank)
+
+    whitelist_json = {
+        "name": form.name.data,
+        "bank_account":{
+            "bank_name": form.bank_name.data,
+            "bank_code": form.bank_code.data,
+            "branch_office": form.branch_name.data,
+            "branch_code": form.branch_code.data,
+            "account_type": int(form.account_type.data),
+            "account_number": form.account_number.data,
+            "account_holder": form.account_holder.data
+        }
+    }
+    whitelist_message_string = json.dumps(whitelist_json)
+
+    # 銀行口座情報の暗号化
+    whitelist_ciphertext = \
+        base64.encodestring(
+            cipher.encrypt(whitelist_message_string.encode('utf-8')))
+
+    # WhiteList登録
+    whitelist_address = to_checksum_address(Config.WHITE_LIST_CONTRACT_ADDRESS)
+    WhiteListContract = Contract.get_contract('WhiteList', whitelist_address)
+    w_gas = WhiteListContract.estimateGas().\
+        register(agent_address, whitelist_ciphertext)
+    w_txid = WhiteListContract.functions.\
+        register(agent_address, whitelist_ciphertext).\
+        transact({'from':Config.ETH_ACCOUNT, 'gas':w_gas})
 
 #+++++++++++++++++++++++++++++++
 # Custom Filter
