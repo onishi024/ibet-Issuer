@@ -45,27 +45,6 @@ def flash_errors(form):
         for error in errors:
             flash(error, 'error')
 
-# トランザクションがブロックに取り込まれるまで待つ
-# 10秒以上経過した場合は失敗とみなす（Falseを返す）
-def wait_transaction_receipt(tx_hash):
-    count = 0
-    tx = None
-
-    while True:
-        time.sleep(0.1)
-        try:
-            tx = web3.eth.getTransactionReceipt(tx_hash)
-        except:
-            continue
-
-        count += 1
-        if tx is not None:
-            break
-        elif count > 120:
-            raise Exception
-
-    return tx
-
 # トークンの保有者一覧、token_nameを返す
 def get_holders(token_address):
     cipher = None
@@ -437,7 +416,7 @@ def issue():
 
             ####### 画像URL登録処理 #######
             if form.image_small.data != '' or form.image_medium.data != '' or form.image_large.data != '':
-                tx_receipt = wait_transaction_receipt(tx_hash)
+                tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash)
                 if tx_receipt is not None :
                     contract_address = tx_receipt['contractAddress']
                     TokenContract = web3.eth.contract(
@@ -579,7 +558,7 @@ def sell(token_address):
             txid = ExchangeContract.functions.\
                 createOrder(token_address, balance, form.sellPrice.data, False, agent_address).\
                 transact({'from':Config.ETH_ACCOUNT, 'gas':sell_gas})
-            wait_transaction_receipt(txid)
+            tx = web3.eth.waitForTransactionReceipt(txid)
             flash('新規募集を受け付けました。募集開始までに数分程かかることがあります。', 'success')
             return redirect(url_for('.positions'))
         else:
@@ -668,7 +647,7 @@ def cancel_order(token_address):
             gas = ExchangeContract.estimateGas().cancelOrder(order_id)
             txid = ExchangeContract.functions.cancelOrder(order_id).\
                 transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
-            wait_transaction_receipt(txid)
+            tx = web3.eth.waitForTransactionReceipt(txid)
             flash('募集停止処理を受け付けました。停止されるまでに数分程かかることがあります。', 'success')
             return redirect(url_for('.positions'))
         else:
