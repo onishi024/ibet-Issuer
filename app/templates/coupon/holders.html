@@ -30,6 +30,7 @@
             <th>保有数量</th>
             <th>使用済み数量</th>
             <th></th>
+            <th></th>
       		</tr>
     		</thead>
     		<tbody>
@@ -40,6 +41,7 @@
             <td>{{ holder.balance }}</td>
             <td>{{ holder.used }}</td>
             <td><a href="{{ url_for('coupon.holder', token_address=token_address, account_address=holder.account_address) }}">保有者情報詳細</a></td>
+            <td align="center"><button type="button" class="btn btn-success" onclick="location.href= '{{ url_for("coupon.transfer_ownership", token_address=token_address, account_address=holder.account_address) }}'">移転</button></td>
           </tr>
     		{% endfor %}
     		</tbody>

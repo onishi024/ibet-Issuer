@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block head %}
+    {{ super() }}
+    <link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
+{% endblock %}
+{% set active_page = "coupon_list" %}
+
+{% block title %}会員権移転 - {% endblock %}
+{% block page_header %}所有者移転 <span class="badge bg-secondary">クーポン</span>{% endblock %}
+{% block page_description %}{% endblock %}
+{% block breadcrumb %}
+    <li><a href="{{ url_for('index.index') }}">トップ</a></li>
+    <li><a href="{{ url_for('coupon.list') }}">クーポン一覧</a></li>
+    <li class="active">所有者移転</li>
+{% endblock %}
+
+{% block page_content %}
+<section class="content">
+  <div class="box box-default">
+    <div class="box-header with-border">
+        <h3 class="box-title">所有者移転</h3>
+    </div>
+    <form class="form-horizontal" method="POST" role="form" action="{{ url_for('coupon.transfer_ownership', token_address=token_address, account_address=form.from_address.data) }}">
+      {{ form.csrf_token }}
+      <div class="box-body">
+        <div class="form-group">
+          {{ form.from_address.label(class="col-md-2") }}
+          <div class="col-md-4">
+            {{ form.from_address(class="form-control", disabled=True) }}
+          </div>
+        </div>
+        <div class="form-group">
+          {{ form.to_address.label(class="col-md-2") }}
+          <div class="col-md-4">
+            {{ form.to_address(class="form-control") }}
+          </div>
+        </div>
+        <div class="form-group">
+          {{ form.amount.label(class="col-md-2") }}
+          <div class="col-md-4">
+            {{ form.amount(class="form-control") }}
+          </div>
+        </div>
+      </div>
+      <div class="box-footer">
+        <button type="button" class="btn btn-default" onclick="location.href='{{ url_for("coupon.holders", token_address=token_address) }}'">戻る</button>
+        <button type="submit" class="btn btn-success" id="load" data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中">移転</button>
+      </div>
+    </form>
+  </div>
+</section>
+{% endblock %}
+
+{% block required_js %}
+{{ super() }}
+<script type="text/javascript">
+  $('#load.btn').on('click', function() {
+    var $this = $(this);
+    $this.button('loading');
+    setTimeout(function() {
+      $this.button('reset');
+    }, 10000);
+  });
+</script>
+{% endblock %}

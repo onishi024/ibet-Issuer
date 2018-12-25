@@ -7,6 +7,8 @@ from wtforms.validators import Required, URL, Optional, Length, Regexp, \
     NumberRange
 from wtforms import ValidationError
 
+from web3 import Web3
+
 class IssueForm(Form):
     mmdd_regexp = '^(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])$'
     yyyymmdd_regexp = '^(19[0-9]{2}|20[0-9]{2})(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])$'
@@ -306,7 +308,7 @@ class SellTokenForm(Form):
             NumberRange(min=1, max=6000000, message='売出価格は6,000,000円が上限です。'),
         ]
     )
-    
+
     submit = SubmitField('募集開始')
 
     def __init__(self, sell_token=None, *args, **kwargs):
@@ -336,3 +338,29 @@ class RequestSignatureForm(Form):
     def __init__(self, request_signature=None, *args, **kwargs):
         super(RequestSignatureForm, self).__init__(*args, **kwargs)
         self.request_signature = request_signature
+
+class TransferOwnershipForm(Form):
+    from_address = StringField("現在の所有者（アドレス）",validators = [])
+    to_address = StringField(
+        "移転先（アドレス）",
+        validators = [
+            Required('移転先は必須です。')
+        ]
+    )
+    amount = IntegerField(
+        "移転数量",
+        validators = [
+            Required('移転数量は必須です。'),
+            NumberRange(min=1, max=100000000, message='移転数量は100,000,000が上限です。'),
+        ]
+    )
+    submit = SubmitField('移転')
+
+    def __init__(self, transfer_ownership=None, *args, **kwargs):
+        super(TransferOwnershipForm, self).__init__(*args, **kwargs)
+        self.transfer_ownership = transfer_ownership
+
+    def validate_to_address(self, field):
+        chk = None
+        if not Web3.isAddress(field.data):
+            raise ValidationError('移転先は無効なアドレスです。')
