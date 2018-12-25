@@ -16,9 +16,6 @@ from flask import abort
 from flask_login import login_required
 from flask import current_app
 
-from web3 import Web3
-from eth_utils import to_checksum_address
-from solc import compile_source
 from sqlalchemy import desc
 
 from . import membership
@@ -33,6 +30,9 @@ from app.contracts import Contract
 from logging import getLogger
 logger = getLogger('api')
 
+from web3 import Web3
+from eth_utils import to_checksum_address
+from solc import compile_source
 from web3.middleware import geth_poa_middleware
 web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
 web3.middleware_stack.inject(geth_poa_middleware, layer=0)
@@ -44,27 +44,6 @@ def flash_errors(form):
     for field, errors in form.errors.items():
         for error in errors:
             flash(error, 'error')
-
-# トランザクションがブロックに取り込まれるまで待つ
-# 10秒以上経過した場合は失敗とみなす（Falseを返す）
-def wait_transaction_receipt(tx_hash):
-    count = 0
-    tx = None
-
-    while True:
-        time.sleep(0.1)
-        try:
-            tx = web3.eth.getTransactionReceipt(tx_hash)
-        except:
-            continue
-
-        count += 1
-        if tx is not None:
-            break
-        elif count > 120:
-            raise Exception
-
-    return tx
 
 # トークンの保有者一覧、token_nameを返す
 def get_holders(token_address):
@@ -202,6 +181,92 @@ def holders(token_address):
     holders, token_name = get_holders(token_address)
     return render_template('membership/holders.html', \
         holders=holders, token_address=token_address, token_name=token_name)
+
+####################################################
+# [会員権]保有者移転
+####################################################
+@membership.route(
+    '/transfer_ownership/<string:token_address>/<string:account_address>',
+    methods=['GET','POST'])
+@login_required
+def transfer_ownership(token_address, account_address):
+    logger.info('membership/transfer_ownership')
+
+    # アドレスフォーマットのチェック
+    if not Web3.isAddress(account_address) or not Web3.isAddress(token_address):
+        abort(404)
+
+    # ABI参照
+    token = Token.query.filter(Token.token_address==token_address).first()
+    if token is None:
+        abort(404)
+    token_abi = json.loads(
+        token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+
+    TokenContract = web3.eth.contract(
+        address= token.token_address,
+        abi = token_abi
+    )
+
+    # 残高参照
+    balance = TokenContract.functions.\
+        balanceOf(to_checksum_address(account_address)).call()
+
+    form = TransferOwnershipForm()
+    if request.method == 'POST':
+        if form.validate():
+            from_address = to_checksum_address(account_address)
+            to_address = to_checksum_address(form.to_address.data)
+            amount = int(form.amount.data)
+
+            if amount > balance:
+                flash('移転数量が残高を超えています。','error')
+                form.from_address.data = from_address
+                return render_template(
+                    'membership/transfer_ownership.html',
+                    token_address = token_address,
+                    account_address = account_address,
+                    form = form
+                )
+
+            eth_unlock_account()
+            token_exchange_address = Config.IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS
+            ExchangeContract = Contract.get_contract(
+                'IbetMembershipExchange', token_exchange_address)
+
+            deposit_gas = TokenContract.estimateGas().\
+                transferFrom(from_address, token_exchange_address, amount)
+            TokenContract.functions.\
+                transferFrom(from_address, token_exchange_address, amount).\
+                transact({'from':Config.ETH_ACCOUNT, 'gas':deposit_gas})
+
+            transfer_gas = ExchangeContract.estimateGas().\
+                transfer(to_checksum_address(token_address), to_address, amount)
+            txid = ExchangeContract.functions.\
+                transfer(to_checksum_address(token_address), to_address, amount).\
+                transact({'from':Config.ETH_ACCOUNT, 'gas':transfer_gas})
+
+            tx = web3.eth.waitForTransactionReceipt(txid)
+            return redirect(url_for('.holders', token_address=token_address))
+        else:
+            flash_errors(form)
+            form.from_address.data = account_address
+            return render_template(
+                'membership/transfer_ownership.html',
+                token_address = token_address,
+                account_address = account_address,
+                form = form
+            )
+    else: # GET
+        form.from_address.data = account_address
+        form.to_address.data = ''
+        form.amount.data = balance
+        return render_template(
+            'membership/transfer_ownership.html',
+            token_address = token_address,
+            account_address = account_address,
+            form = form
+        )
 
 ####################################################
 # [会員権]保有者詳細
@@ -437,7 +502,7 @@ def issue():
 
             ####### 画像URL登録処理 #######
             if form.image_small.data != '' or form.image_medium.data != '' or form.image_large.data != '':
-                tx_receipt = wait_transaction_receipt(tx_hash)
+                tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash)
                 if tx_receipt is not None :
                     contract_address = tx_receipt['contractAddress']
                     TokenContract = web3.eth.contract(
@@ -579,7 +644,7 @@ def sell(token_address):
             txid = ExchangeContract.functions.\
                 createOrder(token_address, balance, form.sellPrice.data, False, agent_address).\
                 transact({'from':Config.ETH_ACCOUNT, 'gas':sell_gas})
-            wait_transaction_receipt(txid)
+            tx = web3.eth.waitForTransactionReceipt(txid)
             flash('新規募集を受け付けました。募集開始までに数分程かかることがあります。', 'success')
             return redirect(url_for('.positions'))
         else:
@@ -668,7 +733,7 @@ def cancel_order(token_address):
             gas = ExchangeContract.estimateGas().cancelOrder(order_id)
             txid = ExchangeContract.functions.cancelOrder(order_id).\
                 transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
-            wait_transaction_receipt(txid)
+            tx = web3.eth.waitForTransactionReceipt(txid)
             flash('募集停止処理を受け付けました。停止されるまでに数分程かかることがあります。', 'success')
             return redirect(url_for('.positions'))
         else:
