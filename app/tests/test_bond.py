@@ -12,76 +12,113 @@ from ..models import Token
 from logging import getLogger
 logger = getLogger('api')
 
-class TestToken(TestBase):
-    # personal_info_json = {
-    #     "name":"株式会社１",
-    #     "address":{
-    #         "postal_code":"1234567",
-    #         "prefecture":"東京都",
-    #         "city":"中央区",
-    #         "address1":"日本橋11-1",
-    #         "address2":"東京マンション１０１"
-    #     },
-    #     "bank_account":{
-    #         "bank_name": "三菱UFJ銀行",
-    #         "bank_code": "0005",
-    #         "branch_office": "東恵比寿支店",
-    #         "branch_code": "610",
-    #         "account_type": 1,
-    #         "account_number": "1234567",
-    #         "account_holder": "ｶﾌﾞｼｷｶﾞｲｼﾔｹﾂｻｲﾀﾞｲｺｳ"
-    #     }
-    # }
-    issuer_encrypted_info = 'C3xjipCzPIbgydw0cObtsxadHqU3GuXd1u89EJuxMpyfnEJZ7CSXKrr4jF55Cji94xgknLjm7zFKfUzLcySXu5rj6mlJCfdKozBQ1GM7iN1wt+toXmiqCcGy0Rozis39oaykKT/s5CQtIQIbOf8DnQBGW7YP1bPx/yj5bEFUCf6+6QQHsmh4UTIugiQoyFms/ffNZjgnea49ja/eyyxt3mc/4tSoxHqamyQtvZ2UxVeMFHZ4QbbSomKXEwi7wp95rHzjnjgTvjxjHUFyMUhOTd+Y581uX2VnFCVb9ddYXrUOu7yySguLSCugr7ihNQUEe12im10XLDyksA+uCJnp0hSBBKCJ8oarbLYYuPfcZrP5YsfIZGJp5xpcqvmq795iOLqZQrhL4gfJXJ3JD+6KuCEX2gk3w8KWU6vS65yVhU5RxOtIJXuGiw/vzhdA2ZtI0hGA4JwG5o+iRBXuxeRz4uqucMHYj2VUu/2QFmtsO/4IqurDEQTLK+brPHnmzpdKPOvSQ4pkbrOgDkKOkXjsuFVf+eJEhjuiXr0CM9Y4yyKv6YMtVlsISG+yyKduMwXluPwbJUISMpz7P9y+WpvVQ1vrCqq/thxMrAzpGqj0ZYIrfuuWASpYGxH/xkYp24paXbLeYT4GJuPvT0RdpXcGCLBmZ8NT2VyePGXIdbmF4zKF+g9lGKzz/vRiSakIbHLK7hC1xTwHg4mrf2r1PBft3W4DyIll6eU7N5rdb8P4SlzM0dlfVrK5x4VP7VmRdsWvu8FBCHqTIlVBODbBT60MVsB0b/qEX3h3CBREUmwhWEYXShG12SNuO1rR/anEz+yv/DlVrfMthejBglNd76bUraouPgNrqI3gGRP+E6AP9/W5JJFQdteA/Hbkj9vI6A3l/UALNmLBGypOhO7cMPYiDkl5KIO2p53XpN6xRJtq3lXArkXD7wNn/I7zs3bj9U//bEE/qLngPMJFqNSWb+owGwx8vHKhZlozpVf/tWFG2nKrIvNCC1XtYH/G2rs/7HCVvvRksgOtJ+LOyXui/xtL4i1RMQh0AmwofwnnIL4zKXjX/b4Tog/D2nxr6ifG2baWE46h9WRdyV9ICzW+NRD3AQObkRb7e3LThMy7pupbPESGiO/kQfDFEFoNw47YD80COFU/0Ih8ylLtumk/ecunn8ayLyWhX6qHpdIR1ILYOPv5jbMcOWAs5FQfBVJlDv3iJNQrz3nN30/GecMS5unfVe05pknuvSIs2L6qLWgK4b3DyyZrbkvacNAzGC5GDt9jG107FsvtATlRt9KaxivjGsZpJ67//lkC3l+MJFUkMFL/tzNP7PGRhj801LggtzV+jjBG7EuDUP2K/pAQ4kVE4s3mIM61N3ytnvdcL3gTnjTlp5S6gb0taM/9hJTsAUWjycE0LqVdPhrYTvEvChN39eXstkU8WGI2V1iLXB4XKiTXmLqUXDtx7Yc5bvUiSaMXlxa8wMoeh/qmTcOvBbGSSzaTzc1r47f8LcNRLhLt3zogiI/pdiehDdEOG9u4eQNptU5ePCZcQcVZak7QbcIxECOvz4FZb8cR2JTDm01RnvyMyu2miB4ambWnRMiI9I30lPWgBlyvkGv3oCEIP+/P8Jy3wRRkMgbyUPStLTAQUeQ2JMXrQHLdgOLOEfvzBn9aZRuagzhdcdtaeePXFe1JbEc0worY6rHPNInTPejuV+Y='
-    # personal_info_json = {
-    #     "name":"ﾀﾝﾀｲﾃｽﾄ",
-    #     "address":{
-    #         "postal_code":"1040053",
-    #         "prefecture":"東京都",
-    #         "city":"中央区",
-    #         "address1":"勝どき6丁目３－２",
-    #         "address2":"ＴＴＴ６０１２"
-    #     },
-    #     "bank_account":{
-    #         "bank_name": "みずほ銀行",
-    #         "bank_code": "0001",
-    #         "branch_office": "日本橋支店",
-    #         "branch_code": "101",
-    #         "account_type": 2,
-    #         "account_number": "7654321",
-    #         "account_holder": "ﾀﾝﾀｲﾃｽﾄｺｳｻﾞ"
-    #     }
-    # }
-    trader_encrypted_info = 'oR3oSAdy1m6MR2nYKTsccjxdXlgLDx2MJZEir5qKpb9hpHEWisOn79GE8+o1ThG/BCzirZjx9z3gc40PmM+1l2VH+6c5ouSWkZ3JhoT4SUsf9YTAurj6jySzTcPkCMC9VPP+Nm4+XJyt3QroPzDOsJKaGycn63/B8BLTV6zZaDi9ZDBtZL0A1xMEx2aQJsXCj+cn6fGFy7VV8NG1+WYyUDZmXTK8nzR75J2onsiT4FzwtSCzZbM4/qME4O0rOlnaqjBoyn6Ae46S6LO72JPskT/b5pWM+mH8+/buLdGaxO3D1k6ICTvjNJaO7gxTNTsm3tWGotp9tzzkDsxYcVE+qr4/ufmsE6Qn3/pI1DtEZbMyXu51ucn7JYyQNiPN99OXbkTs2/DHsy7RtvujS+PXH4KHjH0//NbdyUxgEmGbf3XvZ2yDDRUKpi5jHs82mtECGPWN9hKzlwkV7UXp/BBHZP+MsyiU1pZCkqIGIrt9WlE/v9TlJXzarcJmqWL6LmG2b5g6ublux/AaYyYXjwNyKbP0kQJGYoGNV4KODNEQd6DNc5uI24laJd8GY7ucDcB2F/j1y1S5vWIQIOM9ksSr9K0xfsaiqGpNWtbquYrOv3lNVozFx22C8hTWDyMOCmkTEcha2nTnLUvSsopZeNlAfRxnNdqjtHqp8iBAqVlpxRpIgCjk9QTf1lYmNK3jb2/4Cyt8xAo0Z4ty6qOzeEcwd+BjGMbfWdxtGSJHDidr7nP56MOGKSzwOnLxLVYVL8YuV6MnzqDtbts/Vbw9mkX5zwddIfvsGlNvhbrDR8WSrXRVeWiwnbXnhc4njpsRLRlCXwvHVbhXzdUvEyfXmMdMGRScVBLLeb0BQK9Aea1ZuwKsK19JhK5QUrnYeimMRzJ/YUX5mMlJ4Skek7Lkn8py5hX3rZ3/SvLEXKe2GxkvqTPbwnyS+ZNAvGpyRl8AIthOHucW4Fnjl8KQpqS2GMJpj+SJRq8/HCpaR50743S5j6Ha0gx3D3/R032an+cgg7a875BNX0hgldffzoDr6+nHEtwsY/J96rkUFmeubmsISu0wAxH6C7XTsCFs90awBwIAydOgmbOovUub/yz/CJhbgbMrAMv1Mv2wnLIt0av8nC359AuRanIGr7q/ynDYqUS9mdUlpyfVbwWPJm0hMFfuJxdvVVHnyr2jg2GqtgvE8QcN18l1aI1FJDfqa7W7grlwn9+EQo+JXE1Xd7YZdeJNtKSD4aIQAFnIoIM3A7fkoPAS4sc+PdUzA3UNgomByNP3/cdcs/L3cvEpDjlTNzFLcQ2yojEXolcg2SZzpmb7MV3E5RQLnjOL+u/frwqk15up7jNiqfNp7N/o/wmjf6m+ceJq7b03o2oNLE+Ng6lNqLWNduII4Lq0N6qOgWJ/02LF1X/9oeBDPuPiLUZGkyy5y3FCuY4KN/hDUUpxGsxBOYfn+oFepAu6bz4UpxgaEu23DyCeKnkBlQITi1kSl7F7WHv1XBHF53eEY4fs4n0ZrOYWOzEFt/NfKm/oxiyIdSsCfGTcgmC/DGC90vM4sPPRXa7x7Xd8xJRbTnEuA88ALzCSeMt1NyNNtSKpw9xv+UIyFMkuDYsOoNRrdThZ/KvjYSMsAvNBXG0x6AYMz4x9oZ25VBiy/yWbivbN2nFPlWM7xyaQWMlTBVZZdCgnOoOR1tby7IAwlzTd1oGm+DJx9hA='
+class TestBond(TestBase):
 
-    # DEXアドレス
-    dex_address_error = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
-
+    ##################
     # URL
-    url_list = '/bond/list' # 発行済債券一覧
-    url_positions = '/bond/positions' # 債券募集管理
-    url_issue = '/bond/issue' # 債券新規発行
-    url_setting = '/bond/setting/' # 設定画面
-    url_sell = 'bond/sell/' # 募集画面
+    ##################
+    url_list = '/bond/list' # 発行済一覧
+    url_positions = '/bond/positions' # 募集管理
+    url_issue = '/bond/issue' # 新規発行
+    url_setting = '/bond/setting/' # 詳細設定
+    url_sell = 'bond/sell/' # 新規募集
     url_cancel_order = 'bond/cancel_order/' # 募集停止
-    url_release = 'bond/release' # リリース
-    url_holders = 'bond/holders/' # 債券保有者一覧
-    url_holder = 'bond/holder/' # 債券保有者詳細
+    url_release = 'bond/release' # 公開
+    url_holders = 'bond/holders/' # 保有者一覧
+    url_holder = 'bond/holder/' # 保有者詳細
     url_signature = 'bond/request_signature/' # 認定依頼
     url_redeem = 'bond/redeem' # 償還
+    url_transfer_ownership = 'bond/transfer_ownership/' # 所有者移転
 
-    # ＜正常系1＞
-    # 発行済債券一覧の参照(0件)
-    def test_normal_1(self, app, shared_contract):
-        # Config設定は1_1で全て実施
+    ##################
+    # PersonalInfo情報の暗号化
+    ##################
+    issuer_personal_info_json = {
+        "name":"株式会社１",
+        "address":{
+            "postal_code":"1234567",
+            "prefecture":"東京都",
+            "city":"中央区",
+            "address1":"日本橋11-1",
+            "address2":"東京マンション１０１"
+        },
+        "bank_account":{
+            "bank_name": "三菱UFJ銀行",
+            "bank_code": "0005",
+            "branch_office": "東恵比寿支店",
+            "branch_code": "610",
+            "account_type": 1,
+            "account_number": "1234567",
+            "account_holder": "ｶﾌﾞｼｷｶﾞｲｼﾔｹﾂｻｲﾀﾞｲｺｳ"
+        }
+    }
+
+    trader_personal_info_json = {
+        "name":"ﾀﾝﾀｲﾃｽﾄ",
+        "address":{
+            "postal_code":"1040053",
+            "prefecture":"東京都",
+            "city":"中央区",
+            "address1":"勝どき6丁目３－２",
+            "address2":"ＴＴＴ６０１２"
+        },
+        "bank_account":{
+            "bank_name": "みずほ銀行",
+            "bank_code": "0001",
+            "branch_office": "日本橋支店",
+            "branch_code": "101",
+            "account_type": 2,
+            "account_number": "7654321",
+            "account_holder": "ﾀﾝﾀｲﾃｽﾄｺｳｻﾞ"
+        }
+    }
+
+    key = RSA.importKey(open('data/rsa/public.pem').read())
+    cipher = PKCS1_OAEP.new(key)
+
+    issuer_encrypted_info = \
+        base64.encodestring(
+            cipher.encrypt(json.dumps(issuer_personal_info_json).encode('utf-8')))
+
+    trader_encrypted_info = \
+        base64.encodestring(
+            cipher.encrypt(json.dumps(trader_personal_info_json).encode('utf-8')))
+
+    # ＜前処理＞
+    def test_normal_0(self, app, shared_contract):
         Config.ETH_ACCOUNT = eth_account['issuer']['account_address']
         Config.ETH_ACCOUNT_PASSWORD = eth_account['issuer']['password']
         Config.AGENT_ADDRESS = eth_account['agent']['account_address']
-        Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS = shared_contract['IbetStraightBondExchange']['address']
+        Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS = \
+            shared_contract['IbetStraightBondExchange']['address']
         Config.WHITE_LIST_CONTRACT_ADDRESS = shared_contract['WhiteList']['address']
         Config.TOKEN_LIST_CONTRACT_ADDRESS = shared_contract['TokenList']['address']
         Config.PERSONAL_INFO_CONTRACT_ADDRESS = shared_contract['PersonalInfo']['address']
 
+        # personalinfo登録
+        register_personalinfo(
+            eth_account['issuer'],
+            shared_contract['PersonalInfo'],
+            self.issuer_encrypted_info
+        )
+
+        register_personalinfo(
+            eth_account['trader'],
+            shared_contract['PersonalInfo'],
+            self.trader_encrypted_info
+        )
+
+        # whitelist登録
+        register_terms(eth_account['agent'], shared_contract['WhiteList'])
+        register_whitelist(
+            eth_account['issuer'],
+            shared_contract['WhiteList'],
+            self.issuer_encrypted_info
+        )
+
+    # ＜正常系1＞
+    #   発行済債券一覧の参照(0件)
+    def test_normal_1(self, app, shared_contract):
         # 発行済債券一覧
         client = self.client_with_admin_login(app)
         response = client.get(self.url_list)
@@ -90,7 +127,7 @@ class TestToken(TestBase):
         assert 'データが存在しません'.encode('utf-8') in response.data
 
     # ＜正常系2＞
-    # 債券募集管理(0件)
+    #   債券募集管理(0件)
     def test_normal_2(self, app, shared_contract):
         client = self.client_with_admin_login(app)
         response = client.get(self.url_positions)
@@ -99,7 +136,7 @@ class TestToken(TestBase):
         assert 'データが存在しません'.encode('utf-8') in response.data
 
     # ＜正常系3＞
-    # 新規発行　→　DB登録処理 →　詳細画面
+    #   新規発行　→　詳細設定画面の参照
     def test_normal_3(self, app, db, shared_contract):
         client = self.client_with_admin_login(app)
         # 新規発行
@@ -133,17 +170,15 @@ class TestToken(TestBase):
             }
         )
         assert response.status_code == 302
-
-        # 2秒待機
         time.sleep(2)
 
         # DB登録処理
         processorIssueEvent(db)
 
-        # 設定画面
-        token = Token.query.get(1)
+        # 詳細設定画面の参照
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
+        token = tokens[0]
         response = client.get(self.url_setting + token.token_address)
-
         assert response.status_code == 200
         assert '<title>債券詳細設定'.encode('utf-8') in response.data
         assert 'テスト債券'.encode('utf-8') in response.data
@@ -171,7 +206,7 @@ class TestToken(TestBase):
         assert 'メモ'.encode('utf-8') in response.data
 
     # ＜正常系4＞
-    # 発行済債券一覧の参照(1件)
+    #   発行済債券一覧の参照(1件)
     def test_normal_4(self, app, shared_contract):
         client = self.client_with_admin_login(app)
         response = client.get(self.url_list)
@@ -181,7 +216,7 @@ class TestToken(TestBase):
         assert 'BOND'.encode('utf-8') in response.data
 
     # ＜正常系5＞
-    # 債券募集管理(1件)
+    #   募集管理画面の参照(1件)
     def test_normal_5(self, app, shared_contract):
         client = self.client_with_admin_login(app)
         response = client.get(self.url_positions)
@@ -191,9 +226,10 @@ class TestToken(TestBase):
         assert 'BOND'.encode('utf-8') in response.data
 
     # ＜正常系6＞
-    # 新規募集画面の参照
+    #   新規募集画面の参照
     def test_normal_6(self, app, shared_contract):
-        token = Token.query.get(1)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
+        token = tokens[0]
         client = self.client_with_admin_login(app)
         response = client.get(self.url_sell + token.token_address)
         assert response.status_code == 200
@@ -223,43 +259,13 @@ class TestToken(TestBase):
         assert shared_contract['IbetStraightBondExchange']['address'].encode('utf-8') in response.data
 
     # ＜正常系7＞
-    # 募集 → personinfo登録 → 募集 → whitelist登録 →
-    # 募集 → 債券募集管理で確認
+    #   募集 → 債券募集管理で確認
     def test_normal_7(self, app, shared_contract):
         client = self.client_with_admin_login(app)
-        token = Token.query.get(1)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
+        token = tokens[0]
         url_sell = self.url_sell + token.token_address
-        # 募集
-        response = client.post(
-            url_sell,
-            data={
-                'sellPrice': 100,
-            }
-        )
-        assert response.status_code == 302
-        # 債券募集管理でエラーを確認
-        response = client.get(self.url_positions)
-        assert response.status_code == 200
-        assert '金融機関の情報が未登録です。'.encode('utf-8') in response.data
 
-        # personalinfo登録
-        register_personalinfo(eth_account['issuer'], shared_contract['PersonalInfo'], self.issuer_encrypted_info)
-        # 募集
-        response = client.post(
-            url_sell,
-            data={
-                'sellPrice': 100,
-            }
-        )
-        assert response.status_code == 302
-        # 債券募集管理でエラーを確認
-        response = client.get(self.url_positions)
-        assert response.status_code == 200
-        assert '金融機関の情報が未登録です。'.encode('utf-8') in response.data
-
-        # whitelist登録
-        register_terms(eth_account['agent'], shared_contract['WhiteList'])
-        register_whitelist(eth_account['issuer'], shared_contract['WhiteList'], self.issuer_encrypted_info)
         # 募集
         response = client.post(
             url_sell,
@@ -269,7 +275,7 @@ class TestToken(TestBase):
         )
         assert response.status_code == 302
 
-        # 債券募集管理
+        # 債券募集管理を参照
         response = client.get(self.url_positions)
         assert response.status_code == 200
         assert '<title>債券募集管理'.encode('utf-8') in response.data
@@ -279,16 +285,19 @@ class TestToken(TestBase):
         assert '募集停止'.encode('utf-8') in response.data
 
     # ＜正常系8＞
-    # 募集停止 → 債券募集管理で確認
+    #   募集停止 → 債券募集管理で確認
     def test_normal_8(self, app, shared_contract):
         client = self.client_with_admin_login(app)
-        token = Token.query.get(1)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
+        token = tokens[0]
+
+        # 募集停止
         response = client.post(
             self.url_cancel_order + token.token_address,
         )
         assert response.status_code == 302
 
-        # 債券募集管理
+        # 債券募集管理を参照
         response = client.get(self.url_positions)
         assert response.status_code == 200
         assert '<title>債券募集管理'.encode('utf-8') in response.data
@@ -297,12 +306,14 @@ class TestToken(TestBase):
         assert '募集開始'.encode('utf-8') in response.data
 
     # ＜正常系9＞
-    # 募集設定　画像URL登録 → 詳細画面で確認
+    #   詳細設定 → 詳細設定画面で確認
     def test_normal_9(self, app, shared_contract):
-        token = Token.query.get(1)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
+        token = tokens[0]
         url_setting = self.url_setting + token.token_address
         client = self.client_with_admin_login(app)
-        # 募集設定
+
+        # 詳細設定
         response = client.post(
             url_setting,
             data={
@@ -313,11 +324,9 @@ class TestToken(TestBase):
             }
         )
         assert response.status_code == 302
-
-        # 待機
         time.sleep(10)
 
-        # 債券詳細設定
+        # 詳細設定画面を参照
         response = client.get(url_setting)
         assert response.status_code == 200
         assert '<title>債券詳細設定'.encode('utf-8') in response.data
@@ -327,7 +336,7 @@ class TestToken(TestBase):
         assert 'https://test.com/image_large.jpg'.encode('utf-8') in response.data
         assert shared_contract['WhiteList']['address'].encode('utf-8') in response.data
 
-        # DEXアドレスを戻す
+        # データ戻し
         response = client.post(
             url_setting,
             data={
@@ -338,15 +347,16 @@ class TestToken(TestBase):
             }
         )
         assert response.status_code == 302
-        # 待機
         time.sleep(6)
 
-
     # ＜正常系10＞
-    # 公開
+    #   公開 →　詳細設定画面で確認
     def test_normal_10(self, app, shared_contract):
-        token = Token.query.get(1)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
+        token = tokens[0]
         client = self.client_with_admin_login(app)
+
+        # 公開
         response = client.post(
             self.url_release,
             data={
@@ -354,26 +364,23 @@ class TestToken(TestBase):
             }
         )
         assert response.status_code == 302
-
-        # 待機
         time.sleep(2)
 
-        url_setting = self.url_setting + token.token_address
         # 債券詳細設定
+        url_setting = self.url_setting + token.token_address
         response = client.get(url_setting)
         assert response.status_code == 200
         assert '<title>債券詳細設定'.encode('utf-8') in response.data
         assert '公開中です。公開開始までに数分程かかることがあります。'.encode('utf-8') in response.data
 
-        # tokenが登録されているか確認
-        res_token = get_token_list(shared_contract['TokenList'], token.token_address)
-        assert res_token[0] == token.token_address
-
     # ＜正常系11＞
-    # 債券保有者一覧
+    #   債券保有者一覧
     def test_normal_11(self, app, shared_contract):
-        token = Token.query.get(1)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
+        token = tokens[0]
         client = self.client_with_admin_login(app)
+
+        # 保有者一覧の参照
         response = client.get(self.url_holders + token.token_address)
         assert response.status_code == 200
         assert '<title>債券保有者一覧'.encode('utf-8') in response.data
@@ -382,10 +389,13 @@ class TestToken(TestBase):
         assert '1000000'.encode('utf-8') in response.data
 
     # ＜正常系12＞
-    # 債券保有者詳細
+    #   債券保有者詳細
     def test_normal_12(self, app, shared_contract):
-        token = Token.query.get(1)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
+        token = tokens[0]
         client = self.client_with_admin_login(app)
+
+        # 保有者詳細の参照
         response = client.get(self.url_holder + token.token_address + '/' + eth_account['issuer']['account_address'])
         assert response.status_code == 200
         assert '<title>債券保有者詳細'.encode('utf-8') in response.data
@@ -402,13 +412,14 @@ class TestToken(TestBase):
         assert 'ｶﾌﾞｼｷｶﾞｲｼﾔｹﾂｻｲﾀﾞｲｺｳ'.encode('utf-8') in response.data
 
     # ＜正常系13＞
-    # 認定依頼
+    #   認定依頼
     def test_normal_13(self, app, shared_contract):
-        token = Token.query.get(1)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
+        token = tokens[0]
         url_signature = self.url_signature + token.token_address
         client = self.client_with_admin_login(app)
 
-        # 認定画面
+        # 認定画面（GET）
         response = client.get(url_signature)
         assert response.status_code == 200
         assert '<title>認定依頼'.encode('utf-8') in response.data
@@ -422,25 +433,21 @@ class TestToken(TestBase):
             }
         )
         assert response.status_code == 302
-
-        # 待機
         time.sleep(2)
 
-        # 債券詳細設定
+        # 債券詳細設定画面を参照
         response = client.get(self.url_setting + token.token_address)
         assert response.status_code == 200
         assert '<title>債券詳細設定'.encode('utf-8') in response.data
         assert '認定依頼を受け付けました。'.encode('utf-8') in response.data
 
-        # 債券トークンのsignatureが1になっていること
-        val = get_signature(token.token_address, eth_account['agent']['account_address'])
-        assert val == 1
-
     # ＜正常系14＞
-    # 認定実施　→　発行済債券詳細で確認
+    #   認定実施　→　発行済債券詳細で確認
     def test_normal_14(self, app, shared_contract):
-        # 認定実施
-        token = Token.query.get(1)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
+        token = tokens[0]
+
+        # 認定処理
         exec_sign(token.token_address, eth_account['agent'])
 
         # 発行済債券一覧
@@ -454,9 +461,10 @@ class TestToken(TestBase):
         assert eth_account['agent']['account_address'].encode('utf-8') in response.data
 
     # ＜正常系15＞
-    # 償還実施　→　発行済債券一覧で確認
+    #   償還実施　→　発行済債券一覧で確認
     def test_normal_15(self, app, shared_contract):
-        token = Token.query.get(1)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
+        token = tokens[0]
         client = self.client_with_admin_login(app)
         response = client.post(
             self.url_redeem,
@@ -465,11 +473,9 @@ class TestToken(TestBase):
             }
         )
         assert response.status_code == 302
-
-        # 待機
         time.sleep(2)
 
-        # 発行済債券一覧
+        # 発行済債券一覧を参照
         client = self.client_with_admin_login(app)
         response = client.get(self.url_list)
         assert response.status_code == 200
@@ -478,11 +484,66 @@ class TestToken(TestBase):
         assert 'BOND'.encode('utf-8') in response.data
         assert '償還済'.encode('utf-8') in response.data
 
+    # ＜正常系16_1＞
+    # ＜所有者移転＞
+    #   所有者移転画面の参照
+    def test_normal_16_1(self, app):
+        client = self.client_with_admin_login(app)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
+        token = tokens[0]
+        issuer_address = \
+            to_checksum_address(eth_account['issuer']['account_address'])
+
+        # 所有者移転画面の参照
+        response = client.get(
+            self.url_transfer_ownership + token.token_address + '/' + issuer_address)
+        assert response.status_code == 200
+        assert '<title>所有者移転'.encode('utf-8') in response.data
+        assert ('value="' + str(issuer_address)).encode('utf-8') in response.data
+
+    # ＜正常系16_2＞
+    # ＜所有者移転＞
+    #   所有者移転処理　→　保有者一覧の参照
+    def test_normal_16_2(self, app):
+        client = self.client_with_admin_login(app)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
+        token = tokens[0]
+        issuer_address = \
+            to_checksum_address(eth_account['issuer']['account_address'])
+        trader_address = \
+            to_checksum_address(eth_account['trader']['account_address'])
+
+        # 所有者移転
+        response = client.post(
+            self.url_transfer_ownership + token.token_address + '/' + issuer_address ,
+            data={
+                'to_address': trader_address,
+                'amount': 10
+            }
+        )
+        assert response.status_code == 302
+
+        # 保有者一覧の参照
+        response = client.get(self.url_holders + token.token_address)
+        assert response.status_code == 200
+        assert '<title>債券保有者一覧'.encode('utf-8') in response.data
+
+        # 発行体
+        assert issuer_address.encode('utf-8') in response.data
+        assert '<td>株式会社１</td>\n            <td>999990</td>\n            <td>0</td>'.\
+            encode('utf-8') in response.data
+
+        # 投資家
+        assert trader_address.encode('utf-8') in response.data
+        assert '<td>ﾀﾝﾀｲﾃｽﾄ</td>\n            <td>10</td>\n            <td>0</td>'.\
+            encode('utf-8') in response.data
+
+
     #############################################################################
     # エラー系
     #############################################################################
     # ＜エラー系1＞
-    # 債券新規発行（必須エラー）
+    #   債券新規発行（必須エラー）
     def test_error_1(self, app, shared_contract):
         client = self.client_with_admin_login(app)
         # 新規発行
@@ -500,8 +561,10 @@ class TestToken(TestBase):
         assert 'DEXアドレスは必須です。'.encode('utf-8') in response.data
 
     # ＜エラー系1＞
-    # 債券新規発行（DEXアドレスのフォーマットエラー）
+    #   債券新規発行（DEXアドレスのフォーマットエラー）
     def test_error_1_2(self, app, shared_contract):
+        error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
+
         client = self.client_with_admin_login(app)
         # 新規発行
         response = client.post(
@@ -529,7 +592,7 @@ class TestToken(TestBase):
                 'returnDate': '20191231',
                 'returnAmount': '商品券をプレゼント',
                 'purpose': '新商品の開発資金として利用。',
-                'tradableExchange': self.dex_address_error,
+                'tradableExchange': error_address,
                 'memo': 'メモ'
             }
         )
@@ -538,8 +601,10 @@ class TestToken(TestBase):
         assert 'DEXアドレスは有効なアドレスではありません。'.encode('utf-8') in response.data
 
     # ＜エラー系1＞
-    # 設定画面（DEXアドレスのフォーマットエラー）
+    #   設定画面（DEXアドレスのフォーマットエラー）
     def test_error_1_3(self, app, shared_contract):
+        error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
+
         client = self.client_with_admin_login(app)
         # 募集設定
         token = Token.query.get(1)
@@ -547,7 +612,7 @@ class TestToken(TestBase):
         response = client.post(
             url_setting,
             data={
-                'tradableExchange': self.dex_address_error
+                'tradableExchange': error_address
             }
         )
         assert response.status_code == 200
@@ -555,7 +620,7 @@ class TestToken(TestBase):
         assert 'DEXアドレスは有効なアドレスではありません。'.encode('utf-8') in response.data
 
     # ＜エラー系2＞
-    # 募集（必須エラー）
+    #   募集（必須エラー）
     def test_error_2(self, app, shared_contract):
         token = Token.query.get(1)
         # 募集
@@ -573,7 +638,7 @@ class TestToken(TestBase):
         assert '売出価格は必須です。'.encode('utf-8') in response.data
 
     # ＜エラー系3＞
-    # 認定（必須エラー）
+    #   認定（必須エラー）
     def test_error_3(self, app, shared_contract):
         token = Token.query.get(1)
         url_signature = self.url_signature + token.token_address
@@ -591,7 +656,7 @@ class TestToken(TestBase):
 
 
     # ＜エラー系4＞
-    # 認定（認定依頼先アドレスのフォーマットエラー）
+    #   認定（認定依頼先アドレスのフォーマットエラー）
     def test_error_4(self, app, shared_contract):
         token = Token.query.get(1)
         url_signature = self.url_signature + token.token_address
@@ -609,7 +674,7 @@ class TestToken(TestBase):
 
 
     # ＜エラー系5＞
-    # 認定（認定依頼がすでに登録されている）
+    #   認定（認定依頼がすでに登録されている）
     def test_error_5(self, app, shared_contract):
         token = Token.query.get(1)
         url_signature = self.url_signature + token.token_address
@@ -624,3 +689,137 @@ class TestToken(TestBase):
         )
         assert response.status_code == 200
         assert '既に情報が登録されています。'.encode('utf-8') in response.data
+
+    # ＜エラー系6_1＞
+    # ＜所有者移転＞
+    #   URLパラメータチェック：token_addressが無効
+    def test_error_6_1(self, app):
+        error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
+
+        client = self.client_with_admin_login(app)
+        issuer_address = \
+            to_checksum_address(eth_account['issuer']['account_address'])
+        trader_address = \
+            to_checksum_address(eth_account['trader']['account_address'])
+
+        # 所有者移転
+        response = client.post(
+            self.url_transfer_ownership + error_address + '/' + issuer_address ,
+            data={
+                'to_address': trader_address,
+                'amount': 10
+            }
+        )
+        assert response.status_code == 404
+
+    # ＜エラー系6_2＞
+    # ＜所有者移転＞
+    #    URLパラメータチェック：account_addressが無効
+    def test_error_6_2(self, app):
+        error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
+
+        client = self.client_with_admin_login(app)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
+        token = tokens[0]
+        trader_address = \
+            to_checksum_address(eth_account['trader']['account_address'])
+
+        # 所有者移転
+        response = client.post(
+            self.url_transfer_ownership + token.token_address + '/' + error_address ,
+            data={
+                'to_address': trader_address,
+                'amount': 10
+            }
+        )
+        assert response.status_code == 404
+
+    # ＜エラー系6_3＞
+    # ＜所有者移転＞
+    #   入力値チェック：必須チェック
+    def test_error_6_3(self, app):
+        client = self.client_with_admin_login(app)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
+        token = tokens[0]
+        issuer_address = \
+            to_checksum_address(eth_account['issuer']['account_address'])
+        trader_address = \
+            to_checksum_address(eth_account['trader']['account_address'])
+
+        # 所有者移転
+        response = client.post(
+            self.url_transfer_ownership + token.token_address + '/' + issuer_address ,
+            data={
+            }
+        )
+        assert response.status_code == 200
+        assert '移転先は必須です。'.encode('utf-8') in response.data
+        assert '移転数量は必須です。'.encode('utf-8') in response.data
+
+    # ＜エラー系6_4＞
+    # ＜所有者移転＞
+    #   入力値チェック：to_addressが無効
+    def test_error_6_4(self, app):
+        error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
+        client = self.client_with_admin_login(app)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
+        token = tokens[0]
+        issuer_address = \
+            to_checksum_address(eth_account['issuer']['account_address'])
+
+        # 所有者移転
+        response = client.post(
+            self.url_transfer_ownership + token.token_address + '/' + issuer_address ,
+            data={
+                'to_address': error_address,
+                'amount': 10
+            }
+        )
+        assert response.status_code == 200
+        assert '移転先は無効なアドレスです。'.encode('utf-8') in response.data
+
+    # ＜エラー系6_5＞
+    # ＜所有者移転＞
+    #   入力値チェック：amountが上限超過
+    def test_error_6_5(self, app):
+        client = self.client_with_admin_login(app)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
+        token = tokens[0]
+        issuer_address = \
+            to_checksum_address(eth_account['issuer']['account_address'])
+        trader_address = \
+            to_checksum_address(eth_account['trader']['account_address'])
+
+        # 所有者移転
+        response = client.post(
+            self.url_transfer_ownership + token.token_address + '/' + issuer_address ,
+            data={
+                'to_address': trader_address,
+                'amount': 100000001
+            }
+        )
+        assert response.status_code == 200
+        assert '移転数量は100,000,000が上限です。'.encode('utf-8') in response.data
+
+    # ＜エラー系6_6＞
+    # ＜所有者移転＞
+    #   入力値チェック：amountが残高超
+    def test_error_6_6(self, app):
+        client = self.client_with_admin_login(app)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
+        token = tokens[0]
+        issuer_address = \
+            to_checksum_address(eth_account['issuer']['account_address'])
+        trader_address = \
+            to_checksum_address(eth_account['trader']['account_address'])
+
+        # 所有者移転
+        response = client.post(
+            self.url_transfer_ownership + token.token_address + '/' + issuer_address ,
+            data={
+                'to_address': trader_address,
+                'amount': 1000001
+            }
+        )
+        assert response.status_code == 200
+        assert '移転数量が残高を超えています。'.encode('utf-8') in response.data

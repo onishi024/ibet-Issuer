@@ -717,7 +717,7 @@ class TestMembership(TestBase):
         response = client.get(
             self.url_transfer_ownership + token.token_address + '/' + issuer_address)
         assert response.status_code == 200
-        assert '<title>会員権移転'.encode('utf-8') in response.data
+        assert '<title>所有者移転'.encode('utf-8') in response.data
         assert ('value="' + str(issuer_address)).encode('utf-8') in response.data
 
     # ＜正常系7_2＞
