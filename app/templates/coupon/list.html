@@ -7,7 +7,7 @@
 {% set active_page = "coupon_list" %}
 
 {% block title %}クーポン一覧 - {% endblock %}
-{% block page_header %}クーポン一覧{% endblock %}
+{% block page_header %}クーポン一覧 <span class="badge bg-secondary">クーポン</span>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
     <li><a href="{{ url_for('index.index') }}">トップ</a></li>
@@ -25,20 +25,20 @@
   		<thead>
   		  <tr>
     			<th>名称</th>
-    			<th>略称</th>
+    			<th style="width: 50px">略称</th>
     			<th>登録日時</th>
           <th>アドレス</th>
-          <th>受付ID</th>
-          <th style="width: 50px">有効/<br>無効</th>
-          <th></th>
-          <th></th>
+          <th style="width: 50px">受付ID</th>
+          <th style="width: 50px">取扱</th>
+          <th style="width: 60px"></th>
+          <th style="width: 60px"></th>
     		</tr>
   		</thead>
   		<tbody>
   		{% for token in tokens %}
         <tr>
           {% if token.token_address != None %}
-    			  <td><a href="{{ url_for('coupon.setting', token_address=token.token_address) }}">{{ token.name }}</a></td>
+    			  <td style="word-break : break-all; width: 200px;"><a href="{{ url_for('coupon.setting', token_address=token.token_address) }}">{{ token.name }}</a></td>
           {% else %}
             <td>{{ token.name }}</td>
           {% endif %}

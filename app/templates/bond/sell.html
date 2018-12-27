@@ -7,7 +7,7 @@
 {% set active_page = "bond_position" %}
 
 {% block title %}債券新規募集 - {% endblock %}
-{% block page_header %}新規募集{% endblock %}
+{% block page_header %}新規募集 <span class="badge bg-secondary">債券</span>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
     <li><a href="{{ url_for('index.index') }}">トップ</a></li>
@@ -44,7 +44,7 @@
             <table id="data_table" class="table table-bordered table-hover">
                 <tbody>
                     <tr>
-                        <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.name.label }}</td><td class="col-md-2" >{{ form.name.data }}</td>
+                        <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.name.label }}</td><td style="word-break : break-all" class="col-md-2" >{{ form.name.data }}</td>
                         <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.symbol.label }}</td><td class="col-md-2" >{{ form.symbol.data }}</td>
                         <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.totalSupply.label }}</td><td class="col-md-2" >{{ form.totalSupply.data }}</td>
                     </tr>
@@ -83,7 +83,7 @@
                         <td style="background-color:#f7f7f7;">{{ form.memo.label }}</td><td>{{ form.memo.data }}</td>
                     </tr>
                     <tr>
-                        <td style="background-color:#f7f7f7;">{{ form.tradableExchange.label }}</td><td colspan="5">{{ form.tradableExchange.data }}</td>
+                        <td style="background-color:#f7f7f7;">{{ form.tradableExchange.label }}</td><td style="word-break : break-all" colspan="5">{{ form.tradableExchange.data }}</td>
                     </tr>
                 </tbody>
             </table>
