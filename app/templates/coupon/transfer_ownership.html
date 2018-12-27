@@ -24,20 +24,20 @@
       {{ form.csrf_token }}
       <div class="box-body">
         <div class="form-group">
-          {{ form.from_address.label(class="col-md-2") }}
-          <div class="col-md-4">
+          {{ form.from_address.label(class="col-md-3") }}
+          <div class="col-md-5">
             {{ form.from_address(class="form-control", disabled=True) }}
           </div>
         </div>
         <div class="form-group">
-          {{ form.to_address.label(class="col-md-2") }}
-          <div class="col-md-4">
+          {{ form.to_address.label(class="col-md-3") }}
+          <div class="col-md-5">
             {{ form.to_address(class="form-control") }}
           </div>
         </div>
         <div class="form-group">
-          {{ form.amount.label(class="col-md-2") }}
-          <div class="col-md-4">
+          {{ form.amount.label(class="col-md-3") }}
+          <div class="col-md-5">
             {{ form.amount(class="form-control") }}
           </div>
         </div>

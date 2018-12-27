@@ -7,7 +7,7 @@
 {% set active_page = "coupon_position" %}
 
 {% block title %}募集管理 - {% endblock %}
-{% block page_header %}募集管理{% endblock %}
+{% block page_header %}募集管理 <span class="badge bg-secondary">クーポン</span>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
     <li><a href="{{ url_for('index.index') }}">トップ</a></li>
@@ -25,20 +25,20 @@
     		<thead>
     		  <tr>
             <th>名称</th>
-      			<th>略称</th>
+      			<th style="width: 50px">略称</th>
             <th>アドレス</th>
-      			<th style="width: 100px">総発行量</th>
-            <th style="width: 100px">残高</th>
-            <th style="width: 100px">募集中</th>
+      			<th style="width: 70px">総発行量</th>
+            <th style="width: 70px">残高</th>
+            <th style="width: 70px">募集中</th>
             <th></th>
       		</tr>
     		</thead>
     		<tbody>
     		{% for position in position_list %}
           <tr>
-            <td>{{ position.name }}</td>
+            <td style="word-break : break-all; width: 250px;">{{ position.name }}</td>
             <td>{{ position.symbol }}</td>
-            <td><small>{{ position.token_address }}</small></td>
+            <td style="word-break : break-all"><small>{{ position.token_address }}</small></td>
             <td>{{ position.totalSupply }}</td>
             <td>{{ position.balance }}</td>
             <td>{{ position.commitment }}</td>
