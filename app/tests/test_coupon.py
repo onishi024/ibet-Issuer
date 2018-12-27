@@ -30,6 +30,7 @@ class TestCoupon(TestBase):
     url_positions = 'coupon/positions' # 募集管理
     url_sell = 'coupon/sell/' # 新規募集
     url_cancel_order = 'coupon/cancel_order/' # 募集中止
+    url_release = 'coupon/release' # 公開
 
     ##################
     # PersonalInfo情報の暗号化
@@ -115,9 +116,9 @@ class TestCoupon(TestBase):
             self.trader_encrypted_info
         )
 
-    # ＜正常系1＞
+    # ＜正常系1_1＞
     #   発行済一覧画面の参照(0件)
-    def test_normal_1(self, app, shared_contract):
+    def test_normal_1_1(self, app, shared_contract):
         client = self.client_with_admin_login(app)
         # 発行済一覧の参照
         response = client.get(self.url_list)
@@ -137,6 +138,7 @@ class TestCoupon(TestBase):
         assert 'データが存在しません'.encode('utf-8') in response.data
 
     # ＜正常系2＞
+    # ＜新規発行＞
     #   新規発行　→　詳細設定画面の参照
     def test_normal_2(self, app, db, shared_contract):
         client = self.client_with_admin_login(app)
@@ -184,6 +186,7 @@ class TestCoupon(TestBase):
         assert shared_contract['IbetCouponExchange']['address'].encode('utf-8') in response.data
 
     # ＜正常系3_1＞
+    # ＜1件確認＞
     #   発行済一覧画面の参照(1件)
     def test_normal_3_1(self, app, shared_contract):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
@@ -213,6 +216,7 @@ class TestCoupon(TestBase):
         assert '<td>2000000</td>\n            <td>2000000</td>\n            <td>0</td>'.encode('utf-8') in response.data
 
     # ＜正常系4＞
+    # ＜設定変更＞
     #   クーポン設定変更　→　詳細設定画面で確認
     def test_normal_4(self, app, shared_contract):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
@@ -265,6 +269,7 @@ class TestCoupon(TestBase):
         time.sleep(10)
 
     # ＜正常系5_1＞
+    # ＜有効化・無効化＞
     #   無効化　→　発行済一覧で確認
     def test_normal_5_1(self, app, shared_contract):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
@@ -289,6 +294,7 @@ class TestCoupon(TestBase):
         assert '無効'.encode('utf-8') in response.data
 
     # ＜正常系5_2＞
+    # ＜有効化・無効化＞
     #   有効化　→　発行済一覧で確認
     def test_normal_5_2(self, app, shared_contract):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
@@ -315,6 +321,7 @@ class TestCoupon(TestBase):
         assert '有効'.encode('utf-8') in response.data
 
     # ＜正常系6＞
+    # ＜追加発行＞
     #   追加発行 →　詳細背定画面で確認
     def test_normal_6(self, app, shared_contract):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
@@ -347,6 +354,7 @@ class TestCoupon(TestBase):
         assert '2000100'.encode('utf-8') in response.data
 
     # ＜正常系7＞
+    # ＜割当＞
     #   クーポン割当　→　保有者一覧で確認
     def test_normal_7(self, app, shared_contract):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
@@ -378,6 +386,7 @@ class TestCoupon(TestBase):
         assert '100'.encode('utf-8') in response.data # traderの保有数量
 
     # ＜正常系8＞
+    # ＜保有者詳細＞
     #   保有者詳細
     def test_normal_8(self, app, shared_contract):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
@@ -401,7 +410,7 @@ class TestCoupon(TestBase):
         assert 'ｶﾌﾞｼｷｶﾞｲｼﾔｹﾂｻｲﾀﾞｲｺｳ'.encode('utf-8') in response.data
 
     # ＜正常系9_1＞
-    # ＜募集画面＞
+    # ＜募集＞
     #   新規募集画面の参照
     def test_normal_9_1(self, app, shared_contract):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
@@ -422,7 +431,7 @@ class TestCoupon(TestBase):
         assert shared_contract['IbetCouponExchange']['address'].encode('utf-8') in response.data
 
     # ＜正常系9_2＞
-    # ＜募集画面＞
+    # ＜募集＞
     #   募集 → 募集管理画面で確認
     def test_normal_9_2(self, app, shared_contract):
         client = self.client_with_admin_login(app)
@@ -451,7 +460,7 @@ class TestCoupon(TestBase):
         assert '<td>2000100</td>\n            <td>0</td>\n            <td>2000000</td>'.encode('utf-8') in response.data
 
     # ＜正常系9_3＞
-    # ＜募集画面＞
+    # ＜募集＞
     #   募集停止 → 募集管理画面で確認
     def test_normal_9_3(self, app, shared_contract):
         client = self.client_with_admin_login(app)
@@ -528,6 +537,30 @@ class TestCoupon(TestBase):
         assert '<td>ﾀﾝﾀｲﾃｽﾄ</td>\n            <td>110</td>\n            <td>0</td>'.\
             encode('utf-8') in response.data
 
+    # ＜正常系11＞
+    # ＜公開＞
+    #   公開処理　→　公開済状態になること
+    def test_normal_11(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        token = tokens[0]
+
+        # 公開処理
+        response = client.post(
+            self.url_release,
+            data={
+                'token_address': token.token_address
+            }
+        )
+        assert response.status_code == 302
+        time.sleep(2)
+
+        # 詳細設定画面の参照
+        url_setting = self.url_setting + token.token_address
+        response = client.get(url_setting)
+        assert response.status_code == 200
+        assert '<title>クーポン編集'.encode('utf-8') in response.data
+        assert '公開済'.encode('utf-8') in response.data
 
     #############################################################################
     # エラー系
