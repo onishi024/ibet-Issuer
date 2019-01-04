@@ -42,7 +42,9 @@
             <td>{{ token.name }}</td>
           {% endif %}
           <td>{{ token.symbol }}</td>
-    			<td align="center">{{ token.created | format_date }}</td>
+    			<td align="center">
+            <small>{{ token.created | format_date }}</small>
+          </td>
           {% if token.token_address != None %}
             <td style="word-break : break-all;"><small>{{ token.token_address }}</small></td>
           {% else %}
