@@ -40,7 +40,7 @@ class Config:
 
     NAVI_MENU_USER = [
         ('bond', 'glyphicon glyphicon-list-alt', '債券発行管理', [
-            ('bond_list', 'fa fa-list', '発行済債券一覧', 'bond.list'),
+            ('bond_list', 'fa fa-list', '債券一覧', 'bond.list'),
             ('bond_issue', 'fa fa-plus-square-o', '債券新規発行', 'bond.issue'),
             ('bond_position', 'fa fa-yen', '債券売出管理', 'bond.positions'),
         ]),

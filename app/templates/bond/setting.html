@@ -7,10 +7,11 @@
 {% set active_page = "bond_list" %}
 
 {% block title %}債券詳細設定 - {% endblock %}
-{% block page_header %}債券詳細設定 <span class="badge bg-secondary">債券</span>{% endblock %}
+{% block page_header %}詳細設定 <span class="badge bg-secondary">債券</span>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
     <li><a href="{{ url_for('index.index') }}">トップ</a></li>
+    <li><a href="{{ url_for('bond.list') }}">債券一覧</a></li>
     <li class="active">債券詳細設定</li>
 {% endblock %}
 
@@ -18,7 +19,7 @@
 <section class="content">
     <div class="box box-default">
         <div class="box-header with-border">
-            <h3 class="box-title">{{ token_name }}　<small>{{ token_address }}</small></h3>
+            <h3 class="box-title"><small>{{ token_address }}</small></h3>
             <div class="pull-right box-tools">
               <button type="button" class="btn btn-success" style="width: 100px" onclick="location.href='{{ url_for("bond.request_signature", token_address=token_address)}}'">認定依頼 <i class="fa fa-arrow-circle-right"></i></button>
                 {% if isRelease %}
@@ -34,7 +35,7 @@
             <div class="box-body">
                 <div class="form-group">
                     {{ form.name.label(class="col-md-2") }}
-                    <div class="col-md-4">
+                    <div class="col-md-8">
                         {{ form.name(class="form-control", disabled=True) }}
                     </div>
                 </div>

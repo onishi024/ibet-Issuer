@@ -117,13 +117,13 @@ class TestBond(TestBase):
         )
 
     # ＜正常系1＞
-    #   発行済債券一覧の参照(0件)
+    #   債券一覧の参照(0件)
     def test_normal_1(self, app, shared_contract):
-        # 発行済債券一覧
+        # 債券一覧
         client = self.client_with_admin_login(app)
         response = client.get(self.url_list)
         assert response.status_code == 200
-        assert '<title>発行済債券一覧'.encode('utf-8') in response.data
+        assert '<title>債券一覧'.encode('utf-8') in response.data
         assert 'データが存在しません'.encode('utf-8') in response.data
 
     # ＜正常系2＞
@@ -206,12 +206,12 @@ class TestBond(TestBase):
         assert 'メモ'.encode('utf-8') in response.data
 
     # ＜正常系4＞
-    #   発行済債券一覧の参照(1件)
+    #   債券一覧の参照(1件)
     def test_normal_4(self, app, shared_contract):
         client = self.client_with_admin_login(app)
         response = client.get(self.url_list)
         assert response.status_code == 200
-        assert '<title>発行済債券一覧'.encode('utf-8') in response.data
+        assert '<title>債券一覧'.encode('utf-8') in response.data
         assert 'テスト債券'.encode('utf-8') in response.data
         assert 'BOND'.encode('utf-8') in response.data
 
@@ -442,7 +442,7 @@ class TestBond(TestBase):
         assert '認定依頼を受け付けました。'.encode('utf-8') in response.data
 
     # ＜正常系14＞
-    #   認定実施　→　発行済債券詳細で確認
+    #   認定実施　→　債券詳細で確認
     def test_normal_14(self, app, shared_contract):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
         token = tokens[0]
@@ -450,7 +450,7 @@ class TestBond(TestBase):
         # 認定処理
         exec_sign(token.token_address, eth_account['agent'])
 
-        # 発行済債券一覧
+        # 債券一覧
         url_setting = self.url_setting + token.token_address
         client = self.client_with_admin_login(app)
         response = client.get(url_setting)
@@ -461,7 +461,7 @@ class TestBond(TestBase):
         assert eth_account['agent']['account_address'].encode('utf-8') in response.data
 
     # ＜正常系15＞
-    #   償還実施　→　発行済債券一覧で確認
+    #   償還実施　→　債券一覧で確認
     def test_normal_15(self, app, shared_contract):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
         token = tokens[0]
@@ -475,11 +475,11 @@ class TestBond(TestBase):
         assert response.status_code == 302
         time.sleep(2)
 
-        # 発行済債券一覧を参照
+        # 債券一覧を参照
         client = self.client_with_admin_login(app)
         response = client.get(self.url_list)
         assert response.status_code == 200
-        assert '<title>発行済債券一覧'.encode('utf-8') in response.data
+        assert '<title>債券一覧'.encode('utf-8') in response.data
         assert 'テスト債券'.encode('utf-8') in response.data
         assert 'BOND'.encode('utf-8') in response.data
         assert '償還済'.encode('utf-8') in response.data

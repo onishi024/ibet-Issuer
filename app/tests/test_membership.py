@@ -202,7 +202,7 @@ class TestMembership(TestBase):
         token = TestMembership.get_token(0)
         response = client.get(self.url_setting + token.token_address)
         assert response.status_code == 200
-        assert '<title>会員権 詳細設定'.encode('utf-8') in response.data
+        assert '<title>会員権詳細設定'.encode('utf-8') in response.data
         assert self.token_data1['name'].encode('utf-8') in response.data
         assert self.token_data1['symbol'].encode('utf-8') in response.data
         assert str(self.token_data1['totalSupply']).encode('utf-8') in response.data
@@ -271,7 +271,7 @@ class TestMembership(TestBase):
         token = TestMembership.get_token(1)
         response = client.get(self.url_setting + token.token_address)
         assert response.status_code == 200
-        assert '<title>会員権 詳細設定'.encode('utf-8') in response.data
+        assert '<title>会員権詳細設定'.encode('utf-8') in response.data
         assert self.token_data2['name'].encode('utf-8') in response.data
         assert self.token_data2['symbol'].encode('utf-8') in response.data
         assert str(self.token_data2['totalSupply']).encode('utf-8') in response.data
@@ -442,7 +442,7 @@ class TestMembership(TestBase):
         # 詳細設定画面の参照
         response = client.get(url_setting)
         assert response.status_code == 200
-        assert '<title>会員権 詳細設定'.encode('utf-8') in response.data
+        assert '<title>会員権詳細設定'.encode('utf-8') in response.data
         assert self.token_data3['name'].encode('utf-8') in response.data
         assert self.token_data3['symbol'].encode('utf-8') in response.data
         assert str(self.token_data3['totalSupply']).encode('utf-8') in response.data
@@ -484,7 +484,7 @@ class TestMembership(TestBase):
         # 詳細設定画面の参照
         response = client.get(url_setting)
         assert response.status_code == 200
-        assert '<title>会員権 詳細設定'.encode('utf-8') in response.data
+        assert '<title>会員権詳細設定'.encode('utf-8') in response.data
         assert self.token_data1['name'].encode('utf-8') in response.data
         assert self.token_data1['symbol'].encode('utf-8') in response.data
         assert str(self.token_data1['totalSupply']).encode('utf-8') in response.data
@@ -522,7 +522,7 @@ class TestMembership(TestBase):
         url_setting = self.url_setting + token.token_address
         response = client.get(url_setting)
         assert response.status_code == 200
-        assert '<title>会員権 詳細設定'.encode('utf-8') in response.data
+        assert '<title>会員権詳細設定'.encode('utf-8') in response.data
         assert '公開済'.encode('utf-8') in response.data
 
     # ＜正常系5_4＞
@@ -547,7 +547,7 @@ class TestMembership(TestBase):
         url_setting = self.url_setting + token.token_address
         response = client.get(url_setting)
         assert response.status_code == 200
-        assert '<title>会員権 詳細設定'.encode('utf-8') in response.data
+        assert '<title>会員権詳細設定'.encode('utf-8') in response.data
         assert '公開済'.encode('utf-8') in response.data
         assert '取扱開始'.encode('utf-8') in response.data
 
@@ -578,7 +578,7 @@ class TestMembership(TestBase):
         url_setting = self.url_setting + token.token_address
         response = client.get(url_setting)
         assert response.status_code == 200
-        assert '<title>会員権 詳細設定'.encode('utf-8') in response.data
+        assert '<title>会員権詳細設定'.encode('utf-8') in response.data
         assert '取扱停止'.encode('utf-8') in response.data
 
         # 発行済一覧画面の参照
@@ -613,7 +613,7 @@ class TestMembership(TestBase):
         url_setting = self.url_setting + token.token_address
         response = client.get(url_setting)
         assert response.status_code == 200
-        assert '<title>会員権 詳細設定'.encode('utf-8') in response.data
+        assert '<title>会員権詳細設定'.encode('utf-8') in response.data
         assert str(self.token_data1['totalSupply'] + 10).encode('utf-8') in response.data
 
     # ＜正常系6_1＞

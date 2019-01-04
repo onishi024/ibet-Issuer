@@ -6,20 +6,20 @@
 {% endblock %}
 {% set active_page = "coupon_list" %}
 
-{% block title %}クーポン編集 - {% endblock %}
-{% block page_header %}クーポン編集 <span class="badge bg-secondary">クーポン</span>{% endblock %}
+{% block title %}クーポン詳細設定 - {% endblock %}
+{% block page_header %}詳細設定 <span class="badge bg-secondary">クーポン</span>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
     <li><a href="{{ url_for('index.index') }}">トップ</a></li>
     <li><a href="{{ url_for('coupon.list') }}">クーポン一覧</a></li>
-    <li class="active">クーポン編集</li>
+    <li class="active">クーポン詳細設定</li>
 {% endblock %}
 
 {% block page_content %}
 <section class="content">
     <div class="box box-default">
         <div class="box-header with-border">
-            <h3 class="box-title">{{token_name}}　<small>{{ token_address }}</small></h3>
+            <h3 class="box-title"><small>{{ token_address }}</small></h3>
             <div class="pull-right box-tools">
                 {% if isReleased %}
                     <button class="btn btn-gray" type="button" style="width: 150px" disabled>公開済</button>
@@ -39,7 +39,7 @@
             <div class="box-body">
                 <div class="form-group">
                     {{ form.name.label(class="col-md-2") }}
-                    <div class="col-md-4">
+                    <div class="col-md-8">
                         {{ form.name(class="form-control", disabled=True) }}
                     </div>
                 </div>

@@ -172,7 +172,7 @@ class TestCoupon(TestBase):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
         response = client.get(self.url_setting + tokens[0].token_address)
         assert response.status_code == 200
-        assert '<title>クーポン編集'.encode('utf-8') in response.data
+        assert '<title>クーポン詳細設定'.encode('utf-8') in response.data
         assert 'テストクーポン'.encode('utf-8') in response.data
         assert 'COUPON'.encode('utf-8') in response.data
         assert '2000000'.encode('utf-8') in response.data
@@ -240,7 +240,7 @@ class TestCoupon(TestBase):
 
         response = client.get(url_setting)
         assert response.status_code == 200
-        assert '<title>クーポン編集'.encode('utf-8') in response.data
+        assert '<title>クーポン詳細設定'.encode('utf-8') in response.data
         assert 'テストクーポン'.encode('utf-8') in response.data
         assert 'COUPON'.encode('utf-8') in response.data
         assert '2000000'.encode('utf-8') in response.data
@@ -349,7 +349,7 @@ class TestCoupon(TestBase):
         # 詳細設定画面で確認
         response = client.get(url_setting)
         assert response.status_code == 200
-        assert '<title>クーポン編集'.encode('utf-8') in response.data
+        assert '<title>クーポン詳細設定'.encode('utf-8') in response.data
         assert 'テストクーポン'.encode('utf-8') in response.data
         assert '2000100'.encode('utf-8') in response.data
 
@@ -559,7 +559,7 @@ class TestCoupon(TestBase):
         url_setting = self.url_setting + token.token_address
         response = client.get(url_setting)
         assert response.status_code == 200
-        assert '<title>クーポン編集'.encode('utf-8') in response.data
+        assert '<title>クーポン詳細設定'.encode('utf-8') in response.data
         assert '公開済'.encode('utf-8') in response.data
 
     #############################################################################
