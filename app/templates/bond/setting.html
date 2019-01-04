@@ -23,11 +23,24 @@
             <div class="pull-right box-tools">
               <button type="button" class="btn btn-success btn-sm" style="width: 100px" onclick="location.href='{{ url_for("bond.request_signature", token_address=token_address)}}'">認定依頼 <i class="fa fa-arrow-circle-right"></i></button>
                 {% if isRelease %}
-                    <button class="btn btn-gray btn-sm" type="button" style="width: 100px" disabled>公開済</button>
+                    <button
+                      class="btn btn-gray btn-sm" type="button"
+                      style="width: 100px" disabled>
+                      公開済
+                    </button>
                 {% else %}
-                    <button id="release" class="btn btn-warning btn-sm" type="button" style="width: 100px">公開 <i class="fa fa-arrow-circle-right"></i></button>
+                    <button
+                      id="release"
+                      class="btn btn-warning btn-sm" type="button"
+                      style="width: 100px">
+                      公開 <i class="fa fa-exclamation-triangle"></i>
+                    </button>
                 {% endif %}
-              <button id="redeem" class="btn btn-danger btn-sm" type="button" style="width: 100px">償還 <i class="fa fa-arrow-circle-right"></i></button>
+              <button
+                id="redeem"
+                class="btn btn-danger btn-sm" type="button" style="width: 100px">
+                償還 <i class="fa fa-exclamation-triangle"></i>
+              </button>
             </div>
         </div>
         <form class="form-horizontal" method="POST" role="form" action="{{ url_for('bond.setting', token_address=form.token_address.data) }}">
