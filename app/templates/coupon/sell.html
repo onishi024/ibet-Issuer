@@ -6,12 +6,12 @@
 {% endblock %}
 {% set active_page = "coupon_position" %}
 
-{% block title %}新規募集 - {% endblock %}
-{% block page_header %}新規募集 <span class="badge bg-secondary">クーポン</span>{% endblock %}
+{% block title %}新規売出 - {% endblock %}
+{% block page_header %}新規売出 <span class="badge bg-secondary">クーポン</span>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
     <li><a href="{{ url_for('index.index') }}">トップ</a></li>
-    <li class="active">新規募集</li>
+    <li class="active">新規売出</li>
 {% endblock %}
 
 {% block page_content %}
@@ -32,7 +32,7 @@
             </div>
             <div class="box-footer">
                 <button type="button" class="btn btn-default" onclick="location.href= '{{ url_for("coupon.positions") }}'">キャンセル</button>
-                <button type="submit" class="btn btn-success" id="load" data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中">募集開始</button>
+                <button type="submit" class="btn btn-success" id="load" data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中">売出開始</button>
             </div>
         </form>
     </div>

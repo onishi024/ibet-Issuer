@@ -6,12 +6,12 @@
 {% endblock %}
 {% set active_page = "coupon_position" %}
 
-{% block title %}募集管理 - {% endblock %}
-{% block page_header %}募集管理 <span class="badge bg-secondary">クーポン</span>{% endblock %}
+{% block title %}売出管理 - {% endblock %}
+{% block page_header %}売出管理 <span class="badge bg-secondary">クーポン</span>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
     <li><a href="{{ url_for('index.index') }}">トップ</a></li>
-    <li class="active">募集管理</li>
+    <li class="active">売出管理</li>
 {% endblock %}
 
 {% block page_content %}
@@ -29,7 +29,7 @@
             <th>アドレス</th>
       			<th style="width: 70px">総発行量</th>
             <th style="width: 70px">残高</th>
-            <th style="width: 70px">募集中</th>
+            <th style="width: 70px">売出中</th>
             <th></th>
       		</tr>
     		</thead>
@@ -43,9 +43,9 @@
             <td>{{ position.balance }}</td>
             <td>{{ position.commitment }}</td>
             {% if position.on_sale != True %}
-              <td align="center"><button type="button" class="btn btn-success" onclick="location.href= '{{ url_for("coupon.sell", token_address=position.token_address) }}'">募集開始</button></td>
+              <td align="center"><button type="button" class="btn btn-success btn-sm" onclick="location.href= '{{ url_for("coupon.sell", token_address=position.token_address) }}'">売出開始</button></td>
             {% else %}
-              <td align="center"><button type="button" class="btn btn-danger" onclick="location.href= '{{ url_for("coupon.cancel_order", token_address=position.token_address) }}'">募集停止</button></td>
+              <td align="center"><button type="button" class="btn btn-danger btn-sm" onclick="location.href= '{{ url_for("coupon.cancel_order", token_address=position.token_address) }}'">売出停止</button></td>
             {% endif %}
           </tr>
     		{% endfor %}

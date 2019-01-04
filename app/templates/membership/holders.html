@@ -41,7 +41,7 @@
             <td>{{ holder.balance }}</td>
             <td>{{ holder.commitment }}</td>
             <td><a href="{{ url_for('membership.holder', token_address=token_address, account_address=holder.account_address) }}">保有者情報詳細</a></td>
-            <td align="center"><button type="button" class="btn btn-success" onclick="location.href= '{{ url_for("membership.transfer_ownership", token_address=token_address, account_address=holder.account_address) }}'">移転</button></td>
+            <td align="center"><button type="button" class="btn btn-success btn-sm" onclick="location.href= '{{ url_for("membership.transfer_ownership", token_address=token_address, account_address=holder.account_address) }}'">移転</button></td>
           </tr>
     		{% endfor %}
     		</tbody>

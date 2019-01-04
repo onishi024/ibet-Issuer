@@ -42,17 +42,17 @@ class Config:
         ('bond', 'glyphicon glyphicon-list-alt', '債券発行管理', [
             ('bond_list', 'fa fa-list', '発行済債券一覧', 'bond.list'),
             ('bond_issue', 'fa fa-plus-square-o', '債券新規発行', 'bond.issue'),
-            ('bond_position', 'fa fa-yen', '債券募集管理', 'bond.positions'),
+            ('bond_position', 'fa fa-yen', '債券売出管理', 'bond.positions'),
         ]),
         ('membership', 'glyphicon glyphicon-list-alt', '会員権発行管理', [
             ('membership_list', 'fa fa-list', '会員権一覧', 'membership.list'),
             ('membership_issue', 'fa fa-plus-square-o', '会員権新規発行', 'membership.issue'),
-            ('membership_position', 'fa fa-yen', '会員権募集管理', 'membership.positions'),
+            ('membership_position', 'fa fa-yen', '会員権売出管理', 'membership.positions'),
         ]),
         ('coupon', 'glyphicon glyphicon-list-alt', 'クーポン発行管理', [
             ('coupon_list', 'fa fa-list', 'クーポン一覧', 'coupon.list'),
             ('coupon_issue', 'fa fa-plus-square-o', 'クーポン発行', 'coupon.issue'),
-            ('coupon_position', 'fa fa-yen', 'クーポン募集管理', 'coupon.positions'),
+            ('coupon_position', 'fa fa-yen', 'クーポン売出管理', 'coupon.positions'),
             ('coupon_transfer', 'fa fa-send', 'クーポン割当', 'coupon.transfer')
         ]),
     ]

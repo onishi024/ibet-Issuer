@@ -495,7 +495,7 @@ def setting(token_address):
         )
 
 ####################################################
-# [クーポン]保有一覧（募集管理画面）
+# [クーポン]保有一覧（売出管理画面）
 ####################################################
 @coupon.route('/positions', methods=['GET'])
 @login_required
@@ -530,12 +530,12 @@ def positions():
             commitment = ExchangeContract.functions.\
                 commitments(owner, row.token_address).call()
 
-            # 拘束数量がゼロよりも大きい場合、募集中のステータスを返す
+            # 拘束数量がゼロよりも大きい場合、売出中のステータスを返す
             on_sale = False
             if balance == 0:
                 on_sale = True
 
-            # 残高がゼロよりも大きい場合、または募集中のステータスの場合、リストを返す
+            # 残高がゼロよりも大きい場合、または売出中のステータスの場合、リストを返す
             if balance > 0 or on_sale == True:
                 name = TokenContract.functions.name().call()
                 symbol = TokenContract.functions.symbol().call()
@@ -554,7 +554,7 @@ def positions():
     return render_template('coupon/positions.html', position_list=position_list)
 
 ####################################################
-# [クーポン]売出(募集)
+# [クーポン]売出(売出)
 ####################################################
 @coupon.route('/sell/<string:token_address>', methods=['GET', 'POST'])
 @login_required
@@ -605,7 +605,7 @@ def sell(token_address):
                 createOrder(token_address, balance, form.sellPrice.data, False, agent_address).\
                 transact({'from':owner, 'gas':sell_gas})
             tx = web3.eth.waitForTransactionReceipt(txid)
-            flash('新規募集を受け付けました。募集開始までに数分程かかることがあります。', 'success')
+            flash('新規売出を受け付けました。売出開始までに数分程かかることがあります。', 'success')
             return redirect(url_for('.positions'))
         else:
             flash_errors(form)
@@ -678,7 +678,7 @@ def cancel_order(token_address):
             txid = ExchangeContract.functions.cancelOrder(order_id).\
                 transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
             tx = web3.eth.waitForTransactionReceipt(txid)
-            flash('募集停止処理を受け付けました。停止されるまでに数分程かかることがあります。', 'success')
+            flash('売出停止処理を受け付けました。停止されるまでに数分程かかることがあります。', 'success')
             return redirect(url_for('.positions'))
         else:
             flash_errors(form)

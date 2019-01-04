@@ -219,7 +219,7 @@ class SellForm(Form):
         ]
     )
 
-    submit = SubmitField('募集開始')
+    submit = SubmitField('売出開始')
 
     def __init__(self, sell_token=None, *args, **kwargs):
         super(SellForm, self).__init__(*args, **kwargs)
@@ -231,9 +231,9 @@ class CancelOrderForm(Form):
     name = StringField("名称", validators=[])
     symbol = StringField("略称", validators=[])
     totalSupply = IntegerField("総発行量", validators=[])
-    amount = IntegerField("募集中数量（残注文数量）", validators=[])
+    amount = IntegerField("売出中数量（残注文数量）", validators=[])
     price = IntegerField("売出価格", validators=[])
-    submit = SubmitField('募集停止')
+    submit = SubmitField('売出停止')
 
     def __init__(self, cancel_order=None, *args, **kwargs):
         super(CancelOrderForm, self).__init__(*args, **kwargs)

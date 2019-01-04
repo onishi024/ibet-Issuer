@@ -18,11 +18,11 @@ class TestBond(TestBase):
     # URL
     ##################
     url_list = '/bond/list' # 発行済一覧
-    url_positions = '/bond/positions' # 募集管理
+    url_positions = '/bond/positions' # 売出管理
     url_issue = '/bond/issue' # 新規発行
     url_setting = '/bond/setting/' # 詳細設定
-    url_sell = 'bond/sell/' # 新規募集
-    url_cancel_order = 'bond/cancel_order/' # 募集停止
+    url_sell = 'bond/sell/' # 新規売出
+    url_cancel_order = 'bond/cancel_order/' # 売出停止
     url_release = 'bond/release' # 公開
     url_holders = 'bond/holders/' # 保有者一覧
     url_holder = 'bond/holder/' # 保有者詳細
@@ -127,12 +127,12 @@ class TestBond(TestBase):
         assert 'データが存在しません'.encode('utf-8') in response.data
 
     # ＜正常系2＞
-    #   債券募集管理(0件)
+    #   債券売出管理(0件)
     def test_normal_2(self, app, shared_contract):
         client = self.client_with_admin_login(app)
         response = client.get(self.url_positions)
         assert response.status_code == 200
-        assert '<title>債券募集管理'.encode('utf-8') in response.data
+        assert '<title>債券売出管理'.encode('utf-8') in response.data
         assert 'データが存在しません'.encode('utf-8') in response.data
 
     # ＜正常系3＞
@@ -216,24 +216,24 @@ class TestBond(TestBase):
         assert 'BOND'.encode('utf-8') in response.data
 
     # ＜正常系5＞
-    #   募集管理画面の参照(1件)
+    #   売出管理画面の参照(1件)
     def test_normal_5(self, app, shared_contract):
         client = self.client_with_admin_login(app)
         response = client.get(self.url_positions)
         assert response.status_code == 200
-        assert '<title>債券募集管理'.encode('utf-8') in response.data
+        assert '<title>債券売出管理'.encode('utf-8') in response.data
         assert 'テスト債券'.encode('utf-8') in response.data
         assert 'BOND'.encode('utf-8') in response.data
 
     # ＜正常系6＞
-    #   新規募集画面の参照
+    #   新規売出画面の参照
     def test_normal_6(self, app, shared_contract):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
         token = tokens[0]
         client = self.client_with_admin_login(app)
         response = client.get(self.url_sell + token.token_address)
         assert response.status_code == 200
-        assert '<title>債券新規募集'.encode('utf-8') in response.data
+        assert '<title>債券新規売出'.encode('utf-8') in response.data
         assert 'テスト債券'.encode('utf-8') in response.data
         assert 'BOND'.encode('utf-8') in response.data
         assert '1000000'.encode('utf-8') in response.data
@@ -259,14 +259,14 @@ class TestBond(TestBase):
         assert shared_contract['IbetStraightBondExchange']['address'].encode('utf-8') in response.data
 
     # ＜正常系7＞
-    #   募集 → 債券募集管理で確認
+    #   売出 → 債券売出管理で確認
     def test_normal_7(self, app, shared_contract):
         client = self.client_with_admin_login(app)
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
         token = tokens[0]
         url_sell = self.url_sell + token.token_address
 
-        # 募集
+        # 売出
         response = client.post(
             url_sell,
             data={
@@ -275,35 +275,35 @@ class TestBond(TestBase):
         )
         assert response.status_code == 302
 
-        # 債券募集管理を参照
+        # 債券売出管理を参照
         response = client.get(self.url_positions)
         assert response.status_code == 200
-        assert '<title>債券募集管理'.encode('utf-8') in response.data
-        assert '新規募集を受け付けました。募集開始までに数分程かかることがあります。'.encode('utf-8') in response.data
+        assert '<title>債券売出管理'.encode('utf-8') in response.data
+        assert '新規売出を受け付けました。売出開始までに数分程かかることがあります。'.encode('utf-8') in response.data
         assert 'テスト債券'.encode('utf-8') in response.data
         assert 'BOND'.encode('utf-8') in response.data
-        assert '募集停止'.encode('utf-8') in response.data
+        assert '売出停止'.encode('utf-8') in response.data
 
     # ＜正常系8＞
-    #   募集停止 → 債券募集管理で確認
+    #   売出停止 → 債券売出管理で確認
     def test_normal_8(self, app, shared_contract):
         client = self.client_with_admin_login(app)
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
         token = tokens[0]
 
-        # 募集停止
+        # 売出停止
         response = client.post(
             self.url_cancel_order + token.token_address,
         )
         assert response.status_code == 302
 
-        # 債券募集管理を参照
+        # 債券売出管理を参照
         response = client.get(self.url_positions)
         assert response.status_code == 200
-        assert '<title>債券募集管理'.encode('utf-8') in response.data
+        assert '<title>債券売出管理'.encode('utf-8') in response.data
         assert 'テスト債券'.encode('utf-8') in response.data
         assert 'BOND'.encode('utf-8') in response.data
-        assert '募集開始'.encode('utf-8') in response.data
+        assert '売出開始'.encode('utf-8') in response.data
 
     # ＜正常系9＞
     #   詳細設定 → 詳細設定画面で確認
@@ -606,7 +606,7 @@ class TestBond(TestBase):
         error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
 
         client = self.client_with_admin_login(app)
-        # 募集設定
+        # 売出設定
         token = Token.query.get(1)
         url_setting = self.url_setting + token.token_address
         response = client.post(
@@ -620,10 +620,10 @@ class TestBond(TestBase):
         assert 'DEXアドレスは有効なアドレスではありません。'.encode('utf-8') in response.data
 
     # ＜エラー系2＞
-    #   募集（必須エラー）
+    #   売出（必須エラー）
     def test_error_2(self, app, shared_contract):
         token = Token.query.get(1)
-        # 募集
+        # 売出
         client = self.client_with_admin_login(app)
         response = client.post(
             self.url_sell + token.token_address,
@@ -631,10 +631,10 @@ class TestBond(TestBase):
             }
         )
         assert response.status_code == 302
-        # 債券新規募集でエラーを確認
+        # 債券新規売出でエラーを確認
         response = client.get(self.url_sell + token.token_address)
         assert response.status_code == 200
-        assert '<title>債券新規募集'.encode('utf-8') in response.data
+        assert '<title>債券新規売出'.encode('utf-8') in response.data
         assert '売出価格は必須です。'.encode('utf-8') in response.data
 
     # ＜エラー系3＞

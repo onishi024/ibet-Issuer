@@ -158,7 +158,7 @@ def register_bond_list(invoker, bond_token, token_list):
     tx = web3.eth.waitForTransactionReceipt(tx_hash)
 
 
-# 債券トークンの募集
+# 債券トークンの売出
 def offer_bond_token(invoker, bond_exchange, bond_token, amount, price):
     bond_transfer_to_exchange(invoker, bond_exchange, bond_token, amount)
     make_sell_bond_token(invoker, bond_exchange, bond_token, amount, price)
