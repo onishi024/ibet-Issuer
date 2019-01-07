@@ -498,7 +498,7 @@ class TestMembership(TestBase):
         assert self.token_data1['image_large'].encode('utf-8') in response.data
         assert self.token_data1['tradableExchange'].encode('utf-8') in response.data
         # 公開済でないことを確認
-        assert '公開 <i class="fa fa-arrow-circle-right">'.encode('utf-8') in response.data
+        assert '公開 <i class="fa fa-exclamation-triangle">'.encode('utf-8') in response.data
 
     # ＜正常系5_3＞
     # ＜設定画面＞
@@ -554,7 +554,7 @@ class TestMembership(TestBase):
         # 発行済一覧画面の参照
         response = client.get(self.url_list)
         assert response.status_code == 200
-        assert '取扱停止'.encode('utf-8') in response.data
+        assert '停止中'.encode('utf-8') in response.data
 
     # ＜正常系5_5＞
     # ＜設定画面＞

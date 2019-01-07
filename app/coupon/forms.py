@@ -191,22 +191,22 @@ class AddSupplyForm(Form):
         super(AddSupplyForm, self).__init__(*args, **kwargs)
         self.issue_coupon = issue_coupon
 
-class TransferCouponForm(Form):
-    tokenAddress = StringField(
+class TransferForm(Form):
+    token_address = StringField(
         "クーポンアドレス",
         validators=[
             Required('クーポンアドレスは必須です。')
         ]
     )
 
-    sendAddress = StringField(
+    to_address = StringField(
         "割当先アドレス",
         validators=[
             Required('割当先アドレスは必須です。')
         ]
     )
 
-    sendAmount = IntegerField(
+    amount = IntegerField(
         "割当数量",
         validators=[
             Required('割当数量は必須です。'),
@@ -217,7 +217,7 @@ class TransferCouponForm(Form):
     submit = SubmitField('割当')
 
     def __init__(self, transfer_coupon=None, *args, **kwargs):
-        super(TransferCouponForm, self).__init__(*args, **kwargs)
+        super(TransferForm, self).__init__(*args, **kwargs)
         self.transfer_coupon = transfer_coupon
 
 class TransferOwnershipForm(Form):

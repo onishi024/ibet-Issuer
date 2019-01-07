@@ -2,24 +2,26 @@
 {% block head %}
   {{ super() }}
   <!-- DataTables -->
-  <link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
+  <link
+    rel="stylesheet"
+    href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
 {% endblock %}
-{% set active_page = "coupon_list" %}
+{% set active_page = "membership_list" %}
 
-{% block title %}クーポン保有者一覧 - {% endblock %}
-{% block page_header %}クーポン保有者一覧 <span class="badge bg-secondary">クーポン</span>{% endblock %}
+{% block title %}募集申込一覧 - {% endblock %}
+{% block page_header %}募集申込一覧 <span class="badge bg-secondary">会員権</span>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
     <li><a href="{{ url_for('index.index') }}">トップ</a></li>
-    <li><a href="{{ url_for('coupon.list') }}">クーポン一覧</a></li>
-    <li class="active">保有者一覧</li>
+    <li><a href="{{ url_for('membership.list') }}">会員権一覧</a></li>
+    <li class="active">募集申込一覧</li>
 {% endblock %}
 
 {% block page_content %}
 <section class="content">
   <div class="box box-default">
     <div class="box-header">
-      <h3 class="box-title">{{token_name}}　<small>{{token_address}}</small></h3>
+      <h3 class="box-title">{{ token_name }}　<small>{{ token_address }}</small></h3>
     </div>
     <div class="box-body">
   	  <table id="data_table" class="table table-bordered table-hover">
@@ -27,28 +29,38 @@
     		  <tr>
             <th>アカウントアドレス</th>
       			<th>氏名</th>
-            <th>保有数量</th>
-            <th>使用済み数量</th>
-            <th></th>
+            <th>e-mail</th>
+            <th>認可コード</th>
             <th></th>
       		</tr>
     		</thead>
     		<tbody>
-    		{% for holder in holders %}
+    		{% for application in applications %}
           <tr>
-            <td><small>{{ holder.account_address }}</small></td>
-            <td>{{ holder.name }}</td>
-            <td>{{ holder.balance }}</td>
-            <td>{{ holder.used }}</td>
-            <td><a href="{{ url_for('coupon.holder', token_address=token_address, account_address=holder.account_address) }}">保有者情報詳細</a></td>
-            <td align="center"><button type="button" class="btn btn-success btn-sm" onclick="location.href= '{{ url_for("coupon.transfer_ownership", token_address=token_address, account_address=holder.account_address) }}'">移転</button></td>
+            <td style="word-break : break-all">
+              <small>{{ application.account_address }}</small>
+            </td>
+            <td>{{ application.account_name }}</td>
+            <td>{{ application.account_email_address }}</td>
+            <td>{{ application.data }}</td>
+            <td align="center">
+              <button
+                type="button" class="btn btn-success btn-sm"
+                onclick="location.href='{{ url_for("membership.allocate", token_address=token_address, account_address=application.account_address) }}'">
+                割当
+              </button>
+            </td>
           </tr>
     		{% endfor %}
     		</tbody>
   	  </table>
   	</div>
     <div class="box-footer">
-        <button type="button" class="btn btn-default" onclick="location.href='{{ url_for("coupon.list") }}'">一覧に戻る</button>
+        <button
+          type="button" class="btn btn-default"
+          onclick="location.href='{{ url_for("membership.list") }}'">
+          一覧に戻る
+        </button>
     </div>
   </div>
 </section>

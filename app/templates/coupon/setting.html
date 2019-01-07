@@ -21,17 +21,55 @@
         <div class="box-header with-border">
             <h3 class="box-title"><small>{{ token_address }}</small></h3>
             <div class="pull-right box-tools">
+              <!-- 公開/公開済 -->
                 {% if isReleased %}
-                    <button class="btn btn-gray btn-sm" type="button" style="width: 120px" disabled>公開済</button>
+                    <button class="btn btn-gray btn-sm" type="button" style="width: 120px" disabled>
+                      公開済
+                    </button>
                 {% else %}
-                    <button id="release" class="btn btn-warning btn-sm" type="button" style="width: 120px">公開 <i class="fa fa-arrow-circle-right"></i></button>
+                    <button
+                      id="release"
+                      class="btn btn-warning btn-sm" type="button" style="width: 120px">
+                      公開 <i class="fa fa-exclamation-triangle"></i>
+                    </button>
                 {% endif %}
+
+              <!-- 募集申込開始/停止 -->
+                {% if initial_offering_status %}
+                  <button
+                    id="stop_initial_offering"
+                    type="button" class="btn btn-danger btn-sm" style="width: 120px">
+                    募集申込停止 <i class="fa fa-exclamation-triangle"></i>
+                  </button>
+                {% else %}
+                  <button
+                    id="start_initial_offering"
+                    type="button" class="btn btn-success btn-sm" style="width: 120px">
+                    募集申込開始 <i class="fa fa-exclamation-triangle"></i>
+                  </button>
+                {% endif %}
+
+              <!-- 取扱開始/停止 -->
                 {% if isValid %}
-                    <button type="button" class="btn btn-success btn-sm" style="width: 120px" onclick="location.href='{{ url_for("coupon.add_supply", token_address=token_address)}}'">追加発行 <i class="fa fa-arrow-circle-right"></i></button>
-                    <button id="invalid" type="button" class="btn btn-danger btn-sm" style="width: 120px">クーポン無効化 <i class="fa fa-arrow-circle-right"></i></button>
+                    <button
+                      id="invalid"
+                      type="button" class="btn btn-danger btn-sm" style="width: 120px">
+                      クーポン無効化 <i class="fa fa-exclamation-triangle"></i>
+                    </button>
                 {% else %}
-                    <button id="valid" type="button" class="btn btn-success btn-sm" style="width: 120px">クーポン有効化 <i class="fa fa-arrow-circle-right"></i></button>
+                    <button
+                      id="valid"
+                      type="button" class="btn btn-success btn-sm" style="width: 120px">
+                      クーポン有効化 <i class="fa fa-exclamation-triangle"></i>
+                    </button>
                 {% endif %}
+
+              <!-- 追加発行 -->
+                <button
+                  type="button" class="btn btn-success btn-sm" style="width: 120px"
+                  onclick="location.href='{{ url_for("coupon.add_supply", token_address=token_address)}}'">
+                  追加発行 <i class="fa fa-arrow-circle-right"></i>
+                </button>
             </div>
         </div>
         <form class="form-horizontal" method="POST" role="form" action="{{ url_for('coupon.setting', token_address=form.token_address.data) }}">
@@ -166,6 +204,34 @@
           if (confirm('このクーポンを有効化します。よろしいですか？')) {
               var $form = $('<form/>',
                   {'action': "{{ url_for('coupon.valid') }}", 'method': 'POST'}
+              );
+              $form.append($('<input/>',
+                  {'type': 'hidden', 'name': 'token_address', 'value': '{{ form.token_address.data }}'}
+              ));
+              $form.appendTo(document.body);
+              $form.submit();
+          } else {
+              return false;
+          }
+      });
+      $('#start_initial_offering').click(function(){
+          if (confirm('この商品の募集申込受付を開始します。よろしいですか？')) {
+              var $form = $('<form/>',
+                  {'action': "{{ url_for('coupon.start_initial_offering') }}", 'method': 'POST'}
+              );
+              $form.append($('<input/>',
+                  {'type': 'hidden', 'name': 'token_address', 'value': '{{ form.token_address.data }}'}
+              ));
+              $form.appendTo(document.body);
+              $form.submit();
+          } else {
+              return false;
+          }
+      });
+      $('#stop_initial_offering').click(function(){
+          if (confirm('現在この商品は募集申込中です。\nこの商品の募集申込受付を停止します。よろしいですか？')) {
+              var $form = $('<form/>',
+                  {'action': "{{ url_for('coupon.stop_initial_offering') }}", 'method': 'POST'}
               );
               $form.append($('<input/>',
                   {'type': 'hidden', 'name': 'token_address', 'value': '{{ form.token_address.data }}'}

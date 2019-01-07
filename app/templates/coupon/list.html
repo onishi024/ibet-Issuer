@@ -24,33 +24,43 @@
   	  <table id="data_table" class="table table-bordered table-hover">
   		<thead>
   		  <tr>
-    			<th>名称</th>
+          <th style="width: 100px">名称</th>
     			<th style="width: 50px">略称</th>
-    			<th>登録日時</th>
-          <th>アドレス</th>
-          <th style="width: 50px">受付ID</th>
-          <th style="width: 50px">取扱</th>
-          <th style="width: 60px"></th>
-          <th style="width: 60px"></th>
+    			<th style="width: 40px">登録日時</th>
+          <th style="width: 110px">アドレス</th>
+          <th style="width: 30px">受付ID</th>
+          <th style="width: 30px">取扱</th>
+          <th style="width: 30px"></th>
+          <th style="width: 50px"></th>
+          <th style="width: 50px"></th>
     		</tr>
   		</thead>
   		<tbody>
   		{% for token in tokens %}
         <tr>
           {% if token.token_address != None %}
-    			  <td style="word-break : break-all; width: 200px;"><a href="{{ url_for('coupon.setting', token_address=token.token_address) }}">{{ token.name }}</a></td>
+    			  <td style="word-break : break-all;">
+              <a href="{{ url_for('coupon.setting', token_address=token.token_address) }}">
+                {{ token.name }}
+              </a>
+            </td>
           {% else %}
             <td>{{ token.name }}</td>
           {% endif %}
           <td>{{ token.symbol }}</td>
-    			<td align="center">{{ token.created | format_date }}</td>
+    			<td align="center">
+            <small>{{ token.created | format_date }}</small>
+          </td>
           {% if token.token_address != None %}
             <td style="word-break : break-all;"><small>{{ token.token_address }}</small></td>
           {% else %}
             <td>-</td>
           {% endif %}
           <td align="center">
-            <button type="button" class="btn btn-default btn-sm" onclick="viewTxHash('{{token.tx_hash}}')">表示</button>
+            <button type="button" class="btn btn-default btn-sm"
+              onclick="viewTxHash('{{token.tx_hash}}')">
+              表示
+            </button>
           </td>
           {% if token.is_valid == true %}
             <td align="center"><span class="badge bg-green">有効</span></td>
@@ -60,12 +70,29 @@
             <td align="center">{{ token.is_valid }}</td>
           {% endif %}
           {% if token.token_address != None %}
-            <td><a href="{{ url_for('coupon.usage_history', token_address=token.token_address) }}">利用履歴</a></td>
+            <td align="center">
+              <a href="{{ url_for('coupon.usage_history', token_address=token.token_address) }}">
+                利用<br/>履歴
+              </a>
+            </td>
           {% else %}
             <td></td>
           {% endif %}
           {% if token.token_address != None %}
-      			<td><a href="{{ url_for('coupon.holders', token_address=token.token_address) }}">保有者一覧</a></td>
+            <td align="center">
+              <a href="{{ url_for('coupon.applications', token_address=token.token_address) }}">
+                募集申込<br/>一覧
+              </a>
+            </td>
+          {% else %}
+            <td></td>
+          {% endif %}
+          {% if token.token_address != None %}
+      			<td align="center">
+              <a href="{{ url_for('coupon.holders', token_address=token.token_address) }}">
+                保有者<br/>一覧
+              </a>
+            </td>
           {% else %}
             <td></td>
           {% endif %}

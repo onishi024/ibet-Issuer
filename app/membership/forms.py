@@ -239,6 +239,35 @@ class CancelOrderForm(Form):
         super(CancelOrderForm, self).__init__(*args, **kwargs)
         self.sell_token = cancel_order
 
+class TransferForm(Form):
+    token_address = StringField(
+        "会員権アドレス",
+        validators=[
+            Required('会員権アドレスは必須です。')
+        ]
+    )
+
+    to_address = StringField(
+        "割当先アドレス",
+        validators=[
+            Required('割当先アドレスは必須です。')
+        ]
+    )
+
+    amount = IntegerField(
+        "割当数量",
+        validators=[
+            Required('割当数量は必須です。'),
+            NumberRange(min=1, max=100000000, message='割当数量は100,000,000が上限です。'),
+        ]
+    )
+
+    submit = SubmitField('割当')
+
+    def __init__(self, transfer_membership=None, *args, **kwargs):
+        super(TransferForm, self).__init__(*args, **kwargs)
+        self.transfer_membership = transfer_membership
+
 class TransferOwnershipForm(Form):
     from_address = StringField("現在の所有者（アドレス）",validators = [])
     to_address = StringField(

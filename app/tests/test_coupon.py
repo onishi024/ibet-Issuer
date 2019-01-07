@@ -364,9 +364,9 @@ class TestCoupon(TestBase):
         response = client.post(
             self.url_transfer,
             data={
-                'tokenAddress': tokens[0].token_address,
-                'sendAddress': eth_account['trader']['account_address'],
-                'sendAmount': 100,
+                'token_address': tokens[0].token_address,
+                'to_address': eth_account['trader']['account_address'],
+                'amount': 100,
             }
         )
         assert response.status_code == 200
