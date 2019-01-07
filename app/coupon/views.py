@@ -120,16 +120,19 @@ def get_applications(token_address):
     PersonalInfoContract = \
         Contract.get_contract('PersonalInfo', personalinfo_address)
 
-    event_filter = TokenContract.eventFilter(
-        'ApplyFor', {
-            'filter':{},
-            'fromBlock':'earliest'
-        }
-    )
-    entries = event_filter.get_all_entries()
-    list_temp = []
-    for entry in entries:
-        list_temp.append(entry['args']['accountAddress'])
+    try:
+        event_filter = TokenContract.eventFilter(
+            'ApplyFor', {
+                'filter':{},
+                'fromBlock':'earliest'
+            }
+        )
+        entries = event_filter.get_all_entries()
+        list_temp = []
+        for entry in entries:
+            list_temp.append(entry['args']['accountAddress'])
+    except:
+        list_temp = []
 
     # 口座リストをユニークにする
     account_list = []
