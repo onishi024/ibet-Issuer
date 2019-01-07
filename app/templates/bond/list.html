@@ -6,12 +6,12 @@
 {% endblock %}
 {% set active_page = "bond_list" %}
 
-{% block title %}発行済債券一覧 - {% endblock %}
-{% block page_header %}発行済債券一覧 <span class="badge bg-secondary">債券</span>{% endblock %}
+{% block title %}債券一覧 - {% endblock %}
+{% block page_header %}債券一覧 <span class="badge bg-secondary">債券</span>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
     <li><a href="{{ url_for('index.index') }}">トップ</a></li>
-    <li class="active">発行済債券一覧</li>
+    <li class="active">債券一覧</li>
 {% endblock %}
 
 {% block page_content %}
@@ -42,7 +42,9 @@
             <td>{{ token.name }}</td>
           {% endif %}
           <td>{{ token.symbol }}</td>
-    			<td align="center">{{ token.created | format_date }}</td>
+    			<td align="center">
+            <small>{{ token.created | format_date }}</small>
+          </td>
           {% if token.token_address != None %}
             <td style="word-break : break-all;"><small>{{ token.token_address }}</small></td>
           {% else %}

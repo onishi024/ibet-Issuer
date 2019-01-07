@@ -6,31 +6,70 @@
 {% endblock %}
 {% set active_page = "membership_list" %}
 
-{% block title %}会員権 詳細設定 - {% endblock %}
-{% block page_header %}会員権 詳細設定 <span class="badge bg-secondary">会員権</span>{% endblock %}
+{% block title %}会員権詳細設定 - {% endblock %}
+{% block page_header %}詳細設定 <span class="badge bg-secondary">会員権</span>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
     <li><a href="{{ url_for('index.index') }}">トップ</a></li>
-    <li class="active">会員権 詳細設定</li>
+    <li><a href="{{ url_for('membership.list') }}">会員権一覧</a></li>
+    <li class="active">会員権詳細設定</li>
 {% endblock %}
 
 {% block page_content %}
 <section class="content">
     <div class="box box-default">
         <div class="box-header with-border">
-            <h3 class="box-title">{{ token_name }}　<small>{{ token_address }}</small></h3>
+            <h3 class="box-title"><small>{{ token_address }}</small></h3>
             <div class="pull-right box-tools">
+              <!-- 公開/公開済 -->
                 {% if isRelease %}
-                    <button class="btn btn-gray" type="button" style="width: 150px" disabled>公開済</button>
+                  <button class="btn btn-gray btn-sm" type="button" style="width: 120px" disabled>
+                    公開済
+                  </button>
                 {% else %}
-                    <button id="release" class="btn btn-warning" type="button" style="width: 150px">公開 <i class="fa fa-arrow-circle-right"></i></button>
+                  <button
+                    id="release"
+                    class="btn btn-warning btn-sm" type="button" style="width: 120px">
+                    公開 <i class="fa fa-exclamation-triangle"></i>
+                  </button>
                 {% endif %}
-                <button type="button" class="btn btn-success" style="width: 150px" onclick="location.href='{{ url_for("membership.add_supply", token_address=token_address)}}'">追加発行 <i class="fa fa-arrow-circle-right"></i></button>
+
+              <!-- 募集申込開始/停止 -->
+                {% if initial_offering_status %}
+                  <button
+                    id="stop_initial_offering"
+                    type="button" class="btn btn-danger btn-sm" style="width: 120px">
+                    募集申込停止 <i class="fa fa-exclamation-triangle"></i>
+                  </button>
+                {% else %}
+                  <button
+                    id="start_initial_offering"
+                    type="button" class="btn btn-success btn-sm" style="width: 120px">
+                    募集申込開始 <i class="fa fa-exclamation-triangle"></i>
+                  </button>
+                {% endif %}
+
+              <!-- 取扱開始/停止 -->
                 {% if status %}
-                    <button id="invalid" type="button" class="btn btn-danger" style="width: 150px">取扱停止 <i class="fa fa-arrow-circle-right"></i></button>
+                  <button
+                    id="invalid"
+                    type="button" class="btn btn-danger btn-sm" style="width: 120px">
+                    取扱停止 <i class="fa fa-exclamation-triangle"></i>
+                  </button>
                 {% else %}
-                    <button id="valid" type="button" class="btn btn-success" style="width: 150px">取扱開始 <i class="fa fa-arrow-circle-right"></i></button>
+                  <button
+                    id="valid"
+                    type="button" class="btn btn-success btn-sm" style="width: 120px">
+                    取扱開始 <i class="fa fa-exclamation-triangle"></i>
+                  </button>
                 {% endif %}
+
+              <!-- 追加発行 -->
+                <button
+                  type="button" class="btn btn-success btn-sm" style="width: 120px"
+                  onclick="location.href='{{ url_for("membership.add_supply", token_address=token_address)}}'">
+                  追加発行 <i class="fa fa-arrow-circle-right"></i>
+                </button>
             </div>
         </div>
         <form class="form-horizontal" method="POST" role="form" action="{{ url_for('membership.setting', token_address=form.token_address.data) }}">
@@ -38,7 +77,7 @@
             <div class="box-body">
                 <div class="form-group">
                     {{ form.name.label(class="col-md-2") }}
-                    <div class="col-md-4">
+                    <div class="col-md-8">
                         {{ form.name(class="form-control", disabled=True) }}
                     </div>
                 </div>
@@ -193,9 +232,37 @@
           }
       });
       $('#valid').click(function(){
-          if (confirm('この商品を取扱を再開します。よろしいですか？')) {
+          if (confirm('この商品の取扱を再開します。よろしいですか？')) {
               var $form = $('<form/>',
                   {'action': "{{ url_for('membership.valid') }}", 'method': 'POST'}
+              );
+              $form.append($('<input/>',
+                  {'type': 'hidden', 'name': 'token_address', 'value': '{{ form.token_address.data }}'}
+              ));
+              $form.appendTo(document.body);
+              $form.submit();
+          } else {
+              return false;
+          }
+      });
+      $('#start_initial_offering').click(function(){
+          if (confirm('この商品の募集申込受付を開始します。よろしいですか？')) {
+              var $form = $('<form/>',
+                  {'action': "{{ url_for('membership.start_initial_offering') }}", 'method': 'POST'}
+              );
+              $form.append($('<input/>',
+                  {'type': 'hidden', 'name': 'token_address', 'value': '{{ form.token_address.data }}'}
+              ));
+              $form.appendTo(document.body);
+              $form.submit();
+          } else {
+              return false;
+          }
+      });
+      $('#stop_initial_offering').click(function(){
+          if (confirm('現在この商品は募集申込中です。\nこの商品の募集申込受付を停止します。よろしいですか？')) {
+              var $form = $('<form/>',
+                  {'action': "{{ url_for('membership.stop_initial_offering') }}", 'method': 'POST'}
               );
               $form.append($('<input/>',
                   {'type': 'hidden', 'name': 'token_address', 'value': '{{ form.token_address.data }}'}

@@ -126,7 +126,7 @@ def register_token_list(token_dict, token_type):
     tx = web3.eth.waitForTransactionReceipt(tx_hash)
     print("TokenListContract Length:" + str(TokenListContract.functions.getListLength().call()))
 
-# トークン募集(売り)
+# トークン売出(売り)
 def offer_token(agent_address, exchange_address, token_dict, amount, token_type, ExchangeContract):
     transfer_to_exchange(exchange_address, token_dict, amount, token_type)
     make_sell_token(agent_address, exchange_address, token_dict, amount, ExchangeContract)
@@ -225,7 +225,7 @@ def main(data_count):
     token_dict = issue_token(exchange_address, data_count, token_type)
     # トークンリストに登録
     register_token_list(token_dict, token_type)
-    # 募集
+    # 売出
     offer_token(agent_address, exchange_address, token_dict, data_count, token_type, ExchangeContract)
     # orderID取得
     order_id = get_latest_orderid(ExchangeContract) - 1

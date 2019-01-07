@@ -2,56 +2,66 @@
 {% block head %}
   {{ super() }}
   <!-- DataTables -->
-  <link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
+  <link
+    rel="stylesheet"
+    href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
 {% endblock %}
-{% set active_page = "coupon_position" %}
+{% set active_page = "coupon_list" %}
 
-{% block title %}売出管理 - {% endblock %}
-{% block page_header %}売出管理 <span class="badge bg-secondary">クーポン</span>{% endblock %}
+{% block title %}募集申込一覧 - {% endblock %}
+{% block page_header %}募集申込一覧 <span class="badge bg-secondary">クーポン</span>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
     <li><a href="{{ url_for('index.index') }}">トップ</a></li>
-    <li class="active">売出管理</li>
+    <li><a href="{{ url_for('coupon.list') }}">クーポン一覧</a></li>
+    <li class="active">募集申込一覧</li>
 {% endblock %}
 
 {% block page_content %}
 <section class="content">
   <div class="box box-default">
     <div class="box-header">
-      <h3 class="box-title">クーポン一覧</h3>
+      <h3 class="box-title">{{ token_name }}　<small>{{ token_address }}</small></h3>
     </div>
     <div class="box-body">
   	  <table id="data_table" class="table table-bordered table-hover">
     		<thead>
     		  <tr>
-            <th>名称</th>
-      			<th style="width: 50px">略称</th>
-            <th>アドレス</th>
-      			<th style="width: 70px">総発行量</th>
-            <th style="width: 70px">残高</th>
-            <th style="width: 70px">売出中</th>
+            <th>アカウントアドレス</th>
+      			<th>氏名</th>
+            <th>e-mail</th>
+            <th>認可コード</th>
             <th></th>
       		</tr>
     		</thead>
     		<tbody>
-    		{% for position in position_list %}
+    		{% for application in applications %}
           <tr>
-            <td style="word-break : break-all; width: 250px;">{{ position.name }}</td>
-            <td>{{ position.symbol }}</td>
-            <td style="word-break : break-all"><small>{{ position.token_address }}</small></td>
-            <td>{{ position.totalSupply }}</td>
-            <td>{{ position.balance }}</td>
-            <td>{{ position.commitment }}</td>
-            {% if position.on_sale != True %}
-              <td align="center"><button type="button" class="btn btn-success btn-sm" onclick="location.href= '{{ url_for("coupon.sell", token_address=position.token_address) }}'">売出開始</button></td>
-            {% else %}
-              <td align="center"><button type="button" class="btn btn-danger btn-sm" onclick="location.href= '{{ url_for("coupon.cancel_order", token_address=position.token_address) }}'">売出停止</button></td>
-            {% endif %}
+            <td style="word-break : break-all">
+              <small>{{ application.account_address }}</small>
+            </td>
+            <td>{{ application.account_name }}</td>
+            <td>{{ application.account_email_address }}</td>
+            <td>{{ application.data }}</td>
+            <td align="center">
+              <button
+                type="button" class="btn btn-success btn-sm"
+                onclick="location.href='{{ url_for("coupon.allocate", token_address=token_address, account_address=application.account_address) }}'">
+                割当
+              </button>
+            </td>
           </tr>
     		{% endfor %}
     		</tbody>
   	  </table>
   	</div>
+    <div class="box-footer">
+        <button
+          type="button" class="btn btn-default"
+          onclick="location.href='{{ url_for("coupon.list") }}'">
+          一覧に戻る
+        </button>
+    </div>
   </div>
 </section>
 {% endblock %}

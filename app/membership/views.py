@@ -45,7 +45,234 @@ def flash_errors(form):
         for error in errors:
             flash(error, 'error')
 
-# トークンの保有者一覧、token_nameを返す
+####################################################
+# [会員権]発行済一覧
+####################################################
+@membership.route('/list', methods=['GET'])
+@login_required
+def list():
+    logger.info('membership.list')
+
+    # 発行済トークンの情報をDBから取得する
+    tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
+
+    token_list = []
+    for row in tokens:
+        # トークンがデプロイ済みの場合、トークン情報を取得する
+        if row.token_address == None:
+            name = '<処理中>'
+            symbol = '<処理中>'
+            status = '<処理中>'
+            totalSupply = '<処理中>'
+        else:
+            # Token-Contractへの接続
+            TokenContract = web3.eth.contract(
+                address=row.token_address,
+                abi = json.loads(
+                    row.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+            )
+
+            # Token-Contractから情報を取得する
+            name = TokenContract.functions.name().call()
+            symbol = TokenContract.functions.symbol().call()
+            status = TokenContract.functions.status().call()
+            totalSupply = TokenContract.functions.totalSupply().call()
+
+        token_list.append({
+            'name':name,
+            'symbol':symbol,
+            'created':row.created,
+            'tx_hash':row.tx_hash,
+            'token_address':row.token_address,
+            'totalSupply':totalSupply,
+            'status':status
+        })
+
+    return render_template('membership/list.html', tokens=token_list)
+
+####################################################
+# [会員権]募集申込一覧
+####################################################
+@membership.route('/applications/<string:token_address>', methods=['GET'])
+@login_required
+def applications(token_address):
+    logger.info('membership/applications')
+    applications, token_name = get_applications(token_address)
+    return render_template('membership/applications.html', \
+        applications=applications, token_address=token_address, token_name=token_name)
+
+def get_applications(token_address):
+    cipher = None
+    try:
+        key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
+        cipher = PKCS1_OAEP.new(key)
+    except:
+        traceback.print_exc()
+        pass
+
+    token = Token.query.filter(Token.token_address==token_address).first()
+    token_abi = json.loads(
+        token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+
+    # 会員権Token
+    TokenContract = web3.eth.contract(
+        address= token_address,
+        abi = token_abi
+    )
+
+    # PersonalInfo
+    personalinfo_address = Config.PERSONAL_INFO_CONTRACT_ADDRESS
+    PersonalInfoContract = \
+        Contract.get_contract('PersonalInfo', personalinfo_address)
+
+    event_filter = TokenContract.eventFilter(
+        'ApplyFor', {
+            'filter':{},
+            'fromBlock':'earliest'
+        }
+    )
+    entries = event_filter.get_all_entries()
+    list_temp = []
+    for entry in entries:
+        list_temp.append(entry['args']['accountAddress'])
+
+    # 口座リストをユニークにする
+    account_list = []
+    for item in list_temp:
+        if item not in account_list:
+            account_list.append(item)
+
+    token_owner = TokenContract.functions.owner().call()
+    token_name = TokenContract.functions.name().call()
+
+    applications = []
+    for account_address in account_list:
+        encrypted_info = PersonalInfoContract.functions.\
+            personal_info(account_address, token_owner).call()[2]
+
+        account_name = ''
+        account_email_address = ''
+        if encrypted_info == '' or cipher == None:
+            pass
+        else:
+            ciphertext = base64.decodestring(encrypted_info.encode('utf-8'))
+            try:
+                message = cipher.decrypt(ciphertext)
+                personal_info_json = json.loads(message)
+                if 'name' in personal_info_json:
+                    account_name = personal_info_json['name']
+                if 'e-mail' in personal_info_json:
+                    account_email_address = personal_info_json['e-mail']
+            except:
+                pass
+
+        data = TokenContract.functions.applications(account_address).call()
+
+        application = {
+            'account_address': account_address,
+            'account_name': account_name,
+            'account_email_address': account_email_address,
+            'data': data
+        }
+        applications.append(application)
+
+    return applications, token_name
+
+####################################################
+# [会員権]割当（募集申込）
+####################################################
+@membership.route(
+    '/allocate/<string:token_address>/<string:account_address>',
+    methods=['GET', 'POST'])
+@login_required
+def allocate(token_address, account_address):
+    logger.info('membership/allocate')
+
+    # アドレスのフォーマットチェック
+    if not Web3.isAddress(account_address) or not Web3.isAddress(token_address):
+        abort(404)
+
+    # Tokenコントラクト接続
+    token = Token.query.filter(Token.token_address==token_address).first()
+    if token is None:
+        abort(404)
+    token_abi = json.loads(
+        token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+    TokenContract = web3.eth.contract(address=token.token_address, abi=token_abi)
+
+    form = TransferForm()
+    form.token_address.data = token_address
+    form.to_address.data = account_address
+    if request.method == 'POST':
+        if form.validate():
+            # 残高チェック
+            amount = int(form.amount.data)
+            balance = TokenContract.functions.\
+                balanceOf(to_checksum_address(Config.ETH_ACCOUNT)).call()
+            if amount > balance:
+                flash('移転数量が残高を超えています。','error')
+                return render_template(
+                    'membership/allocate.html',
+                    token_address = token_address,
+                    account_address = account_address,
+                    form = form
+                )
+
+            # 割当処理（発行体アドレス→指定アドレス）
+            from_address = Config.ETH_ACCOUNT
+            to_address = to_checksum_address(account_address)
+            tx_hash = transfer_token(TokenContract, from_address, to_address, amount)
+
+            flash('処理を受け付けました。割当完了までに数分程かかることがあります。', 'success')
+            return redirect(url_for('.applications', token_address=token_address))
+        else:
+            flash_errors(form)
+            return render_template(
+                'membership/allocate.html',
+                token_address = token_address,
+                account_address = account_address,
+                form = form
+            )
+    else: # GET
+        return render_template(
+            'membership/allocate.html',
+            token_address = token_address,
+            account_address = account_address,
+            form = form
+        )
+
+def transfer_token(TokenContract, from_address, to_address, amount):
+    eth_unlock_account()
+    token_exchange_address = Config.IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS
+    ExchangeContract = Contract.get_contract(
+        'IbetMembershipExchange', token_exchange_address)
+
+    # 取引所コントラクトへトークン送信
+    deposit_gas = TokenContract.estimateGas().\
+        transferFrom(from_address, token_exchange_address, amount)
+    TokenContract.functions.\
+        transferFrom(from_address, token_exchange_address, amount).\
+        transact({'from':Config.ETH_ACCOUNT, 'gas':deposit_gas})
+
+    # 取引所コントラクトからtransferで送信相手へ送信
+    transfer_gas = ExchangeContract.estimateGas().\
+        transfer(to_checksum_address(TokenContract.address), to_address, amount)
+    tx_hash = ExchangeContract.functions.\
+        transfer(to_checksum_address(TokenContract.address), to_address, amount).\
+        transact({'from':Config.ETH_ACCOUNT, 'gas':transfer_gas})
+    return tx_hash
+
+####################################################
+# [会員権]保有者一覧
+####################################################
+@membership.route('/holders/<string:token_address>', methods=['GET'])
+@login_required
+def holders(token_address):
+    logger.info('membership/holders')
+    holders, token_name = get_holders(token_address)
+    return render_template('membership/holders.html', \
+        holders=holders, token_address=token_address, token_name=token_name)
+
 def get_holders(token_address):
     cipher = None
     try:
@@ -125,62 +352,6 @@ def get_holders(token_address):
             holders.append(holder)
 
     return holders, token_name
-
-####################################################
-# [会員権]発行済一覧
-####################################################
-@membership.route('/list', methods=['GET'])
-@login_required
-def list():
-    logger.info('membership.list')
-
-    # 発行済トークンの情報をDBから取得する
-    tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
-
-    token_list = []
-    for row in tokens:
-        # トークンがデプロイ済みの場合、トークン情報を取得する
-        if row.token_address == None:
-            name = '<処理中>'
-            symbol = '<処理中>'
-            status = '<処理中>'
-            totalSupply = '<処理中>'
-        else:
-            # Token-Contractへの接続
-            TokenContract = web3.eth.contract(
-                address=row.token_address,
-                abi = json.loads(
-                    row.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
-            )
-
-            # Token-Contractから情報を取得する
-            name = TokenContract.functions.name().call()
-            symbol = TokenContract.functions.symbol().call()
-            status = TokenContract.functions.status().call()
-            totalSupply = TokenContract.functions.totalSupply().call()
-
-        token_list.append({
-            'name':name,
-            'symbol':symbol,
-            'created':row.created,
-            'tx_hash':row.tx_hash,
-            'token_address':row.token_address,
-            'totalSupply':totalSupply,
-            'status':status
-        })
-
-    return render_template('membership/list.html', tokens=token_list)
-
-####################################################
-# [会員権]保有者一覧
-####################################################
-@membership.route('/holders/<string:token_address>', methods=['GET'])
-@login_required
-def holders(token_address):
-    logger.info('membership/holders')
-    holders, token_name = get_holders(token_address)
-    return render_template('membership/holders.html', \
-        holders=holders, token_address=token_address, token_name=token_name)
 
 ####################################################
 # [会員権]保有者移転
@@ -310,6 +481,11 @@ def setting(token_address):
     image_medium = TokenContract.functions.getImageURL(1).call()
     image_large = TokenContract.functions.getImageURL(2).call()
 
+    try:
+        initial_offering_status = TokenContract.functions.initialOfferingStatus().call()
+    except:
+        initial_offering_status = False
+
     # TokenList登録状態取得
     list_contract_address = Config.TOKEN_LIST_CONTRACT_ADDRESS
     ListContract = Contract.get_contract(
@@ -425,7 +601,8 @@ def setting(token_address):
             token_address = token_address,
             token_name = name,
             isRelease = isRelease,
-            status = status
+            status = status,
+            initial_offering_status = initial_offering_status
         )
 
 ####################################################
@@ -534,7 +711,7 @@ def issue():
         return render_template('membership/issue.html', form=form)
 
 ####################################################
-# [会員権]保有一覧（募集管理画面）
+# [会員権]保有一覧（売出管理画面）
 ####################################################
 @membership.route('/positions', methods=['GET'])
 @login_required
@@ -569,12 +746,12 @@ def positions():
             commitment = ExchangeContract.functions.\
                 commitments(owner, row.token_address).call()
 
-            # 拘束数量がゼロよりも大きい場合、募集中のステータスを返す
+            # 拘束数量がゼロよりも大きい場合、売出中のステータスを返す
             on_sale = False
             if balance == 0:
                 on_sale = True
 
-            # 残高がゼロよりも大きい場合、または募集中のステータスの場合、リストを返す
+            # 残高がゼロよりも大きい場合、または売出中のステータスの場合、リストを返す
             if balance > 0 or on_sale == True:
                 name = TokenContract.functions.name().call()
                 symbol = TokenContract.functions.symbol().call()
@@ -593,7 +770,7 @@ def positions():
     return render_template('membership/positions.html', position_list=position_list)
 
 ####################################################
-# [会員権]売出(募集)
+# [会員権]売出
 ####################################################
 @membership.route('/sell/<string:token_address>', methods=['GET', 'POST'])
 @login_required
@@ -645,7 +822,7 @@ def sell(token_address):
                 createOrder(token_address, balance, form.sellPrice.data, False, agent_address).\
                 transact({'from':Config.ETH_ACCOUNT, 'gas':sell_gas})
             tx = web3.eth.waitForTransactionReceipt(txid)
-            flash('新規募集を受け付けました。募集開始までに数分程かかることがあります。', 'success')
+            flash('新規売出を受け付けました。売出開始までに数分程かかることがあります。', 'success')
             return redirect(url_for('.positions'))
         else:
             flash_errors(form)
@@ -734,7 +911,7 @@ def cancel_order(token_address):
             txid = ExchangeContract.functions.cancelOrder(order_id).\
                 transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
             tx = web3.eth.waitForTransactionReceipt(txid)
-            flash('募集停止処理を受け付けました。停止されるまでに数分程かかることがあります。', 'success')
+            flash('売出停止処理を受け付けました。停止されるまでに数分程かかることがあります。', 'success')
             return redirect(url_for('.positions'))
         else:
             flash_errors(form)
@@ -828,6 +1005,54 @@ def membership_valid(token_address, isvalid):
                 transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
 
     flash('処理を受け付けました。完了までに数分程かかることがあります。', 'success')
+
+####################################################
+# [会員権]募集申込開始/停止
+####################################################
+@membership.route('/start_initial_offering', methods=['POST'])
+@login_required
+def start_initial_offering():
+    logger.info('membership/start_initial_offering')
+    token_address = request.form.get('token_address')
+    transact_status = set_initial_offering_status(token_address, True)
+    if transact_status:
+        return redirect(url_for('.list'))
+    else:
+        return redirect(url_for('.setting', token_address=token_address))
+
+@membership.route('/stop_initial_offering', methods=['POST'])
+@login_required
+def stop_initial_offering():
+    logger.info('membership/stop_initial_offering')
+    token_address = request.form.get('token_address')
+    transact_status = set_initial_offering_status(token_address, False)
+    if transact_status:
+        return redirect(url_for('.list'))
+    else:
+        return redirect(url_for('.setting', token_address=token_address))
+
+def set_initial_offering_status(token_address, status):
+    eth_unlock_account()
+    token = Token.query.filter(Token.token_address==token_address).first()
+    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+
+    TokenContract = web3.eth.contract(
+        address= token.token_address,
+        abi = token_abi
+    )
+
+    transact_status = True
+    try:
+        gas = TokenContract.estimateGas().setInitialOfferingStatus(status)
+        tx = TokenContract.functions.setInitialOfferingStatus(status).\
+            transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
+    except:
+        flash('募集申込ステータスの更新処理でエラーが発生しました。', 'error')
+        transact_status = False
+        return transact_status
+
+    flash('処理を受け付けました。完了までに数分程かかることがあります。', 'success')
+    return transact_status
 
 ####################################################
 # [会員権]権限エラー

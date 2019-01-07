@@ -63,8 +63,8 @@ class Token(db.Model):
     admin_address = db.Column(db.String(64), nullable=True)
     token_address = db.Column(db.String(64), nullable=True)
     abi = db.Column(db.String(20480), nullable=False)
-    bytecode = db.Column(db.String(20480), nullable=False)
-    bytecode_runtime = db.Column(db.String(20480), nullable=False)
+    bytecode = db.Column(db.String(25600), nullable=False)
+    bytecode_runtime = db.Column(db.String(25600), nullable=False)
     created = db.Column(db.DateTime, nullable=False, default=datetime.now)
     modified = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
 

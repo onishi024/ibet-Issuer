@@ -21,11 +21,11 @@ class TestMembership(TestBase):
     # URL
     ##################
     url_list = 'membership/list' # 発行済一覧
-    url_positions = 'membership/positions' # 募集管理
+    url_positions = 'membership/positions' # 売出管理
     url_issue = 'membership/issue' # 新規発行
     url_setting = 'membership/setting/' # 詳細設定
-    url_sell = 'membership/sell/' # 新規募集
-    url_cancel_order = 'membership/cancel_order/' # 募集中止
+    url_sell = 'membership/sell/' # 新規売出
+    url_cancel_order = 'membership/cancel_order/' # 売出中止
     url_release = 'membership/release' # 公開
     url_invalid = 'membership/invalid' # 無効化（取扱中止）
     url_valid = 'membership/valid' # 有効化（取扱開始）
@@ -172,12 +172,12 @@ class TestMembership(TestBase):
 
     # ＜正常系1_2＞
     # ＜会員権の0件確認＞
-    #   募集管理画面の参照(0件)
+    #   売出管理画面の参照(0件)
     def test_normal_1_2(self, app, shared_contract):
         client = self.client_with_admin_login(app)
         response = client.get(self.url_positions)
         assert response.status_code == 200
-        assert '<title>募集管理'.encode('utf-8') in response.data
+        assert '<title>売出管理'.encode('utf-8') in response.data
         assert 'データが存在しません'.encode('utf-8') in response.data
 
     # ＜正常系2_1＞
@@ -202,7 +202,7 @@ class TestMembership(TestBase):
         token = TestMembership.get_token(0)
         response = client.get(self.url_setting + token.token_address)
         assert response.status_code == 200
-        assert '<title>会員権 詳細設定'.encode('utf-8') in response.data
+        assert '<title>会員権詳細設定'.encode('utf-8') in response.data
         assert self.token_data1['name'].encode('utf-8') in response.data
         assert self.token_data1['symbol'].encode('utf-8') in response.data
         assert str(self.token_data1['totalSupply']).encode('utf-8') in response.data
@@ -234,15 +234,15 @@ class TestMembership(TestBase):
 
     # ＜正常系2_3＞
     # ＜会員権の1件確認＞
-    #   募集管理画面の参照(1件)
+    #   売出管理画面の参照(1件)
     def test_normal_2_3(self, app, shared_contract):
         token = TestMembership.get_token(0)
 
-        # 募集管理画面の参照
+        # 売出管理画面の参照
         client = self.client_with_admin_login(app)
         response = client.get(self.url_positions)
         assert response.status_code == 200
-        assert '<title>募集管理'.encode('utf-8') in response.data
+        assert '<title>売出管理'.encode('utf-8') in response.data
         assert self.token_data1['name'].encode('utf-8') in response.data
         assert self.token_data1['symbol'].encode('utf-8') in response.data
         assert token.token_address.encode('utf-8') in response.data
@@ -271,7 +271,7 @@ class TestMembership(TestBase):
         token = TestMembership.get_token(1)
         response = client.get(self.url_setting + token.token_address)
         assert response.status_code == 200
-        assert '<title>会員権 詳細設定'.encode('utf-8') in response.data
+        assert '<title>会員権詳細設定'.encode('utf-8') in response.data
         assert self.token_data2['name'].encode('utf-8') in response.data
         assert self.token_data2['symbol'].encode('utf-8') in response.data
         assert str(self.token_data2['totalSupply']).encode('utf-8') in response.data
@@ -310,16 +310,16 @@ class TestMembership(TestBase):
 
     # ＜正常系3_3＞
     # ＜会員権一覧（複数件）＞
-    #   募集管理画面の参照（複数件）
+    #   売出管理画面の参照（複数件）
     def test_normal_3_3(self, app, shared_contract):
         token1 = TestMembership.get_token(0)
         token2 = TestMembership.get_token(1)
 
-        # 募集管理画面の参照
+        # 売出管理画面の参照
         client = self.client_with_admin_login(app)
         response = client.get(self.url_positions)
         assert response.status_code == 200
-        assert '<title>募集管理'.encode('utf-8') in response.data
+        assert '<title>売出管理'.encode('utf-8') in response.data
 
         # Token_1
         assert self.token_data1['name'].encode('utf-8') in response.data
@@ -336,17 +336,17 @@ class TestMembership(TestBase):
             encode('utf-8') in response.data
 
     # ＜正常系4_1＞
-    # ＜募集画面＞
-    #   新規募集画面の参照
+    # ＜売出画面＞
+    #   新規売出画面の参照
     #   ※Token_1が対象
     def test_normal_4_1(self, app, shared_contract):
         client = self.client_with_admin_login(app)
         token = TestMembership.get_token(0)
 
-        # 新規募集画面の参照
+        # 新規売出画面の参照
         response = client.get(self.url_sell + token.token_address)
         assert response.status_code == 200
-        assert '<title>新規募集'.encode('utf-8') in response.data
+        assert '<title>新規売出'.encode('utf-8') in response.data
         assert self.token_data1['name'].encode('utf-8') in response.data
         assert self.token_data1['symbol'].encode('utf-8') in response.data
         assert str(self.token_data1['totalSupply']).encode('utf-8') in response.data
@@ -358,15 +358,15 @@ class TestMembership(TestBase):
         assert self.token_data1['tradableExchange'].encode('utf-8') in response.data
 
     # ＜正常系4_2＞
-    # ＜募集画面＞
-    #   募集処理 → 募集管理画面の参照
+    # ＜売出画面＞
+    #   売出処理 → 売出管理画面の参照
     #   ※Token_1が対象
     def test_normal_4_2(self, app, shared_contract):
         client = self.client_with_admin_login(app)
         token = TestMembership.get_token(0)
         url_sell = self.url_sell + token.token_address
 
-        # 募集処理
+        # 売出処理
         response = client.post(
             url_sell,
             data={
@@ -375,51 +375,51 @@ class TestMembership(TestBase):
         )
         assert response.status_code == 302
 
-        # 募集管理画面の参照
+        # 売出管理画面の参照
         response = client.get(self.url_positions)
 
         assert response.status_code == 200
-        assert '<title>募集管理'.encode('utf-8') in response.data
-        assert '新規募集を受け付けました。募集開始までに数分程かかることがあります。'.encode('utf-8') in response.data
+        assert '<title>売出管理'.encode('utf-8') in response.data
+        assert '新規売出を受け付けました。売出開始までに数分程かかることがあります。'.encode('utf-8') in response.data
         assert self.token_data1['name'].encode('utf-8') in response.data
         assert self.token_data1['symbol'].encode('utf-8') in response.data
-        assert '募集停止'.encode('utf-8') in response.data
-        # 募集中の数量が存在する
+        assert '売出停止'.encode('utf-8') in response.data
+        # 売出中の数量が存在する
         assert '<td>1000000</td>\n            <td>0</td>\n            <td>1000000</td>'.encode('utf-8') in response.data
 
     # ＜正常系4_3＞
-    # ＜募集画面＞
-    #   募集停止処理 → 募集管理で確認
+    # ＜売出画面＞
+    #   売出停止処理 → 売出管理で確認
     #   ※Token_1が対象
     def test_normal_4_3(self, app, shared_contract):
         client = self.client_with_admin_login(app)
         token = TestMembership.get_token(0)
 
-        # 募集停止処理
+        # 売出停止処理
         response = client.post(
             self.url_cancel_order + token.token_address,
         )
         assert response.status_code == 302
 
-        # 募集管理画面の参照
+        # 売出管理画面の参照
         response = client.get(self.url_positions)
         assert response.status_code == 200
-        assert '<title>募集管理'.encode('utf-8') in response.data
+        assert '<title>売出管理'.encode('utf-8') in response.data
         assert 'テスト会員権'.encode('utf-8') in response.data
         assert 'KAIINKEN'.encode('utf-8') in response.data
-        assert '募集開始'.encode('utf-8') in response.data
-        # 募集中の数量が0
+        assert '売出開始'.encode('utf-8') in response.data
+        # 売出中の数量が0
         assert '<td>1000000</td>\n            <td>1000000</td>\n            <td>0</td>'.encode('utf-8') in response.data
 
     # ＜正常系5_1＞
     # ＜詳細設定＞
-    #   募集　→　詳細設定（設定変更）　→　詳細設定画面参照
+    #   売出　→　詳細設定（設定変更）　→　詳細設定画面参照
     #   ※Token_1が対象、Token_3の状態に変更
     def test_normal_5_1(self, app, shared_contract):
         client = self.client_with_admin_login(app)
         token = TestMembership.get_token(0)
 
-        # 募集処理
+        # 売出処理
         url_sell = self.url_sell + token.token_address
         response = client.post(
             url_sell,
@@ -442,7 +442,7 @@ class TestMembership(TestBase):
         # 詳細設定画面の参照
         response = client.get(url_setting)
         assert response.status_code == 200
-        assert '<title>会員権 詳細設定'.encode('utf-8') in response.data
+        assert '<title>会員権詳細設定'.encode('utf-8') in response.data
         assert self.token_data3['name'].encode('utf-8') in response.data
         assert self.token_data3['symbol'].encode('utf-8') in response.data
         assert str(self.token_data3['totalSupply']).encode('utf-8') in response.data
@@ -484,7 +484,7 @@ class TestMembership(TestBase):
         # 詳細設定画面の参照
         response = client.get(url_setting)
         assert response.status_code == 200
-        assert '<title>会員権 詳細設定'.encode('utf-8') in response.data
+        assert '<title>会員権詳細設定'.encode('utf-8') in response.data
         assert self.token_data1['name'].encode('utf-8') in response.data
         assert self.token_data1['symbol'].encode('utf-8') in response.data
         assert str(self.token_data1['totalSupply']).encode('utf-8') in response.data
@@ -498,7 +498,7 @@ class TestMembership(TestBase):
         assert self.token_data1['image_large'].encode('utf-8') in response.data
         assert self.token_data1['tradableExchange'].encode('utf-8') in response.data
         # 公開済でないことを確認
-        assert '公開 <i class="fa fa-arrow-circle-right">'.encode('utf-8') in response.data
+        assert '公開 <i class="fa fa-exclamation-triangle">'.encode('utf-8') in response.data
 
     # ＜正常系5_3＞
     # ＜設定画面＞
@@ -522,7 +522,7 @@ class TestMembership(TestBase):
         url_setting = self.url_setting + token.token_address
         response = client.get(url_setting)
         assert response.status_code == 200
-        assert '<title>会員権 詳細設定'.encode('utf-8') in response.data
+        assert '<title>会員権詳細設定'.encode('utf-8') in response.data
         assert '公開済'.encode('utf-8') in response.data
 
     # ＜正常系5_4＞
@@ -547,14 +547,14 @@ class TestMembership(TestBase):
         url_setting = self.url_setting + token.token_address
         response = client.get(url_setting)
         assert response.status_code == 200
-        assert '<title>会員権 詳細設定'.encode('utf-8') in response.data
+        assert '<title>会員権詳細設定'.encode('utf-8') in response.data
         assert '公開済'.encode('utf-8') in response.data
         assert '取扱開始'.encode('utf-8') in response.data
 
         # 発行済一覧画面の参照
         response = client.get(self.url_list)
         assert response.status_code == 200
-        assert '取扱停止'.encode('utf-8') in response.data
+        assert '停止中'.encode('utf-8') in response.data
 
     # ＜正常系5_5＞
     # ＜設定画面＞
@@ -578,7 +578,7 @@ class TestMembership(TestBase):
         url_setting = self.url_setting + token.token_address
         response = client.get(url_setting)
         assert response.status_code == 200
-        assert '<title>会員権 詳細設定'.encode('utf-8') in response.data
+        assert '<title>会員権詳細設定'.encode('utf-8') in response.data
         assert '取扱停止'.encode('utf-8') in response.data
 
         # 発行済一覧画面の参照
@@ -613,7 +613,7 @@ class TestMembership(TestBase):
         url_setting = self.url_setting + token.token_address
         response = client.get(url_setting)
         assert response.status_code == 200
-        assert '<title>会員権 詳細設定'.encode('utf-8') in response.data
+        assert '<title>会員権詳細設定'.encode('utf-8') in response.data
         assert str(self.token_data1['totalSupply'] + 10).encode('utf-8') in response.data
 
     # ＜正常系6_1＞
@@ -780,11 +780,11 @@ class TestMembership(TestBase):
 
     # ＜エラー系1_2＞
     # ＜入力値チェック＞
-    #   募集（必須エラー）
+    #   売出（必須エラー）
     def test_error_1_2(self, app, shared_contract):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
         token = tokens[0]
-        # 募集
+        # 売出
         client = self.client_with_admin_login(app)
         response = client.post(
             self.url_sell + token.token_address,
@@ -792,10 +792,10 @@ class TestMembership(TestBase):
             }
         )
         assert response.status_code == 302
-        # 新規募集でエラーを確認
+        # 新規売出でエラーを確認
         response = client.get(self.url_sell + token.token_address)
         assert response.status_code == 200
-        assert '<title>新規募集'.encode('utf-8') in response.data
+        assert '<title>新規売出'.encode('utf-8') in response.data
         assert '売出価格は必須です。'.encode('utf-8') in response.data
 
 
