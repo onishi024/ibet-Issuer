@@ -174,11 +174,6 @@ def delete():
     flash('%s さんの情報を削除しました。' % (user.user_name), 'success')
     return redirect(url_for('.list'))
 
-@account.route('/PermissionDenied', methods=['GET', 'POST'])
-@login_required
-def permissionDenied():
-    return render_template('permissiondenied.html')
-
 #################################################
 # 銀行口座情報の登録
 #################################################
