@@ -57,6 +57,7 @@ class PasswordChangeForm(Form):
     confirm = PasswordField('新しいパスワード（再入力）')
     submit = SubmitField('変更する')
 
+# 銀行口座情報登録フォーム
 class BankInfoForm(Form):
     name = StringField("会社名", validators=[
                     Required('会社名は必須です。'),
