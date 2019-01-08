@@ -23,6 +23,10 @@ class TestCoupon(TestBase):
     url_valid = 'coupon/valid' # 有効化（取扱開始）
     url_invalid = 'coupon/invalid' # 無効化（取扱中止）
     url_add_supply = 'coupon/add_supply/' # 追加発行
+    url_start_initial_offering = 'coupon/start_initial_offering' # 募集申込開始
+    url_stop_initial_offering = 'coupon/stop_initial_offering' # 募集申込停止
+    url_applications = 'coupon/applications/' # 募集申込一覧
+    url_allocate = 'coupon/allocate' # 割当（募集申込）
     url_transfer = 'coupon/transfer' # 割当
     url_transfer_ownership = 'coupon/transfer_ownership/' # 所有者移転
     url_holders = 'coupon/holders/' # 保有者一覧
@@ -561,6 +565,180 @@ class TestCoupon(TestBase):
         assert response.status_code == 200
         assert '<title>クーポン詳細設定'.encode('utf-8') in response.data
         assert '公開済'.encode('utf-8') in response.data
+
+    # ＜正常系12_1＞
+    # ＜募集申込開始・停止＞
+    #   初期状態：募集申込停止中（詳細設定画面で確認）
+    #   ※Token_1が対象
+    def test_normal_12_1(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        token = tokens[0]
+
+        # 詳細設定画面の参照
+        url_setting = self.url_setting + token.token_address
+        response = client.get(url_setting)
+        assert response.status_code == 200
+        assert '<title>クーポン詳細設定'.encode('utf-8') in response.data
+        assert '募集申込開始'.encode('utf-8') in response.data
+
+    # ＜正常系12_2＞
+    # ＜募集申込開始・停止＞
+    #   募集申込開始　→　詳細設定画面で確認
+    #   ※Token_1が対象
+    def test_normal_12_2(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        token = tokens[0]
+
+        # 募集申込開始
+        response = client.post(
+            self.url_start_initial_offering,
+            data={
+                'token_address': token.token_address
+            }
+        )
+        assert response.status_code == 302
+        time.sleep(2)
+
+        # 詳細設定画面の参照
+        url_setting = self.url_setting + token.token_address
+        response = client.get(url_setting)
+        assert response.status_code == 200
+        assert '<title>クーポン詳細設定'.encode('utf-8') in response.data
+        assert '募集申込停止'.encode('utf-8') in response.data
+
+    # ＜正常系12_3＞
+    # ＜募集申込開始・停止＞
+    #   ※12_2の続き
+    #   募集申込停止　→　詳細設定画面で確認
+    #   ※Token_1が対象
+    def test_normal_12_3(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        token = tokens[0]
+
+        # 募集申込停止
+        response = client.post(
+            self.url_stop_initial_offering,
+            data={
+                'token_address': token.token_address
+            }
+        )
+        assert response.status_code == 302
+        time.sleep(2)
+
+        # 詳細設定画面の参照
+        url_setting = self.url_setting + token.token_address
+        response = client.get(url_setting)
+        assert response.status_code == 200
+        assert '<title>クーポン詳細設定'.encode('utf-8') in response.data
+        assert '募集申込開始'.encode('utf-8') in response.data
+
+        # 募集申込状態に戻す
+        response = client.post(
+            self.url_start_initial_offering,
+            data={
+                'token_address': token.token_address
+            }
+        )
+        assert response.status_code == 302
+        time.sleep( 2)
+
+    # ＜正常系13_1＞
+    # ＜募集申込一覧参照＞
+    #   0件：募集申込一覧
+    #   ※Token_1が対象
+    def test_normal_13_1(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        token = tokens[0]
+
+        # 募集申込一覧参照
+        response = client.get(self.url_applications + str(token.token_address))
+        assert response.status_code == 200
+        assert '<title>募集申込一覧'.encode('utf-8') in response.data
+        assert 'データが存在しません'.encode('utf-8') in response.data
+
+    # ＜正常系13_2＞
+    # ＜募集申込一覧参照＞
+    #   1件：募集申込一覧
+    #   ※Token_1が対象
+    def test_normal_13_2(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        token = tokens[0]
+
+        token_address = str(token.token_address)
+        trader_address = eth_account['trader']['account_address']
+
+        # 募集申込データの作成：投資家
+        coupon_apply_for_offering(
+            eth_account['trader'],
+            token_address
+        )
+
+        # 募集申込一覧参照
+        response = client.get(self.url_applications + token_address)
+        assert response.status_code == 200
+        assert '<title>募集申込一覧'.encode('utf-8') in response.data
+        assert trader_address.encode('utf-8') in response.data
+
+    # ＜正常系14_1＞
+    # ＜割当（募集申込）＞
+    #   ※12_2の続き
+    #   割当（募集申込）画面参照：GET
+    #   ※Token_1が対象
+    def test_normal_14_1(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        token = tokens[0]
+
+        token_address = str(token.token_address)
+        trader_address = eth_account['trader']['account_address']
+
+        # 割当（募集申込）
+        url = self.url_allocate + '/' + token_address + '/' + trader_address
+        response = client.get(url)
+        assert response.status_code == 200
+        assert 'クーポン割当'.encode('utf-8') in response.data
+        assert token_address.encode('utf-8') in response.data
+        assert trader_address.encode('utf-8') in response.data
+
+    # ＜正常系14_2＞
+    # ＜割当（募集申込）＞
+    #   ※10_2, 12_2の後に実施
+    #   割当（募集申込）処理　→　保有者一覧参照
+    #   ※Token_1が対象
+    def test_normal_14_2(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        token = tokens[0]
+
+        token_address = str(token.token_address)
+        issuer_address = eth_account['issuer']['account_address']
+        trader_address = eth_account['trader']['account_address']
+
+        # 割当（募集申込）
+        url = self.url_allocate + '/' + token_address + '/' + trader_address
+        response = client.post(url, data = {'amount': 10})
+        assert response.status_code == 302
+        time.sleep(2)
+
+        # 保有者一覧の参照
+        response = client.get(self.url_holders + token_address)
+        assert response.status_code == 200
+        assert '<title>クーポン保有者一覧'.encode('utf-8') in response.data
+
+        # 発行体明細の内容の確認
+        assert issuer_address.encode('utf-8') in response.data
+        assert '<td>株式会社１'.encode('utf-8') in response.data
+        assert '<td>1999980</td>\n            <td>0</td>'.encode('utf-8') in response.data
+
+        # 投資家明細の内容の確認
+        assert trader_address.encode('utf-8') in response.data
+        assert '<td>ﾀﾝﾀｲﾃｽﾄ'.encode('utf-8') in response.data
+        assert '<td>120</td>\n            <td>0</td>'.encode('utf-8') in response.data
 
     #############################################################################
     # エラー系
