@@ -304,7 +304,6 @@ class TestAccountEditCurrent(TestBase):
             data={}
         )
         assert response.status_code == 200
-        print(response.data.decode('utf-8'))
         assert 'ログインIDは必須です。'.encode('utf-8') in response.data
         assert 'ユーザー名は必須です。'.encode('utf-8') in response.data
 
@@ -426,7 +425,7 @@ class TestAccountDelete(TestBase):
 class TestBankInfo(TestBase):
     url_bankinfo = '/account/bankinfo'
 
-    # ＜正常系１＞
+    # ＜正常系1＞
     # 通常参照（データなし）
     def test_normal_1(self, app, shared_contract):
         # config登録
@@ -450,7 +449,7 @@ class TestBankInfo(TestBase):
         assert '<input class="form-control" id="account_number" name="account_number" type="text" value="">'.encode('utf-8') in response.data
         assert '<input class="form-control" id="account_holder" name="account_holder" type="text" value="">'.encode('utf-8') in response.data
 
-    # ＜正常系２＞
+    # ＜正常系2＞
     # 登録　→　正常参照
     def test_normal_2(self, app, shared_contract):
         # WhiteListの規約登録
@@ -511,9 +510,17 @@ class TestBankInfo(TestBase):
         assert whitelist_json['bank_account']['account_number'] == '1234567'
         assert whitelist_json['bank_account']['account_holder'] == 'ABCDEFGHIJKLMNOPQRSTUVWXYZ-ﾞﾟｱｲｳｴｵｶｷｸｹｺｱ'
 
-    # ＜正常系３＞
-    # 上書き登録
+    # ＜正常系3＞
+    # 通常参照（登録済）
     def test_normal_3(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
+        response = client.get(self.url_bankinfo)
+        assert response.status_code == 200
+        assert '<title>銀行情報登録'.encode('utf-8') in response.data
+
+    # ＜正常系4＞
+    # 上書き登録
+    def test_normal_4(self, app, shared_contract):
         client = self.client_with_admin_login(app)
         response = client.post(
             self.url_bankinfo,
