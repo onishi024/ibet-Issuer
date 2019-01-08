@@ -247,11 +247,26 @@ class TestAccountEdit(TestBase):
             data={
                 'login_id':'admin',
                 'user_name':'管理者',
-                'icon':'',
+                'icon':'xxxx',
                 'role':1,
             }
         )
         assert response.status_code == 302
+
+    # ＜エラー系1＞
+    #   登録：POST
+    #   入力エラー
+    def test_error_1(self, app):
+        client = self.client_with_admin_login(app)
+        response = client.post(
+            self.target_url + '1',
+            data={
+            }
+        )
+        assert response.status_code == 200
+        assert 'ログインIDは必須です。'.encode('utf-8') in response.data
+        assert 'ユーザー名は必須です。'.encode('utf-8') in response.data
+        assert 'Not a valid choice'.encode('utf-8') in response.data
 
 # ユーザ更新
 class TestAccountEditCurrent(TestBase):
@@ -275,10 +290,23 @@ class TestAccountEditCurrent(TestBase):
             data={
                 'login_id':'user',
                 'user_name':'ユーザ',
-                'icon':''
+                'icon':'xxxx'
             }
         )
         assert response.status_code == 302
+
+    # ＜エラー系1＞
+    # 登録：POST
+    def test_error_1(self, app):
+        client = self.client_with_user_login(app)
+        response = client.post(
+            self.target_url,
+            data={}
+        )
+        assert response.status_code == 200
+        print(response.data.decode('utf-8'))
+        assert 'ログインIDは必須です。'.encode('utf-8') in response.data
+        assert 'ユーザー名は必須です。'.encode('utf-8') in response.data
 
 # パスワード変更
 class TestAccountPwdChg(TestBase):
