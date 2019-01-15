@@ -141,10 +141,10 @@ class TestCoupon(TestBase):
         assert '<title>売出管理'.encode('utf-8') in response.data
         assert 'データが存在しません'.encode('utf-8') in response.data
 
-    # ＜正常系2＞
+    # ＜正常系2_1＞
     # ＜新規発行＞
-    #   新規発行　→　詳細設定画面の参照
-    def test_normal_2(self, app, db, shared_contract):
+    #   新規発行
+    def test_normal_2_1(self, app, db, shared_contract):
         client = self.client_with_admin_login(app)
 
         # 新規発行
@@ -165,9 +165,28 @@ class TestCoupon(TestBase):
             }
         )
         assert response.status_code == 302
-
-        # 5秒待機
         time.sleep(10)
+
+    # ＜正常系2_2＞
+    # ＜新規発行＞
+    #   DB取込前確認
+    def test_normal_2_2(self, app, db, shared_contract):
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        token = tokens[0]
+
+        # 発行済一覧画面の参照
+        client = self.client_with_admin_login(app)
+        response = client.get(self.url_list)
+        assert response.status_code == 200
+        assert '<title>クーポン一覧'.encode('utf-8') in response.data
+        assert '<td>&lt;処理中&gt;</td>'.encode('utf-8') in response.data
+        assert token.tx_hash.encode('utf-8') in response.data
+
+    # ＜正常系2_3＞
+    # ＜新規発行＞
+    #   新規発行（DB取込）　→　詳細設定画面の参照
+    def test_normal_2_3(self, app, db, shared_contract):
+        client = self.client_with_admin_login(app)
 
         # DB登録処理
         processorIssueEvent(db)
@@ -182,6 +201,52 @@ class TestCoupon(TestBase):
         assert '2000000'.encode('utf-8') in response.data
         assert '20191231'.encode('utf-8') in response.data
         assert '<option selected value="True">なし</option>'.encode('utf-8') in response.data
+        assert 'details詳細'.encode('utf-8') in response.data
+        assert 'memoメモ'.encode('utf-8') in response.data
+        assert 'https://test.com/image_small.jpg'.encode('utf-8') in response.data
+        assert 'https://test.com/image_medium.jpg'.encode('utf-8') in response.data
+        assert 'https://test.com/image_large.jpg'.encode('utf-8') in response.data
+        assert shared_contract['IbetCouponExchange']['address'].encode('utf-8') in response.data
+
+    # ＜正常系2_4＞
+    # ＜新規発行＞
+    #   新規発行：譲渡制限あり
+    def test_normal_2_4(self, app, db, shared_contract):
+        client = self.client_with_admin_login(app)
+
+        # 新規発行
+        response = client.post(
+            self.url_issue,
+            data={
+                'name': 'テストクーポン',
+                'symbol': 'COUPON',
+                'totalSupply': 2000000,
+                'expirationDate': '20191231',
+                'transferable': False,
+                'details': 'details詳細',
+                'memo': 'memoメモ',
+                'image_small': 'https://test.com/image_small.jpg',
+                'image_medium': 'https://test.com/image_medium.jpg',
+                'image_large': 'https://test.com/image_large.jpg',
+                'tradableExchange': shared_contract['IbetCouponExchange']['address']
+            }
+        )
+        assert response.status_code == 302
+        time.sleep(10)
+
+        # DB登録処理
+        processorIssueEvent(db)
+
+        # 詳細設定画面の参照
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        response = client.get(self.url_setting + tokens[1].token_address)
+        assert response.status_code == 200
+        assert '<title>クーポン詳細設定'.encode('utf-8') in response.data
+        assert 'テストクーポン'.encode('utf-8') in response.data
+        assert 'COUPON'.encode('utf-8') in response.data
+        assert '2000000'.encode('utf-8') in response.data
+        assert '20191231'.encode('utf-8') in response.data
+        assert '<option selected value="False">あり</option>'.encode('utf-8') in response.data
         assert 'details詳細'.encode('utf-8') in response.data
         assert 'memoメモ'.encode('utf-8') in response.data
         assert 'https://test.com/image_small.jpg'.encode('utf-8') in response.data
