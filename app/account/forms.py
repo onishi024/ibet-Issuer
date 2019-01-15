@@ -90,7 +90,7 @@ class BankInfoForm(Form):
     account_holder = StringField("口座名義", validators=[
                     Required('口座名義は必須です。'),
                     Length(max=40, message='口座名義は40文字までです。'),
-                    Regexp(r'^[A-Z0-9ｱ-ﾝﾞﾟ\-]+$', message='口座名義は半角カナ文字（大文字）および英数字のみです。')
+                    Regexp(r'^[A-Z0-9ｱ-ﾝﾞﾟ\-\(\)\.\/]+$', message='口座名義は半角カナ文字（大文字）、半角英数字、一部の記号のみです。')
                     ])
     submit = SubmitField('登録')
 
