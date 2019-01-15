@@ -664,7 +664,7 @@ class TestBankInfo(TestBase):
         assert '金融機関コードは数字のみです。'.encode('utf-8') in response.data
         assert '支店コードは数字のみです。'.encode('utf-8') in response.data
         assert '口座番号は数字のみです。'.encode('utf-8') in response.data
-        assert '口座名義は半角カナ文字（大文字）および英数字のみです。'.encode('utf-8') in response.data
+        assert '口座名義は半角カナ文字（大文字）、半角英数字、一部の記号のみです。'.encode('utf-8') in response.data
 
     # ＜エラー系2_1＞
     # 権限なしエラー
