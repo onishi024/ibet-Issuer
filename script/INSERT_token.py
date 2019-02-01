@@ -32,8 +32,8 @@ IBET_SB_EXCHANGE_CONTRACT_ADDRESS = \
     to_checksum_address(os.environ.get('IBET_SB_EXCHANGE_CONTRACT_ADDRESS'))
 IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS = \
     to_checksum_address(os.environ.get('IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS'))
-IBET_CP_EXCHANGE_CONTRACT_ADDRESS = \
-    to_checksum_address(os.environ.get('IBET_CP_EXCHANGE_CONTRACT_ADDRESS'))
+IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS = \
+    to_checksum_address(os.environ.get('IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS'))
 
 # DB
 URI = os.environ.get("DATABASE_URL")
@@ -128,7 +128,7 @@ def main(data_count, token_type):
     elif token_type == 'IbetMembership':
         exchange_address = IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS
     elif token_type == 'IbetCoupon':
-        exchange_address = IBET_CP_EXCHANGE_CONTRACT_ADDRESS
+        exchange_address = IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS
     print("exchange_address: " + exchange_address)
     # token登録
     for count in range(0, data_count):

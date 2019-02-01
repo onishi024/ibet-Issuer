@@ -64,6 +64,7 @@ def get_holder(token_address, account_address):
             "address1":"--",
             "address2":"--"
         },
+        "email":"--",   
         "bank_account":{
             "bank_name": "--",
             "branch_office": "--",
@@ -84,7 +85,37 @@ def get_holder(token_address, account_address):
         ciphertext = base64.decodestring(encrypted_info.encode('utf-8'))
         try:
             message = cipher.decrypt(ciphertext)
+            personal_info_default = personal_info
             personal_info = json.loads(message)
+            # PersonalInfoの存在しないキーのバリューをデフォルト値とする
+            if "name" not in personal_info:
+                personal_info["name"] = personal_info_default["name"]
+            if "address" not in personal_info:
+                personal_info["address"] = personal_info_default["address"]
+            elif "postal_code" not in personal_info["address"]:
+                personal_info["address"]["postal_code"] = personal_info_default["address"]["postal_code"]
+            elif "prefecture" not in personal_info["address"]:
+                personal_info["address"]["prefecture"] = personal_info_default["address"]["prefecture"]
+            elif "city" not in personal_info["address"]:
+                personal_info["bank_account"] = personal_info_default["bank_account"]
+            elif "address1" not in personal_info["address"]:
+                personal_info["address"]["address1"] = personal_info_default["address"]["address1"]
+            elif "address2" not in personal_info["address"]:
+                personal_info["address"]["address2"] = personal_info_default["address"]["address2"]
+            if "email" not in personal_info:
+                personal_info["email"] = personal_info_default["email"]
+            if "bank_account" not in personal_info:
+                personal_info["bank_account"] = personal_info_default["bank_account"]
+            elif "bank_name" not in personal_info["bank_account"]:
+                personal_info["bank_account"]["bank_name"] = personal_info_default["bank_account"]["bank_name"]
+            elif "branch_office" not in personal_info["bank_account"]:
+                personal_info["bank_account"]["branch_office"] = personal_info_default["bank_account"]["branch_office"]
+            elif "account_type" not in personal_info["bank_account"]:
+                personal_info["bank_account"]["account_type"] = personal_info_default["bank_account"]["account_type"]
+            elif "account_number" not in personal_info["bank_account"]:
+                personal_info["bank_account"]["account_number"] = personal_info_default["bank_account"]["account_number"]
+            elif "account_holder" not in personal_info["bank_account"]:
+                personal_info["bank_account"]["account_holder"] = personal_info_default["bank_account"]["account_holder"]
         except:
             pass
     return personal_info

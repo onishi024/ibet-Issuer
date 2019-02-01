@@ -90,8 +90,8 @@ IBET_SB_EXCHANGE_CONTRACT_ADDRESS = \
     to_checksum_address(os.environ.get('IBET_SB_EXCHANGE_CONTRACT_ADDRESS'))
 IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS = \
     to_checksum_address(os.environ.get('IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS'))
-IBET_CP_EXCHANGE_CONTRACT_ADDRESS = \
-    to_checksum_address(os.environ.get('IBET_CP_EXCHANGE_CONTRACT_ADDRESS'))
+IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS = \
+    to_checksum_address(os.environ.get('IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS'))
 
 # DB
 URI = os.environ.get("DATABASE_URL")
@@ -259,9 +259,9 @@ def main(data_count, token_type, secondary_sell_flag):
         ExchangeContractAgent = get_agent_contract('IbetMembershipExchange', IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS)
         exchange_address = IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS
     elif token_type == 'IbetCoupon':
-        ExchangeContract = Contract.get_contract('IbetCouponExchange', IBET_CP_EXCHANGE_CONTRACT_ADDRESS)
-        ExchangeContractAgent = get_agent_contract('IbetCouponExchange', IBET_CP_EXCHANGE_CONTRACT_ADDRESS)
-        exchange_address = IBET_CP_EXCHANGE_CONTRACT_ADDRESS
+        ExchangeContract = Contract.get_contract('IbetCouponExchange', IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS)
+        ExchangeContractAgent = get_agent_contract('IbetCouponExchange', IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS)
+        exchange_address = IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS
     print("exchange_address: " + exchange_address)
     print("agent_address: " + AGENT_ACCOUNT)
     # トークン発行
@@ -271,7 +271,7 @@ def main(data_count, token_type, secondary_sell_flag):
     # 売出
     offer_token(ETH_ACCOUNT, ETH_ACCOUNT_PASSWORD, exchange_address, token_dict, data_count, token_type, ExchangeContract)
     # orderID取得
-    order_id = get_latest_orderid(ExchangeContract) - 1
+    order_id = get_latest_orderid(ExchangeContract)
     print("token_address: " + token_dict['address'])
     print("order_id: " + str(order_id))
     # 約定を入れる

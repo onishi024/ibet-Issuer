@@ -253,6 +253,7 @@ def personalinfo_regist(form):
             "address1":"",
             "address2":""
         },
+        "email":"",
         "bank_account":{
             "bank_name": form.bank_name.data,
             "bank_code": form.bank_code.data,

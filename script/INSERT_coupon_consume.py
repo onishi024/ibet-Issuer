@@ -70,8 +70,8 @@ ETH_ACCOUNT_PASSWORD = os.environ.get('ETH_ACCOUNT_PASSWORD')
 TOKEN_LIST_CONTRACT_ADDRESS = to_checksum_address(os.environ.get('TOKEN_LIST_CONTRACT_ADDRESS'))
 PERSONAL_INFO_CONTRACT_ADDRESS = to_checksum_address(os.environ.get('PERSONAL_INFO_CONTRACT_ADDRESS'))
 WHITE_LIST_CONTRACT_ADDRESS = to_checksum_address(os.environ.get('WHITE_LIST_CONTRACT_ADDRESS'))
-IBET_CP_EXCHANGE_CONTRACT_ADDRESS = \
-    to_checksum_address(os.environ.get('IBET_CP_EXCHANGE_CONTRACT_ADDRESS'))
+IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS = \
+    to_checksum_address(os.environ.get('IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS'))
 
 # DB
 URI = os.environ.get("DATABASE_URL")
@@ -218,8 +218,8 @@ def main(data_count):
     register_terms(agent_address)
     register_whitelist(ETH_ACCOUNT, ETH_ACCOUNT_PASSWORD, issuer_encrypted_info, agent_address)
     print("agent_address: " + agent_address)
-    ExchangeContract = Contract.get_contract('IbetCouponExchange', IBET_CP_EXCHANGE_CONTRACT_ADDRESS)
-    exchange_address = IBET_CP_EXCHANGE_CONTRACT_ADDRESS
+    ExchangeContract = Contract.get_contract('IbetCouponExchange', IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS)
+    exchange_address = IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS
     print("exchange_address: " + exchange_address)
     # トークン発行
     token_dict = issue_token(exchange_address, data_count, token_type)
