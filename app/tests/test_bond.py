@@ -42,7 +42,7 @@ class TestBond(TestBase):
             "address1":"日本橋11-1",
             "address2":"東京マンション１０１"
         },
-        "email":"information@nri.co.jp",
+        "email":"abcd1234@aaa.bbb.cc",
         "bank_account":{
             "bank_name": "三菱UFJ銀行",
             "bank_code": "0005",
@@ -63,7 +63,7 @@ class TestBond(TestBase):
             "address1":"勝どき6丁目３－２",
             "address2":"ＴＴＴ６０１２"
         },
-        "email":"information@nri.co.jp",
+        "email":"abcd1234@aaa.bbb.cc",
         "bank_account":{
             "bank_name": "みずほ銀行",
             "bank_code": "0001",
