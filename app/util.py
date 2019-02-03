@@ -64,6 +64,7 @@ def get_holder(token_address, account_address):
             "address1":"--",
             "address2":"--"
         },
+        "email":"--",   
         "bank_account":{
             "bank_name": "--",
             "branch_office": "--",
@@ -84,7 +85,23 @@ def get_holder(token_address, account_address):
         ciphertext = base64.decodestring(encrypted_info.encode('utf-8'))
         try:
             message = cipher.decrypt(ciphertext)
-            personal_info = json.loads(message)
+            personal_info = validateDictStruct(personal_info, json.loads(message))
         except:
             pass
     return personal_info
+
+####################################################
+# 第1引数の辞書の構造を正として、第2引数の辞書のプロパティとバリューの存在有無をチェックする。
+####################################################
+def validateDictStruct(madict, trdict):
+    resdict = {}
+    if not isinstance(madict, dict) or not isinstance(trdict, dict):
+        return resdict
+    for key in madict:
+        if key in trdict and isinstance(madict[key], dict) and isinstance(trdict[key], dict):
+            resdict[key] = validateDictStruct(madict[key], trdict[key])
+        elif key not in trdict or trdict[key] == "" or (isinstance(madict[key], dict) and not isinstance(trdict[key], dict)) or (not isinstance(madict[key], dict) and isinstance(trdict[key], dict)):
+            resdict[key] = madict[key]
+        elif not isinstance(madict[key], dict):
+            resdict[key] = trdict[key]
+    return resdict

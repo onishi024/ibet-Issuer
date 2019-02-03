@@ -164,8 +164,8 @@ def get_applications(token_address):
                 personal_info_json = json.loads(message)
                 if 'name' in personal_info_json:
                     account_name = personal_info_json['name']
-                if 'e-mail' in personal_info_json:
-                    account_email_address = personal_info_json['e-mail']
+                if 'email' in personal_info_json:
+                    account_email_address = personal_info_json['email']
             except:
                 pass
 

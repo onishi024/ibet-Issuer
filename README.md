@@ -26,6 +26,40 @@ python manage.py db upgrade
 で対話モードでデータを登録してください。
 
 ## ibet:issuerの起動確認
+- 初回準備
+    - キーペア生成 `./rsa/run.sh password`
+    - 環境変数追加
+
+例）
+```
+export TOKEN_LIST_CONTRACT_ADDRESS=0x4e01488325aa068bb66f76003a52f325ef1fdbf7
+export PERSONAL_INFO_CONTRACT_ADDRESS=0xc4b4b034133d766e9326d8438656dce16ecd0d23
+export WHITE_LIST_CONTRACT_ADDRESS=0x2d25d36233c240d067dc19ce9fa782895514d360
+export IBET_SB_EXCHANGE_CONTRACT_ADDRESS=0x68888454bfb9355045dd4966434892ea33a971f5
+export IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS=0x0be90a91f22e6db59e6c337fc2749ec2f830cac3
+export IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS=0x88137aaf6203414d76b0253efb0a168faa0e08ea
+export ETH_ACCOUNT_PASSWORD=password
+export AGENT_ACCOUNT_PASSWORD=password
+export DATABASE_URL=postgresql://issueruser:issueruserpass@localhost:5432/issuerdb
+export WEB3_HTTP_PROVIDER=http://localhost:8545
+export WEB3_HTTP_PROVIDER_AGENT=http://localhost:8546
+export RSA_PASSWORD=password
+```
+| 環境変数| 意味 | データ取得方法 |
+|:----------:|:-----------:|:------------:|
+| TOKEN_LIST_CONTRACT_ADDRESS | TokenListコントラクトのアドレス | tmr-sc/deploy/deploy.shの結果 |
+| PERSONAL_INFO_CONTRACT_ADDRESS | PersonalInfoコントラクトのアドレス | tmr-sc/deploy/deploy.shの結果 |
+| WHITE_LIST_CONTRACT_ADDRESS | WhiteListコントラクトのアドレス | tmr-sc/deploy/deploy.shの結果 |
+| IBET_SB_EXCHANGE_CONTRACT_ADDRESS | IbetStraightBondExchangeコントラクトのアドレス | tmr-sc/deploy/deploy.shの結果 |
+| IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS | IbetCouponExchangeコントラクトのアドレス | tmr-sc/deploy/deploy.shの結果 |
+| IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS | IbetMembershipExchangeコントラクトのアドレス | tmr-sc/deploy/deploy.shの結果 |
+| ETH_ACCOUNT_PASSWORD | eth.account([0])のパスワード | 初期データ登録時に取得 |
+| AGENT_ACCOUNT_PASSWORD | eth.account([0])のパスワード | 初期データ登録時に取得 |
+| DATABASE_URL | postgresqlのissuerdbのURL | postgresqlの設定時に取得 |
+| WEB3_HTTP_PROVIDER | gethのURL | geth設定から取得 |
+| WEB3_HTTP_PROVIDER_AGENT | gethのURL | geth設定から取得 |
+| RSA_PASSWORD | キーペアのパスワード | 初回準備で指定したキーペアのパスワード |
+
 - 起動
 
 ```bash
@@ -55,14 +89,6 @@ testのオプションについては`python manage.py test --help`で確認し�
 issuerのノードに接続して実行
 
 ```
-export DATABASE_URL=postgresql://issueruser:issueruserpass@172.16.239.2:5432/issuerdb
-export WEB3_HTTP_PROVIDER=http://172.16.239.10:8545
-export ETH_ACCOUNT_PASSWORD=nvillage201803+
-export TOKEN_LIST_CONTRACT_ADDRESS=0x8e55f8cd1bf13dad83bfe91344feec60f70fd280
-export IBET_SB_EXCHANGE_CONTRACT_ADDRESS=0xd85a292e77628e4027250d46abaeeac1d3d192b5
-export IBET_CP_EXCHANGE_CONTRACT_ADDRESS=0x601be715b01ebe56af3518b1e98341668a35798e
-export IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS=0x2b46c5ea536914f22998cdfe6a9bbf2d63e6e6b1
-
 python script/INSERT_token.py 3 "IbetStraightBond"
 python script/INSERT_token.py 3 "IbetMembership"
 python script/INSERT_token.py 3 "IbetCoupon"
@@ -76,18 +102,6 @@ python script/INSERT_token.py 3 "IbetCoupon"
 issuerノード・agentノードに接続して実行
 
 ```
-export DATABASE_URL=postgresql://issueruser:issueruserpass@172.16.239.2:5432/issuerdb
-export WEB3_HTTP_PROVIDER=http://172.16.239.10:8545
-export WEB3_HTTP_PROVIDER_AGENT=http://172.16.239.13:8545
-export ETH_ACCOUNT_PASSWORD=nvillage201803+
-export AGENT_ACCOUNT_PASSWORD=nvillage201803+
-export TOKEN_LIST_CONTRACT_ADDRESS=0x8e55f8cd1bf13dad83bfe91344feec60f70fd280
-export PERSONAL_INFO_CONTRACT_ADDRESS=0x1378ed51e8d6d7aa42862ce2d0497a2cca1bd2ff
-export WHITE_LIST_CONTRACT_ADDRESS=0x419d3c7461a97ccbecf2153d0195497260b48d9e
-export IBET_SB_EXCHANGE_CONTRACT_ADDRESS=0xd85a292e77628e4027250d46abaeeac1d3d192b5
-export IBET_CP_EXCHANGE_CONTRACT_ADDRESS=0x601be715b01ebe56af3518b1e98341668a35798e
-export IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS=0x2b46c5ea536914f22998cdfe6a9bbf2d63e6e6b1
-
 python script/INSERT_token_holders.py 3 "IbetStraightBond" "0"
 python script/INSERT_token_holders.py 3 "IbetMembership" "1"
 python script/INSERT_token_holders.py 3 "IbetCoupon" "1"
@@ -100,13 +114,11 @@ python script/INSERT_token_holders.py 3 "IbetCoupon" "1"
 issuerのノードに接続して実行
 
 ```
-export DATABASE_URL=postgresql://issueruser:issueruserpass@172.16.239.2:5432/issuerdb
-export WEB3_HTTP_PROVIDER=http://172.16.239.10:8545
-export ETH_ACCOUNT_PASSWORD=nvillage201803+
-export TOKEN_LIST_CONTRACT_ADDRESS=0x8e55f8cd1bf13dad83bfe91344feec60f70fd280
-export PERSONAL_INFO_CONTRACT_ADDRESS=0x1378ed51e8d6d7aa42862ce2d0497a2cca1bd2ff
-export WHITE_LIST_CONTRACT_ADDRESS=0x419d3c7461a97ccbecf2153d0195497260b48d9e
-export IBET_CP_EXCHANGE_CONTRACT_ADDRESS=0x601be715b01ebe56af3518b1e98341668a35798e
-
 python script/INSERT_coupon_consume.py 3
+```
+
+### ４. processor稼働
+
+```
+python async/processor_IssueEvent.py
 ```
