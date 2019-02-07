@@ -307,12 +307,21 @@ def add_supply(token_address):
 
     if request.method == 'POST':
         if form.validate():
-            eth_unlock_account()
-            gas = TokenContract.estimateGas().issue(form.addSupply.data)
-            TokenContract.functions.issue(form.addSupply.data).\
-                transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
-            flash('追加発行を受け付けました。発行完了までに数分程かかることがあります。', 'success')
-            return redirect(url_for('.list'))
+            if 100000000 >= (form.totalSupply.data + form.addSupply.data):
+                eth_unlock_account()
+                gas = TokenContract.estimateGas().issue(form.addSupply.data)
+                TokenContract.functions.issue(form.addSupply.data).\
+                    transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
+                flash('追加発行を受け付けました。発行完了までに数分程かかることがあります。', 'success')
+                return redirect(url_for('.list'))
+            else:
+                flash("総発行量と追加発行量の合計は、100,000,000が上限です。")
+                return render_template(
+                    'coupon/add_supply.html',
+                    form=form,
+                    token_address=token_address,
+                    token_name=name
+                )
         else:
             flash_errors(form)
             return render_template(
