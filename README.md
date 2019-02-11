@@ -1,51 +1,36 @@
-# 1. 環境構築
-### 1.1 事前準備
-* Python3.6.4, Quorum, PostgreSQL 等の環境を整えるために、
- `tmr-sc` と `tmr-node` のReadmeの手順を全て実行しておく。
-   1. https://github.com/N-Village/tmr-sc
-   2. https://github.com/N-Village/tmr-node
+# ibet for issuer
 
-### 1.2. 必要なパッケージを取得
+## 前準備
+- python3.6.3の環境構築  
+`conda create`などでpython3.6.3の環境を準備してください。
+
+- 必要なパッケージの取得  
+```bash
+cd tmr-issuer
+pip install -r requirements.txt
+```
+必要に応じてプロキシオプションや証明書オプションを追加して実行してください。
+
+- DBテーブルの構築  
+事前にデータベースを作成しておいてください。（例：issuerdb）
 
 ```bash
-$ cd tmr-issuer
-$ pip install -r requirements.txt
+cd tmr-issuer
+python manage.py db init
+python manage.py db migrate
+python manage.py db upgrade
 ```
-- 必要に応じてプロキシオプションや証明書オプションを追加して実行
+- 動作確認用データの登録  
+*tmr-issuer/app/tests/testdata.txt* のコマンドをベースに  
+`python manage.py shell`  
+で対話モードでデータを登録してください。
 
-### 1.3. DBテーブルの構築  
-* 事前にデータベースの作成が必要　（例：`issuerdb`）
-
-```bash
-$ cd tmr-issuer
-$ python manage.py db init
-$ python manage.py db migrate
-$ python manage.py db upgrade
-```
-* 動作確認用データの登録  
-* shellに入り、対話モードでデータを登録する
-
-```
-$ python manage.py shell
->> （tmr-issuer/app/tests/testdata.txt にあるコマンドをコピー＆ペースト）
-```
-
-
-# 2. tmr-issuer の起動確認
-##2.1 初回準備
-
-* キーペア生成 
-
-```
-$ python rsa/create_rsakey.py password
-```
-
-
-* 環境変数追加
-* `1.1　「事前準備」`のtmr-scで定義したコントラクトをQuorumにデプロイした時に得られる、コントラクトアドレスを環境変数に定義しておく
+## ibet:issuerの起動確認
+- 初回準備
+    - キーペア生成 `./rsa/run.sh password`
+    - 環境変数追加
 
 例）
-
 ```
 export TOKEN_LIST_CONTRACT_ADDRESS=0x4e01488325aa068bb66f76003a52f325ef1fdbf7
 export PERSONAL_INFO_CONTRACT_ADDRESS=0xc4b4b034133d766e9326d8438656dce16ecd0d23
@@ -77,29 +62,24 @@ export RSA_PASSWORD=password
 
 - 起動
 
-```
-$ cd tmr-issuer
-$ python manage.py runserver [ -h 0.0.0.0 ]
+```bash
+cd tmr-issuer
+python manage.py runserver -h 0.0.0.0
 ```
 - 接続確認  
-http://XXX.XXX.XXX.XXX:5000/ で接続して起動していることを確認。
-* 例） localhost:5000
-* <img width="1437" alt="スクリーンショット 2019-02-12 0.30.43.jpg" src="https://qiita-image-store.s3.amazonaws.com/0/206241/d2243fa9-7c79-a142-13a8-f253fe8e70a3.jpeg">
-* ログイン画面で、DBに格納されているログインID,パスワードを入力すると、TOP画面が表示される
+あとは http://XXX.XXX.XXX.XXX:5000/ で接続してください。
 
-## 3. テスト実行について
+## テスト実行について
 ### pytest
 
-* manage.py で定義してあるコマンドオプションにしたがって、テストを実行する
-
-```bash:
-$ cd tmr-issuer
-$ python manage.py test
+```bash
+cd tmr-issuer
+python manage.py test
 ```
 
 testのオプションについては`python manage.py test --help`で確認してください。
 
-## 4. データ増幅スクリプト
+## データ増幅スクリプト
 ### １．トークン登録
 引数
 - 登録件数(int)
