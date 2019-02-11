@@ -948,10 +948,13 @@ class TestCoupon(TestBase):
         response = client.post(
             url_add_supply,
             data={
-                'addSupply': 100000000
+                'addSupply': 100000000,
+                'totalSupply': 2000100,
             }
         )
-        assert response.status_code == 200
+        assert response.status_code == 302
+        response = client.get(url_add_supply)
+        assert '総発行量と追加発行量の合計は、100,000,000が上限です。'.encode('utf-8') in response.data
         time.sleep(2)
 
         # 詳細設定画面で確認
@@ -960,7 +963,6 @@ class TestCoupon(TestBase):
         assert '<title>クーポン詳細設定'.encode('utf-8') in response.data
         assert 'テストクーポン'.encode('utf-8') in response.data
         assert '2000100'.encode('utf-8') in response.data
-        # assert '総発行量と追加発行量の合計は、100,000,000が上限です。'.encode('utf-8') in response.data
 
     # ＜エラー系3_1＞
     # ＜所有者移転＞

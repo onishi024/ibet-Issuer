@@ -315,13 +315,8 @@ def add_supply(token_address):
                 flash('追加発行を受け付けました。発行完了までに数分程かかることがあります。', 'success')
                 return redirect(url_for('.list'))
             else:
-                flash("総発行量と追加発行量の合計は、100,000,000が上限です。")
-                return render_template(
-                    'coupon/add_supply.html',
-                    form=form,
-                    token_address=token_address,
-                    token_name=name
-                )
+                flash('総発行量と追加発行量の合計は、100,000,000が上限です。', 'error')
+                return redirect(url_for('.add_supply', token_address=token_address))
         else:
             flash_errors(form)
             return render_template(
