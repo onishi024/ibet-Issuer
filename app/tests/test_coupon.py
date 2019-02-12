@@ -929,6 +929,41 @@ class TestCoupon(TestBase):
         assert response.status_code == 200
         assert 'DEXアドレスは有効なアドレスではありません。'.encode('utf-8') in response.data
 
+    # ＜エラー系2_3＞
+    #   追加発行（上限エラー）
+    def test_error_2_3(self, app, shared_contract):
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        url_add_supply = self.url_add_supply + tokens[0].token_address
+        url_setting = self.url_setting + tokens[0].token_address
+        client = self.client_with_admin_login(app)
+
+        # 追加発行画面（GET）
+        response = client.get(url_add_supply)
+        assert response.status_code == 200
+        assert '<title>クーポン追加発行'.encode('utf-8') in response.data
+        assert tokens[0].token_address.encode('utf-8') in response.data
+        assert '2000100'.encode('utf-8') in response.data
+
+        # 追加発行
+        response = client.post(
+            url_add_supply,
+            data={
+                'addSupply': 100000000,
+                'totalSupply': 2000100,
+            }
+        )
+        assert response.status_code == 302
+        response = client.get(url_add_supply)
+        assert '総発行量と追加発行量の合計は、100,000,000が上限です。'.encode('utf-8') in response.data
+        time.sleep(2)
+
+        # 詳細設定画面で確認
+        response = client.get(url_setting)
+        assert response.status_code == 200
+        assert '<title>クーポン詳細設定'.encode('utf-8') in response.data
+        assert 'テストクーポン'.encode('utf-8') in response.data
+        assert '2000100'.encode('utf-8') in response.data
+
     # ＜エラー系3_1＞
     # ＜所有者移転＞
     #   URLパラメータチェック：token_addressが無効
