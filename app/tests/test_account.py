@@ -1,11 +1,7 @@
 # -*- coding:utf-8 -*-
-import pytest
-import os
 import time
 
 from .conftest import TestBase
-from .account_config import eth_account
-from config import Config
 from .contract_modules import *
 from ..models import User
 
@@ -433,7 +429,7 @@ class TestBankInfo(TestBase):
         Config.ETH_ACCOUNT_PASSWORD = eth_account['issuer']['password']
         Config.AGENT_ADDRESS = eth_account['agent']['account_address']
         Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS = shared_contract['IbetStraightBondExchange']['address']
-        Config.WHITE_LIST_CONTRACT_ADDRESS = shared_contract['WhiteList']['address']
+        Config.PAYMENT_GATEWAY_CONTRACT_ADDRESS = shared_contract['PaymentGateway']['address']
         Config.TOKEN_LIST_CONTRACT_ADDRESS = shared_contract['TokenList']['address']
         Config.PERSONAL_INFO_CONTRACT_ADDRESS = shared_contract['PersonalInfo']['address']
 
@@ -452,8 +448,7 @@ class TestBankInfo(TestBase):
     # ＜正常系2＞
     # 登録　→　正常参照
     def test_normal_2(self, app, shared_contract):
-        # WhiteListの規約登録
-        register_terms(eth_account['agent'], shared_contract['WhiteList'])
+        register_terms(eth_account['agent'], shared_contract['PaymentGateway'])
 
         client = self.client_with_admin_login(app)
         response = client.post(
@@ -483,7 +478,7 @@ class TestBankInfo(TestBase):
         # 待機
         time.sleep(4)
 
-        # personalInfoの確認
+        # PersonalInfoの確認
         personal_info_json = get_personal_encrypted_info(shared_contract['PersonalInfo'], eth_account['issuer']['account_address'], eth_account['issuer']['account_address'])
         assert personal_info_json['name'] == '株式会社１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０'
         assert personal_info_json['address']['postal_code'] == ''
@@ -500,16 +495,20 @@ class TestBankInfo(TestBase):
         assert personal_info_json['bank_account']['account_number'] == '1234567'
         assert personal_info_json['bank_account']['account_holder'] == 'ABCDEFGHIJKLMNOPQRSTUVWXYZ-ﾞﾟｱｲｳｴｵｶｷｸｹｺｱ'
 
-        # whitelistの確認
-        whitelist_json = get_whitelist_encrypted_info(shared_contract['WhiteList'], eth_account['issuer']['account_address'], eth_account['agent']['account_address'])
-        assert whitelist_json['name'] == '株式会社１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０'
-        assert whitelist_json['bank_account']['bank_name'] == '銀行めい１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０'
-        assert whitelist_json['bank_account']['bank_code'] == '0001'
-        assert whitelist_json['bank_account']['branch_office'] == '支店めい１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０'
-        assert whitelist_json['bank_account']['branch_code'] == '100'
-        assert whitelist_json['bank_account']['account_type'] == 2
-        assert whitelist_json['bank_account']['account_number'] == '1234567'
-        assert whitelist_json['bank_account']['account_holder'] == 'ABCDEFGHIJKLMNOPQRSTUVWXYZ-ﾞﾟｱｲｳｴｵｶｷｸｹｺｱ'
+        # PaymentAccountの確認
+        payment_account_json = get_payment_account_encrypted_info(
+            shared_contract['PaymentGateway'],
+            eth_account['issuer']['account_address'],
+            eth_account['agent']['account_address']
+        )
+        assert payment_account_json['name'] == '株式会社１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０'
+        assert payment_account_json['bank_account']['bank_name'] == '銀行めい１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０'
+        assert payment_account_json['bank_account']['bank_code'] == '0001'
+        assert payment_account_json['bank_account']['branch_office'] == '支店めい１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０'
+        assert payment_account_json['bank_account']['branch_code'] == '100'
+        assert payment_account_json['bank_account']['account_type'] == 2
+        assert payment_account_json['bank_account']['account_number'] == '1234567'
+        assert payment_account_json['bank_account']['account_holder'] == 'ABCDEFGHIJKLMNOPQRSTUVWXYZ-ﾞﾟｱｲｳｴｵｶｷｸｹｺｱ'
 
     # ＜正常系3＞
     # 通常参照（登録済）
@@ -551,7 +550,11 @@ class TestBankInfo(TestBase):
         time.sleep(4)
 
         # personalInfoの確認
-        personal_info_json = get_personal_encrypted_info(shared_contract['PersonalInfo'], eth_account['issuer']['account_address'], eth_account['issuer']['account_address'])
+        personal_info_json = get_personal_encrypted_info(
+            shared_contract['PersonalInfo'],
+            eth_account['issuer']['account_address'],
+            eth_account['issuer']['account_address']
+        )
         assert personal_info_json['name'] == '株式会社２３４'
         assert personal_info_json['address']['postal_code'] == ''
         assert personal_info_json['address']['prefecture'] == ''
@@ -566,16 +569,20 @@ class TestBankInfo(TestBase):
         assert personal_info_json['bank_account']['account_number'] == '7654321'
         assert personal_info_json['bank_account']['account_holder'] == 'ﾃｽﾄ'
 
-        # whitelistの確認
-        whitelist_json = get_whitelist_encrypted_info(shared_contract['WhiteList'], eth_account['issuer']['account_address'], eth_account['agent']['account_address'])
-        assert whitelist_json['name'] == '株式会社２３４'
-        assert whitelist_json['bank_account']['bank_name'] == '銀行めい２３４'
-        assert whitelist_json['bank_account']['bank_code'] == '0002'
-        assert whitelist_json['bank_account']['branch_office'] == '支店めい２３４'
-        assert whitelist_json['bank_account']['branch_code'] == '101'
-        assert whitelist_json['bank_account']['account_type'] == 4
-        assert whitelist_json['bank_account']['account_number'] == '7654321'
-        assert whitelist_json['bank_account']['account_holder'] == 'ﾃｽﾄ'
+        # PaymentAccountの確認
+        payment_account_json = get_payment_account_encrypted_info(
+            shared_contract['PaymentGateway'],
+            eth_account['issuer']['account_address'],
+            eth_account['agent']['account_address']
+        )
+        assert payment_account_json['name'] == '株式会社２３４'
+        assert payment_account_json['bank_account']['bank_name'] == '銀行めい２３４'
+        assert payment_account_json['bank_account']['bank_code'] == '0002'
+        assert payment_account_json['bank_account']['branch_office'] == '支店めい２３４'
+        assert payment_account_json['bank_account']['branch_code'] == '101'
+        assert payment_account_json['bank_account']['account_type'] == 4
+        assert payment_account_json['bank_account']['account_number'] == '7654321'
+        assert payment_account_json['bank_account']['account_holder'] == 'ﾃｽﾄ'
 
     # ＜エラー系1-1＞
     # 必須系

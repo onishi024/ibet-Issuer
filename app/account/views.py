@@ -1,24 +1,14 @@
 # -*- coding:utf-8 -*-
 import secrets
 import datetime
-import json
-import base64
 import requests
-from Crypto.Cipher import PKCS1_OAEP
-from Crypto.PublicKey import RSA
 
-from flask import Flask, request, redirect, url_for, flash, session
-from flask_restful import Resource, Api
-from flask import render_template
-from flask import jsonify, abort
+from flask import request, redirect, url_for, flash, render_template
+from flask import Markup
 from flask_login import login_required, current_user
-from flask import Markup, jsonify
-from flask import current_app
-from sqlalchemy import desc
 
 from . import account
 from .. import db
-from ..models import Role, User
 from .forms import *
 from ..util import *
 from ..decorators import admin_required
@@ -188,8 +178,8 @@ def bankinfo():
             eth_unlock_account()
             # PersonalInfoコントラクトに情報登録
             personalinfo_regist(form)
-            # WhiteListコントラクトに情報登録
-            whitelist_regist(form)
+            # PaymentGatewayコントラクトに情報登録
+            payment_account_regist(form)
 
             flash('登録処理を受付ました。登録完了まで数分かかることがあります。', 'success')
             return render_template('account/bankinfo.html', form=form)
@@ -281,11 +271,11 @@ def personalinfo_regist(form):
         register(Config.ETH_ACCOUNT, personal_info_ciphertext).\
         transact({'from':Config.ETH_ACCOUNT, 'gas':p_gas})
 
-def whitelist_regist(form):
-    # 収納代行業社のアドレス
+def payment_account_regist(form):
+    # 収納代行業者のアドレス
     agent_address = to_checksum_address(Config.AGENT_ADDRESS)
 
-    # 収納代行業社のRSA公開鍵を取得
+    # 収納代行業者のRSA公開鍵を取得
     if Config.APP_ENV == 'production':
         company_list = []
         isExist = False
@@ -301,12 +291,13 @@ def whitelist_regist(form):
             flash('決済代行業者の情報を取得できません。決済代行業者のアドレスが正しいか確認してください。', 'error')
             return render_template('account/bankinfo.html', form=form)
     else:
-        # ローカルのRSA公開鍵（発行体自身の公開鍵）を取得
+        # ローカルのRSA公開鍵を取得
+        # NOTE: 収納代行業者のものではなく、発行体自身の公開鍵である
         key_bank = RSA.importKey(open('data/rsa/public.pem').read())
 
     cipher = PKCS1_OAEP.new(key_bank)
 
-    whitelist_json = {
+    payment_account_json = {
         "name": form.name.data,
         "bank_account":{
             "bank_name": form.bank_name.data,
@@ -318,20 +309,20 @@ def whitelist_regist(form):
             "account_holder": form.account_holder.data
         }
     }
-    whitelist_message_string = json.dumps(whitelist_json)
+    payment_account_message_string = json.dumps(payment_account_json)
 
     # 銀行口座情報の暗号化
-    whitelist_ciphertext = \
+    payment_account_ciphertext = \
         base64.encodestring(
-            cipher.encrypt(whitelist_message_string.encode('utf-8')))
+            cipher.encrypt(payment_account_message_string.encode('utf-8')))
 
     # WhiteList登録
-    whitelist_address = to_checksum_address(Config.WHITE_LIST_CONTRACT_ADDRESS)
-    WhiteListContract = Contract.get_contract('WhiteList', whitelist_address)
-    w_gas = WhiteListContract.estimateGas().\
-        register(agent_address, whitelist_ciphertext)
-    w_txid = WhiteListContract.functions.\
-        register(agent_address, whitelist_ciphertext).\
+    payment_gateway_address = to_checksum_address(Config.PAYMENT_GATEWAY_CONTRACT_ADDRESS)
+    PaymentGatewayContract = Contract.get_contract('PaymentGateway', payment_gateway_address)
+    w_gas = PaymentGatewayContract.estimateGas().\
+        register(agent_address, payment_account_ciphertext)
+    w_txid = PaymentGatewayContract.functions.\
+        register(agent_address, payment_account_ciphertext).\
         transact({'from':Config.ETH_ACCOUNT, 'gas':w_gas})
 
 #+++++++++++++++++++++++++++++++

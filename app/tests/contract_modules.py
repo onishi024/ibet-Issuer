@@ -1,10 +1,6 @@
 # -*- coding: utf-8 -*-
-import time
 import json
-import os
-import sqlalchemy as sa
 import base64
-from base64 import b64encode
 
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
@@ -59,26 +55,26 @@ def get_personal_encrypted_info(personal_info, account_address, token_owner):
     return json.loads(message)
 
 '''
-WhiteList情報登録
+PaymentGateway情報登録
 '''
-# 決済用銀行口座情報登録
-def register_terms(invoker, white_list):
-    WhiteListContract = Contract.get_contract(
-        'WhiteList', white_list['address'])
+# 収納代行利用規約登録
+def register_terms(invoker, payment_gateway):
+    PaymentGatewayContract = Contract.get_contract(
+        'PaymentGateway', payment_gateway['address'])
 
     # 1) 登録 from Invoker
     web3.eth.defaultAccount = invoker['account_address']
     web3.personal.unlockAccount(invoker['account_address'],
                                 invoker['password'])
 
-    tx_hash = WhiteListContract.functions.register_terms('test terms').\
+    tx_hash = PaymentGatewayContract.functions.addTerms('test terms').\
         transact({'from':invoker['account_address'], 'gas':4000000})
     tx = web3.eth.waitForTransactionReceipt(tx_hash)
 
 # 決済用銀行口座情報登録
-def register_only_whitelist(invoker, white_list, encrypted_info):
-    WhiteListContract = Contract.get_contract(
-        'WhiteList', white_list['address'])
+def register_only_payment_account(invoker, payment_gateway, encrypted_info):
+    PaymentGatewayContract = Contract.get_contract(
+        'PaymentGateway', payment_gateway['address'])
 
     # 1) 登録 from Invoker
     web3.eth.defaultAccount = invoker['account_address']
@@ -86,28 +82,28 @@ def register_only_whitelist(invoker, white_list, encrypted_info):
                                 invoker['password'])
 
     agent = eth_account['agent']
-    tx_hash = WhiteListContract.functions.register(agent['account_address'], encrypted_info).\
+    tx_hash = PaymentGatewayContract.functions.register(agent['account_address'], encrypted_info).\
         transact({'from':invoker['account_address'], 'gas':4000000})
     tx = web3.eth.waitForTransactionReceipt(tx_hash)
 
 # 決済口座の認可
-def approve_whitelist(invoker, white_list):
-    WhiteListContract = Contract.get_contract(
-        'WhiteList', white_list['address'])
+def approve_payment_account(invoker, payment_gateway):
+    PaymentGatewayContract = Contract.get_contract(
+        'PaymentGateway', payment_gateway['address'])
     agent = eth_account['agent']
 
     # 2) 認可 from Agent
     web3.eth.defaultAccount = agent['account_address']
     web3.personal.unlockAccount(agent['account_address'], agent['password'])
 
-    tx_hash = WhiteListContract.functions.approve(invoker['account_address']).\
+    tx_hash = PaymentGatewayContract.functions.approve(invoker['account_address']).\
         transact({'from':agent['account_address'], 'gas':4000000})
     tx = web3.eth.waitForTransactionReceipt(tx_hash)
 
 # 決済用銀行口座情報登録（認可まで）
-def register_whitelist(invoker, white_list, encrypted_info):
-    WhiteListContract = Contract.get_contract(
-        'WhiteList', white_list['address'])
+def register_payment_account(invoker, payment_gateway, encrypted_info):
+    PaymentGatewayContract = Contract.get_contract(
+        'PaymentGateway', payment_gateway['address'])
 
     # 1) 登録 from Invoker
     web3.eth.defaultAccount = invoker['account_address']
@@ -115,7 +111,7 @@ def register_whitelist(invoker, white_list, encrypted_info):
                                 invoker['password'])
 
     agent = eth_account['agent']
-    tx_hash = WhiteListContract.functions.register(agent['account_address'], encrypted_info).\
+    tx_hash = PaymentGatewayContract.functions.register(agent['account_address'], encrypted_info).\
         transact({'from':invoker['account_address'], 'gas':4000000})
     tx = web3.eth.waitForTransactionReceipt(tx_hash)
 
@@ -123,19 +119,20 @@ def register_whitelist(invoker, white_list, encrypted_info):
     web3.eth.defaultAccount = agent['account_address']
     web3.personal.unlockAccount(agent['account_address'], agent['password'])
 
-    tx_hash = WhiteListContract.functions.approve(invoker['account_address']).\
+    tx_hash = PaymentGatewayContract.functions.approve(invoker['account_address']).\
         transact({'from':agent['account_address'], 'gas':4000000})
     tx = web3.eth.waitForTransactionReceipt(tx_hash)
 
-# whitelistの暗号化済情報を復号化して返す
-def get_whitelist_encrypted_info(white_list, account_address, agent_address):
-    WhiteListContract = Contract.get_contract(
-        'WhiteList', white_list['address'])
-    payment_account = WhiteListContract.functions.payment_accounts(
+# PaymentGatewayの暗号化済情報を復号化して返す
+def get_payment_account_encrypted_info(payment_gateway, account_address, agent_address):
+    PaymentGatewayContract = Contract.get_contract(
+        'PaymentGateway', payment_gateway['address'])
+    payment_account = PaymentGatewayContract.functions.payment_accounts(
             to_checksum_address(account_address),
             to_checksum_address(agent_address)
-        ).call()
+    ).call()
     logger.info(payment_account)
+
     # 復号化
     key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
     cipher = PKCS1_OAEP.new(key)

@@ -69,7 +69,7 @@ ETH_ACCOUNT = to_checksum_address(ETH_ACCOUNT)
 ETH_ACCOUNT_PASSWORD = os.environ.get('ETH_ACCOUNT_PASSWORD')
 TOKEN_LIST_CONTRACT_ADDRESS = to_checksum_address(os.environ.get('TOKEN_LIST_CONTRACT_ADDRESS'))
 PERSONAL_INFO_CONTRACT_ADDRESS = to_checksum_address(os.environ.get('PERSONAL_INFO_CONTRACT_ADDRESS'))
-WHITE_LIST_CONTRACT_ADDRESS = to_checksum_address(os.environ.get('WHITE_LIST_CONTRACT_ADDRESS'))
+PAYMENT_GATEWAY_CONTRACT_ADDRESS = to_checksum_address(os.environ.get('PAYMENT_GATEWAY_CONTRACT_ADDRESS'))
 IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS = \
     to_checksum_address(os.environ.get('IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS'))
 
@@ -139,7 +139,8 @@ def transfer_to_exchange(exchange_address, token_dict, amount, token_type):
     tx_hash = TokenContract.functions.transfer(exchange_address, amount).\
         transact({'from':ETH_ACCOUNT, 'gas':4000000})
     tx = web3.eth.waitForTransactionReceipt(tx_hash)
-    print("transfer_to_exchange:balanceOf exchange_address:" + str(TokenContract.functions.balanceOf(exchange_address).call()))
+    print("transfer_to_exchange:balanceOf exchange_address:" + \
+          str(TokenContract.functions.balanceOf(exchange_address).call()))
 
 # トークンの売りMake注文
 def make_sell_token(agent_address, exchange_address, token_dict, amount, ExchangeContract):
@@ -175,17 +176,18 @@ def register_personalinfo(invoker_address, encrypted_info):
     tx_hash = PersonalInfoContract.functions.register(ETH_ACCOUNT, encrypted_info).\
         transact({'from':invoker_address, 'gas':4000000})
     tx = web3.eth.waitForTransactionReceipt(tx_hash)
-    print("register_personalinfo:" + str(PersonalInfoContract.functions.isRegistered(invoker_address, ETH_ACCOUNT).call()))
+    print("register_personalinfo:" + \
+          str(PersonalInfoContract.functions.isRegistered(invoker_address, ETH_ACCOUNT).call()))
 
 # 決済用銀行口座情報登録（認可まで）
-def register_whitelist(invoker_address, invoker_password, encrypted_info, agent_address):
-    WhiteListContract = Contract.get_contract('WhiteList', WHITE_LIST_CONTRACT_ADDRESS)
+def register_payment_account(invoker_address, invoker_password, encrypted_info, agent_address):
+    PaymentGatewayContract = Contract.get_contract('PaymentGateway', PAYMENT_GATEWAY_CONTRACT_ADDRESS)
 
     # 1) 登録 from Invoker
     web3.eth.defaultAccount = invoker_address
     web3.personal.unlockAccount(invoker_address, invoker_password)
 
-    tx_hash = WhiteListContract.functions.register(agent_address, encrypted_info).\
+    tx_hash = PaymentGatewayContract.functions.register(agent_address, encrypted_info).\
         transact({'from':invoker_address, 'gas':4000000})
     tx = web3.eth.waitForTransactionReceipt(tx_hash)
 
@@ -193,58 +195,65 @@ def register_whitelist(invoker_address, invoker_password, encrypted_info, agent_
     web3.eth.defaultAccount = agent_address
     web3.personal.unlockAccount(agent_address, 'password', 10000)
 
-    tx_hash = WhiteListContract.functions.approve(invoker_address).\
+    tx_hash = PaymentGatewayContract.functions.approve(invoker_address).\
         transact({'from':agent_address, 'gas':4000000})
     tx = web3.eth.waitForTransactionReceipt(tx_hash)
-    print("register WhiteListContract:" + str(WhiteListContract.functions.isRegistered(invoker_address, agent_address).call()))
+    print("register PaymentGatewayContract:" + \
+          str(PaymentGatewayContract.functions.accountApproved(invoker_address, agent_address).call()))
 
-# 決済業者の規約登録
+# 収納代行業者の規約登録
 def register_terms(agent_address):
-    WhiteListContract = Contract.get_contract('WhiteList', WHITE_LIST_CONTRACT_ADDRESS)
+    PaymentGatewayContract = Contract.get_contract('PaymentGateway', PAYMENT_GATEWAY_CONTRACT_ADDRESS)
     web3.eth.defaultAccount = agent_address
     web3.personal.unlockAccount(agent_address, 'password', 10000)
-    gas = WhiteListContract.estimateGas().register_terms("kiyaku")
-    tx_hash = WhiteListContract.functions.register_terms("kiyaku").transact(
+    gas = PaymentGatewayContract.estimateGas().addTerms("kiyaku")
+    tx_hash = PaymentGatewayContract.functions.addTerms("kiyaku").transact(
         {'from':agent_address, 'gas':gas}
     )
     tx = web3.eth.waitForTransactionReceipt(tx_hash)
-    print("register_terms:" + str(WhiteListContract.functions.latest_terms_version(agent_address).call()))
+    print("register_terms:" + \
+          str(PaymentGatewayContract.functions.latest_terms_version(agent_address).call()))
 
 def main(data_count):
     token_type = 'IbetCoupon'
     web3.personal.unlockAccount(ETH_ACCOUNT, ETH_ACCOUNT_PASSWORD, 10000)
-    # agentをつくり、whitelistの登録を行う
+
+    # 収納代行業者（Agent）のアドレス作成 -> PaymentAccountの登録
     agent_address = web3.personal.newAccount('password')
     register_terms(agent_address)
-    register_whitelist(ETH_ACCOUNT, ETH_ACCOUNT_PASSWORD, issuer_encrypted_info, agent_address)
+    register_payment_account(ETH_ACCOUNT, ETH_ACCOUNT_PASSWORD, issuer_encrypted_info, agent_address)
     print("agent_address: " + agent_address)
+
+    # クーポンDEX情報を取得
     ExchangeContract = Contract.get_contract('IbetCouponExchange', IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS)
     exchange_address = IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS
     print("exchange_address: " + exchange_address)
-    # トークン発行
+
+    # トークン発行 -> 売出
     token_dict = issue_token(exchange_address, data_count, token_type)
-    # トークンリストに登録
     register_token_list(token_dict, token_type)
-    # 売出
     offer_token(agent_address, exchange_address, token_dict, data_count, token_type, ExchangeContract)
-    # orderID取得
     order_id = get_latest_orderid(ExchangeContract) - 1
     print("token_address: " + token_dict['address'])
     print("order_id: " + str(order_id))
+
     # 投資家アドレスの作成
     trader_address = web3.personal.newAccount('password')
     register_personalinfo(trader_address, trader_encrypted_info)
-    register_whitelist(trader_address, 'password', trader_encrypted_info, agent_address)
-    # 決済を入れる(全部買う)
+    register_payment_account(trader_address, 'password', trader_encrypted_info, agent_address)
+
+    # 約定を入れる(全部買う)：投資家
     buy_bond_token(trader_address, ExchangeContract, order_id, data_count)
-    # 決済の承認
+
+    # 決済承認：収納代行
     web3.eth.defaultAccount = agent_address
     web3.personal.unlockAccount(agent_address, 'password', 10000)
     gas = ExchangeContract.estimateGas().confirmAgreement(order_id, 0)
     ExchangeContract.functions.confirmAgreement(order_id, 0).transact(
         {'from':agent_address, 'gas':gas}
     )
-    # クーポン消費
+
+    # クーポンの消費
     TokenContract = Contract.get_contract(token_type, token_dict['address'])
     for count in range(0, data_count):
         web3.eth.defaultAccount = trader_address

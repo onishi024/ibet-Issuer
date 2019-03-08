@@ -2,7 +2,6 @@
 # -*- coding:utf-8 -*-
 import os
 import sys
-import logging
 import qrcode
 
 from web3 import Web3
@@ -104,11 +103,11 @@ class Config:
         TOKEN_LIST_CONTRACT_ADDRESS = \
             to_checksum_address(os.environ.get('TOKEN_LIST_CONTRACT_ADDRESS'))
 
-    # WhiteList-Contract
-    WHITE_LIST_CONTRACT_ADDRESS = ''
-    if os.environ.get('WHITE_LIST_CONTRACT_ADDRESS') is not None:
-        WHITE_LIST_CONTRACT_ADDRESS = \
-            to_checksum_address(os.environ.get('WHITE_LIST_CONTRACT_ADDRESS'))
+    # PaymentGateway-Contract
+    PAYMENT_GATEWAY_CONTRACT_ADDRESS = ''
+    if os.environ.get('PAYMENT_GATEWAY_CONTRACT_ADDRESS') is not None:
+        PAYMENT_GATEWAY_CONTRACT_ADDRESS = \
+            to_checksum_address(os.environ.get('PAYMENT_GATEWAY_CONTRACT_ADDRESS'))
 
     # PersonalInfo-Contract
     PERSONAL_INFO_CONTRACT_ADDRESS = ''

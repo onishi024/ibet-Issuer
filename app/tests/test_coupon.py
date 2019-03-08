@@ -1,11 +1,7 @@
 # -*- coding:utf-8 -*-
-import pytest
-import os
 import time
 
 from .conftest import TestBase
-from .account_config import eth_account
-from config import Config
 from .contract_modules import *
 from ..models import Token
 
@@ -98,10 +94,6 @@ class TestCoupon(TestBase):
         Config.ETH_ACCOUNT = eth_account['issuer']['account_address']
         Config.ETH_ACCOUNT_PASSWORD = eth_account['issuer']['password']
         Config.AGENT_ADDRESS = eth_account['agent']['account_address']
-        Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS = \
-            shared_contract['IbetStraightBondExchange']['address']
-        Config.WHITE_LIST_CONTRACT_ADDRESS = \
-            shared_contract['WhiteList']['address']
         Config.TOKEN_LIST_CONTRACT_ADDRESS = \
             shared_contract['TokenList']['address']
         Config.PERSONAL_INFO_CONTRACT_ADDRESS = \

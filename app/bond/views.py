@@ -752,19 +752,18 @@ def sell(token_address):
             PersonalInfoContract = Contract.get_contract(
                 'PersonalInfo', personalinfo_address)
 
-            # WhiteList Contract
-            whitelist_address = Config.WHITE_LIST_CONTRACT_ADDRESS
-            WhiteListContract = Contract.get_contract(
-                'WhiteList', whitelist_address)
+            # PaymentGateway Contract
+            pg_address = Config.PAYMENT_GATEWAY_CONTRACT_ADDRESS
+            PaymentGatewayContract = Contract.get_contract('PaymentGateway', pg_address)
 
             eth_account = Config.ETH_ACCOUNT
             agent_account = Config.AGENT_ADDRESS
 
             if PersonalInfoContract.functions.isRegistered(eth_account,eth_account).call() == False:
-                flash('金融機関の情報が未登録です。', 'error')
+                flash('発行体情報が未登録です。', 'error')
                 return redirect(url_for('.sell', token_address=token_address))
-            elif WhiteListContract.functions.isRegistered(eth_account, agent_account).call() == False:
-                flash('金融機関の情報が未登録です。', 'error')
+            elif PaymentGatewayContract.functions.accountApproved(eth_account, agent_account).call() == False:
+                flash('銀行口座情報が未登録です。', 'error')
                 return redirect(url_for('.sell', token_address=token_address))
             else:
                 eth_unlock_account()

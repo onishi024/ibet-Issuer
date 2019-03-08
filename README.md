@@ -51,7 +51,7 @@ $ python rsa/create_rsakey.py password
 ```
 export TOKEN_LIST_CONTRACT_ADDRESS=0x4e01488325aa068bb66f76003a52f325ef1fdbf7
 export PERSONAL_INFO_CONTRACT_ADDRESS=0xc4b4b034133d766e9326d8438656dce16ecd0d23
-export WHITE_LIST_CONTRACT_ADDRESS=0x2d25d36233c240d067dc19ce9fa782895514d360
+export PAYMENT_GATEWAY_CONTRACT_ADDRESS=0x2d25d36233c240d067dc19ce9fa782895514d360
 export IBET_SB_EXCHANGE_CONTRACT_ADDRESS=0x68888454bfb9355045dd4966434892ea33a971f5
 export IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS=0x0be90a91f22e6db59e6c337fc2749ec2f830cac3
 export IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS=0x88137aaf6203414d76b0253efb0a168faa0e08ea
@@ -66,7 +66,7 @@ export RSA_PASSWORD=password
 |:----------:|:-----------:|:------------:|
 | TOKEN_LIST_CONTRACT_ADDRESS | TokenListコントラクトのアドレス | tmr-sc/deploy/deploy.shの結果 |
 | PERSONAL_INFO_CONTRACT_ADDRESS | PersonalInfoコントラクトのアドレス | tmr-sc/deploy/deploy.shの結果 |
-| WHITE_LIST_CONTRACT_ADDRESS | WhiteListコントラクトのアドレス | tmr-sc/deploy/deploy.shの結果 |
+| PAYMENT_GATEWAY_CONTRACT_ADDRESS | PaymentGatewayコントラクトのアドレス | tmr-sc/deploy/deploy.shの結果 |
 | IBET_SB_EXCHANGE_CONTRACT_ADDRESS | IbetStraightBondExchangeコントラクトのアドレス | tmr-sc/deploy/deploy.shの結果 |
 | IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS | IbetCouponExchangeコントラクトのアドレス | tmr-sc/deploy/deploy.shの結果 |
 | IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS | IbetMembershipExchangeコントラクトのアドレス | tmr-sc/deploy/deploy.shの結果 |
@@ -86,7 +86,6 @@ $ python manage.py runserver [ -h 0.0.0.0 ]
 - 接続確認  
 http://XXX.XXX.XXX.XXX:5000/ で接続して起動していることを確認。
 * 例） localhost:5000
-* <img width="1437" alt="スクリーンショット 2019-02-12 0.30.43.jpg" src="https://qiita-image-store.s3.amazonaws.com/0/206241/d2243fa9-7c79-a142-13a8-f253fe8e70a3.jpeg">
 * ログイン画面で、DBに格納されているログインID,パスワードを入力すると、TOP画面が表示される
 
 ## 3. テスト実行について
