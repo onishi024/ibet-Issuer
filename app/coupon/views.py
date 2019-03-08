@@ -1,32 +1,15 @@
 # -*- coding:utf-8 -*-
-import secrets
 import datetime
-import json
-import time
-import base64
-from base64 import b64encode
+import traceback
 
-from Crypto.PublicKey import RSA
-from Crypto.Cipher import PKCS1_OAEP
-
-from flask import Flask, request, redirect, url_for, flash, session
-from flask_restful import Resource, Api
+from flask import request, redirect, url_for, flash
 from flask import render_template
-from flask import abort
 from flask_login import login_required
-from flask import current_app
-
-from web3 import Web3
-from eth_utils import to_checksum_address
-from solc import compile_source
-from sqlalchemy import desc
 
 from . import coupon
 from .. import db
-from ..models import Role, User, Token, Certification
 from ..util import *
 from .forms import *
-from ..decorators import admin_required
 from config import Config
 from app.contracts import Contract
 
