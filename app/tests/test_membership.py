@@ -198,8 +198,7 @@ class TestMembership(TestBase):
         )
         assert response.status_code == 302
 
-        # 2秒待機
-        time.sleep(2)
+        time.sleep(10)
 
         # DB登録処理
         processorIssueEvent(db)
@@ -267,8 +266,7 @@ class TestMembership(TestBase):
         )
         assert response.status_code == 302
 
-        # 2秒待機
-        time.sleep(2)
+        time.sleep(10)
 
         # DB登録処理
         processorIssueEvent(db)
@@ -434,7 +432,7 @@ class TestMembership(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(5)
+        time.sleep(10)
 
         # 詳細設定：設定変更
         url_setting = self.url_setting + token.token_address
@@ -485,7 +483,7 @@ class TestMembership(TestBase):
             data=self.token_data1
         )
         assert response.status_code == 302
-        time.sleep(2)
+        time.sleep(10)
 
         # 詳細設定画面の参照
         response = client.get(url_setting)
@@ -522,7 +520,7 @@ class TestMembership(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(2)
+        time.sleep(10)
 
         # 詳細設定画面の参照
         url_setting = self.url_setting + token.token_address
@@ -547,7 +545,7 @@ class TestMembership(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(2)
+        time.sleep(10)
 
         # 詳細設定画面の参照
         url_setting = self.url_setting + token.token_address
@@ -578,7 +576,7 @@ class TestMembership(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(2)
+        time.sleep(10)
 
         # 詳細設定画面の参照
         url_setting = self.url_setting + token.token_address
@@ -613,7 +611,7 @@ class TestMembership(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(5)
+        time.sleep(10)
 
         # 詳細設定画面の参照
         url_setting = self.url_setting + token.token_address
@@ -794,7 +792,7 @@ class TestMembership(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(2)
+        time.sleep(10)
 
         # 詳細設定画面の参照
         url_setting = self.url_setting + token.token_address
@@ -820,7 +818,7 @@ class TestMembership(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(2)
+        time.sleep(10)
 
         # 詳細設定画面の参照
         url_setting = self.url_setting + token.token_address
@@ -837,7 +835,7 @@ class TestMembership(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep( 2)
+        time.sleep(10)
 
     # ＜正常系9_1＞
     # ＜募集申込一覧参照＞
@@ -916,7 +914,7 @@ class TestMembership(TestBase):
         url = self.url_allocate + '/' + token_address + '/' + trader_address
         response = client.post(url, data = {'amount': 10})
         assert response.status_code == 302
-        time.sleep(2)
+        time.sleep(10)
 
         # 保有者一覧の参照
         response = client.get(self.url_holders + token_address)

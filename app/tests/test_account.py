@@ -476,7 +476,7 @@ class TestBankInfo(TestBase):
         assert '<input class="form-control" id="account_holder" name="account_holder" type="text" value="ABCDEFGHIJKLMNOPQRSTUVWXYZ-ﾞﾟｱｲｳｴｵｶｷｸｹｺｱ">'.encode('utf-8') in response.data
 
         # 待機
-        time.sleep(4)
+        time.sleep(10)
 
         # PersonalInfoの確認
         personal_info_json = get_personal_encrypted_info(shared_contract['PersonalInfo'], eth_account['issuer']['account_address'], eth_account['issuer']['account_address'])
@@ -547,7 +547,7 @@ class TestBankInfo(TestBase):
         assert '<input class="form-control" id="account_holder" name="account_holder" type="text" value="ﾃｽﾄ">'.encode('utf-8') in response.data
 
         # 待機
-        time.sleep(4)
+        time.sleep(10)
 
         # personalInfoの確認
         personal_info_json = get_personal_encrypted_info(

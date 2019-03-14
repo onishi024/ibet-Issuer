@@ -346,7 +346,7 @@ class TestCoupon(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(2)
+        time.sleep(10)
 
         # 一覧で確認
         response = client.get(self.url_list)
@@ -373,7 +373,7 @@ class TestCoupon(TestBase):
         assert response.status_code == 302
 
         # 待機
-        time.sleep(2)
+        time.sleep(10)
 
         # 一覧で確認
         response = client.get(self.url_list)
@@ -407,7 +407,7 @@ class TestCoupon(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(2)
+        time.sleep(10)
 
         # 詳細設定画面で確認
         response = client.get(url_setting)
@@ -433,7 +433,7 @@ class TestCoupon(TestBase):
             }
         )
         assert response.status_code == 200
-        time.sleep(5)
+        time.sleep(10)
 
         # 保有者一覧画面の参照
         response = client.get(self.url_holders + tokens[0].token_address)
@@ -616,7 +616,7 @@ class TestCoupon(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(2)
+        time.sleep(10)
 
         # 詳細設定画面の参照
         url_setting = self.url_setting + token.token_address
@@ -658,7 +658,7 @@ class TestCoupon(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(2)
+        time.sleep(10)
 
         # 詳細設定画面の参照
         url_setting = self.url_setting + token.token_address
@@ -685,7 +685,7 @@ class TestCoupon(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(2)
+        time.sleep(10)
 
         # 詳細設定画面の参照
         url_setting = self.url_setting + token.token_address
@@ -702,7 +702,7 @@ class TestCoupon(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep( 2)
+        time.sleep(10)
 
     # ＜正常系13_1＞
     # ＜募集申込一覧参照＞
@@ -782,7 +782,7 @@ class TestCoupon(TestBase):
         url = self.url_allocate + '/' + token_address + '/' + trader_address
         response = client.post(url, data = {'amount': 10})
         assert response.status_code == 302
-        time.sleep(2)
+        time.sleep(10)
 
         # 保有者一覧の参照
         response = client.get(self.url_holders + token_address)
@@ -915,7 +915,7 @@ class TestCoupon(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(2)
+        time.sleep(10)
 
         response = client.get(url_setting)
         assert response.status_code == 200
@@ -947,7 +947,7 @@ class TestCoupon(TestBase):
         assert response.status_code == 302
         response = client.get(url_add_supply)
         assert '総発行量と追加発行量の合計は、100,000,000が上限です。'.encode('utf-8') in response.data
-        time.sleep(2)
+        time.sleep(10)
 
         # 詳細設定画面で確認
         response = client.get(url_setting)

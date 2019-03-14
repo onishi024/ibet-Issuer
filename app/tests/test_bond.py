@@ -177,7 +177,7 @@ class TestBond(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(2)
+        time.sleep(10)
 
         # DB登録処理
         processorIssueEvent(db)
@@ -354,7 +354,7 @@ class TestBond(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(6)
+        time.sleep(10)
 
     # ＜正常系10＞
     #   公開 →　詳細設定画面で確認
@@ -371,7 +371,7 @@ class TestBond(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(2)
+        time.sleep(10)
 
         # 債券詳細設定
         url_setting = self.url_setting + token.token_address
@@ -440,7 +440,7 @@ class TestBond(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(2)
+        time.sleep(10)
 
         # 債券詳細設定画面を参照
         response = client.get(self.url_setting + token.token_address)
@@ -480,7 +480,7 @@ class TestBond(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(2)
+        time.sleep(10)
 
         # 債券一覧を参照
         client = self.client_with_admin_login(app)
