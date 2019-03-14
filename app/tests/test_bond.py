@@ -93,11 +93,11 @@ class TestBond(TestBase):
         Config.AGENT_ADDRESS = eth_account['agent']['account_address']
         Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS = \
             shared_contract['IbetStraightBondExchange']['address']
-        Config.WHITE_LIST_CONTRACT_ADDRESS = shared_contract['WhiteList']['address']
+        Config.PAYMENT_GATEWAY_CONTRACT_ADDRESS = shared_contract['PaymentGateway']['address']
         Config.TOKEN_LIST_CONTRACT_ADDRESS = shared_contract['TokenList']['address']
         Config.PERSONAL_INFO_CONTRACT_ADDRESS = shared_contract['PersonalInfo']['address']
 
-        # personalinfo登録
+        # PersonalInfo登録
         register_personalinfo(
             eth_account['issuer'],
             shared_contract['PersonalInfo'],
@@ -110,11 +110,16 @@ class TestBond(TestBase):
             self.trader_encrypted_info
         )
 
-        # whitelist登録
-        register_terms(eth_account['agent'], shared_contract['WhiteList'])
-        register_whitelist(
+        # PaymentGateway：収納代行利用規約登録
+        register_terms(
+            eth_account['agent'],
+            shared_contract['PaymentGateway']
+        )
+
+        # PaymentGateway：銀行口座情報登録
+        register_payment_account(
             eth_account['issuer'],
-            shared_contract['WhiteList'],
+            shared_contract['PaymentGateway'],
             self.issuer_encrypted_info
         )
 
@@ -322,7 +327,7 @@ class TestBond(TestBase):
                 'image_small': 'https://test.com/image_small.jpg',
                 'image_medium': 'https://test.com/image_medium.jpg',
                 'image_large': 'https://test.com/image_large.jpg',
-                'tradableExchange': shared_contract['WhiteList']['address']
+                'tradableExchange': shared_contract['PaymentGateway']['address']
             }
         )
         assert response.status_code == 302
@@ -336,7 +341,7 @@ class TestBond(TestBase):
         assert 'https://test.com/image_small.jpg'.encode('utf-8') in response.data
         assert 'https://test.com/image_medium.jpg'.encode('utf-8') in response.data
         assert 'https://test.com/image_large.jpg'.encode('utf-8') in response.data
-        assert shared_contract['WhiteList']['address'].encode('utf-8') in response.data
+        assert shared_contract['PaymentGateway']['address'].encode('utf-8') in response.data
 
         # データ戻し
         response = client.post(

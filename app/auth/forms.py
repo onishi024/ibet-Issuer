@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm as Form
-from wtforms import StringField, TextAreaField, BooleanField, SelectField, SubmitField, PasswordField
-from wtforms.validators import Required, Length, Email, Regexp, DataRequired
+from wtforms import StringField, PasswordField
+from wtforms.validators import Required
 
 class LoginForm(Form):
     login_id = StringField("LoginId", validators=[Required("ログインIDを入力してください。")])

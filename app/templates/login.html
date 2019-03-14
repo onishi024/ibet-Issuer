@@ -27,16 +27,20 @@
   <![endif]-->
 
   <!-- Google Font -->
-  <link rel="stylesheet" href="/static/css/font.css">
+  <link href="https://fonts.googleapis.com/earlyaccess/mplus1p.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/earlyaccess/roundedmplus1c.css" rel="stylesheet" />
   <!-- noty -->
   <link rel="stylesheet" href="/static/js/noty-3.1.4/lib/noty.css">
   <style>
-body {
+  body {
     font-family:-apple-system, NotoSansJP-DemiLight, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", "ヒラギノ角ゴ ProN W3", Meiryo, sans-serif;
-}
-h1,h2,h3,h4,h5,h6,.h1,.h2,.h3,.h4,.h5,.h6 {
+  }
+  h1,h2,h3,h4,h5,h6,.h1,.h2,.h3,.h4,.h5,.h6 {
     font-family:-apple-system, NotoSansJP-DemiLight, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", "ヒラギノ角ゴ ProN W3", Meiryo, sans-serif;
-}
+  }
+  .main-header .logo {
+    font-family: Helvetica,'Helvetica Neue','Mplus 1p','Hiragino Kaku Gothic Pro', 'ヒラギノ角ゴ Pro W3', Meiryo, メイリオ, Osaka, 'MS PGothic'!important;
+  }
   </style>
 </head>
 <body class="hold-transition login-page">
@@ -76,16 +80,16 @@ h1,h2,h3,h4,h5,h6,.h1,.h2,.h3,.h4,.h5,.h6 {
   <div class="login-box-body">
     <form action="{{ url_for('auth.login', next=next_url) }}" method="post">
       <div class="form-group has-feedback">
-        <label>ログインID</label>
-        {{ form.login_id(class="form-control", placeholder="ログインIDを入力してください。") }}
+        <label>ユーザーID</label>
+        {{ form.login_id(class="form-control", placeholder="") }}
       </div>
       <div class="form-group has-feedback">
         <label>パスワード</label>
-        {{ form.password(class="form-control", placeholder="パスワードを入力してください。") }}
+        {{ form.password(class="form-control", placeholder="") }}
       </div>
       <div class="row">
-        <div class="col-md-6 pull-right">
-          <button type="submit" id="submit" class="btn btn-success btn-block btn-flat">ログイン</button>
+        <div class="col-md-12">
+          <button type="submit" id="submit" class="btn btn-success btn-block ">ログイン</button>
         </div>
         <!-- /.col -->
       </div>

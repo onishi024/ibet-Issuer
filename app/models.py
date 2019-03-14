@@ -1,7 +1,7 @@
 #!/usr/local/bin/python
 # -*- coding:utf-8 -*-
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask import render_template, request, jsonify, url_for, redirect
+from flask import url_for, redirect
 from flask_login import UserMixin
 from . import db, login_manager
 from datetime import datetime

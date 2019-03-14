@@ -59,18 +59,21 @@ issuer_encrypted_info = 'C3xjipCzPIbgydw0cObtsxadHqU3GuXd1u89EJuxMpyfnEJZ7CSXKrr
 #     }
 # }
 trader_encrypted_info = 'oR3oSAdy1m6MR2nYKTsccjxdXlgLDx2MJZEir5qKpb9hpHEWisOn79GE8+o1ThG/BCzirZjx9z3gc40PmM+1l2VH+6c5ouSWkZ3JhoT4SUsf9YTAurj6jySzTcPkCMC9VPP+Nm4+XJyt3QroPzDOsJKaGycn63/B8BLTV6zZaDi9ZDBtZL0A1xMEx2aQJsXCj+cn6fGFy7VV8NG1+WYyUDZmXTK8nzR75J2onsiT4FzwtSCzZbM4/qME4O0rOlnaqjBoyn6Ae46S6LO72JPskT/b5pWM+mH8+/buLdGaxO3D1k6ICTvjNJaO7gxTNTsm3tWGotp9tzzkDsxYcVE+qr4/ufmsE6Qn3/pI1DtEZbMyXu51ucn7JYyQNiPN99OXbkTs2/DHsy7RtvujS+PXH4KHjH0//NbdyUxgEmGbf3XvZ2yDDRUKpi5jHs82mtECGPWN9hKzlwkV7UXp/BBHZP+MsyiU1pZCkqIGIrt9WlE/v9TlJXzarcJmqWL6LmG2b5g6ublux/AaYyYXjwNyKbP0kQJGYoGNV4KODNEQd6DNc5uI24laJd8GY7ucDcB2F/j1y1S5vWIQIOM9ksSr9K0xfsaiqGpNWtbquYrOv3lNVozFx22C8hTWDyMOCmkTEcha2nTnLUvSsopZeNlAfRxnNdqjtHqp8iBAqVlpxRpIgCjk9QTf1lYmNK3jb2/4Cyt8xAo0Z4ty6qOzeEcwd+BjGMbfWdxtGSJHDidr7nP56MOGKSzwOnLxLVYVL8YuV6MnzqDtbts/Vbw9mkX5zwddIfvsGlNvhbrDR8WSrXRVeWiwnbXnhc4njpsRLRlCXwvHVbhXzdUvEyfXmMdMGRScVBLLeb0BQK9Aea1ZuwKsK19JhK5QUrnYeimMRzJ/YUX5mMlJ4Skek7Lkn8py5hX3rZ3/SvLEXKe2GxkvqTPbwnyS+ZNAvGpyRl8AIthOHucW4Fnjl8KQpqS2GMJpj+SJRq8/HCpaR50743S5j6Ha0gx3D3/R032an+cgg7a875BNX0hgldffzoDr6+nHEtwsY/J96rkUFmeubmsISu0wAxH6C7XTsCFs90awBwIAydOgmbOovUub/yz/CJhbgbMrAMv1Mv2wnLIt0av8nC359AuRanIGr7q/ynDYqUS9mdUlpyfVbwWPJm0hMFfuJxdvVVHnyr2jg2GqtgvE8QcN18l1aI1FJDfqa7W7grlwn9+EQo+JXE1Xd7YZdeJNtKSD4aIQAFnIoIM3A7fkoPAS4sc+PdUzA3UNgomByNP3/cdcs/L3cvEpDjlTNzFLcQ2yojEXolcg2SZzpmb7MV3E5RQLnjOL+u/frwqk15up7jNiqfNp7N/o/wmjf6m+ceJq7b03o2oNLE+Ng6lNqLWNduII4Lq0N6qOgWJ/02LF1X/9oeBDPuPiLUZGkyy5y3FCuY4KN/hDUUpxGsxBOYfn+oFepAu6bz4UpxgaEu23DyCeKnkBlQITi1kSl7F7WHv1XBHF53eEY4fs4n0ZrOYWOzEFt/NfKm/oxiyIdSsCfGTcgmC/DGC90vM4sPPRXa7x7Xd8xJRbTnEuA88ALzCSeMt1NyNNtSKpw9xv+UIyFMkuDYsOoNRrdThZ/KvjYSMsAvNBXG0x6AYMz4x9oZ25VBiy/yWbivbN2nFPlWM7xyaQWMlTBVZZdCgnOoOR1tby7IAwlzTd1oGm+DJx9hA='
+
 # issuerのweb3
 WEB3_HTTP_PROVIDER = os.environ.get('WEB3_HTTP_PROVIDER')
 web3 = Web3(Web3.HTTPProvider(WEB3_HTTP_PROVIDER))
 web3.middleware_stack.inject(geth_poa_middleware, layer=0)
 ETH_ACCOUNT = to_checksum_address(web3.eth.accounts[0])
 ETH_ACCOUNT_PASSWORD = os.environ.get('ETH_ACCOUNT_PASSWORD')
+
 # agentのweb3
 WEB3_HTTP_PROVIDER_AGENT = os.environ.get('WEB3_HTTP_PROVIDER_AGENT')
 web3_agent = Web3(Web3.HTTPProvider(WEB3_HTTP_PROVIDER_AGENT))
 web3_agent.middleware_stack.inject(geth_poa_middleware, layer=0)
 AGENT_ACCOUNT = to_checksum_address(web3_agent.eth.accounts[0])
 AGENT_ACCOUNT_PASSWORD = os.environ.get('AGENT_ACCOUNT_PASSWORD')
+
 # agent用コントラクト取得
 def get_agent_contract(contract_name, address):
     contracts = json.load(open('data/contracts.json' , 'r'))
@@ -83,9 +86,9 @@ def get_agent_contract(contract_name, address):
 # コントラクト
 TOKEN_LIST_CONTRACT_ADDRESS = to_checksum_address(os.environ.get('TOKEN_LIST_CONTRACT_ADDRESS'))
 PERSONAL_INFO_CONTRACT_ADDRESS = to_checksum_address(os.environ.get('PERSONAL_INFO_CONTRACT_ADDRESS'))
-WHITE_LIST_CONTRACT_ADDRESS = to_checksum_address(os.environ.get('WHITE_LIST_CONTRACT_ADDRESS'))
-WhiteListContract = Contract.get_contract('WhiteList', WHITE_LIST_CONTRACT_ADDRESS)
-WhiteListContractAgent = get_agent_contract('WhiteList', WHITE_LIST_CONTRACT_ADDRESS)
+PAYMENT_GATEWAY_CONTRACT_ADDRESS = to_checksum_address(os.environ.get('PAYMENT_GATEWAY_CONTRACT_ADDRESS'))
+PaymentGatewayContract = Contract.get_contract('PaymentGateway', PAYMENT_GATEWAY_CONTRACT_ADDRESS)
+PaymentGatewayContractAgent = get_agent_contract('PaymentGateway', PAYMENT_GATEWAY_CONTRACT_ADDRESS)
 IBET_SB_EXCHANGE_CONTRACT_ADDRESS = \
     to_checksum_address(os.environ.get('IBET_SB_EXCHANGE_CONTRACT_ADDRESS'))
 IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS = \
@@ -230,12 +233,12 @@ def register_personalinfo(invoker_address, encrypted_info):
     print("register_personalinfo:" + str(PersonalInfoContract.functions.isRegistered(invoker_address, ETH_ACCOUNT).call()))
 
 # 決済用銀行口座情報登録（認可まで）
-def register_whitelist(invoker_address, invoker_password, encrypted_info):
+def register_payment_account(invoker_address, invoker_password, encrypted_info):
     # 1) 登録 from Invoker
     web3.eth.defaultAccount = invoker_address
     web3.personal.unlockAccount(invoker_address, invoker_password)
 
-    tx_hash = WhiteListContract.functions.register(AGENT_ACCOUNT, encrypted_info).\
+    tx_hash = PaymentGatewayContract.functions.register(AGENT_ACCOUNT, encrypted_info).\
         transact({'from':invoker_address, 'gas':4000000})
     tx = web3.eth.waitForTransactionReceipt(tx_hash)
 
@@ -243,10 +246,10 @@ def register_whitelist(invoker_address, invoker_password, encrypted_info):
     web3_agent.eth.defaultAccount = AGENT_ACCOUNT
     web3_agent.personal.unlockAccount(AGENT_ACCOUNT, AGENT_ACCOUNT_PASSWORD, 10000)
 
-    tx_hash = WhiteListContractAgent.functions.approve(invoker_address).\
+    tx_hash = PaymentGatewayContractAgent.functions.approve(invoker_address).\
         transact({'from':AGENT_ACCOUNT, 'gas':4000000})
     tx = web3.eth.waitForTransactionReceipt(tx_hash)
-    print("register WhiteListContract:" + str(WhiteListContract.functions.isRegistered(invoker_address, AGENT_ACCOUNT).call()))
+    print("register PaymentGatewayContract:" + str(PaymentGatewayContract.functions.isRegistered(invoker_address, AGENT_ACCOUNT).call()))
 
 def main(data_count, token_type, secondary_sell_flag):
     web3.personal.unlockAccount(ETH_ACCOUNT, ETH_ACCOUNT_PASSWORD, 10000)
@@ -279,7 +282,7 @@ def main(data_count, token_type, secondary_sell_flag):
         # 投資家アドレスの作成
         trader_address = web3.personal.newAccount('password')
         register_personalinfo(trader_address, trader_encrypted_info)
-        register_whitelist(trader_address, 'password', trader_encrypted_info)
+        register_payment_account(trader_address, 'password', trader_encrypted_info)
         # 決済を入れる
         buy_bond_token(trader_address, ExchangeContract, order_id, 1)
         # 決済の承認

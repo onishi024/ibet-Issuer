@@ -1,6 +1,5 @@
 import base64
 import json
-from base64 import b64encode
 from datetime import datetime, timezone, timedelta
 JST = timezone(timedelta(hours=+9), 'JST')
 

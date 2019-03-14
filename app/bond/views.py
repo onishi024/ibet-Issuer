@@ -1,32 +1,16 @@
 # -*- coding:utf-8 -*-
-import secrets
 import datetime
-import json
-import time
-import base64
-from base64 import b64encode
+import traceback
 
-from Crypto.PublicKey import RSA
-from Crypto.Cipher import PKCS1_OAEP
-
-from flask import Flask, request, redirect, url_for, flash, session
-from flask_restful import Resource, Api
+from flask import request, redirect, url_for, flash
 from flask import render_template
-from flask import abort
 from flask_login import login_required
-from flask import current_app
-
-from web3 import Web3
-from eth_utils import to_checksum_address
-from solc import compile_source
-from sqlalchemy import desc
 
 from . import bond
 from .. import db
 from ..util import *
-from ..models import Role, User, Token, Certification
+from ..models import Token, Certification
 from .forms import *
-from ..decorators import admin_required
 from config import Config
 from app.contracts import Contract
 
@@ -752,19 +736,18 @@ def sell(token_address):
             PersonalInfoContract = Contract.get_contract(
                 'PersonalInfo', personalinfo_address)
 
-            # WhiteList Contract
-            whitelist_address = Config.WHITE_LIST_CONTRACT_ADDRESS
-            WhiteListContract = Contract.get_contract(
-                'WhiteList', whitelist_address)
+            # PaymentGateway Contract
+            pg_address = Config.PAYMENT_GATEWAY_CONTRACT_ADDRESS
+            PaymentGatewayContract = Contract.get_contract('PaymentGateway', pg_address)
 
             eth_account = Config.ETH_ACCOUNT
             agent_account = Config.AGENT_ADDRESS
 
             if PersonalInfoContract.functions.isRegistered(eth_account,eth_account).call() == False:
-                flash('金融機関の情報が未登録です。', 'error')
+                flash('発行体情報が未登録です。', 'error')
                 return redirect(url_for('.sell', token_address=token_address))
-            elif WhiteListContract.functions.isRegistered(eth_account, agent_account).call() == False:
-                flash('金融機関の情報が未登録です。', 'error')
+            elif PaymentGatewayContract.functions.accountApproved(eth_account, agent_account).call() == False:
+                flash('銀行口座情報が未登録です。', 'error')
                 return redirect(url_for('.sell', token_address=token_address))
             else:
                 eth_unlock_account()
