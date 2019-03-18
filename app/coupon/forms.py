@@ -62,27 +62,27 @@ class IssueCouponForm(Form):
         choices=[(True, 'True'), (False, 'False')], default='True'
     )
 
-    image_small = StringField(
-        "画像（小）URL",
+    image_1 = StringField(
+        "画像（１）URL",
         validators=[
             Optional(),
-            URL(message='画像（小）URLは無効なURLです。')
+            URL(message='画像（１）URLは無効なURLです。')
         ]
     )
 
-    image_medium = StringField(
-        "画像（中）URL",
+    image_2 = StringField(
+        "画像（２）URL",
         validators=[
             Optional(),
-            URL(message='画像（中）URLは無効なURLです。')
+            URL(message='画像（２）URLは無効なURLです。')
         ]
     )
 
-    image_large = StringField(
-        "画像（大）URL",
+    image_3 = StringField(
+        "画像（３）URL",
         validators=[
             Optional(),
-            URL(message='画像（大）URLは無効なURLです。')
+            URL(message='画像（３）URLは無効なURLです。')
         ]
     )
 
@@ -126,26 +126,26 @@ class SettingCouponForm(Form):
         default='True'
     )
 
-    image_small = StringField(
-        "画像（小）URL",
+    image_1 = StringField(
+        "画像（１）URL",
         validators=[
-            Optional(), URL(message='画像（小）URLは無効なURLです。')
+            Optional(), URL(message='画像（１）URLは無効なURLです。')
         ]
     )
 
-    image_medium = StringField(
-        "画像（中）URL",
+    image_2 = StringField(
+        "画像（２）URL",
         validators=[
             Optional(),
-            URL(message='画像（中）URLは無効なURLです。')
+            URL(message='画像（２）URLは無効なURLです。')
         ]
     )
 
-    image_large = StringField(
-        "画像（大）URL",
+    image_3 = StringField(
+        "画像（３）URL",
         validators=[
             Optional(),
-            URL(message='画像（大）URLは無効なURLです。')
+            URL(message='画像（３）URLは無効なURLです。')
         ]
     )
 

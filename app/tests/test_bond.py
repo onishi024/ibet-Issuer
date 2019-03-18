@@ -1,14 +1,8 @@
 # -*- coding:utf-8 -*-
-import pytest
-import os
 import time
-
 from .conftest import TestBase
-from .account_config import eth_account
-from config import Config
 from .contract_modules import *
 from ..models import Token
-
 from logging import getLogger
 logger = getLogger('api')
 
@@ -324,9 +318,9 @@ class TestBond(TestBase):
         response = client.post(
             url_setting,
             data={
-                'image_small': 'https://test.com/image_small.jpg',
-                'image_medium': 'https://test.com/image_medium.jpg',
-                'image_large': 'https://test.com/image_large.jpg',
+                'image_1': 'https://test.com/image_1.jpg',
+                'image_2': 'https://test.com/image_2.jpg',
+                'image_3': 'https://test.com/image_3.jpg',
                 'tradableExchange': shared_contract['PaymentGateway']['address']
             }
         )
@@ -338,18 +332,18 @@ class TestBond(TestBase):
         assert response.status_code == 200
         assert '<title>債券詳細設定'.encode('utf-8') in response.data
         assert 'テスト債券'.encode('utf-8') in response.data
-        assert 'https://test.com/image_small.jpg'.encode('utf-8') in response.data
-        assert 'https://test.com/image_medium.jpg'.encode('utf-8') in response.data
-        assert 'https://test.com/image_large.jpg'.encode('utf-8') in response.data
+        assert 'https://test.com/image_1.jpg'.encode('utf-8') in response.data
+        assert 'https://test.com/image_2.jpg'.encode('utf-8') in response.data
+        assert 'https://test.com/image_3.jpg'.encode('utf-8') in response.data
         assert shared_contract['PaymentGateway']['address'].encode('utf-8') in response.data
 
         # データ戻し
         response = client.post(
             url_setting,
             data={
-                'image_small': 'https://test.com/image_small.jpg',
-                'image_medium': 'https://test.com/image_medium.jpg',
-                'image_large': 'https://test.com/image_large.jpg',
+                'image_1': 'https://test.com/image_1.jpg',
+                'image_2': 'https://test.com/image_2.jpg',
+                'image_3': 'https://test.com/image_3.jpg',
                 'tradableExchange': shared_contract['IbetStraightBondExchange']['address']
             }
         )

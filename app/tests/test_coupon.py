@@ -1,10 +1,8 @@
 # -*- coding:utf-8 -*-
 import time
-
 from .conftest import TestBase
 from .contract_modules import *
 from ..models import Token
-
 from logging import getLogger
 logger = getLogger('api')
 
@@ -152,9 +150,9 @@ class TestCoupon(TestBase):
                 'transferable': True,
                 'details': 'details詳細',
                 'memo': 'memoメモ',
-                'image_small': 'https://test.com/image_small.jpg',
-                'image_medium': 'https://test.com/image_medium.jpg',
-                'image_large': 'https://test.com/image_large.jpg',
+                'image_1': 'https://test.com/image_1.jpg',
+                'image_2': 'https://test.com/image_2.jpg',
+                'image_3': 'https://test.com/image_3.jpg',
                 'tradableExchange': shared_contract['IbetCouponExchange']['address']
             }
         )
@@ -197,9 +195,9 @@ class TestCoupon(TestBase):
         assert '<option selected value="True">なし</option>'.encode('utf-8') in response.data
         assert 'details詳細'.encode('utf-8') in response.data
         assert 'memoメモ'.encode('utf-8') in response.data
-        assert 'https://test.com/image_small.jpg'.encode('utf-8') in response.data
-        assert 'https://test.com/image_medium.jpg'.encode('utf-8') in response.data
-        assert 'https://test.com/image_large.jpg'.encode('utf-8') in response.data
+        assert 'https://test.com/image_1.jpg'.encode('utf-8') in response.data
+        assert 'https://test.com/image_2.jpg'.encode('utf-8') in response.data
+        assert 'https://test.com/image_3.jpg'.encode('utf-8') in response.data
         assert shared_contract['IbetCouponExchange']['address'].encode('utf-8') in response.data
 
     # ＜正常系2_4＞
@@ -219,9 +217,9 @@ class TestCoupon(TestBase):
                 'transferable': False,
                 'details': 'details詳細',
                 'memo': 'memoメモ',
-                'image_small': 'https://test.com/image_small.jpg',
-                'image_medium': 'https://test.com/image_medium.jpg',
-                'image_large': 'https://test.com/image_large.jpg',
+                'image_1': 'https://test.com/image_1.jpg',
+                'image_2': 'https://test.com/image_2.jpg',
+                'image_3': 'https://test.com/image_3.jpg',
                 'tradableExchange': shared_contract['IbetCouponExchange']['address']
             }
         )
@@ -243,9 +241,9 @@ class TestCoupon(TestBase):
         assert '<option selected value="False">あり</option>'.encode('utf-8') in response.data
         assert 'details詳細'.encode('utf-8') in response.data
         assert 'memoメモ'.encode('utf-8') in response.data
-        assert 'https://test.com/image_small.jpg'.encode('utf-8') in response.data
-        assert 'https://test.com/image_medium.jpg'.encode('utf-8') in response.data
-        assert 'https://test.com/image_large.jpg'.encode('utf-8') in response.data
+        assert 'https://test.com/image_1.jpg'.encode('utf-8') in response.data
+        assert 'https://test.com/image_2.jpg'.encode('utf-8') in response.data
+        assert 'https://test.com/image_3.jpg'.encode('utf-8') in response.data
         assert shared_contract['IbetCouponExchange']['address'].encode('utf-8') in response.data
 
     # ＜正常系3_1＞
@@ -293,9 +291,9 @@ class TestCoupon(TestBase):
                 'details': 'details詳細2',
                 'memo': 'memoメモ2',
                 'tradableExchange': shared_contract['IbetCouponExchange']['address'],
-                'image_small': 'https://test.com/image_small2.jpg',
-                'image_medium': 'https://test.com/image_medium2.jpg',
-                'image_large': 'https://test.com/image_large2.jpg',
+                'image_1': 'https://test.com/image_12.jpg',
+                'image_2': 'https://test.com/image_22.jpg',
+                'image_3': 'https://test.com/image_32.jpg',
             }
         )
         assert response.status_code == 302
@@ -311,9 +309,9 @@ class TestCoupon(TestBase):
         assert '<option selected value="True">なし</option>'.encode('utf-8') in response.data
         assert 'details詳細2'.encode('utf-8') in response.data
         assert 'memoメモ2'.encode('utf-8') in response.data
-        assert 'https://test.com/image_small2.jpg'.encode('utf-8') in response.data
-        assert 'https://test.com/image_medium2.jpg'.encode('utf-8') in response.data
-        assert 'https://test.com/image_large2.jpg'.encode('utf-8') in response.data
+        assert 'https://test.com/image_12.jpg'.encode('utf-8') in response.data
+        assert 'https://test.com/image_22.jpg'.encode('utf-8') in response.data
+        assert 'https://test.com/image_32.jpg'.encode('utf-8') in response.data
         assert shared_contract['IbetCouponExchange']['address'].encode('utf-8') in response.data
 
         # データ戻し
@@ -323,9 +321,9 @@ class TestCoupon(TestBase):
                 'details': 'details詳細',
                 'memo': 'memoメモ',
                 'tradableExchange': shared_contract['IbetCouponExchange']['address'],
-                'image_small': 'https://test.com/image_small.jpg',
-                'image_medium': 'https://test.com/image_medium.jpg',
-                'image_large': 'https://test.com/image_large.jpg',
+                'image_1': 'https://test.com/image_1.jpg',
+                'image_2': 'https://test.com/image_2.jpg',
+                'image_3': 'https://test.com/image_3.jpg',
             }
         )
         assert response.status_code == 302
@@ -885,9 +883,9 @@ class TestCoupon(TestBase):
                 'transferable': True,
                 'details': 'details詳細',
                 'memo': 'memoメモ',
-                'image_small': 'https://test.com/image_small.jpg',
-                'image_medium': 'https://test.com/image_medium.jpg',
-                'image_large': 'https://test.com/image_large.jpg',
+                'image_1': 'https://test.com/image_1.jpg',
+                'image_2': 'https://test.com/image_2.jpg',
+                'image_3': 'https://test.com/image_3.jpg',
                 'tradableExchange': error_address
             }
         )
@@ -909,9 +907,9 @@ class TestCoupon(TestBase):
                 'details': 'details詳細2',
                 'memo': 'memoメモ2',
                 'tradableExchange': error_address,
-                'image_small': 'https://test.com/image_small2.jpg',
-                'image_medium': 'https://test.com/image_medium2.jpg',
-                'image_large': 'https://test.com/image_large2.jpg',
+                'image_1': 'https://test.com/image_12.jpg',
+                'image_2': 'https://test.com/image_22.jpg',
+                'image_3': 'https://test.com/image_32.jpg',
             }
         )
         assert response.status_code == 302
