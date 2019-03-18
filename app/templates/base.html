@@ -154,7 +154,7 @@ desired effect
                 </a>
                 <ul class="treeview-menu">
                     {% for sub_id, sub_icon, sub_caption, url_name in sub_menus %}
-                        <li{% if sub_id == active_page %} class="active"{% endif %}><a href="{{ url_for(url_name) }}"><i class="{{ sub_icon }}"></i> {{ sub_caption|e }}</a></li>
+                        <li {% if sub_id == active_page %} class="active"{% endif %}><a href="{{ url_for(url_name) }}"><i class="{{ sub_icon }}"></i> {{ sub_caption|e }}</a></li>
                     {% endfor %}
                 </ul>
             </li>
@@ -171,7 +171,7 @@ desired effect
                     </a>
                     <ul class="treeview-menu">
                         {% for sub_id, sub_icon, sub_caption, url_name in sub_menus %}
-                            <li{% if sub_id == active_page %} class="active"{% endif %}><a href="{{ url_for(url_name) }}"><i class="{{ sub_icon }}"></i> {{ sub_caption|e }}</a></li>
+                            <li {% if sub_id == active_page %} class="active"{% endif %}><a href="{{ url_for(url_name) }}"><i class="{{ sub_icon }}"></i> {{ sub_caption|e }}</a></li>
                         {% endfor %}
                     </ul>
                 </li>

@@ -232,31 +232,24 @@ def issue():
             db.session.add(token)
 
             ####### 画像URL登録処理 #######
-            if form.image_small.data != '' or form.image_medium.data != '' or form.image_large.data != '':
+            if form.image_1.data != '' or form.image_2.data != '' or form.image_3.data != '':
                 tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash)
                 if tx_receipt is not None :
-                    contract_address = tx_receipt['contractAddress']
                     TokenContract = web3.eth.contract(
                         address= tx_receipt['contractAddress'],
                         abi = abi
                     )
-                    if form.image_small.data != '':
-                        gas = TokenContract.estimateGas().\
-                            setImageURL(0, form.image_small.data)
-                        txid_small = TokenContract.functions.\
-                            setImageURL(0, form.image_small.data).\
+                    if form.image_1.data != '':
+                        gas = TokenContract.estimateGas().setImageURL(0, form.image_1.data)
+                        TokenContract.functions.setImageURL(0, form.image_1.data).\
                             transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
-                    if form.image_medium.data != '':
-                        gas = TokenContract.estimateGas().\
-                            setImageURL(1, form.image_medium.data)
-                        txid_medium = TokenContract.functions.\
-                            setImageURL(1, form.image_medium.data).\
+                    if form.image_2.data != '':
+                        gas = TokenContract.estimateGas().setImageURL(1, form.image_2.data)
+                        TokenContract.functions.setImageURL(1, form.image_2.data).\
                             transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
-                    if form.image_large.data != '':
-                        gas = TokenContract.estimateGas().\
-                            setImageURL(2, form.image_large.data)
-                        txid = TokenContract.functions.\
-                            setImageURL(2, form.image_large.data).\
+                    if form.image_3.data != '':
+                        gas = TokenContract.estimateGas().setImageURL(2, form.image_3.data)
+                        TokenContract.functions.setImageURL(2, form.image_3.data).\
                             transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
 
             flash('新規発行を受け付けました。発行完了までに数分程かかることがあります。', 'success')
@@ -342,9 +335,9 @@ def setting(token_address):
     expirationDate = TokenContract.functions.expirationDate().call()
     isValid = TokenContract.functions.isValid().call()
     transferable = str(TokenContract.functions.transferable().call())
-    image_small = TokenContract.functions.getImageURL(0).call()
-    image_medium = TokenContract.functions.getImageURL(1).call()
-    image_large = TokenContract.functions.getImageURL(2).call()
+    image_1 = TokenContract.functions.getImageURL(0).call()
+    image_2 = TokenContract.functions.getImageURL(1).call()
+    image_3 = TokenContract.functions.getImageURL(2).call()
     tradableExchange = TokenContract.functions.tradableExchange().call()
 
     try:
@@ -400,21 +393,21 @@ def setting(token_address):
                     transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
 
             # 画像（小）変更
-            if form.image_small.data != image_small:
-                gas = TokenContract.estimateGas().setImageURL(0, form.image_small.data)
-                txid_small = TokenContract.functions.setImageURL(0, form.image_small.data).\
+            if form.image_1.data != image_1:
+                gas = TokenContract.estimateGas().setImageURL(0, form.image_1.data)
+                TokenContract.functions.setImageURL(0, form.image_1.data).\
                     transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
 
             # 画像（中）変更
-            if form.image_medium.data != image_medium:
-                gas = TokenContract.estimateGas().setImageURL(1, form.image_medium.data)
-                txid_medium = TokenContract.functions.setImageURL(1, form.image_medium.data).\
+            if form.image_2.data != image_2:
+                gas = TokenContract.estimateGas().setImageURL(1, form.image_2.data)
+                TokenContract.functions.setImageURL(1, form.image_2.data).\
                     transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
 
             # 画像（大）変更
-            if form.image_large.data != image_large:
-                gas = TokenContract.estimateGas().setImageURL(2, form.image_large.data)
-                txid = TokenContract.functions.setImageURL(2, form.image_large.data).\
+            if form.image_3.data != image_3:
+                gas = TokenContract.estimateGas().setImageURL(2, form.image_3.data)
+                TokenContract.functions.setImageURL(2, form.image_3.data).\
                     transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
 
             flash('設定変更を受け付けました。変更完了までに数分程かかることがあります。', 'success')
@@ -444,9 +437,9 @@ def setting(token_address):
         form.transferable.data = transferable
         form.memo.data = memo
         form.tradableExchange.data = tradableExchange
-        form.image_small.data = image_small
-        form.image_medium.data = image_medium
-        form.image_large.data = image_large
+        form.image_1.data = image_1
+        form.image_2.data = image_2
+        form.image_3.data = image_3
         form.abi.data = token.abi
         form.bytecode.data = token.bytecode
         return render_template(

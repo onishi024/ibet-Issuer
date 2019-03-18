@@ -486,9 +486,9 @@ def setting(token_address):
     transferable = str(TokenContract.functions.transferable().call())
     tradableExchange = TokenContract.functions.tradableExchange().call()
     status = TokenContract.functions.status().call()
-    image_small = TokenContract.functions.getImageURL(0).call()
-    image_medium = TokenContract.functions.getImageURL(1).call()
-    image_large = TokenContract.functions.getImageURL(2).call()
+    image_1 = TokenContract.functions.getImageURL(0).call()
+    image_2 = TokenContract.functions.getImageURL(1).call()
+    image_3 = TokenContract.functions.getImageURL(2).call()
 
     try:
         initial_offering_status = TokenContract.functions.initialOfferingStatus().call()
@@ -526,22 +526,22 @@ def setting(token_address):
 
             if form.details.data != details:
                 gas = TokenContract.estimateGas().setDetails(form.details.data)
-                txid = TokenContract.functions.setDetails(form.details.data).transact(
+                TokenContract.functions.setDetails(form.details.data).transact(
                     {'from': Config.ETH_ACCOUNT, 'gas': gas}
                 )
             if form.returnDetails.data != returnDetails:
                 gas = TokenContract.estimateGas().setReturnDetails(form.returnDetails.data)
-                txid = TokenContract.functions.setReturnDetails(form.returnDetails.data).transact(
+                TokenContract.functions.setReturnDetails(form.returnDetails.data).transact(
                     {'from': Config.ETH_ACCOUNT, 'gas': gas}
                 )
             if form.expirationDate.data != expirationDate:
                 gas = TokenContract.estimateGas().setExpirationDate(form.expirationDate.data)
-                txid = TokenContract.functions.setExpirationDate(form.expirationDate.data).transact(
+                TokenContract.functions.setExpirationDate(form.expirationDate.data).transact(
                     {'from': Config.ETH_ACCOUNT, 'gas': gas}
                 )
             if form.memo.data != memo:
                 gas = TokenContract.estimateGas().setMemo(form.memo.data)
-                txid = TokenContract.functions.setMemo(form.memo.data).transact(
+                TokenContract.functions.setMemo(form.memo.data).transact(
                     {'from': Config.ETH_ACCOUNT, 'gas': gas}
                 )
             if form.transferable.data != transferable:
@@ -549,27 +549,27 @@ def setting(token_address):
                 if form.transferable.data == 'False':
                     tmpVal = False
                 gas = TokenContract.estimateGas().setTransferable(tmpVal)
-                txid = TokenContract.functions.setTransferable(tmpVal).transact(
+                TokenContract.functions.setTransferable(tmpVal).transact(
                     {'from': Config.ETH_ACCOUNT, 'gas': gas}
                 )
-            if form.image_small.data != image_small:
-                gas = TokenContract.estimateGas().setImageURL(0, form.image_small.data)
-                txid_small = TokenContract.functions.setImageURL(0, form.image_small.data).transact(
+            if form.image_1.data != image_1:
+                gas = TokenContract.estimateGas().setImageURL(0, form.image_1.data)
+                TokenContract.functions.setImageURL(0, form.image_1.data).transact(
                     {'from': Config.ETH_ACCOUNT, 'gas': gas}
                 )
-            if form.image_medium.data != image_medium:
-                gas = TokenContract.estimateGas().setImageURL(1, form.image_medium.data)
-                txid_medium = TokenContract.functions.setImageURL(1, form.image_medium.data).transact(
+            if form.image_2.data != image_2:
+                gas = TokenContract.estimateGas().setImageURL(1, form.image_2.data)
+                TokenContract.functions.setImageURL(1, form.image_2.data).transact(
                     {'from': Config.ETH_ACCOUNT, 'gas': gas}
                 )
-            if form.image_large.data != image_large:
-                gas = TokenContract.estimateGas().setImageURL(2, form.image_large.data)
-                txid = TokenContract.functions.setImageURL(2, form.image_large.data).transact(
+            if form.image_3.data != image_3:
+                gas = TokenContract.estimateGas().setImageURL(2, form.image_3.data)
+                TokenContract.functions.setImageURL(2, form.image_3.data).transact(
                     {'from': Config.ETH_ACCOUNT, 'gas': gas}
                 )
             if form.tradableExchange.data != tradableExchange:
                 gas = TokenContract.estimateGas().setTradableExchange(to_checksum_address(form.tradableExchange.data))
-                txid = TokenContract.functions.setTradableExchange(
+                TokenContract.functions.setTradableExchange(
                     to_checksum_address(form.tradableExchange.data)).transact(
                     {'from': Config.ETH_ACCOUNT, 'gas': gas}
                 )
@@ -599,9 +599,9 @@ def setting(token_address):
         form.expirationDate.data = expirationDate
         form.memo.data = memo
         form.transferable.data = transferable
-        form.image_small.data = image_small
-        form.image_medium.data = image_medium
-        form.image_large.data = image_large
+        form.image_1.data = image_1
+        form.image_2.data = image_2
+        form.image_3.data = image_3
         form.tradableExchange.data = tradableExchange
         form.abi.data = token.abi
         form.bytecode.data = token.bytecode
@@ -690,27 +690,26 @@ def issue():
             db.session.add(token)
 
             ####### 画像URL登録処理 #######
-            if form.image_small.data != '' or form.image_medium.data != '' or form.image_large.data != '':
+            if form.image_1.data != '' or form.image_2.data != '' or form.image_3.data != '':
                 tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash)
                 if tx_receipt is not None:
-                    contract_address = tx_receipt['contractAddress']
                     TokenContract = web3.eth.contract(
                         address=tx_receipt['contractAddress'],
                         abi=abi
                     )
-                    if form.image_small.data != '':
-                        gas = TokenContract.estimateGas().setImageURL(0, form.image_small.data)
-                        txid_small = TokenContract.functions.setImageURL(0, form.image_small.data).transact(
+                    if form.image_1.data != '':
+                        gas = TokenContract.estimateGas().setImageURL(0, form.image_1.data)
+                        TokenContract.functions.setImageURL(0, form.image_1.data).transact(
                             {'from': Config.ETH_ACCOUNT, 'gas': gas}
                         )
-                    if form.image_medium.data != '':
-                        gas = TokenContract.estimateGas().setImageURL(1, form.image_medium.data)
-                        txid_medium = TokenContract.functions.setImageURL(1, form.image_medium.data).transact(
+                    if form.image_2.data != '':
+                        gas = TokenContract.estimateGas().setImageURL(1, form.image_2.data)
+                        TokenContract.functions.setImageURL(1, form.image_2.data).transact(
                             {'from': Config.ETH_ACCOUNT, 'gas': gas}
                         )
-                    if form.image_large.data != '':
-                        gas = TokenContract.estimateGas().setImageURL(2, form.image_large.data)
-                        txid = TokenContract.functions.setImageURL(2, form.image_large.data).transact(
+                    if form.image_3.data != '':
+                        gas = TokenContract.estimateGas().setImageURL(2, form.image_3.data)
+                        TokenContract.functions.setImageURL(2, form.image_3.data).transact(
                             {'from': Config.ETH_ACCOUNT, 'gas': gas}
                         )
 

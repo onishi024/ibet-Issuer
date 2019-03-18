@@ -1,17 +1,9 @@
 # -*- coding:utf-8 -*-
-import pytest
-import os
 import time
-
 from .conftest import TestBase
-from .account_config import eth_account
-from config import Config
 from .contract_modules import *
 from ..models import Token
-from app.contracts import Contract
-
 from eth_utils import to_checksum_address
-
 from logging import getLogger
 logger = getLogger('api')
 
@@ -51,9 +43,9 @@ class TestMembership(TestBase):
         'expirationDate': '20191231',
         'memo': 'memo',
         'transferable': 'True',
-        'image_small': 'http://hoge.co.jp',
-        'image_medium': 'http://hoge.co.jp',
-        'image_large': 'http://hoge.co.jp',
+        'image_1': 'http://hoge.co.jp',
+        'image_2': 'http://hoge.co.jp',
+        'image_3': 'http://hoge.co.jp',
     }
 
     # Token_2：2番目に発行されるトークン。imageなし, transferable:False
@@ -66,9 +58,9 @@ class TestMembership(TestBase):
         'expirationDate': '20201231',
         'memo': '2memo',
         'transferable': 'False',
-        'image_small': '',
-        'image_medium': '',
-        'image_large': ''
+        'image_1': '',
+        'image_2': '',
+        'image_3': ''
     }
 
     # Token_3：設定変更用情報
@@ -81,9 +73,9 @@ class TestMembership(TestBase):
         'expirationDate': '20211231',
         'memo': '3memo',
         'transferable': 'False',
-        'image_small': 'http://hoge.co.jp',
-        'image_medium': 'http://hoge.co.jp',
-        'image_large': 'http://hoge.co.jp'
+        'image_1': 'http://hoge.co.jp',
+        'image_2': 'http://hoge.co.jp',
+        'image_3': 'http://hoge.co.jp'
     }
 
     @staticmethod
@@ -216,9 +208,9 @@ class TestMembership(TestBase):
         assert self.token_data1['expirationDate'].encode('utf-8') in response.data
         assert self.token_data1['memo'].encode('utf-8') in response.data
         assert '<option selected value="True">なし</option>'.encode('utf-8') in response.data
-        assert self.token_data1['image_small'].encode('utf-8') in response.data
-        assert self.token_data1['image_medium'].encode('utf-8') in response.data
-        assert self.token_data1['image_large'].encode('utf-8') in response.data
+        assert self.token_data1['image_1'].encode('utf-8') in response.data
+        assert self.token_data1['image_2'].encode('utf-8') in response.data
+        assert self.token_data1['image_3'].encode('utf-8') in response.data
         assert self.token_data1['tradableExchange'].encode('utf-8') in response.data
 
     # ＜正常系2_2＞
@@ -284,9 +276,9 @@ class TestMembership(TestBase):
         assert self.token_data2['expirationDate'].encode('utf-8') in response.data
         assert self.token_data2['memo'].encode('utf-8') in response.data
         assert '<option selected value="False">あり</option>'.encode('utf-8') in response.data
-        assert self.token_data2['image_small'].encode('utf-8') in response.data
-        assert self.token_data2['image_medium'].encode('utf-8') in response.data
-        assert self.token_data2['image_large'].encode('utf-8') in response.data
+        assert self.token_data2['image_1'].encode('utf-8') in response.data
+        assert self.token_data2['image_2'].encode('utf-8') in response.data
+        assert self.token_data2['image_3'].encode('utf-8') in response.data
 
     # ＜正常系3_2＞
     # ＜会員権一覧（複数件）＞
@@ -455,9 +447,9 @@ class TestMembership(TestBase):
         assert self.token_data3['expirationDate'].encode('utf-8') in response.data
         assert self.token_data3['memo'].encode('utf-8') in response.data
         assert '<option selected value="False">あり</option>'.encode('utf-8') in response.data
-        assert self.token_data3['image_small'].encode('utf-8') in response.data
-        assert self.token_data3['image_medium'].encode('utf-8') in response.data
-        assert self.token_data3['image_large'].encode('utf-8') in response.data
+        assert self.token_data3['image_1'].encode('utf-8') in response.data
+        assert self.token_data3['image_2'].encode('utf-8') in response.data
+        assert self.token_data3['image_3'].encode('utf-8') in response.data
         assert self.token_data3['tradableExchange'].encode('utf-8') in response.data
 
         # データ戻し
@@ -497,9 +489,9 @@ class TestMembership(TestBase):
         assert self.token_data1['expirationDate'].encode('utf-8') in response.data
         assert self.token_data1['memo'].encode('utf-8') in response.data
         assert '<option selected value="True">なし</option>'.encode('utf-8') in response.data
-        assert self.token_data1['image_small'].encode('utf-8') in response.data
-        assert self.token_data1['image_medium'].encode('utf-8') in response.data
-        assert self.token_data1['image_large'].encode('utf-8') in response.data
+        assert self.token_data1['image_1'].encode('utf-8') in response.data
+        assert self.token_data1['image_2'].encode('utf-8') in response.data
+        assert self.token_data1['image_3'].encode('utf-8') in response.data
         assert self.token_data1['tradableExchange'].encode('utf-8') in response.data
         # 公開済でないことを確認
         assert '公開 <i class="fa fa-exclamation-triangle">'.encode('utf-8') in response.data
@@ -991,9 +983,9 @@ class TestMembership(TestBase):
                 'expirationDate': '20201231',
                 'memo': '2memo',
                 'transferable': 'False',
-                'image_small': '',
-                'image_medium': '',
-                'image_large': '',
+                'image_1': '',
+                'image_2': '',
+                'image_3': '',
                 'tradableExchange': dex_address_error
             }
         )
