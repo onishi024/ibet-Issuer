@@ -69,7 +69,7 @@ def list():
     return render_template('coupon/list.html', tokens=token_list)
 
 ####################################################
-# [会員権]募集申込一覧
+# [クーポン]募集申込一覧
 ####################################################
 @coupon.route('/applications/<string:token_address>', methods=['GET'])
 @login_required
