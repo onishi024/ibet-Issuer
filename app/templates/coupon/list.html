@@ -24,31 +24,31 @@
   	  <table id="data_table" class="table table-bordered table-hover">
   		<thead>
   		  <tr>
-          <th style="width: 100px">名称</th>
-    			<th style="width: 50px">略称</th>
-    			<th style="width: 40px">登録日時</th>
-          <th style="width: 110px">アドレス</th>
-          <th style="width: 30px">受付ID</th>
-          <th style="width: 30px">取扱</th>
-          <th style="width: 30px"></th>
-          <th style="width: 50px"></th>
-          <th style="width: 50px"></th>
-    		</tr>
+            <th style="width: 100px">名称</th>
+            <th style="width: 50px">略称</th>
+            <th style="width: 40px">登録日時</th>
+            <th style="width: 110px">アドレス</th>
+            <th style="width: 30px">受付ID</th>
+            <th style="width: 30px">取扱</th>
+            <th style="width: 40px"></th>
+            <th style="width: 40px"></th>
+            <th style="width: 40px"></th>
+          </tr>
   		</thead>
   		<tbody>
   		{% for token in tokens %}
         <tr>
           {% if token.token_address != None %}
-    			  <td style="word-break : break-all;">
-              <a href="{{ url_for('coupon.setting', token_address=token.token_address) }}">
-                {{ token.name }}
-              </a>
-            </td>
+          <td style="word-break : break-all;">
+            <a href="{{ url_for('coupon.setting', token_address=token.token_address) }}">
+              {{ token.name }}
+            </a>
+          </td>
           {% else %}
-            <td>{{ token.name }}</td>
+          <td>{{ token.name }}</td>
           {% endif %}
           <td>{{ token.symbol }}</td>
-    			<td align="center">
+          <td align="center">
             <small>{{ token.created | format_date }}</small>
           </td>
           {% if token.token_address != None %}
@@ -72,7 +72,7 @@
           {% if token.token_address != None %}
             <td align="center">
               <a href="{{ url_for('coupon.usage_history', token_address=token.token_address) }}">
-                利用<br/>履歴
+                利用履歴
               </a>
             </td>
           {% else %}
@@ -81,7 +81,7 @@
           {% if token.token_address != None %}
             <td align="center">
               <a href="{{ url_for('coupon.applications', token_address=token.token_address) }}">
-                募集申込<br/>一覧
+                募集申込
               </a>
             </td>
           {% else %}
@@ -90,7 +90,7 @@
           {% if token.token_address != None %}
       			<td align="center">
               <a href="{{ url_for('coupon.holders', token_address=token.token_address) }}">
-                保有者<br/>一覧
+                保有者
               </a>
             </td>
           {% else %}

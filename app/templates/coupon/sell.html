@@ -23,10 +23,11 @@
         <form class="form-horizontal" method="POST" role="form" action="{{ url_for('coupon.sell', token_address=form.token_address.data) }}">
             {{ form.csrf_token }}
             <div class="box-body">
+                <br>
                 <div class="form-group">
-                    {{ form.sellPrice.label(class="col-md-2") }}
-                    <div class="col-md-2">
-                        {{ form.sellPrice(class="form-control") }}
+                    {{ form.sellPrice.label(class="col-md-2 control-label") }}
+                    <div class="col-md-3">
+                        {{ form.sellPrice(class="form-control", autocomplete="off") }}
                     </div>
                 </div>
             </div>

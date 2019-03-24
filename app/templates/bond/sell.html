@@ -23,9 +23,10 @@
         <form class="form-horizontal" method="POST" role="form" action="{{ url_for('bond.sell', token_address=form.token_address.data) }}">
             {{ form.csrf_token }}
             <div class="box-body">
+                <br>
                 <div class="form-group">
-                    {{ form.sellPrice.label(class="col-md-3") }}
-                    <div class="col-md-2">
+                    {{ form.sellPrice.label(class="col-md-3 control-label") }}
+                    <div class="col-md-3">
                         {{ form.sellPrice(class="form-control") }}
                     </div>
                 </div>

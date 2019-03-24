@@ -71,7 +71,7 @@
           {% if token.token_address != None %}
       			<td align="center">
               <a href="{{ url_for('membership.applications', token_address=token.token_address) }}">
-                募集申込<br/>一覧
+                募集申込
               </a>
             </td>
           {% else %}
@@ -80,7 +80,7 @@
           {% if token.token_address != None %}
       			<td align="center">
               <a href="{{ url_for('membership.holders', token_address=token.token_address) }}">
-                保有者<br/>一覧
+                保有者
               </a>
             </td>
           {% else %}
