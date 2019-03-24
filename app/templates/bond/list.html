@@ -24,14 +24,14 @@
   	  <table id="data_table" class="table table-bordered table-hover">
   		<thead>
   		  <tr>
-    			<th>名称</th>
-    			<th style="width: 50px">略称</th>
-    			<th>登録日時</th>
-          <th>アドレス</th>
-          <th style="width: 50px">受付ID</th>
-          <th style="width: 70px">償還<br>状況</th>
-          <th style="width: 70px"></th>
-    		</tr>
+              <th>名称</th>
+              <th style="width: 50px">略称</th>
+              <th>登録日時</th>
+              <th>アドレス</th>
+              <th style="width: 50px">受付ID</th>
+              <th style="width: 70px">償還状況</th>
+              <th style="width: 70px"></th>
+          </tr>
   		</thead>
   		<tbody>
   		{% for token in tokens %}
@@ -59,7 +59,7 @@
             <td align="center">--</td>
           {% endif %}
           {% if token.token_address != None %}
-            <td align="center"><a href="{{ url_for('bond.holders', token_address=token.token_address) }}">保有者一覧</a></td>
+            <td align="center"><a href="{{ url_for('bond.holders', token_address=token.token_address) }}">保有者</a></td>
           {% else %}
             <td></td>
           {% endif %}

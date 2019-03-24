@@ -23,7 +23,7 @@
             <div class="pull-right box-tools">
               <!-- 公開/公開済 -->
                 {% if isRelease %}
-                  <button class="btn btn-gray btn-sm" type="button" style="width: 120px" disabled>
+                  <button class="btn btn-default btn-sm" type="button" style="width: 120px" disabled>
                     公開済
                   </button>
                 {% else %}
@@ -86,43 +86,43 @@
             {{ form.csrf_token }}
             <div class="box-body">
                 <div class="form-group">
-                    {{ form.name.label(class="col-md-2") }}
+                    {{ form.name.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
                         {{ form.name(class="form-control", disabled=True) }}
                     </div>
                 </div>
                 <div class="form-group">
-                    {{ form.symbol.label(class="col-md-2") }}
+                    {{ form.symbol.label(class="col-md-2 control-label") }}
                     <div class="col-md-4">
                         {{ form.symbol(class="form-control", disabled=True) }}
                     </div>
                 </div>
                 <div class="form-group">
-                    {{ form.totalSupply.label(class="col-md-2") }}
+                    {{ form.totalSupply.label(class="col-md-2 control-label") }}
                     <div class="col-md-4">
                         {{ form.totalSupply(class="form-control", disabled=True) }}
                     </div>
                 </div>
                 <div class="form-group">
-                    {{ form.details.label(class="col-md-2") }}
+                    {{ form.details.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
                         {{ form.details(class="form-control") }}
                     </div>
                 </div>
                 <div class="form-group">
-                    {{ form.returnDetails.label(class="col-md-2") }}
+                    {{ form.returnDetails.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
                         {{ form.returnDetails(class="form-control") }}
                     </div>
                 </div>
                 <div class="form-group">
-                    {{ form.memo.label(class="col-md-2") }}
+                    {{ form.memo.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
                         {{ form.memo(class="form-control") }}
                     </div>
                 </div>
                 <div class="form-group">
-                    {{ form.expirationDate.label(class="col-md-2") }}
+                    {{ form.expirationDate.label(class="col-md-2 control-label") }}
                     <div class="col-md-4">
                         <div class="input-group date">
                             <div class="input-group-addon">
@@ -133,44 +133,44 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    {{ form.transferable.label(class="col-md-2") }}
+                    {{ form.transferable.label(class="col-md-2 control-label") }}
                     <div class="col-md-4">
                         {{ form.transferable(class="form-control") }}
                     </div>
                 </div>
                 <div class="form-group">
-                    {{ form.tradableExchange.label(class="col-md-2") }}
+                    {{ form.tradableExchange.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
                         {{ form.tradableExchange(class="form-control", autocomplete="off") }}
                     </div>
                 </div>
                 <div class="form-group">
-                    {{ form.image_1.label(class="col-md-2") }}
+                    {{ form.image_1.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
                         {{ form.image_1(class="form-control", autocomplete="off") }}
                     </div>
                 </div>
                 <div class="form-group">
-                    {{ form.image_2.label(class="col-md-2") }}
+                    {{ form.image_2.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
                         {{ form.image_2(class="form-control", autocomplete="off") }}
                     </div>
                 </div>
                 <div class="form-group">
-                    {{ form.image_3.label(class="col-md-2") }}
+                    {{ form.image_3.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
                         {{ form.image_3(class="form-control", autocomplete="off") }}
                     </div>
                 </div>
                 <div class="form-group">
-                    {{ form.abi.label(class="col-md-2") }}
-                    <div class="col-md-10">
+                    {{ form.abi.label(class="col-md-2 control-label") }}
+                    <div class="col-md-8">
                         {{ form.abi(class="form-control", disabled=True) }}
                     </div>
                 </div>
                 <div class="form-group">
-                    {{ form.bytecode.label(class="col-md-2") }}
-                    <div class="col-md-10">
+                    {{ form.bytecode.label(class="col-md-2 control-label") }}
+                    <div class="col-md-8">
                         {{ form.bytecode(class="form-control", disabled=True) }}
                     </div>
                 </div>

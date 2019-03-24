@@ -267,9 +267,9 @@ class TransferForm(Form):
         self.transfer_membership = transfer_membership
 
 class TransferOwnershipForm(Form):
-    from_address = StringField("現在の所有者（アドレス）",validators = [])
+    from_address = StringField("現在の所有者",validators = [])
     to_address = StringField(
-        "移転先（アドレス）",
+        "移転先",
         validators = [
             Required('移転先は必須です。')
         ]
@@ -297,9 +297,9 @@ class AddSupplyForm(Form):
     name = StringField("名称", validators=[])
     totalSupply = IntegerField("総発行量", validators=[])
     addSupply = IntegerField(
-        "追加発行する数量",
+        "追加発行量",
         validators = [
-            Required('追加発行する数量は必須です。'),
+            Required('追加発行量は必須です。'),
             NumberRange(min=1, max=100000000, message='追加発行量は100,000,000が上限です。'),
         ]
     )

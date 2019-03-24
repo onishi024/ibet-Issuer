@@ -833,7 +833,7 @@ class TestCoupon(TestBase):
         )
         assert response.status_code == 200
         assert '<title>クーポン追加発行'.encode('utf-8') in response.data
-        assert '追加発行する数量は必須です。'.encode('utf-8') in response.data
+        assert '追加発行量は必須です。'.encode('utf-8') in response.data
 
     # ＜エラー系3＞
     #   割当（必須エラー）

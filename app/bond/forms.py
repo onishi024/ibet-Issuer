@@ -340,9 +340,9 @@ class RequestSignatureForm(Form):
         self.request_signature = request_signature
 
 class TransferOwnershipForm(Form):
-    from_address = StringField("現在の所有者（アドレス）",validators = [])
+    from_address = StringField("現在の所有者",validators = [])
     to_address = StringField(
-        "移転先（アドレス）",
+        "移転先",
         validators = [
             Required('移転先は必須です。')
         ]
