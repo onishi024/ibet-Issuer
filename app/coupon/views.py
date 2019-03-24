@@ -1098,12 +1098,15 @@ def coupon_valid(token_address, status):
         abi = token_abi
     )
 
-    gas = TokenContract.estimateGas().setStatus(status)
-    tx = TokenContract.functions.setStatus(status).\
-                transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
-    web3.eth.waitForTransactionReceipt(tx)
-
-    flash('処理を受け付けました。', 'success')
+    try:
+        gas = TokenContract.estimateGas().setStatus(status)
+        tx = TokenContract.functions.setStatus(status).\
+                    transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
+        web3.eth.waitForTransactionReceipt(tx)
+        flash('処理を受け付けました。', 'success')
+    except Exception as e:
+        logger.error(e)
+        flash('更新処理でエラーが発生しました。', 'error')
 
 ####################################################
 # [クーポン]募集申込開始/停止
@@ -1140,10 +1143,10 @@ def set_initial_offering_status(token_address, status):
         tx = TokenContract.functions.setInitialOfferingStatus(status).\
             transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
         web3.eth.waitForTransactionReceipt(tx)
+        flash('処理を受け付けました。', 'success')
     except:
-        flash('募集申込ステータスの更新処理でエラーが発生しました。', 'error')
-
-    flash('処理を受け付けました。', 'success')
+        logger.error(e)
+        flash('更新処理でエラーが発生しました。', 'error')
 
 #+++++++++++++++++++++++++++++++
 # Custom Filter

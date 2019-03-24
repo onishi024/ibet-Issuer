@@ -1019,12 +1019,15 @@ def membership_valid(token_address, isvalid):
         abi=token_abi
     )
 
-    gas = TokenContract.estimateGas().setStatus(isvalid)
-    tx = TokenContract.functions.setStatus(isvalid). \
-        transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
-    web3.eth.waitForTransactionReceipt(tx)
-
-    flash('処理を受け付けました。', 'success')
+    try:
+        gas = TokenContract.estimateGas().setStatus(isvalid)
+        tx = TokenContract.functions.setStatus(isvalid). \
+            transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
+        web3.eth.waitForTransactionReceipt(tx)
+        flash('処理を受け付けました。', 'success')
+    except Exception as e:
+        logger.error(e)
+        flash('更新処理でエラーが発生しました。', 'error')
 
 ####################################################
 # [会員権]募集申込開始/停止
@@ -1060,10 +1063,10 @@ def set_initial_offering_status(token_address, status):
         tx = TokenContract.functions.setInitialOfferingStatus(status). \
             transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
         web3.eth.waitForTransactionReceipt(tx)
-    except:
-        flash('募集申込ステータスの更新処理でエラーが発生しました。', 'error')
-
-    flash('処理を受け付けました。', 'success')
+        flash('処理を受け付けました。', 'success')
+    except Exception as e:
+        logger.error(e)
+        flash('更新処理でエラーが発生しました。', 'error')
 
 ####################################################
 # [会員権]権限エラー
