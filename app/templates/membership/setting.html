@@ -53,13 +53,17 @@
                 {% if status %}
                   <button
                     id="invalid"
-                    type="button" class="btn btn-danger btn-sm" style="width: 120px">
+                    type="button" class="btn btn-danger btn-sm"
+                    data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中"
+                    style="width: 120px">
                     取扱停止 <i class="fa fa-exclamation-triangle"></i>
                   </button>
                 {% else %}
                   <button
                     id="valid"
-                    type="button" class="btn btn-success btn-sm" style="width: 120px">
+                    type="button" class="btn btn-success btn-sm"
+                    data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中"
+                    style="width: 120px">
                     取扱開始 <i class="fa fa-exclamation-triangle"></i>
                   </button>
                 {% endif %}
@@ -219,6 +223,10 @@
       });
       $('#invalid').click(function(){
           if (confirm('この商品を取扱停止します。よろしいですか？')) {
+              var $this = $(this);
+              $this.button('loading');
+              setTimeout(function() {$this.button('reset');}, 8000);
+
               var $form = $('<form/>',
                   {'action': "{{ url_for('membership.invalid') }}", 'method': 'POST'}
               );
@@ -233,6 +241,10 @@
       });
       $('#valid').click(function(){
           if (confirm('この商品の取扱を再開します。よろしいですか？')) {
+              var $this = $(this);
+              $this.button('loading');
+              setTimeout(function() {$this.button('reset');}, 8000);
+
               var $form = $('<form/>',
                   {'action': "{{ url_for('membership.valid') }}", 'method': 'POST'}
               );

@@ -1025,8 +1025,9 @@ def membership_valid(token_address, isvalid):
     gas = TokenContract.estimateGas().setStatus(isvalid)
     tx = TokenContract.functions.setStatus(isvalid). \
         transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
+    web3.eth.waitForTransactionReceipt(tx)
 
-    flash('処理を受け付けました。完了までに数分程かかることがあります。', 'success')
+    flash('処理を受け付けました。', 'success')
 
 
 ####################################################
