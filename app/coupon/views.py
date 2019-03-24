@@ -1071,15 +1071,17 @@ def holder(token_address, account_address):
 @login_required
 def valid():
     logger.info('coupon/valid')
-    coupon_valid(request.form.get('token_address'), True)
-    return redirect(url_for('.list'))
+    token_address = request.form.get('token_address')
+    coupon_valid(token_address, True)
+    return redirect(url_for('.setting', token_address=token_address))
 
 @coupon.route('/invalid', methods=['POST'])
 @login_required
 def invalid():
     logger.info('coupon/invalid')
-    coupon_valid(request.form.get('token_address'), False)
-    return redirect(url_for('.list'))
+    token_address = request.form.get('token_address')
+    coupon_valid(token_address, False)
+    return redirect(url_for('.setting', token_address=token_address))
 
 def coupon_valid(token_address, status):
     eth_unlock_account()
