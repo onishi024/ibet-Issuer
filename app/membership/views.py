@@ -992,7 +992,6 @@ def add_supply(token_address):
             token_name=name
         )
 
-
 ####################################################
 # [会員権]有効化/無効化
 ####################################################
@@ -1000,17 +999,17 @@ def add_supply(token_address):
 @login_required
 def valid():
     logger.info('membership/valid')
-    membership_valid(request.form.get('token_address'), True)
-    return redirect(url_for('.list'))
-
+    token_address = request.form.get('token_address')
+    membership_valid(token_address, True)
+    return redirect(url_for('.setting', token_address=token_address))
 
 @membership.route('/invalid', methods=['POST'])
 @login_required
 def invalid():
     logger.info('membership/invalid')
-    membership_valid(request.form.get('token_address'), False)
-    return redirect(url_for('.list'))
-
+    token_address = request.form.get('token_address')
+    membership_valid(token_address, False)
+    return redirect(url_for('.setting', token_address=token_address))
 
 def membership_valid(token_address, isvalid):
     eth_unlock_account()
@@ -1028,7 +1027,6 @@ def membership_valid(token_address, isvalid):
     web3.eth.waitForTransactionReceipt(tx)
 
     flash('処理を受け付けました。', 'success')
-
 
 ####################################################
 # [会員権]募集申込開始/停止
