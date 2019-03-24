@@ -1060,10 +1060,9 @@ def set_initial_offering_status(token_address, status):
         tx = TokenContract.functions.setInitialOfferingStatus(status). \
             transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
         web3.eth.waitForTransactionReceipt(tx)
+        flash('処理を受け付けました。', 'success')
     except:
         flash('募集申込ステータスの更新処理でエラーが発生しました。', 'error')
-
-    flash('処理を受け付けました。', 'success')
 
 ####################################################
 # [会員権]権限エラー
