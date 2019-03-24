@@ -181,15 +181,15 @@ def release():
     try:
         gas = ListContract.estimateGas().\
             register(token_address, 'IbetCoupon')
-        ListContract.functions.\
+        tx = ListContract.functions.\
             register(token_address, 'IbetCoupon').\
             transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
+        web3.eth.waitForTransactionReceipt(tx)
+        flash('処理を受け付けました。', 'success')
     except ValueError:
         flash('既に公開されています。', 'error')
-        return redirect(url_for('.setting', token_address=token_address))
 
-    flash('公開中です。公開開始までに数分程かかることがあります。', 'success')
-    return redirect(url_for('.list'))
+    return redirect(url_for('.setting', token_address=token_address))
 
 ####################################################
 # [クーポン]新規発行
