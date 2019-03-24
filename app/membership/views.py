@@ -47,35 +47,39 @@ def list():
 
     token_list = []
     for row in tokens:
-        # トークンがデプロイ済みの場合、トークン情報を取得する
-        if row.token_address == None:
-            name = '<処理中>'
-            symbol = '<処理中>'
-            status = '<処理中>'
-            totalSupply = '<処理中>'
-        else:
-            # Token-Contractへの接続
-            TokenContract = web3.eth.contract(
-                address=row.token_address,
-                abi=json.loads(
-                    row.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
-            )
+        try:
+            # トークンがデプロイ済みの場合、トークン情報を取得する
+            if row.token_address == None:
+                name = '<処理中>'
+                symbol = '<処理中>'
+                status = '<処理中>'
+                totalSupply = '<処理中>'
+            else:
+                # Token-Contractへの接続
+                TokenContract = web3.eth.contract(
+                    address=row.token_address,
+                    abi=json.loads(
+                        row.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+                )
 
-            # Token-Contractから情報を取得する
-            name = TokenContract.functions.name().call()
-            symbol = TokenContract.functions.symbol().call()
-            status = TokenContract.functions.status().call()
-            totalSupply = TokenContract.functions.totalSupply().call()
+                # Token-Contractから情報を取得する
+                name = TokenContract.functions.name().call()
+                symbol = TokenContract.functions.symbol().call()
+                status = TokenContract.functions.status().call()
+                totalSupply = TokenContract.functions.totalSupply().call()
 
-        token_list.append({
-            'name': name,
-            'symbol': symbol,
-            'created': row.created,
-            'tx_hash': row.tx_hash,
-            'token_address': row.token_address,
-            'totalSupply': totalSupply,
-            'status': status
-        })
+            token_list.append({
+                'name': name,
+                'symbol': symbol,
+                'created': row.created,
+                'tx_hash': row.tx_hash,
+                'token_address': row.token_address,
+                'totalSupply': totalSupply,
+                'status': status
+            })
+        except Exception as e:
+            logger.error(e)
+            pass
 
     return render_template('membership/list.html', tokens=token_list)
 
