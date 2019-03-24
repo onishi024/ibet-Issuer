@@ -26,38 +26,38 @@
               <div class="form-group">
                   {{ form.name.label(class="col-md-2") }}
                   <div class="col-md-4">
-                      {{ form.name(class="form-control") }}
+                      {{ form.name(class="form-control", autocomplete="off") }}
                   </div>
               </div>
               <div class="form-group">
                   {{ form.symbol.label(class="col-md-2") }}
                   <div class="col-md-4">
-                      {{ form.symbol(class="form-control") }}
+                      {{ form.symbol(class="form-control", autocomplete="off") }}
                   </div>
               </div>
               <div class="form-group">
                   {{ form.totalSupply.label(class="col-md-2") }}
                   <div class="col-md-4">
-                      {{ form.totalSupply(class="form-control") }}
+                      {{ form.totalSupply(class="form-control", autocomplete="off") }}
                   </div>
               </div>
               <div class="form-group">
                   {{ form.faceValue.label(class="col-md-2") }}
                   <div class="col-md-4">
-                      {{ form.faceValue(class="form-control") }}
+                      {{ form.faceValue(class="form-control", autocomplete="off") }}
                   </div>
               </div>
               <div class="form-group">
                   {{ form.interestRate.label(class="col-md-2") }}
                   <div class="col-md-4">
-                      {{ form.interestRate(class="form-control") }}
+                      {{ form.interestRate(class="form-control", autocomplete="off") }}
                   </div>
               </div>
 
               <div class="form-group">
                     {{ form.interestPaymentDate1.label(class="col-md-2") }}
                     <div class="col-md-4">
-                        {{ form.interestPaymentDate1(class="form-control", placeholder="MMDD（例：3/31 → 0331）") }}
+                        {{ form.interestPaymentDate1(class="form-control", placeholder="MMDD（例：3/31 → 0331）", autocomplete="off") }}
                     </div>
                     <div class="col-md-4">
                         <button type="button" class="btn btn-default" onclick="addPayDate()"><i class="fa fa-plus-circle"></i> 利払日追加</button>
@@ -66,67 +66,67 @@
               <div class="form-group" id="divInterestPaymentDate2" style="display: none;">
                     {{ form.interestPaymentDate2.label(class="col-md-2") }}
                     <div class="col-md-4">
-                        {{ form.interestPaymentDate2(class="form-control", placeholder="MMDD（例：3/31 → 0331）") }}
+                        {{ form.interestPaymentDate2(class="form-control", placeholder="MMDD（例：3/31 → 0331）", autocomplete="off") }}
                     </div>
               </div>
               <div class="form-group" id="divInterestPaymentDate3" style="display: none;">
                     {{ form.interestPaymentDate3.label(class="col-md-2") }}
                     <div class="col-md-4">
-                        {{ form.interestPaymentDate3(class="form-control", placeholder="MMDD（例：3/31 → 0331）") }}
+                        {{ form.interestPaymentDate3(class="form-control", placeholder="MMDD（例：3/31 → 0331）", autocomplete="off") }}
                     </div>
               </div>
               <div class="form-group" id="divInterestPaymentDate4" style="display: none;">
                     {{ form.interestPaymentDate4.label(class="col-md-2") }}
                     <div class="col-md-4">
-                        {{ form.interestPaymentDate4(class="form-control", placeholder="MMDD（例：3/31 → 0331）") }}
+                        {{ form.interestPaymentDate4(class="form-control", placeholder="MMDD（例：3/31 → 0331）", autocomplete="off") }}
                     </div>
               </div>
               <div class="form-group" id="divInterestPaymentDate5" style="display: none;">
                     {{ form.interestPaymentDate5.label(class="col-md-2") }}
                     <div class="col-md-4">
-                        {{ form.interestPaymentDate5(class="form-control", placeholder="MMDD（例：3/31 → 0331）") }}
+                        {{ form.interestPaymentDate5(class="form-control", placeholder="MMDD（例：3/31 → 0331）", autocomplete="off") }}
                     </div>
               </div>
               <div class="form-group" id="divInterestPaymentDate6" style="display: none;">
                     {{ form.interestPaymentDate6.label(class="col-md-2") }}
                     <div class="col-md-4">
-                        {{ form.interestPaymentDate6(class="form-control", placeholder="MMDD（例：3/31 → 0331）") }}
+                        {{ form.interestPaymentDate6(class="form-control", placeholder="MMDD（例：3/31 → 0331）", autocomplete="off") }}
                     </div>
               </div>
               <div class="form-group" id="divInterestPaymentDate7" style="display: none;">
                     {{ form.interestPaymentDate7.label(class="col-md-2") }}
                     <div class="col-md-4">
-                        {{ form.interestPaymentDate7(class="form-control", placeholder="MMDD（例：3/31 → 0331）") }}
+                        {{ form.interestPaymentDate7(class="form-control", placeholder="MMDD（例：3/31 → 0331）", autocomplete="off") }}
                     </div>
               </div>
               <div class="form-group" id="divInterestPaymentDate8" style="display: none;">
                     {{ form.interestPaymentDate8.label(class="col-md-2") }}
                     <div class="col-md-4">
-                        {{ form.interestPaymentDate8(class="form-control", placeholder="MMDD（例：3/31 → 0331）") }}
+                        {{ form.interestPaymentDate8(class="form-control", placeholder="MMDD（例：3/31 → 0331）", autocomplete="off") }}
                     </div>
               </div>
               <div class="form-group" id="divInterestPaymentDate9" style="display: none;">
                     {{ form.interestPaymentDate9.label(class="col-md-2") }}
                     <div class="col-md-4">
-                        {{ form.interestPaymentDate9(class="form-control", placeholder="MMDD（例：3/31 → 0331）") }}
+                        {{ form.interestPaymentDate9(class="form-control", placeholder="MMDD（例：3/31 → 0331）", autocomplete="off") }}
                     </div>
               </div>
               <div class="form-group" id="divInterestPaymentDate10" style="display: none;">
                     {{ form.interestPaymentDate10.label(class="col-md-2") }}
                     <div class="col-md-4">
-                        {{ form.interestPaymentDate10(class="form-control", placeholder="MMDD（例：3/31 → 0331）") }}
+                        {{ form.interestPaymentDate10(class="form-control", placeholder="MMDD（例：3/31 → 0331）", autocomplete="off") }}
                     </div>
               </div>
               <div class="form-group" id="divInterestPaymentDate11" style="display: none;">
                     {{ form.interestPaymentDate11.label(class="col-md-2") }}
                     <div class="col-md-4">
-                        {{ form.interestPaymentDate11(class="form-control", placeholder="MMDD（例：3/31 → 0331）") }}
+                        {{ form.interestPaymentDate11(class="form-control", placeholder="MMDD（例：3/31 → 0331）", autocomplete="off") }}
                     </div>
               </div>
               <div class="form-group" id="divInterestPaymentDate12" style="display: none;">
                     {{ form.interestPaymentDate12.label(class="col-md-2") }}
                     <div class="col-md-4">
-                        {{ form.interestPaymentDate12(class="form-control", placeholder="MMDD（例：3/31 → 0331）") }}
+                        {{ form.interestPaymentDate12(class="form-control", placeholder="MMDD（例：3/31 → 0331）", autocomplete="off") }}
                     </div>
               </div>
 
@@ -137,14 +137,14 @@
                           <div class="input-group-addon">
                               <i class="fa fa-calendar"></i>
                           </div>
-                          {{ form.redemptionDate(class="form-control pull-right", id="datepicker") }}
+                          {{ form.redemptionDate(class="form-control pull-right", id="datepicker", autocomplete="off") }}
                       </div>
                   </div>
               </div>
               <div class="form-group">
                   {{ form.redemptionAmount.label(class="col-md-2") }}
                   <div class="col-md-4">
-                      {{ form.redemptionAmount(class="form-control") }}
+                      {{ form.redemptionAmount(class="form-control", autocomplete="off") }}
                   </div>
               </div>
               <div class="form-group">
@@ -154,14 +154,14 @@
                           <div class="input-group-addon">
                               <i class="fa fa-calendar"></i>
                           </div>
-                          {{ form.returnDate(class="form-control pull-right", id="datepicker") }}
+                          {{ form.returnDate(class="form-control pull-right", id="datepicker", autocomplete="off") }}
                       </div>
                   </div>
               </div>
               <div class="form-group">
                   {{ form.returnAmount.label(class="col-md-2") }}
                   <div class="col-md-8">
-                      {{ form.returnAmount(class="form-control") }}
+                      {{ form.returnAmount(class="form-control", autocomplete="off") }}
                   </div>
               </div>
               <div class="form-group">
@@ -179,7 +179,7 @@
                 <div class="form-group">
                     {{ form.tradableExchange.label(class="col-md-2") }}
                     <div class="col-md-8">
-                        {{ form.tradableExchange(class="form-control") }}
+                        {{ form.tradableExchange(class="form-control", autocomplete="off") }}
                     </div>
                 </div>
           </div>

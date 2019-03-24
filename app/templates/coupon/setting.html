@@ -29,7 +29,9 @@
                 {% else %}
                     <button
                       id="release"
-                      class="btn btn-warning btn-sm" type="button" style="width: 120px">
+                      class="btn btn-warning btn-sm" type="button"
+                      data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中"
+                      style="width: 120px">
                       公開 <i class="fa fa-exclamation-triangle"></i>
                     </button>
                 {% endif %}
@@ -38,35 +40,43 @@
                 {% if initial_offering_status %}
                   <button
                     id="stop_initial_offering"
-                    type="button" class="btn btn-danger btn-sm" style="width: 120px">
+                    type="button" class="btn btn-danger btn-sm"
+                    data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中"
+                    style="width: 120px">
                     募集申込停止 <i class="fa fa-exclamation-triangle"></i>
                   </button>
                 {% else %}
                   <button
                     id="start_initial_offering"
-                    type="button" class="btn btn-success btn-sm" style="width: 120px">
+                    type="button" class="btn btn-success btn-sm"
+                    data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中"
+                    style="width: 120px">
                     募集申込開始 <i class="fa fa-exclamation-triangle"></i>
                   </button>
                 {% endif %}
 
               <!-- 取扱開始/停止 -->
-                {% if isValid %}
+                {% if status %}
                     <button
                       id="invalid"
-                      type="button" class="btn btn-danger btn-sm" style="width: 120px">
+                      type="button" class="btn btn-danger btn-sm"
+                      data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中"
+                      style="width: 120px">
                       クーポン無効化 <i class="fa fa-exclamation-triangle"></i>
                     </button>
                 {% else %}
                     <button
                       id="valid"
-                      type="button" class="btn btn-success btn-sm" style="width: 120px">
+                      type="button" class="btn btn-success btn-sm"
+                      data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中"
+                      style="width: 120px">
                       クーポン有効化 <i class="fa fa-exclamation-triangle"></i>
                     </button>
                 {% endif %}
 
               <!-- 追加発行 -->
                 <button
-                  type="button" class="btn btn-success btn-sm" style="width: 120px"
+                  type="button" class="btn btn-default btn-sm" style="width: 120px"
                   onclick="location.href='{{ url_for("coupon.add_supply", token_address=token_address)}}'">
                   追加発行 <i class="fa fa-arrow-circle-right"></i>
                 </button>
@@ -94,26 +104,15 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    {{ form.expirationDate.label(class="col-md-2") }}
-                    <div class="col-md-4">
-                        <div class="input-group date">
-                            <div class="input-group-addon">
-                                <i class="fa fa-calendar"></i>
-                            </div>
-                            {{ form.expirationDate(class="form-control", disabled=True) }}
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group">
-                    {{ form.transferable.label(class="col-md-2") }}
-                    <div class="col-md-4">
-                        {{ form.transferable(class="form-control", disabled=True) }}
-                    </div>
-                </div>
-                <div class="form-group">
                     {{ form.details.label(class="col-md-2") }}
                     <div class="col-md-8">
                         {{ form.details(class="form-control") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.return_details.label(class="col-md-2") }}
+                    <div class="col-md-8">
+                        {{ form.return_details(class="form-control") }}
                     </div>
                 </div>
                 <div class="form-group">
@@ -123,27 +122,44 @@
                     </div>
                 </div>
                 <div class="form-group">
+                    {{ form.expirationDate.label(class="col-md-2") }}
+                    <div class="col-md-4">
+                        <div class="input-group date">
+                            <div class="input-group-addon">
+                                <i class="fa fa-calendar"></i>
+                            </div>
+                            {{ form.expirationDate(class="form-control pull-right", id="datepicker", autocomplete="off") }}
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.transferable.label(class="col-md-2") }}
+                    <div class="col-md-4">
+                        {{ form.transferable(class="form-control") }}
+                    </div>
+                </div>
+                <div class="form-group">
                     {{ form.tradableExchange.label(class="col-md-2") }}
                     <div class="col-md-8">
-                        {{ form.tradableExchange(class="form-control") }}
+                        {{ form.tradableExchange(class="form-control", autocomplete="off") }}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.image_1.label(class="col-md-2") }}
                     <div class="col-md-8">
-                        {{ form.image_1(class="form-control") }}
+                        {{ form.image_1(class="form-control", autocomplete="off") }}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.image_2.label(class="col-md-2") }}
                     <div class="col-md-8">
-                        {{ form.image_2(class="form-control") }}
+                        {{ form.image_2(class="form-control", autocomplete="off") }}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.image_3.label(class="col-md-2") }}
                     <div class="col-md-8">
-                        {{ form.image_3(class="form-control") }}
+                        {{ form.image_3(class="form-control", autocomplete="off") }}
                     </div>
                 </div>
                 <div class="form-group">
@@ -170,10 +186,39 @@
 
 {% block required_js %}
 {{ super() }}
+<script type="text/javascript" src="/static/adminlte/bower_components/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js"></script>
+<script type="text/javascript" src="/static/js/bootstrap-timepicker.min.js"></script>
+<script type="text/javascript">
+    $.fn.datepicker.dates['ja'] = {
+        days: ["日曜日", "月曜日", "火曜日", "水曜日", "木曜日", "金曜日", "土曜日"],
+        daysShort: ["日", "月", "火", "水", "木", "金", "土"],
+        daysMin: ["日", "月", "火", "水", "木", "金", "土"],
+        months: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"],
+        monthsShort: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"],
+        today: "今日",
+        clear: "Clear",
+        format: "yyyy/mm/dd",
+        titleFormat: "yyyy年 MM",
+        weekStart: 0
+    };
+    //Date picker
+    $('[id="datepicker"]').datepicker({
+        language: 'ja',
+        format: 'yyyymmdd',
+        todayHighlight: true,
+        autoclose: true,
+        orientation: "bottom right",
+        todayBtn: true
+    });
+</script>
 <script type="text/javascript">
   $(document).ready(function() {
       $('#release').click(function(){
           if (confirm('このクーポンをウォレット向けに公開します。よろしいですか？')) {
+              var $this = $(this);
+              $this.button('loading');
+              setTimeout(function() {$this.button('reset');}, 8000);
+
               var $form = $('<form/>',
                   {'action': "{{ url_for('coupon.release') }}", 'method': 'POST'}
               );
@@ -188,6 +233,10 @@
       });
       $('#invalid').click(function(){
           if (confirm('このクーポンを無効化します。よろしいですか？')) {
+              var $this = $(this);
+              $this.button('loading');
+              setTimeout(function() {$this.button('reset');}, 8000);
+
               var $form = $('<form/>',
                   {'action': "{{ url_for('coupon.invalid') }}", 'method': 'POST'}
               );
@@ -202,6 +251,10 @@
       });
       $('#valid').click(function(){
           if (confirm('このクーポンを有効化します。よろしいですか？')) {
+              var $this = $(this);
+              $this.button('loading');
+              setTimeout(function() {$this.button('reset');}, 8000);
+
               var $form = $('<form/>',
                   {'action': "{{ url_for('coupon.valid') }}", 'method': 'POST'}
               );
@@ -216,6 +269,10 @@
       });
       $('#start_initial_offering').click(function(){
           if (confirm('この商品の募集申込受付を開始します。よろしいですか？')) {
+              var $this = $(this);
+              $this.button('loading');
+              setTimeout(function() {$this.button('reset');}, 8000);
+
               var $form = $('<form/>',
                   {'action': "{{ url_for('coupon.start_initial_offering') }}", 'method': 'POST'}
               );
@@ -230,6 +287,10 @@
       });
       $('#stop_initial_offering').click(function(){
           if (confirm('現在この商品は募集申込中です。\nこの商品の募集申込受付を停止します。よろしいですか？')) {
+              var $this = $(this);
+              $this.button('loading');
+              setTimeout(function() {$this.button('reset');}, 8000);
+
               var $form = $('<form/>',
                   {'action': "{{ url_for('coupon.stop_initial_offering') }}", 'method': 'POST'}
               );

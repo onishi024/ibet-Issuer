@@ -47,35 +47,39 @@ def list():
 
     token_list = []
     for row in tokens:
-        # トークンがデプロイ済みの場合、トークン情報を取得する
-        if row.token_address == None:
-            name = '<処理中>'
-            symbol = '<処理中>'
-            status = '<処理中>'
-            totalSupply = '<処理中>'
-        else:
-            # Token-Contractへの接続
-            TokenContract = web3.eth.contract(
-                address=row.token_address,
-                abi=json.loads(
-                    row.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
-            )
+        try:
+            # トークンがデプロイ済みの場合、トークン情報を取得する
+            if row.token_address == None:
+                name = '<処理中>'
+                symbol = '<処理中>'
+                status = '<処理中>'
+                totalSupply = '<処理中>'
+            else:
+                # Token-Contractへの接続
+                TokenContract = web3.eth.contract(
+                    address=row.token_address,
+                    abi=json.loads(
+                        row.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+                )
 
-            # Token-Contractから情報を取得する
-            name = TokenContract.functions.name().call()
-            symbol = TokenContract.functions.symbol().call()
-            status = TokenContract.functions.status().call()
-            totalSupply = TokenContract.functions.totalSupply().call()
+                # Token-Contractから情報を取得する
+                name = TokenContract.functions.name().call()
+                symbol = TokenContract.functions.symbol().call()
+                status = TokenContract.functions.status().call()
+                totalSupply = TokenContract.functions.totalSupply().call()
 
-        token_list.append({
-            'name': name,
-            'symbol': symbol,
-            'created': row.created,
-            'tx_hash': row.tx_hash,
-            'token_address': row.token_address,
-            'totalSupply': totalSupply,
-            'status': status
-        })
+            token_list.append({
+                'name': name,
+                'symbol': symbol,
+                'created': row.created,
+                'tx_hash': row.tx_hash,
+                'token_address': row.token_address,
+                'totalSupply': totalSupply,
+                'status': status
+            })
+        except Exception as e:
+            logger.error(e)
+            pass
 
     return render_template('membership/list.html', tokens=token_list)
 
@@ -615,7 +619,6 @@ def setting(token_address):
             initial_offering_status=initial_offering_status
         )
 
-
 ####################################################
 # [会員権]公開
 ####################################################
@@ -633,16 +636,15 @@ def release():
     try:
         gas = ListContract.estimateGas(). \
             register(token_address, 'IbetMembership')
-        register_txid = ListContract.functions. \
+        tx = ListContract.functions. \
             register(token_address, 'IbetMembership'). \
             transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
+        web3.eth.waitForTransactionReceipt(tx)
+        flash('処理を受け付けました。', 'success')
     except ValueError:
         flash('既に公開されています。', 'error')
-        return redirect(url_for('.setting', token_address=token_address))
 
-    flash('公開中です。公開開始までに数分程かかることがあります。', 'success')
-    return redirect(url_for('.list'))
-
+    return redirect(url_for('.setting', token_address=token_address))
 
 ####################################################
 # [会員権]新規発行
@@ -988,7 +990,6 @@ def add_supply(token_address):
             token_name=name
         )
 
-
 ####################################################
 # [会員権]有効化/無効化
 ####################################################
@@ -996,17 +997,17 @@ def add_supply(token_address):
 @login_required
 def valid():
     logger.info('membership/valid')
-    membership_valid(request.form.get('token_address'), True)
-    return redirect(url_for('.list'))
-
+    token_address = request.form.get('token_address')
+    membership_valid(token_address, True)
+    return redirect(url_for('.setting', token_address=token_address))
 
 @membership.route('/invalid', methods=['POST'])
 @login_required
 def invalid():
     logger.info('membership/invalid')
-    membership_valid(request.form.get('token_address'), False)
-    return redirect(url_for('.list'))
-
+    token_address = request.form.get('token_address')
+    membership_valid(token_address, False)
+    return redirect(url_for('.setting', token_address=token_address))
 
 def membership_valid(token_address, isvalid):
     eth_unlock_account()
@@ -1021,9 +1022,9 @@ def membership_valid(token_address, isvalid):
     gas = TokenContract.estimateGas().setStatus(isvalid)
     tx = TokenContract.functions.setStatus(isvalid). \
         transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
+    web3.eth.waitForTransactionReceipt(tx)
 
-    flash('処理を受け付けました。完了までに数分程かかることがあります。', 'success')
-
+    flash('処理を受け付けました。', 'success')
 
 ####################################################
 # [会員権]募集申込開始/停止
@@ -1033,24 +1034,16 @@ def membership_valid(token_address, isvalid):
 def start_initial_offering():
     logger.info('membership/start_initial_offering')
     token_address = request.form.get('token_address')
-    transact_status = set_initial_offering_status(token_address, True)
-    if transact_status:
-        return redirect(url_for('.list'))
-    else:
-        return redirect(url_for('.setting', token_address=token_address))
-
+    set_initial_offering_status(token_address, True)
+    return redirect(url_for('.setting', token_address=token_address))
 
 @membership.route('/stop_initial_offering', methods=['POST'])
 @login_required
 def stop_initial_offering():
     logger.info('membership/stop_initial_offering')
     token_address = request.form.get('token_address')
-    transact_status = set_initial_offering_status(token_address, False)
-    if transact_status:
-        return redirect(url_for('.list'))
-    else:
-        return redirect(url_for('.setting', token_address=token_address))
-
+    set_initial_offering_status(token_address, False)
+    return redirect(url_for('.setting', token_address=token_address))
 
 def set_initial_offering_status(token_address, status):
     eth_unlock_account()
@@ -1062,19 +1055,15 @@ def set_initial_offering_status(token_address, status):
         abi=token_abi
     )
 
-    transact_status = True
     try:
         gas = TokenContract.estimateGas().setInitialOfferingStatus(status)
         tx = TokenContract.functions.setInitialOfferingStatus(status). \
             transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
+        web3.eth.waitForTransactionReceipt(tx)
     except:
         flash('募集申込ステータスの更新処理でエラーが発生しました。', 'error')
-        transact_status = False
-        return transact_status
 
-    flash('処理を受け付けました。完了までに数分程かかることがあります。', 'success')
-    return transact_status
-
+    flash('処理を受け付けました。', 'success')
 
 ####################################################
 # [会員権]権限エラー

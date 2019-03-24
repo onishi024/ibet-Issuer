@@ -50,6 +50,13 @@ class IssueCouponForm(Form):
         ]
     )
 
+    return_details = TextAreaField(
+        "リターン詳細",
+        validators = [
+            Length(max=2000, message='クーポン詳細は2,000文字以内で入力してください。')
+        ]
+    )
+
     memo = TextAreaField(
         "メモ",
         validators = [
@@ -111,6 +118,12 @@ class SettingCouponForm(Form):
         "クーポン詳細",
         validators = [
             Length(max=2000, message='クーポン詳細は2,000文字以内で入力してください。')
+        ])
+
+    return_details = TextAreaField(
+        "リターン詳細",
+        validators = [
+            Length(max=2000, message='リターン詳細は2,000文字以内で入力してください。')
         ])
 
     memo = TextAreaField(

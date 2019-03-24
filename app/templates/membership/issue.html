@@ -20,20 +20,20 @@
             <div class="box-body">
                 <div class="form-group">
                     {{ form.name.label(class="col-md-2") }}
-                    <div class="col-md-4">
-                        {{ form.name(class="form-control") }}
+                    <div class="col-md-8">
+                        {{ form.name(class="form-control", autocomplete="off") }}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.symbol.label(class="col-md-2") }}
                     <div class="col-md-4">
-                        {{ form.symbol(class="form-control") }}
+                        {{ form.symbol(class="form-control", autocomplete="off") }}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.totalSupply.label(class="col-md-2") }}
                     <div class="col-md-4">
-                        {{ form.totalSupply(class="form-control") }}
+                        {{ form.totalSupply(class="form-control", autocomplete="off") }}
                     </div>
                 </div>
                 <div class="form-group">
@@ -49,13 +49,19 @@
                     </div>
                 </div>
                 <div class="form-group">
+                    {{ form.memo.label(class="col-md-2") }}
+                    <div class="col-md-8">
+                        {{ form.memo(class="form-control") }}
+                    </div>
+                </div>
+                <div class="form-group">
                     {{ form.expirationDate.label(class="col-md-2") }}
                     <div class="col-md-4">
                         <div class="input-group date">
                             <div class="input-group-addon">
                                 <i class="fa fa-calendar"></i>
                             </div>
-                            {{ form.expirationDate(class="form-control pull-right", id="datepicker") }}
+                            {{ form.expirationDate(class="form-control pull-right", id="datepicker", autocomplete="off") }}
                         </div>
                     </div>
                 </div>
@@ -66,33 +72,27 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    {{ form.memo.label(class="col-md-2") }}
-                    <div class="col-md-8">
-                        {{ form.memo(class="form-control") }}
-                    </div>
-                </div>
-                <div class="form-group">
                     {{ form.tradableExchange.label(class="col-md-2") }}
                     <div class="col-md-8">
-                        {{ form.tradableExchange(class="form-control") }}
+                        {{ form.tradableExchange(class="form-control", autocomplete="off") }}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.image_1.label(class="col-md-2") }}
                     <div class="col-md-8">
-                        {{ form.image_1(class="form-control") }}
+                        {{ form.image_1(class="form-control", autocomplete="off") }}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.image_2.label(class="col-md-2") }}
                     <div class="col-md-8">
-                        {{ form.image_2(class="form-control") }}
+                        {{ form.image_2(class="form-control", autocomplete="off") }}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.image_3.label(class="col-md-2") }}
                     <div class="col-md-8">
-                        {{ form.image_3(class="form-control") }}
+                        {{ form.image_3(class="form-control", autocomplete="off") }}
                     </div>
                 </div>
             </div>

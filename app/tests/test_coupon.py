@@ -149,6 +149,7 @@ class TestCoupon(TestBase):
                 'expirationDate': '20191231',
                 'transferable': True,
                 'details': 'details詳細',
+                'return_details': 'return詳細',
                 'memo': 'memoメモ',
                 'image_1': 'https://test.com/image_1.jpg',
                 'image_2': 'https://test.com/image_2.jpg',
@@ -194,6 +195,7 @@ class TestCoupon(TestBase):
         assert '20191231'.encode('utf-8') in response.data
         assert '<option selected value="True">なし</option>'.encode('utf-8') in response.data
         assert 'details詳細'.encode('utf-8') in response.data
+        assert 'return詳細'.encode('utf-8') in response.data
         assert 'memoメモ'.encode('utf-8') in response.data
         assert 'https://test.com/image_1.jpg'.encode('utf-8') in response.data
         assert 'https://test.com/image_2.jpg'.encode('utf-8') in response.data
@@ -216,6 +218,7 @@ class TestCoupon(TestBase):
                 'expirationDate': '20191231',
                 'transferable': False,
                 'details': 'details詳細',
+                'return_details': 'return詳細',
                 'memo': 'memoメモ',
                 'image_1': 'https://test.com/image_1.jpg',
                 'image_2': 'https://test.com/image_2.jpg',
@@ -240,6 +243,7 @@ class TestCoupon(TestBase):
         assert '20191231'.encode('utf-8') in response.data
         assert '<option selected value="False">あり</option>'.encode('utf-8') in response.data
         assert 'details詳細'.encode('utf-8') in response.data
+        assert 'return詳細'.encode('utf-8') in response.data
         assert 'memoメモ'.encode('utf-8') in response.data
         assert 'https://test.com/image_1.jpg'.encode('utf-8') in response.data
         assert 'https://test.com/image_2.jpg'.encode('utf-8') in response.data
@@ -289,7 +293,10 @@ class TestCoupon(TestBase):
             url_setting,
             data={
                 'details': 'details詳細2',
+                'return_details': 'return詳細2',
                 'memo': 'memoメモ2',
+                'expirationDate': '20200101',
+                'transferable': 'False',
                 'tradableExchange': shared_contract['IbetCouponExchange']['address'],
                 'image_1': 'https://test.com/image_12.jpg',
                 'image_2': 'https://test.com/image_22.jpg',
@@ -305,9 +312,10 @@ class TestCoupon(TestBase):
         assert 'テストクーポン'.encode('utf-8') in response.data
         assert 'COUPON'.encode('utf-8') in response.data
         assert '2000000'.encode('utf-8') in response.data
-        assert '20191231'.encode('utf-8') in response.data
-        assert '<option selected value="True">なし</option>'.encode('utf-8') in response.data
+        assert '20200101'.encode('utf-8') in response.data
+        assert '<option selected value="False">あり</option>'.encode('utf-8') in response.data
         assert 'details詳細2'.encode('utf-8') in response.data
+        assert 'return詳細2'.encode('utf-8') in response.data
         assert 'memoメモ2'.encode('utf-8') in response.data
         assert 'https://test.com/image_12.jpg'.encode('utf-8') in response.data
         assert 'https://test.com/image_22.jpg'.encode('utf-8') in response.data
@@ -319,7 +327,10 @@ class TestCoupon(TestBase):
             url_setting,
             data={
                 'details': 'details詳細',
+                'return_details': 'return詳細',
                 'memo': 'memoメモ',
+                'expirationDate': '20191231',
+                'transferable': 'True',
                 'tradableExchange': shared_contract['IbetCouponExchange']['address'],
                 'image_1': 'https://test.com/image_1.jpg',
                 'image_2': 'https://test.com/image_2.jpg',
@@ -344,7 +355,6 @@ class TestCoupon(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(10)
 
         # 一覧で確認
         response = client.get(self.url_list)
@@ -369,9 +379,6 @@ class TestCoupon(TestBase):
             }
         )
         assert response.status_code == 302
-
-        # 待機
-        time.sleep(10)
 
         # 一覧で確認
         response = client.get(self.url_list)
@@ -614,7 +621,6 @@ class TestCoupon(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(10)
 
         # 詳細設定画面の参照
         url_setting = self.url_setting + token.token_address
@@ -656,7 +662,6 @@ class TestCoupon(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(10)
 
         # 詳細設定画面の参照
         url_setting = self.url_setting + token.token_address
@@ -683,7 +688,6 @@ class TestCoupon(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(10)
 
         # 詳細設定画面の参照
         url_setting = self.url_setting + token.token_address
@@ -700,7 +704,6 @@ class TestCoupon(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(10)
 
     # ＜正常系13_1＞
     # ＜募集申込一覧参照＞

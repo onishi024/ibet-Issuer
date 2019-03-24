@@ -29,7 +29,9 @@
                 {% else %}
                   <button
                     id="release"
-                    class="btn btn-warning btn-sm" type="button" style="width: 120px">
+                    class="btn btn-warning btn-sm" type="button"
+                    data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中"
+                    style="width: 120px">
                     公開 <i class="fa fa-exclamation-triangle"></i>
                   </button>
                 {% endif %}
@@ -38,13 +40,17 @@
                 {% if initial_offering_status %}
                   <button
                     id="stop_initial_offering"
-                    type="button" class="btn btn-danger btn-sm" style="width: 120px">
+                    type="button" class="btn btn-danger btn-sm"
+                    data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中"
+                    style="width: 120px">
                     募集申込停止 <i class="fa fa-exclamation-triangle"></i>
                   </button>
                 {% else %}
                   <button
                     id="start_initial_offering"
-                    type="button" class="btn btn-success btn-sm" style="width: 120px">
+                    type="button" class="btn btn-success btn-sm"
+                    data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中"
+                    style="width: 120px">
                     募集申込開始 <i class="fa fa-exclamation-triangle"></i>
                   </button>
                 {% endif %}
@@ -53,20 +59,24 @@
                 {% if status %}
                   <button
                     id="invalid"
-                    type="button" class="btn btn-danger btn-sm" style="width: 120px">
+                    type="button" class="btn btn-danger btn-sm"
+                    data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中"
+                    style="width: 120px">
                     取扱停止 <i class="fa fa-exclamation-triangle"></i>
                   </button>
                 {% else %}
                   <button
                     id="valid"
-                    type="button" class="btn btn-success btn-sm" style="width: 120px">
+                    type="button" class="btn btn-success btn-sm"
+                    data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中"
+                    style="width: 120px">
                     取扱開始 <i class="fa fa-exclamation-triangle"></i>
                   </button>
                 {% endif %}
 
               <!-- 追加発行 -->
                 <button
-                  type="button" class="btn btn-success btn-sm" style="width: 120px"
+                  type="button" class="btn btn-default btn-sm" style="width: 120px"
                   onclick="location.href='{{ url_for("membership.add_supply", token_address=token_address)}}'">
                   追加発行 <i class="fa fa-arrow-circle-right"></i>
                 </button>
@@ -106,13 +116,19 @@
                     </div>
                 </div>
                 <div class="form-group">
+                    {{ form.memo.label(class="col-md-2") }}
+                    <div class="col-md-8">
+                        {{ form.memo(class="form-control") }}
+                    </div>
+                </div>
+                <div class="form-group">
                     {{ form.expirationDate.label(class="col-md-2") }}
                     <div class="col-md-4">
                         <div class="input-group date">
                             <div class="input-group-addon">
                                 <i class="fa fa-calendar"></i>
                             </div>
-                            {{ form.expirationDate(class="form-control pull-right", id="datepicker") }}
+                            {{ form.expirationDate(class="form-control pull-right", id="datepicker", autocomplete="off") }}
                         </div>
                     </div>
                 </div>
@@ -123,33 +139,27 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    {{ form.memo.label(class="col-md-2") }}
-                    <div class="col-md-8">
-                        {{ form.memo(class="form-control") }}
-                    </div>
-                </div>
-                <div class="form-group">
                     {{ form.tradableExchange.label(class="col-md-2") }}
                     <div class="col-md-8">
-                        {{ form.tradableExchange(class="form-control") }}
+                        {{ form.tradableExchange(class="form-control", autocomplete="off") }}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.image_1.label(class="col-md-2") }}
                     <div class="col-md-8">
-                        {{ form.image_1(class="form-control") }}
+                        {{ form.image_1(class="form-control", autocomplete="off") }}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.image_2.label(class="col-md-2") }}
                     <div class="col-md-8">
-                        {{ form.image_2(class="form-control") }}
+                        {{ form.image_2(class="form-control", autocomplete="off") }}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.image_3.label(class="col-md-2") }}
                     <div class="col-md-8">
-                        {{ form.image_3(class="form-control") }}
+                        {{ form.image_3(class="form-control", autocomplete="off") }}
                     </div>
                 </div>
                 <div class="form-group">
@@ -205,6 +215,10 @@
   $(document).ready(function() {
       $('#release').click(function(){
           if (confirm('この会員権をウォレット向けに公開します。よろしいですか？')) {
+              var $this = $(this);
+              $this.button('loading');
+              setTimeout(function() {$this.button('reset');}, 8000);
+
               var $form = $('<form/>',
                   {'action': "{{ url_for('membership.release') }}", 'method': 'POST'}
               );
@@ -219,6 +233,10 @@
       });
       $('#invalid').click(function(){
           if (confirm('この商品を取扱停止します。よろしいですか？')) {
+              var $this = $(this);
+              $this.button('loading');
+              setTimeout(function() {$this.button('reset');}, 8000);
+
               var $form = $('<form/>',
                   {'action': "{{ url_for('membership.invalid') }}", 'method': 'POST'}
               );
@@ -233,6 +251,10 @@
       });
       $('#valid').click(function(){
           if (confirm('この商品の取扱を再開します。よろしいですか？')) {
+              var $this = $(this);
+              $this.button('loading');
+              setTimeout(function() {$this.button('reset');}, 8000);
+
               var $form = $('<form/>',
                   {'action': "{{ url_for('membership.valid') }}", 'method': 'POST'}
               );
@@ -247,6 +269,10 @@
       });
       $('#start_initial_offering').click(function(){
           if (confirm('この商品の募集申込受付を開始します。よろしいですか？')) {
+              var $this = $(this);
+              $this.button('loading');
+              setTimeout(function() {$this.button('reset');}, 8000);
+
               var $form = $('<form/>',
                   {'action': "{{ url_for('membership.start_initial_offering') }}", 'method': 'POST'}
               );
@@ -261,6 +287,10 @@
       });
       $('#stop_initial_offering').click(function(){
           if (confirm('現在この商品は募集申込中です。\nこの商品の募集申込受付を停止します。よろしいですか？')) {
+              var $this = $(this);
+              $this.button('loading');
+              setTimeout(function() {$this.button('reset');}, 8000);
+
               var $form = $('<form/>',
                   {'action': "{{ url_for('membership.stop_initial_offering') }}", 'method': 'POST'}
               );

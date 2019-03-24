@@ -130,33 +130,37 @@ def list():
 
     token_list = []
     for row in tokens:
-        is_redeemed = False
+        try:
+            is_redeemed = False
 
-        # トークンがデプロイ済みの場合、トークン情報を取得する
-        if row.token_address == None:
-            name = '<処理中>'
-            symbol = '<処理中>'
-        else:
-            # Token-Contractへの接続
-            TokenContract = web3.eth.contract(
-                address=row.token_address,
-                abi = json.loads(
-                    row.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
-            )
+            # トークンがデプロイ済みの場合、トークン情報を取得する
+            if row.token_address == None:
+                name = '<処理中>'
+                symbol = '<処理中>'
+            else:
+                # Token-Contractへの接続
+                TokenContract = web3.eth.contract(
+                    address=row.token_address,
+                    abi = json.loads(
+                        row.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+                )
 
-            # Token-Contractから情報を取得する
-            name = TokenContract.functions.name().call()
-            symbol = TokenContract.functions.symbol().call()
-            is_redeemed = TokenContract.functions.isRedeemed().call()
+                # Token-Contractから情報を取得する
+                name = TokenContract.functions.name().call()
+                symbol = TokenContract.functions.symbol().call()
+                is_redeemed = TokenContract.functions.isRedeemed().call()
 
-        token_list.append({
-            'name':name,
-            'symbol':symbol,
-            'created':row.created,
-            'tx_hash':row.tx_hash,
-            'token_address':row.token_address,
-            'is_redeemed':is_redeemed
-        })
+            token_list.append({
+                'name':name,
+                'symbol':symbol,
+                'created':row.created,
+                'tx_hash':row.tx_hash,
+                'token_address':row.token_address,
+                'is_redeemed':is_redeemed
+            })
+        except Exception as e:
+            logger.error(e)
+            pass
 
     return render_template('bond/list.html', tokens=token_list)
 
