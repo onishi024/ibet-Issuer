@@ -62,12 +62,12 @@
               表示
             </button>
           </td>
-          {% if token.is_valid == true %}
+          {% if token.status == true %}
             <td align="center"><span class="badge bg-green">有効</span></td>
-          {% elif token.is_valid == false %}
+          {% elif token.status == false %}
             <td align="center"><span class="badge">無効</span></td>
           {% else %}
-            <td align="center">{{ token.is_valid }}</td>
+            <td align="center">{{ token.status }}</td>
           {% endif %}
           {% if token.token_address != None %}
             <td align="center">
