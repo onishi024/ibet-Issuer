@@ -619,7 +619,6 @@ def setting(token_address):
             initial_offering_status=initial_offering_status
         )
 
-
 ####################################################
 # [会員権]公開
 ####################################################
@@ -637,16 +636,15 @@ def release():
     try:
         gas = ListContract.estimateGas(). \
             register(token_address, 'IbetMembership')
-        register_txid = ListContract.functions. \
+        tx = ListContract.functions. \
             register(token_address, 'IbetMembership'). \
             transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
+        web3.eth.waitForTransactionReceipt(tx)
+        flash('処理を受け付けました。', 'success')
     except ValueError:
         flash('既に公開されています。', 'error')
-        return redirect(url_for('.setting', token_address=token_address))
 
-    flash('公開中です。公開開始までに数分程かかることがあります。', 'success')
-    return redirect(url_for('.list'))
-
+    return redirect(url_for('.setting', token_address=token_address))
 
 ####################################################
 # [会員権]新規発行
