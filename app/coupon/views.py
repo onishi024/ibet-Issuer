@@ -405,6 +405,15 @@ def setting(token_address):
                 TokenContract.functions.setMemo(form.memo.data).\
                     transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
 
+            # 譲渡制限変更
+            if form.transferable.data != transferable:
+                transferable_bool = True
+                if form.transferable.data == 'False':
+                    transferable_bool = False
+                gas = TokenContract.estimateGas().setTransferable(transferable_bool)
+                TokenContract.functions.setTransferable(transferable_bool).\
+                    transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
+
             # 画像（小）変更
             if form.image_1.data != image_1:
                 gas = TokenContract.estimateGas().setImageURL(0, form.image_1.data)
