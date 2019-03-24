@@ -2,6 +2,7 @@
 # -*- coding:utf-8 -*-
 import os
 import sys
+from datetime import timedelta
 import qrcode
 
 from web3 import Web3
@@ -24,6 +25,8 @@ class Config:
 
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'ZwiTDW52gQlxBQ8Sn34KYaLNQxA0mvpT2_RjYH5j-ZU='
     SSL_DISABLE = False
+    PERMANENT_SESSION_LIFETIME = timedelta(minutes=30)
+
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
     SQLALCHEMY_RECORD_QUERIES = True
     SQLALCHEMY_TRACK_MODIFICATIONS = True
