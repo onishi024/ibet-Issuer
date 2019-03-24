@@ -189,9 +189,9 @@ class AddSupplyForm(Form):
     name = StringField("クーポン名", validators=[])
     totalSupply = IntegerField("総発行量", validators=[])
     addSupply = IntegerField(
-        "追加発行する数量",
+        "追加発行量",
         validators = [
-            Required('追加発行する数量は必須です。'),
+            Required('追加発行量は必須です。'),
             NumberRange(min=1, max=100000000, message='追加発行量は100,000,000が上限です。'),
         ]
     )
