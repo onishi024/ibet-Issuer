@@ -38,13 +38,17 @@
                 {% if initial_offering_status %}
                   <button
                     id="stop_initial_offering"
-                    type="button" class="btn btn-danger btn-sm" style="width: 120px">
+                    type="button" class="btn btn-danger btn-sm"
+                    data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中"
+                    style="width: 120px">
                     募集申込停止 <i class="fa fa-exclamation-triangle"></i>
                   </button>
                 {% else %}
                   <button
                     id="start_initial_offering"
-                    type="button" class="btn btn-success btn-sm" style="width: 120px">
+                    type="button" class="btn btn-success btn-sm"
+                    data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中"
+                    style="width: 120px">
                     募集申込開始 <i class="fa fa-exclamation-triangle"></i>
                   </button>
                 {% endif %}
@@ -234,6 +238,10 @@
       });
       $('#start_initial_offering').click(function(){
           if (confirm('この商品の募集申込受付を開始します。よろしいですか？')) {
+              var $this = $(this);
+              $this.button('loading');
+              setTimeout(function() {$this.button('reset');}, 8000);
+
               var $form = $('<form/>',
                   {'action': "{{ url_for('coupon.start_initial_offering') }}", 'method': 'POST'}
               );
@@ -248,6 +256,10 @@
       });
       $('#stop_initial_offering').click(function(){
           if (confirm('現在この商品は募集申込中です。\nこの商品の募集申込受付を停止します。よろしいですか？')) {
+              var $this = $(this);
+              $this.button('loading');
+              setTimeout(function() {$this.button('reset');}, 8000);
+
               var $form = $('<form/>',
                   {'action': "{{ url_for('coupon.stop_initial_offering') }}", 'method': 'POST'}
               );
