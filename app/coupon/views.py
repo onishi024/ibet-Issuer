@@ -1142,7 +1142,7 @@ def set_initial_offering_status(token_address, status):
         web3.eth.waitForTransactionReceipt(tx)
         flash('処理を受け付けました。', 'success')
     except:
-        flash('募集申込ステータスの更新処理でエラーが発生しました。', 'error')
+        flash('更新処理でエラーが発生しました。', 'error')
 
 #+++++++++++++++++++++++++++++++
 # Custom Filter
