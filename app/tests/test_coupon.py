@@ -351,7 +351,6 @@ class TestCoupon(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(10)
 
         # 一覧で確認
         response = client.get(self.url_list)
@@ -376,9 +375,6 @@ class TestCoupon(TestBase):
             }
         )
         assert response.status_code == 302
-
-        # 待機
-        time.sleep(10)
 
         # 一覧で確認
         response = client.get(self.url_list)

@@ -1064,7 +1064,7 @@ def holder(token_address, account_address):
     personal_info = get_holder(token_address, account_address)
     return render_template('coupon/holder.html', personal_info=personal_info, token_address=token_address)
 
-####################################################
+###################################################
 # [クーポン]有効化/無効化
 ####################################################
 @coupon.route('/valid', methods=['POST'])
@@ -1093,8 +1093,9 @@ def coupon_valid(token_address, status):
     gas = TokenContract.estimateGas().setStatus(status)
     tx = TokenContract.functions.setStatus(status).\
                 transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
+    web3.eth.waitForTransactionReceipt(tx)
 
-    flash('処理を受け付けました。完了までに数分程かかることがあります。', 'success')
+    flash('処理を受け付けました。', 'success')
 
 ####################################################
 # [会員権]募集申込開始/停止

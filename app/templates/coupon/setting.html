@@ -53,13 +53,17 @@
                 {% if status %}
                     <button
                       id="invalid"
-                      type="button" class="btn btn-danger btn-sm" style="width: 120px">
+                      type="button" class="btn btn-danger btn-sm"
+                      data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中"
+                      style="width: 120px">
                       クーポン無効化 <i class="fa fa-exclamation-triangle"></i>
                     </button>
                 {% else %}
                     <button
                       id="valid"
-                      type="button" class="btn btn-success btn-sm" style="width: 120px">
+                      type="button" class="btn btn-success btn-sm"
+                      data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中"
+                      style="width: 120px">
                       クーポン有効化 <i class="fa fa-exclamation-triangle"></i>
                     </button>
                 {% endif %}
@@ -194,6 +198,10 @@
       });
       $('#invalid').click(function(){
           if (confirm('このクーポンを無効化します。よろしいですか？')) {
+              var $this = $(this);
+              $this.button('loading');
+              setTimeout(function() {$this.button('reset');}, 8000);
+
               var $form = $('<form/>',
                   {'action': "{{ url_for('coupon.invalid') }}", 'method': 'POST'}
               );
@@ -208,6 +216,10 @@
       });
       $('#valid').click(function(){
           if (confirm('このクーポンを有効化します。よろしいですか？')) {
+              var $this = $(this);
+              $this.button('loading');
+              setTimeout(function() {$this.button('reset');}, 8000);
+
               var $form = $('<form/>',
                   {'action': "{{ url_for('coupon.valid') }}", 'method': 'POST'}
               );
