@@ -50,7 +50,7 @@
                 {% endif %}
 
               <!-- 取扱開始/停止 -->
-                {% if isValid %}
+                {% if status %}
                     <button
                       id="invalid"
                       type="button" class="btn btn-danger btn-sm" style="width: 120px">
@@ -94,26 +94,15 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    {{ form.expirationDate.label(class="col-md-2") }}
-                    <div class="col-md-4">
-                        <div class="input-group date">
-                            <div class="input-group-addon">
-                                <i class="fa fa-calendar"></i>
-                            </div>
-                            {{ form.expirationDate(class="form-control", disabled=True) }}
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group">
-                    {{ form.transferable.label(class="col-md-2") }}
-                    <div class="col-md-4">
-                        {{ form.transferable(class="form-control", disabled=True) }}
-                    </div>
-                </div>
-                <div class="form-group">
                     {{ form.details.label(class="col-md-2") }}
                     <div class="col-md-8">
                         {{ form.details(class="form-control") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.return_details.label(class="col-md-2") }}
+                    <div class="col-md-8">
+                        {{ form.return_details(class="form-control") }}
                     </div>
                 </div>
                 <div class="form-group">
@@ -123,27 +112,44 @@
                     </div>
                 </div>
                 <div class="form-group">
+                    {{ form.expirationDate.label(class="col-md-2") }}
+                    <div class="col-md-4">
+                        <div class="input-group date">
+                            <div class="input-group-addon">
+                                <i class="fa fa-calendar"></i>
+                            </div>
+                            {{ form.expirationDate(class="form-control") }}
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.transferable.label(class="col-md-2") }}
+                    <div class="col-md-4">
+                        {{ form.transferable(class="form-control") }}
+                    </div>
+                </div>
+                <div class="form-group">
                     {{ form.tradableExchange.label(class="col-md-2") }}
                     <div class="col-md-8">
-                        {{ form.tradableExchange(class="form-control") }}
+                        {{ form.tradableExchange(class="form-control", autocomplete="off") }}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.image_1.label(class="col-md-2") }}
                     <div class="col-md-8">
-                        {{ form.image_1(class="form-control") }}
+                        {{ form.image_1(class="form-control", autocomplete="off") }}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.image_2.label(class="col-md-2") }}
                     <div class="col-md-8">
-                        {{ form.image_2(class="form-control") }}
+                        {{ form.image_2(class="form-control", autocomplete="off") }}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.image_3.label(class="col-md-2") }}
                     <div class="col-md-8">
-                        {{ form.image_3(class="form-control") }}
+                        {{ form.image_3(class="form-control", autocomplete="off") }}
                     </div>
                 </div>
                 <div class="form-group">

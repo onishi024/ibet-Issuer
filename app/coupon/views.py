@@ -41,30 +41,35 @@ def list():
 
     token_list = []
     for row in tokens:
-        # トークンがデプロイ済みの場合、トークン情報を取得する
-        if row.token_address == None:
-            name = '<処理中>'
-            symbol = '<処理中>'
-            is_valid = '<処理中>'
-        else:
-            # Token-Contractへの接続
-            TokenContract = web3.eth.contract(
-                address=row.token_address,
-                abi = json.loads(
-                    row.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
-            )
-            # Token-Contractから情報を取得する
-            name = TokenContract.functions.name().call()
-            symbol = TokenContract.functions.symbol().call()
-            is_valid = TokenContract.functions.isValid().call()
-        token_list.append({
-            'name':name,
-            'symbol':symbol,
-            'is_valid':is_valid,
-            'tx_hash':row.tx_hash,
-            'created':row.created,
-            'token_address':row.token_address
-        })
+        try:
+            # トークンがデプロイ済みの場合、トークン情報を取得する
+            if row.token_address == None:
+                name = '<処理中>'
+                symbol = '<処理中>'
+                status = '<処理中>'
+            else:
+                # Token-Contractへの接続
+                TokenContract = web3.eth.contract(
+                    address=row.token_address,
+                    abi = json.loads(
+                        row.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+                )
+                # Token-Contractから情報を取得する
+                name = TokenContract.functions.name().call()
+                symbol = TokenContract.functions.symbol().call()
+                status = TokenContract.functions.status().call()
+
+            token_list.append({
+                'name':name,
+                'symbol':symbol,
+                'status':status,
+                'tx_hash':row.tx_hash,
+                'created':row.created,
+                'token_address':row.token_address
+            })
+        except Exception as e:
+            logger.error(e)
+            pass
 
     return render_template('coupon/list.html', tokens=token_list)
 
@@ -176,7 +181,7 @@ def release():
     try:
         gas = ListContract.estimateGas().\
             register(token_address, 'IbetCoupon')
-        register_txid = ListContract.functions.\
+        ListContract.functions.\
             register(token_address, 'IbetCoupon').\
             transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
     except ValueError:
@@ -213,6 +218,7 @@ def issue():
                 form.totalSupply.data,
                 to_checksum_address(form.tradableExchange.data),
                 form.details.data,
+                form.return_details.data,
                 form.memo.data,
                 form.expirationDate.data,
                 tmpVal
@@ -331,9 +337,10 @@ def setting(token_address):
     symbol = TokenContract.functions.symbol().call()
     totalSupply = TokenContract.functions.totalSupply().call()
     details = TokenContract.functions.details().call()
+    return_details = TokenContract.functions.returnDetails().call()
     memo = TokenContract.functions.memo().call()
     expirationDate = TokenContract.functions.expirationDate().call()
-    isValid = TokenContract.functions.isValid().call()
+    status = TokenContract.functions.status().call()
     transferable = str(TokenContract.functions.transferable().call())
     image_1 = TokenContract.functions.getImageURL(0).call()
     image_2 = TokenContract.functions.getImageURL(1).call()
@@ -376,20 +383,26 @@ def setting(token_address):
             if form.tradableExchange.data != tradableExchange:
                 gas = TokenContract.estimateGas().\
                     setTradableExchange(to_checksum_address(form.tradableExchange.data))
-                txid = TokenContract.functions.\
+                TokenContract.functions.\
                     setTradableExchange(to_checksum_address(form.tradableExchange.data)).\
                     transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
 
             # トークン詳細変更
             if form.details.data != details:
                 gas = TokenContract.estimateGas().setDetails(form.details.data)
-                txid = TokenContract.functions.setDetails(form.details.data).\
+                TokenContract.functions.setDetails(form.details.data).\
+                    transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
+
+            # リターン詳細変更
+            if form.return_details.data != return_details:
+                gas = TokenContract.estimateGas().setReturnDetails(form.return_details.data)
+                TokenContract.functions.setReturnDetails(form.return_details.data).\
                     transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
 
             # メモ欄変更
             if form.memo.data != memo:
                 gas = TokenContract.estimateGas().setMemo(form.memo.data)
-                txid = TokenContract.functions.setMemo(form.memo.data).\
+                TokenContract.functions.setMemo(form.memo.data).\
                     transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
 
             # 画像（小）変更
@@ -425,7 +438,7 @@ def setting(token_address):
             return render_template(
                 'coupon/setting.html',
                 form=form, token_address = token_address,
-                isReleased = isReleased, isValid = isValid, token_name = name
+                isReleased = isReleased, status = status, token_name = name
             )
     else: # GET
         form.token_address.data = token.token_address
@@ -433,6 +446,7 @@ def setting(token_address):
         form.symbol.data = symbol
         form.totalSupply.data = totalSupply
         form.details.data = details
+        form.return_details.data = return_details
         form.expirationDate.data = expirationDate
         form.transferable.data = transferable
         form.memo.data = memo
@@ -448,7 +462,7 @@ def setting(token_address):
             token_address = token_address,
             token_name = name,
             isReleased = isReleased,
-            isValid = isValid,
+            status = status,
             initial_offering_status = initial_offering_status
         )
 
@@ -539,7 +553,7 @@ def sell(token_address):
     memo = TokenContract.functions.memo().call()
     transferable = TokenContract.functions.transferable().call()
     tradableExchange = TokenContract.functions.tradableExchange().call()
-    isValid = TokenContract.functions.isValid().call()
+    status = TokenContract.functions.status().call()
 
     owner = Config.ETH_ACCOUNT
     balance = TokenContract.functions.balanceOf(owner).call()
@@ -578,7 +592,7 @@ def sell(token_address):
         form.expirationDate.data = expirationDate
         form.memo.data = memo
         form.transferable.data = transferable
-        form.status.data = isValid
+        form.status.data = status
         form.tradableExchange.data = tradableExchange
         form.abi.data = token.abi
         form.bytecode.data = token.bytecode
@@ -1058,7 +1072,7 @@ def invalid():
     coupon_valid(request.form.get('token_address'), False)
     return redirect(url_for('.list'))
 
-def coupon_valid(token_address, isvalid):
+def coupon_valid(token_address, status):
     eth_unlock_account()
     token = Token.query.filter(Token.token_address==token_address).first()
     token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
@@ -1067,8 +1081,8 @@ def coupon_valid(token_address, isvalid):
         abi = token_abi
     )
 
-    gas = TokenContract.estimateGas().setStatus(isvalid)
-    tx = TokenContract.functions.setStatus(isvalid).\
+    gas = TokenContract.estimateGas().setStatus(status)
+    tx = TokenContract.functions.setStatus(status).\
                 transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
 
     flash('処理を受け付けました。完了までに数分程かかることがあります。', 'success')

@@ -149,6 +149,7 @@ class TestCoupon(TestBase):
                 'expirationDate': '20191231',
                 'transferable': True,
                 'details': 'details詳細',
+                'return_details': 'return詳細',
                 'memo': 'memoメモ',
                 'image_1': 'https://test.com/image_1.jpg',
                 'image_2': 'https://test.com/image_2.jpg',
@@ -194,6 +195,7 @@ class TestCoupon(TestBase):
         assert '20191231'.encode('utf-8') in response.data
         assert '<option selected value="True">なし</option>'.encode('utf-8') in response.data
         assert 'details詳細'.encode('utf-8') in response.data
+        assert 'return詳細'.encode('utf-8') in response.data
         assert 'memoメモ'.encode('utf-8') in response.data
         assert 'https://test.com/image_1.jpg'.encode('utf-8') in response.data
         assert 'https://test.com/image_2.jpg'.encode('utf-8') in response.data
@@ -216,6 +218,7 @@ class TestCoupon(TestBase):
                 'expirationDate': '20191231',
                 'transferable': False,
                 'details': 'details詳細',
+                'return_details': 'return詳細',
                 'memo': 'memoメモ',
                 'image_1': 'https://test.com/image_1.jpg',
                 'image_2': 'https://test.com/image_2.jpg',
@@ -240,6 +243,7 @@ class TestCoupon(TestBase):
         assert '20191231'.encode('utf-8') in response.data
         assert '<option selected value="False">あり</option>'.encode('utf-8') in response.data
         assert 'details詳細'.encode('utf-8') in response.data
+        assert 'return詳細'.encode('utf-8') in response.data
         assert 'memoメモ'.encode('utf-8') in response.data
         assert 'https://test.com/image_1.jpg'.encode('utf-8') in response.data
         assert 'https://test.com/image_2.jpg'.encode('utf-8') in response.data
@@ -289,6 +293,7 @@ class TestCoupon(TestBase):
             url_setting,
             data={
                 'details': 'details詳細2',
+                'return_details': 'return詳細2',
                 'memo': 'memoメモ2',
                 'tradableExchange': shared_contract['IbetCouponExchange']['address'],
                 'image_1': 'https://test.com/image_12.jpg',
@@ -308,6 +313,7 @@ class TestCoupon(TestBase):
         assert '20191231'.encode('utf-8') in response.data
         assert '<option selected value="True">なし</option>'.encode('utf-8') in response.data
         assert 'details詳細2'.encode('utf-8') in response.data
+        assert 'return詳細2'.encode('utf-8') in response.data
         assert 'memoメモ2'.encode('utf-8') in response.data
         assert 'https://test.com/image_12.jpg'.encode('utf-8') in response.data
         assert 'https://test.com/image_22.jpg'.encode('utf-8') in response.data
@@ -319,6 +325,7 @@ class TestCoupon(TestBase):
             url_setting,
             data={
                 'details': 'details詳細',
+                'return_details': 'return詳細',
                 'memo': 'memoメモ',
                 'tradableExchange': shared_contract['IbetCouponExchange']['address'],
                 'image_1': 'https://test.com/image_1.jpg',
