@@ -295,6 +295,8 @@ class TestCoupon(TestBase):
                 'details': 'details詳細2',
                 'return_details': 'return詳細2',
                 'memo': 'memoメモ2',
+                'expirationDate': '20200101',
+                'transferable': 'False',
                 'tradableExchange': shared_contract['IbetCouponExchange']['address'],
                 'image_1': 'https://test.com/image_12.jpg',
                 'image_2': 'https://test.com/image_22.jpg',
@@ -310,8 +312,8 @@ class TestCoupon(TestBase):
         assert 'テストクーポン'.encode('utf-8') in response.data
         assert 'COUPON'.encode('utf-8') in response.data
         assert '2000000'.encode('utf-8') in response.data
-        assert '20191231'.encode('utf-8') in response.data
-        assert '<option selected value="True">なし</option>'.encode('utf-8') in response.data
+        assert '20200101'.encode('utf-8') in response.data
+        assert '<option selected value="False">あり</option>'.encode('utf-8') in response.data
         assert 'details詳細2'.encode('utf-8') in response.data
         assert 'return詳細2'.encode('utf-8') in response.data
         assert 'memoメモ2'.encode('utf-8') in response.data
@@ -327,6 +329,8 @@ class TestCoupon(TestBase):
                 'details': 'details詳細',
                 'return_details': 'return詳細',
                 'memo': 'memoメモ',
+                'expirationDate': '20191231',
+                'transferable': 'True',
                 'tradableExchange': shared_contract['IbetCouponExchange']['address'],
                 'image_1': 'https://test.com/image_1.jpg',
                 'image_2': 'https://test.com/image_2.jpg',

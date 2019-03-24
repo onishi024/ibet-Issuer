@@ -405,6 +405,12 @@ def setting(token_address):
                 TokenContract.functions.setMemo(form.memo.data).\
                     transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
 
+            # 有効期限変更
+            if form.expirationDate.data != expirationDate:
+                gas = TokenContract.estimateGas().setExpirationDate(form.expirationDate.data)
+                TokenContract.functions.setExpirationDate(form.expirationDate.data).\
+                    transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
+
             # 譲渡制限変更
             if form.transferable.data != transferable:
                 transferable_bool = True
