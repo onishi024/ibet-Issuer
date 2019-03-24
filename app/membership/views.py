@@ -1036,24 +1036,16 @@ def membership_valid(token_address, isvalid):
 def start_initial_offering():
     logger.info('membership/start_initial_offering')
     token_address = request.form.get('token_address')
-    transact_status = set_initial_offering_status(token_address, True)
-    if transact_status:
-        return redirect(url_for('.list'))
-    else:
-        return redirect(url_for('.setting', token_address=token_address))
-
+    set_initial_offering_status(token_address, True)
+    return redirect(url_for('.setting', token_address=token_address))
 
 @membership.route('/stop_initial_offering', methods=['POST'])
 @login_required
 def stop_initial_offering():
     logger.info('membership/stop_initial_offering')
     token_address = request.form.get('token_address')
-    transact_status = set_initial_offering_status(token_address, False)
-    if transact_status:
-        return redirect(url_for('.list'))
-    else:
-        return redirect(url_for('.setting', token_address=token_address))
-
+    set_initial_offering_status(token_address, False)
+    return redirect(url_for('.setting', token_address=token_address))
 
 def set_initial_offering_status(token_address, status):
     eth_unlock_account()
@@ -1065,19 +1057,15 @@ def set_initial_offering_status(token_address, status):
         abi=token_abi
     )
 
-    transact_status = True
     try:
         gas = TokenContract.estimateGas().setInitialOfferingStatus(status)
         tx = TokenContract.functions.setInitialOfferingStatus(status). \
             transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
+        web3.eth.waitForTransactionReceipt(tx)
     except:
         flash('募集申込ステータスの更新処理でエラーが発生しました。', 'error')
-        transact_status = False
-        return transact_status
 
-    flash('処理を受け付けました。完了までに数分程かかることがあります。', 'success')
-    return transact_status
-
+    flash('処理を受け付けました。', 'success')
 
 ####################################################
 # [会員権]権限エラー

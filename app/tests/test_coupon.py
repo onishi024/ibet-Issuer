@@ -701,7 +701,6 @@ class TestCoupon(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(10)
 
     # ＜正常系13_1＞
     # ＜募集申込一覧参照＞
