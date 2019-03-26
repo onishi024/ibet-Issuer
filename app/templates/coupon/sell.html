@@ -16,26 +16,30 @@
 
 {% block page_content %}
 <section class="content">
-    <div class="box box-default">
-        <div class="box-header with-border">
-            <h3 class="box-title">{{ token_name }} <small>{{ token_address }}</small></h3>
-        </div>
-        <form class="form-horizontal" method="POST" role="form" action="{{ url_for('coupon.sell', token_address=form.token_address.data) }}">
-            {{ form.csrf_token }}
-            <div class="box-body">
-                <br>
-                <div class="form-group">
-                    {{ form.sellPrice.label(class="col-md-2 control-label") }}
-                    <div class="col-md-3">
-                        {{ form.sellPrice(class="form-control", autocomplete="off") }}
-                    </div>
+    <div class="row">
+        <div class="col-lg-6 col-md-8 col-sm-12">
+            <div class="box box-default">
+                <div class="box-header with-border">
+                    <h3 class="box-title">{{ token_name }} <small>{{ token_address }}</small></h3>
                 </div>
+                <form class="form-horizontal" method="POST" role="form" action="{{ url_for('coupon.sell', token_address=form.token_address.data) }}">
+                    {{ form.csrf_token }}
+                    <div class="box-body">
+                        <div class="form-group">
+                            <div class="col-md-1"></div>
+                            <div class="col-md-8">
+                                {{ form.sellPrice.label() }}
+                                {{ form.sellPrice(class="form-control", autocomplete="off") }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="box-footer">
+                        <button type="button" class="btn btn-default" onclick="location.href= '{{ url_for("coupon.positions") }}'">キャンセル</button>
+                        <button type="submit" class="btn btn-success" id="load" data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中">売出開始</button>
+                    </div>
+                </form>
             </div>
-            <div class="box-footer">
-                <button type="button" class="btn btn-default" onclick="location.href= '{{ url_for("coupon.positions") }}'">キャンセル</button>
-                <button type="submit" class="btn btn-success" id="load" data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中">売出開始</button>
-            </div>
-        </form>
+        </div>
     </div>
     <div class="box box-default box-solid">
         <div class="box-header with-border">
@@ -45,26 +49,39 @@
             <table id="data_table" class="table table-bordered table-hover">
                 <tbody>
                     <tr>
-                        <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.name.label }}</td><td style="word-break : break-all" class="col-md-2" >{{ form.name.data }}</td>
-                        <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.symbol.label }}</td><td class="col-md-2" >{{ form.symbol.data }}</td>
-                        <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.totalSupply.label }}</td><td class="col-md-2" >{{ form.totalSupply.data }}</td>
+                        <!-- 名称 -->
+                        <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.name.label }}</td>
+                        <td style="word-break : break-all" colspan="5">{{ form.name.data }}</td>
                     </tr>
                     <tr>
-                        <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.details.label }}</td><td colspan="5">{{ form.details(class="form-control", disabled=True) }}</td>
+                        <!-- 略称 -->
+                        <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.symbol.label }}</td>
+                        <td colspan="2">{{ form.symbol.data }}</td>
+                        <!-- 総発行量 -->
+                        <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.totalSupply.label }}</td>
+                        <td colspan="2">{{ form.totalSupply.data }}</td>
                     </tr>
                     <tr>
-                        <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.memo.label }}</td><td colspan="5">{{ form.memo(class="form-control", disabled=True) }}</td>
+                        <!-- 詳細 -->
+                        <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.details.label }}</td>
+                        <td colspan="5">{{ form.details(class="form-control", disabled=True) }}</td>
                     </tr>
                     <tr>
-                        <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.expirationDate.label }}</td><td class="col-md-2" >{{ form.expirationDate.data }}</td>
+                        <!-- 有効期限 -->
+                        <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.expirationDate.label }}</td>
+                        <td colspan="2">{{ form.expirationDate.data }}</td>
+                        <!-- 譲渡制限 -->
                         <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.transferable.label }}</td>
                         {% if form.transferable.data %}
-                            <td class="col-md-2" >なし</td>
+                            <td colspan="2" >なし</td>
                         {% else %}
-                            <td class="col-md-2" >あり</td>
+                            <td colspan="2" >あり</td>
                         {% endif %}
+                    </tr>
+                    <tr>
+                        <!-- DEX -->
                         <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.tradableExchange.label }}</td>
-                        <td style="word-break : break-all" class="col-md-2">{{ form.tradableExchange.data }}</td>
+                        <td style="word-break : break-all" colspan="5">{{ form.tradableExchange.data }}</td>
                     </tr>
                 </tbody>
             </table>

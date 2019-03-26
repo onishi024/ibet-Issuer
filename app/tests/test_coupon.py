@@ -494,7 +494,6 @@ class TestCoupon(TestBase):
         assert '2000100'.encode('utf-8') in response.data
         assert 'details詳細'.encode('utf-8') in response.data
         assert '20191231'.encode('utf-8') in response.data
-        assert 'memoメモ'.encode('utf-8') in response.data
         assert 'なし'.encode('utf-8') in response.data
         assert shared_contract['IbetCouponExchange']['address'].encode('utf-8') in response.data
 
