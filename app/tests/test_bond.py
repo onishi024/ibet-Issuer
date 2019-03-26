@@ -256,7 +256,6 @@ class TestBond(TestBase):
         assert '20191231'.encode('utf-8') in response.data
         assert '商品券をプレゼント'.encode('utf-8') in response.data
         assert '新商品の開発資金として利用。'.encode('utf-8') in response.data
-        assert 'メモ'.encode('utf-8') in response.data
         assert shared_contract['IbetStraightBondExchange']['address'].encode('utf-8') in response.data
 
     # ＜正常系7＞

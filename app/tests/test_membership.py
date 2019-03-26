@@ -347,9 +347,7 @@ class TestMembership(TestBase):
         assert self.token_data1['symbol'].encode('utf-8') in response.data
         assert str(self.token_data1['totalSupply']).encode('utf-8') in response.data
         assert self.token_data1['details'].encode('utf-8') in response.data
-        assert self.token_data1['returnDetails'].encode('utf-8') in response.data
         assert self.token_data1['expirationDate'].encode('utf-8') in response.data
-        assert self.token_data1['memo'].encode('utf-8') in response.data
         assert 'なし'.encode('utf-8') in response.data
         assert self.token_data1['tradableExchange'].encode('utf-8') in response.data
 
