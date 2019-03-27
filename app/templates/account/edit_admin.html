@@ -2,6 +2,7 @@
 {% block head %}
     {{ super() }}
     <link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
+    <link rel="stylesheet" href="/static/adminlte/bower_components/bootstrap/dist/css/bootstrap.min.css">
 {% endblock %}
 {% set active_page = "account_list" %}
 
@@ -78,6 +79,46 @@
             </div>
         </form>
     </div>
+    <!-- モーダルダイアログ -->
+    <div class="modal" id="modal-confirm" tabindex="-1" role="dialog" aria-labelledby="staticModalLabel" aria-hidden="true" data-show="true" data-keyboard="false" data-backdrop="static">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <p class="recipient" id="modal-text">modal</p>
+                    <div id="modal-message"></div>
+                </div>
+                <div class="modal-footer">
+                    <form action="modal-action" id="modal-form" method="POST">
+                        <button type="button" class="btn btn-default" id="modal-cancel" data-dismiss="modal">キャンセル</button>
+                        <button type="button" class="btn btn-default btn-success" id="modal-ok"
+                            data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中">　 OK 　</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- プロンプトダイアログ -->
+    <div class="modal" id="modal-prompt" tabindex="-1" role="dialog" aria-labelledby="staticModalLabel" aria-hidden="true"
+        data-show="true" data-keyboard="false" data-backdrop="static">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="modal-action" id="modal-prompt-form" method="POST">
+                    <div class="modal-body">
+                        <p class="recipient" id="modal-prompt-text">modal</p>
+                        <div class="form-group"><input type=text class="form-control" id="prompt-form" name="login_id" />
+                            <p class="text-danger" id="modal-prompt-validate">ログインIDが一致しません。</p>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" id="modal-prompt-cancel"
+                            data-dismiss="modal">キャンセル</button>
+                        <button type="button" class="btn btn-default btn-success" id="modal-prompt-ok"
+                            data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中">　 OK 　</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </section>
 {% endblock %}
 
@@ -85,29 +126,44 @@
 {{ super() }}
 <script type="text/javascript">
     $(document).ready(function() {
-        $('#pwdchg').click(function(){
-            if (confirm('パスワードを初期化します。よろしいですか？')) {
-                var $form = $('<form/>', {'action': "{{ url_for('account.pwdinit') }}", 'method': 'POST'});
-                $form.append($('<input/>', {'type': 'hidden', 'name': 'id', 'value': {{ user.id }}}));
-                $form.appendTo(document.body);
-                $form.submit();
-            } else {
-                return false;
-            }
+        $('#modal-ok').click(function () {
+            $('#modal-cancel').prop('disabled', true);
+            var $this = $(this);
+            $this.parents('form').submit();
+            $this.button('loading');
+            setTimeout(function () {
+                $this.button('reset');
+            }, 10000);
         });
-        $('#usrdel').click(function(){
-            var login_id_confirm = prompt("念のため削除するユーザーのログインIDを入力してください。");
+        $('#modal-prompt-ok').click(function () {
+            $('#modal-prompt-cancel').prop('disabled', true);
+            var $this = $(this);
+            var login_id_confirm = $('#prompt-form').val();
             if (login_id_confirm != null && login_id_confirm.length > 0) {
                 var login_id = "{{ form.login_id.data }}"
                 if (login_id === login_id_confirm) {
-                    var $form = $('<form/>', {'action': "{{ url_for('account.delete') }}", 'method': 'POST'});
-                    $form.append($('<input/>', {'type': 'hidden', 'name': 'login_id', 'value': login_id}));
-                    $form.appendTo(document.body);
-                    $form.submit();
+                    $this.parents('form').submit();
+                    $this.button('loading');
+                    setTimeout(function () {
+                        $this.button('reset');
+                    }, 10000);
                 } else {
-                    alert('ログインIDが一致しません。');
+                    $('#modal-prompt-cancel').prop('disabled', false);
+                    $('#modal-prompt-validate').show();
                 }
             }
+        });
+        $('#pwdchg').click(function(){
+            $('#modal-text').html('パスワードを初期化します。よろしいですか？');
+            $('#modal-form').attr('action', "{{ url_for('account.pwdinit') }}");
+            $('#modal-form').append($('<input/>', {'type': 'hidden', 'name': 'id', 'value': {{ user.id }}}));
+            $('#modal-confirm').modal();
+        });
+        $('#usrdel').click(function(){
+            $('#modal-prompt-text').html('念のため削除するユーザーのログインIDを入力してください。');
+            $('#modal-prompt-form').attr('action', "{{ url_for('account.delete') }}");
+            $('#modal-prompt-validate').hide();
+            $('#modal-prompt').modal();
         });
         $('#iconreset').click(function(){
             $preview = $("#preview");
