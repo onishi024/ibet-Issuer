@@ -244,27 +244,27 @@
       });
       $('#release').click(function(){
         $("#modal-text").html("このクーポンをウォレット向けに公開します。よろしいですか？");
-        $('#modal-form').attr('action', "{{ url_for('coupon.release'') }}");
+        $('#modal-form').attr('action', "{{ url_for('coupon.release') }}");
         $('#modal-confirm').modal();
       });
       $('#invalid').click(function(){
         $("#modal-text").html("このクーポンを無効化します。よろしいですか？");
-        $('#modal-form').attr('action', "{{ url_for('coupon.invalid'') }}");
+        $('#modal-form').attr('action', "{{ url_for('coupon.invalid') }}");
         $('#modal-confirm').modal();
       });
       $('#valid').click(function(){
         $("#modal-text").html("このクーポンを有効化します。よろしいですか？");
-        $('#modal-form').attr('action', "{{ url_for('coupon.valid'') }}");
+        $('#modal-form').attr('action', "{{ url_for('coupon.valid') }}");
         $('#modal-confirm').modal();
       });
       $('#start_initial_offering').click(function(){
         $("#modal-text").html("この商品の募集申込受付を開始します。よろしいですか？");
-        $('#modal-form').attr('action', "{{ url_for('coupon.start_initial_offering'') }}");
+        $('#modal-form').attr('action', "{{ url_for('coupon.start_initial_offering') }}");
         $('#modal-confirm').modal();
       });
       $('#stop_initial_offering').click(function(){
         $("#modal-text").html("現在この商品は募集申込中です。<br>この商品の募集申込受付を停止します。よろしいですか？");
-        $('#modal-form').attr('action', "{{ url_for('coupon.start_initial_offering'') }}");
+        $('#modal-form').attr('action', "{{ url_for('coupon.start_initial_offering') }}");
         $('#modal-confirm').modal();
       });
   });
