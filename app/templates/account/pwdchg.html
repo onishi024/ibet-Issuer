@@ -15,31 +15,37 @@
 
 {% block page_content %}
 <section class="content">
-    <div class="box box-default">
-        <div class="box-header with-border">
-            <h3 class="box-title">{{ user.user_name }} さん</h3>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="box box-default">
+                <div class="box-header with-border">
+                    <h3 class="box-title">{{ user.user_name }} さん</h3>
+                </div>
+                <form method="POST" role="form" action="{{ url_for('account.pwdchg', next=next_url) }}">
+                    {{ form.csrf_token }}
+                    <div class="box-body">
+                        <div class="row">
+                            <div class="col-md-1"></div>
+                            <div class="form-group col-md-9">
+                                {{ form.password.label }}
+                                {{ form.password(class="form-control") }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-1"></div>
+                            <div class="form-group col-md-9">
+                                {{ form.confirm.label }}
+                                {{ form.confirm(class="form-control") }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="box-footer">
+                        <button type="button" class="btn btn-default" onclick="location.href='{{ next_url }}'">キャンセル</button>
+                        {{ form.submit(class="btn btn-success") }}
+                    </div>
+                </form>
+            </div>
         </div>
-        <form method="POST" role="form" action="{{ url_for('account.pwdchg', next=next_url) }}">
-            {{ form.csrf_token }}
-            <div class="box-body">
-                <div class="row">
-                    <div class="form-group col-md-3">
-                        {{ form.password.label }}
-                        {{ form.password(class="form-control") }}
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="form-group col-md-3">
-                        {{ form.confirm.label }}
-                        {{ form.confirm(class="form-control") }}
-                    </div>
-                </div>
-            </div>
-            <div class="box-footer">
-                <button type="button" class="btn btn-default" onclick="location.href='{{ next_url }}'">キャンセル</button>
-                {{ form.submit(class="btn btn-success") }}
-            </div>
-        </form>
     </div>
 </section>
 {% endblock %}
