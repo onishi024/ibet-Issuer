@@ -264,7 +264,7 @@
       });
       $('#stop_initial_offering').click(function(){
         $("#modal-text").html("現在この商品は募集申込中です。<br>この商品の募集申込受付を停止します。よろしいですか？");
-        $('#modal-form').attr('action', "{{ url_for('coupon.start_initial_offering') }}");
+        $('#modal-form').attr('action', "{{ url_for('coupon.stop_initial_offering') }}");
         $('#modal-confirm').modal();
       });
   });
