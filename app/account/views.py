@@ -180,6 +180,8 @@ def bankinfo():
             personalinfo_regist(form)
             # PaymentGatewayコントラクトに情報登録
             payment_account_regist(form)
+            # DB に情報登録
+            db.session.add(form)
 
             flash('登録処理を受付ました。登録完了まで数分かかることがあります。', 'success')
             return render_template('account/bankinfo.html', form=form)
