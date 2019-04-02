@@ -95,8 +95,8 @@ class Certification(db.Model):
     def get_id(cls):
         return Certification.id
 
-class PersonalInfo(db.Model):
-    __tablename__ = 'personal_info'
+class Bank(db.Model):
+    __tablename__ = 'bank'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(40))
     bank_name = db.Column(db.String(40))
@@ -108,4 +108,4 @@ class PersonalInfo(db.Model):
     account_holder = db.Column(db.String(40))
 
     def __repr__(self):
-        return '<PersonalInfo %r>' % self.name
+        return '<Bank %r>' % self.name

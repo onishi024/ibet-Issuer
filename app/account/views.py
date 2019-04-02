@@ -14,6 +14,7 @@ from ..util import *
 from ..decorators import admin_required
 from config import Config
 from app.contracts import Contract
+from ..models import Bank
 
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
@@ -180,8 +181,18 @@ def bankinfo():
             personalinfo_regist(form)
             # PaymentGatewayコントラクトに情報登録
             payment_account_regist(form)
+
             # DB に情報登録
-            db.session.add(form)
+            personal_info = Bank()
+            personal_info.name = form.name.data
+            personal_info.bank_name = form.bank_name.data
+            personal_info.bank_code = form.bank_code.data
+            personal_info.branch_name = form.branch_name.data
+            personal_info.branch_code = form.branch_code.data
+            personal_info.account_type = form.account_type.data
+            personal_info.account_number = form.account_number.data
+            personal_info.account_holder = form.account_holder.data
+            db.session.add(personal_info)
 
             flash('登録処理を受付ました。登録完了まで数分かかることがあります。', 'success')
             return render_template('account/bankinfo.html', form=form)
