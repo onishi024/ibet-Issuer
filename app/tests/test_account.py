@@ -487,13 +487,6 @@ class TestBankInfo(TestBase):
         assert personal_info_json['address']['address1'] == ''
         assert personal_info_json['address']['address2'] == ''
         assert personal_info_json['email'] == ''
-        assert personal_info_json['bank_account']['bank_name'] == '銀行めい１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０'
-        assert personal_info_json['bank_account']['bank_code'] == '0001'
-        assert personal_info_json['bank_account']['branch_office'] == '支店めい１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０'
-        assert personal_info_json['bank_account']['branch_code'] == '100'
-        assert personal_info_json['bank_account']['account_type'] == 2
-        assert personal_info_json['bank_account']['account_number'] == '1234567'
-        assert personal_info_json['bank_account']['account_holder'] == 'ABCDEFGHIJKLMNOPQRSTUVWXYZ-ﾞﾟｱｲｳｴｵｶｷｸｹｺｱ'
 
         # PaymentAccountの確認
         payment_account_json = get_payment_account_encrypted_info(
@@ -502,13 +495,6 @@ class TestBankInfo(TestBase):
             eth_account['agent']['account_address']
         )
         assert payment_account_json['name'] == '株式会社１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０'
-        assert payment_account_json['bank_account']['bank_name'] == '銀行めい１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０'
-        assert payment_account_json['bank_account']['bank_code'] == '0001'
-        assert payment_account_json['bank_account']['branch_office'] == '支店めい１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０'
-        assert payment_account_json['bank_account']['branch_code'] == '100'
-        assert payment_account_json['bank_account']['account_type'] == 2
-        assert payment_account_json['bank_account']['account_number'] == '1234567'
-        assert payment_account_json['bank_account']['account_holder'] == 'ABCDEFGHIJKLMNOPQRSTUVWXYZ-ﾞﾟｱｲｳｴｵｶｷｸｹｺｱ'
 
     # ＜正常系3＞
     # 通常参照（登録済）
@@ -561,13 +547,6 @@ class TestBankInfo(TestBase):
         assert personal_info_json['address']['city'] == ''
         assert personal_info_json['address']['address1'] == ''
         assert personal_info_json['address']['address2'] == ''
-        assert personal_info_json['bank_account']['bank_name'] == '銀行めい２３４'
-        assert personal_info_json['bank_account']['bank_code'] == '0002'
-        assert personal_info_json['bank_account']['branch_office'] == '支店めい２３４'
-        assert personal_info_json['bank_account']['branch_code'] == '101'
-        assert personal_info_json['bank_account']['account_type'] == 4
-        assert personal_info_json['bank_account']['account_number'] == '7654321'
-        assert personal_info_json['bank_account']['account_holder'] == 'ﾃｽﾄ'
 
         # PaymentAccountの確認
         payment_account_json = get_payment_account_encrypted_info(
@@ -576,13 +555,6 @@ class TestBankInfo(TestBase):
             eth_account['agent']['account_address']
         )
         assert payment_account_json['name'] == '株式会社２３４'
-        assert payment_account_json['bank_account']['bank_name'] == '銀行めい２３４'
-        assert payment_account_json['bank_account']['bank_code'] == '0002'
-        assert payment_account_json['bank_account']['branch_office'] == '支店めい２３４'
-        assert payment_account_json['bank_account']['branch_code'] == '101'
-        assert payment_account_json['bank_account']['account_type'] == 4
-        assert payment_account_json['bank_account']['account_number'] == '7654321'
-        assert payment_account_json['bank_account']['account_holder'] == 'ﾃｽﾄ'
 
     # ＜エラー系1-1＞
     # 必須系

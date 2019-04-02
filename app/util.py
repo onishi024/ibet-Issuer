@@ -63,14 +63,7 @@ def get_holder(token_address, account_address):
             "address1":"--",
             "address2":"--"
         },
-        "email":"--",   
-        "bank_account":{
-            "bank_name": "--",
-            "branch_office": "--",
-            "account_type": "--",
-            "account_number": "--",
-            "account_holder": "--"
-        }
+        "email":"--"
     }
 
     token_owner = TokenContract.functions.owner().call()
