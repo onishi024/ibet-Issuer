@@ -223,7 +223,7 @@ def bankinfo():
             except:
                 pass
 
-        return render_template('account/bankinfo.html', form=form)
+        return render_template('account/bankinfo.html', form=form, bank=bank)
 
 def personalinfo_regist(form):
     # ローカルに保存されている発行体のRSA公開鍵を取得
