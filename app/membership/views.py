@@ -459,7 +459,11 @@ def transfer_ownership(token_address, account_address):
 def holder(token_address, account_address):
     logger.info('membership/holder')
     personal_info = get_holder(token_address, account_address)
-    return render_template('membership/holder.html', personal_info=personal_info, token_address=token_address)
+    return render_template(
+        'membership/holder.html', 
+        personal_info=personal_info, 
+        token_address=token_address
+    )
 
 
 ####################################################

@@ -94,3 +94,18 @@ class Certification(db.Model):
     @classmethod
     def get_id(cls):
         return Certification.id
+
+class Bank(db.Model):
+    __tablename__ = 'bank'
+    id = db.Column(db.Integer, primary_key=True)
+    eth_account = db.Column(db.String(50), nullable=False)
+    bank_name = db.Column(db.String(40), nullable=False)
+    bank_code = db.Column(db.String(4), nullable=False)
+    branch_name = db.Column(db.String(40), nullable=False)
+    branch_code = db.Column(db.String(3), nullable=False)
+    account_type = db.Column(db.String(10), nullable=False)
+    account_number = db.Column(db.String(7), nullable=False)
+    account_holder = db.Column(db.String(40), nullable=False)
+
+    def __repr__(self):
+        return '<Bank %r>' % self.name

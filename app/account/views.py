@@ -14,6 +14,7 @@ from ..util import *
 from ..decorators import admin_required
 from config import Config
 from app.contracts import Contract
+from ..models import Bank
 
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
@@ -180,6 +181,8 @@ def bankinfo():
             personalinfo_regist(form)
             # PaymentGatewayコントラクトに情報登録
             payment_account_regist(form)
+            # DB に銀行口座情報登録
+            bank_account_regist(form)
 
             flash('登録処理を受付ました。登録完了まで数分かかることがあります。', 'success')
             return render_template('account/bankinfo.html', form=form)
@@ -187,7 +190,6 @@ def bankinfo():
             flash_errors(form)
             return render_template('account/bankinfo.html', form=form)
     else: # GET
-        form.name.data = ''
         form.bank_name.data = ''
         form.bank_code.data = ''
         form.branch_name.data = ''
@@ -202,28 +204,20 @@ def bankinfo():
         )
 
         # PersonalInfoコントラクトへの登録状態を取得
-        isRegistered = PersonalInfoContract.functions.\
-            isRegistered(Config.ETH_ACCOUNT, Config.ETH_ACCOUNT).call()
+        bank = Bank.query.filter().filter(Bank.eth_account == Config.ETH_ACCOUNT).first()
 
-        if isRegistered:
+        if bank is not None:
             # 登録済みの場合は登録されている情報を取得
-            personal_info = PersonalInfoContract.functions.\
-                personal_info(Config.ETH_ACCOUNT,Config.ETH_ACCOUNT).call()
+            
             try:
-                # 銀行口座情報の復号化
-                key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
-                cipher = PKCS1_OAEP.new(key)
-                ciphertext = base64.decodestring(personal_info[2].encode('utf-8'))
-                message = cipher.decrypt(ciphertext)
-                personalinfo_json = json.loads(message)
-                form.name.data = personalinfo_json['name']
-                form.bank_name.data = personalinfo_json['bank_account']['bank_name']
-                form.bank_code.data = personalinfo_json['bank_account']['bank_code']
-                form.branch_name.data = personalinfo_json['bank_account']['branch_office']
-                form.branch_code.data = personalinfo_json['bank_account']['branch_code']
-                form.account_type.data = str(personalinfo_json['bank_account']['account_type'])
-                form.account_number.data = personalinfo_json['bank_account']['account_number']
-                form.account_holder.data = personalinfo_json['bank_account']['account_holder']
+                # 銀行口座情報の取得
+                form.bank_name.data = bank.bank_name
+                form.bank_code.data = bank.bank_code
+                form.branch_name.data = bank.branch_name
+                form.branch_code.data = bank.branch_code
+                form.account_type.data = bank.account_type
+                form.account_number.data = bank.account_number
+                form.account_holder.data = bank.account_holder
             except:
                 pass
 
@@ -235,7 +229,7 @@ def personalinfo_regist(form):
     cipher = PKCS1_OAEP.new(key)
 
     personal_info_json = {
-        "name": form.name.data,
+        "name": "",
         "address":{
             "postal_code":"",
             "prefecture":"",
@@ -243,16 +237,7 @@ def personalinfo_regist(form):
             "address1":"",
             "address2":""
         },
-        "email":"",
-        "bank_account":{
-            "bank_name": form.bank_name.data,
-            "bank_code": form.bank_code.data,
-            "branch_office": form.branch_name.data,
-            "branch_code": form.branch_code.data,
-            "account_type": int(form.account_type.data),
-            "account_number": form.account_number.data,
-            "account_holder": form.account_holder.data
-        }
+        "email":""
     }
 
     # 銀行口座情報の暗号化
@@ -298,7 +283,6 @@ def payment_account_regist(form):
     cipher = PKCS1_OAEP.new(key_bank)
 
     payment_account_json = {
-        "name": form.name.data,
         "bank_account":{
             "bank_name": form.bank_name.data,
             "bank_code": form.bank_code.data,
@@ -324,6 +308,35 @@ def payment_account_regist(form):
     w_txid = PaymentGatewayContract.functions.\
         register(agent_address, payment_account_ciphertext).\
         transact({'from':Config.ETH_ACCOUNT, 'gas':w_gas})
+
+def bank_account_regist(form):
+    # 入力内容を格納
+    bank_account = Bank()
+    bank_account.eth_account = Config.ETH_ACCOUNT
+    bank_account.bank_name = form.bank_name.data
+    bank_account.bank_code = form.bank_code.data
+    bank_account.branch_name = form.branch_name.data
+    bank_account.branch_code = form.branch_code.data
+    bank_account.account_type = form.account_type.data
+    bank_account.account_number = form.account_number.data
+    bank_account.account_holder = form.account_holder.data
+
+    bank = Bank.query.filter().filter(Bank.eth_account == Config.ETH_ACCOUNT).first()
+
+    # 入力された口座情報をDBに登録
+    if bank is None:
+        db.session.add(bank_account)
+    # 既に登録されている場合、更新
+    else :
+        bank.bank_name = bank_account.bank_name
+        bank.bank_code = bank_account.bank_code
+        bank.branch_name = bank_account.branch_name
+        bank.branch_code = bank_account.branch_code
+        bank.account_type = bank_account.account_type
+        bank.account_number = bank_account.account_number
+        bank.account_holder = bank_account.account_holder
+    db.session.commit()
+        
 
 #+++++++++++++++++++++++++++++++
 # Custom Filter

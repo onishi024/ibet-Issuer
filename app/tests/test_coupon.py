@@ -42,16 +42,7 @@ class TestCoupon(TestBase):
             "address1":"日本橋11-1",
             "address2":"東京マンション１０１"
         },
-        "email":"abcd1234@aaa.bbb.cc",
-        "bank_account":{
-            "bank_name": "三菱UFJ銀行",
-            "bank_code": "0005",
-            "branch_office": "東恵比寿支店",
-            "branch_code": "610",
-            "account_type": 1,
-            "account_number": "1234567",
-            "account_holder": "ｶﾌﾞｼｷｶﾞｲｼﾔｹﾂｻｲﾀﾞｲｺｳ"
-        }
+        "email":"abcd1234@aaa.bbb.cc"
     }
 
     trader_personal_info_json = {
@@ -63,16 +54,7 @@ class TestCoupon(TestBase):
             "address1":"勝どき6丁目３－２",
             "address2":"ＴＴＴ６０１２"
         },
-        "email":"abcd1234@aaa.bbb.cc",
-        "bank_account":{
-            "bank_name": "みずほ銀行",
-            "bank_code": "0001",
-            "branch_office": "日本橋支店",
-            "branch_code": "101",
-            "account_type": 2,
-            "account_number": "7654321",
-            "account_holder": "ﾀﾝﾀｲﾃｽﾄｺｳｻﾞ"
-        }
+        "email":"abcd1234@aaa.bbb.cc"
     }
 
     key = RSA.importKey(open('data/rsa/public.pem').read())
@@ -472,10 +454,6 @@ class TestCoupon(TestBase):
         assert '中央区'.encode('utf-8') in response.data
         assert '日本橋11-1'.encode('utf-8') in response.data
         assert '東京マンション１０１'.encode('utf-8') in response.data
-        assert '三菱UFJ銀行'.encode('utf-8') in response.data
-        assert '東恵比寿支店'.encode('utf-8') in response.data
-        assert '普通'.encode('utf-8') in response.data
-        assert 'ｶﾌﾞｼｷｶﾞｲｼﾔｹﾂｻｲﾀﾞｲｺｳ'.encode('utf-8') in response.data
 
     # ＜正常系9_1＞
     # ＜売出＞

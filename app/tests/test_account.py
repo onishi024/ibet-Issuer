@@ -437,7 +437,6 @@ class TestBankInfo(TestBase):
         response = client.get(self.url_bankinfo)
         assert response.status_code == 200
         assert '<title>銀行情報登録'.encode('utf-8') in response.data
-        assert '<input class="form-control" id="name" name="name" type="text" value="">'.encode('utf-8') in response.data
         assert '<input class="form-control" id="bank_name" name="bank_name" type="text" value="">'.encode('utf-8') in response.data
         assert '<input class="form-control" id="bank_code" name="bank_code" type="text" value="">'.encode('utf-8') in response.data
         assert '<input class="form-control" id="branch_name" name="branch_name" type="text" value="">'.encode('utf-8') in response.data
@@ -466,7 +465,6 @@ class TestBankInfo(TestBase):
         )
         assert response.status_code == 200
         assert '<title>銀行情報登録'.encode('utf-8') in response.data
-        assert '<input class="form-control" id="name" name="name" type="text" value="株式会社１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０">'.encode('utf-8') in response.data
         assert '<input class="form-control" id="bank_name" name="bank_name" type="text" value="銀行めい１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０">'.encode('utf-8') in response.data
         assert '<input class="form-control" id="bank_code" name="bank_code" type="text" value="0001">'.encode('utf-8') in response.data
         assert '<input class="form-control" id="branch_name" name="branch_name" type="text" value="支店めい１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０">'.encode('utf-8') in response.data
@@ -480,20 +478,13 @@ class TestBankInfo(TestBase):
 
         # PersonalInfoの確認
         personal_info_json = get_personal_encrypted_info(shared_contract['PersonalInfo'], eth_account['issuer']['account_address'], eth_account['issuer']['account_address'])
-        assert personal_info_json['name'] == '株式会社１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０'
+        assert personal_info_json['name'] == ''
         assert personal_info_json['address']['postal_code'] == ''
         assert personal_info_json['address']['prefecture'] == ''
         assert personal_info_json['address']['city'] == ''
         assert personal_info_json['address']['address1'] == ''
         assert personal_info_json['address']['address2'] == ''
         assert personal_info_json['email'] == ''
-        assert personal_info_json['bank_account']['bank_name'] == '銀行めい１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０'
-        assert personal_info_json['bank_account']['bank_code'] == '0001'
-        assert personal_info_json['bank_account']['branch_office'] == '支店めい１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０'
-        assert personal_info_json['bank_account']['branch_code'] == '100'
-        assert personal_info_json['bank_account']['account_type'] == 2
-        assert personal_info_json['bank_account']['account_number'] == '1234567'
-        assert personal_info_json['bank_account']['account_holder'] == 'ABCDEFGHIJKLMNOPQRSTUVWXYZ-ﾞﾟｱｲｳｴｵｶｷｸｹｺｱ'
 
         # PaymentAccountの確認
         payment_account_json = get_payment_account_encrypted_info(
@@ -501,14 +492,6 @@ class TestBankInfo(TestBase):
             eth_account['issuer']['account_address'],
             eth_account['agent']['account_address']
         )
-        assert payment_account_json['name'] == '株式会社１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０'
-        assert payment_account_json['bank_account']['bank_name'] == '銀行めい１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０'
-        assert payment_account_json['bank_account']['bank_code'] == '0001'
-        assert payment_account_json['bank_account']['branch_office'] == '支店めい１２３４５あいうえおかきくけこさしすせそたちつてと１２３４５６７８９０'
-        assert payment_account_json['bank_account']['branch_code'] == '100'
-        assert payment_account_json['bank_account']['account_type'] == 2
-        assert payment_account_json['bank_account']['account_number'] == '1234567'
-        assert payment_account_json['bank_account']['account_holder'] == 'ABCDEFGHIJKLMNOPQRSTUVWXYZ-ﾞﾟｱｲｳｴｵｶｷｸｹｺｱ'
 
     # ＜正常系3＞
     # 通常参照（登録済）
@@ -537,7 +520,6 @@ class TestBankInfo(TestBase):
         )
         assert response.status_code == 200
         assert '<title>銀行情報登録'.encode('utf-8') in response.data
-        assert '<input class="form-control" id="name" name="name" type="text" value="株式会社２３４">'.encode('utf-8') in response.data
         assert '<input class="form-control" id="bank_name" name="bank_name" type="text" value="銀行めい２３４">'.encode('utf-8') in response.data
         assert '<input class="form-control" id="bank_code" name="bank_code" type="text" value="0002">'.encode('utf-8') in response.data
         assert '<input class="form-control" id="branch_name" name="branch_name" type="text" value="支店めい２３４">'.encode('utf-8') in response.data
@@ -555,19 +537,12 @@ class TestBankInfo(TestBase):
             eth_account['issuer']['account_address'],
             eth_account['issuer']['account_address']
         )
-        assert personal_info_json['name'] == '株式会社２３４'
+        assert personal_info_json['name'] == ''
         assert personal_info_json['address']['postal_code'] == ''
         assert personal_info_json['address']['prefecture'] == ''
         assert personal_info_json['address']['city'] == ''
         assert personal_info_json['address']['address1'] == ''
         assert personal_info_json['address']['address2'] == ''
-        assert personal_info_json['bank_account']['bank_name'] == '銀行めい２３４'
-        assert personal_info_json['bank_account']['bank_code'] == '0002'
-        assert personal_info_json['bank_account']['branch_office'] == '支店めい２３４'
-        assert personal_info_json['bank_account']['branch_code'] == '101'
-        assert personal_info_json['bank_account']['account_type'] == 4
-        assert personal_info_json['bank_account']['account_number'] == '7654321'
-        assert personal_info_json['bank_account']['account_holder'] == 'ﾃｽﾄ'
 
         # PaymentAccountの確認
         payment_account_json = get_payment_account_encrypted_info(
@@ -575,14 +550,6 @@ class TestBankInfo(TestBase):
             eth_account['issuer']['account_address'],
             eth_account['agent']['account_address']
         )
-        assert payment_account_json['name'] == '株式会社２３４'
-        assert payment_account_json['bank_account']['bank_name'] == '銀行めい２３４'
-        assert payment_account_json['bank_account']['bank_code'] == '0002'
-        assert payment_account_json['bank_account']['branch_office'] == '支店めい２３４'
-        assert payment_account_json['bank_account']['branch_code'] == '101'
-        assert payment_account_json['bank_account']['account_type'] == 4
-        assert payment_account_json['bank_account']['account_number'] == '7654321'
-        assert payment_account_json['bank_account']['account_holder'] == 'ﾃｽﾄ'
 
     # ＜エラー系1-1＞
     # 必須系
@@ -594,7 +561,6 @@ class TestBankInfo(TestBase):
         )
         assert response.status_code == 200
         assert '<title>銀行情報登録'.encode('utf-8') in response.data
-        assert '会社名は必須です。'.encode('utf-8') in response.data
         assert '金融機関名は必須です。'.encode('utf-8') in response.data
         assert '金融機関コードは必須です。'.encode('utf-8') in response.data
         assert '支店名は必須です。'.encode('utf-8') in response.data
@@ -620,7 +586,6 @@ class TestBankInfo(TestBase):
         )
         assert response.status_code == 200
         assert '<title>銀行情報登録'.encode('utf-8') in response.data
-        assert '会社名は40文字までです。'.encode('utf-8') in response.data
         assert '金融機関名は40文字までです。'.encode('utf-8') in response.data
         assert '金融機関コードは4桁です。'.encode('utf-8') in response.data
         assert '支店名は40文字までです。'.encode('utf-8') in response.data

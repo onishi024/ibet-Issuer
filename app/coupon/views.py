@@ -1068,7 +1068,10 @@ def get_holders_coupon(token_address):
 def holder(token_address, account_address):
     logger.info('coupon/holder')
     personal_info = get_holder(token_address, account_address)
-    return render_template('coupon/holder.html', personal_info=personal_info, token_address=token_address)
+    return render_template(
+        'coupon/holder.html', 
+        personal_info=personal_info, 
+        token_address=token_address)
 
 ###################################################
 # [クーポン]有効化/無効化

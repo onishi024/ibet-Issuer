@@ -77,55 +77,6 @@
             </div>
           </form>
         </div>
-        <div class="box box-default box-solid">
-          <div class="box-header with-border">
-            <h3 class="box-title">金融機関口座情報</h3>
-          </div>
-          <form class="form-horizontal" role="form">
-            <div class="box-body">
-              <div class="row">
-                <label class="col-md-3">金融機関名</label>
-                <div class="form-group col-md-4">
-                  {{ personal_info['bank_account']['bank_name'] }}
-                </div>
-              </div>
-              <div class="row">
-                <label class="col-md-3">支店</label>
-                <div class="form-group col-md-4">
-                  {{ personal_info['bank_account']['branch_office'] }}
-                </div>
-              </div>
-              <div class="row">
-                <label class="col-md-3">口座種別</label>
-                <div class="form-group col-md-4">
-                  {% if personal_info['bank_account']['account_type'] == 1 %}
-                    普通
-                  {% elif personal_info['bank_account']['account_type'] == 2 %}
-                    当座
-                  {% elif personal_info['bank_account']['account_type'] == 4 %}
-                    貯蓄預金
-                  {% elif personal_info['bank_account']['account_type'] == 9 %}
-                    その他
-                  {% else %}
-                    {{ personal_info['bank_account']['account_type'] }}
-                  {% endif %}
-                </div>
-              </div>
-              <div class="row">
-                <label class="col-md-3">口座番号</label>
-                <div class="form-group col-md-4">
-                  {{ personal_info['bank_account']['account_number'] }}
-                </div>
-              </div>
-              <div class="row">
-                <label class="col-md-3">口座名義</label>
-                <div class="form-group col-md-4">
-                  {{ personal_info['bank_account']['account_holder'] }}
-                </div>
-              </div>
-            </div>
-          </form>
-        </div>
       </div>
       <div class="col-md-1"></div>
     </div>
