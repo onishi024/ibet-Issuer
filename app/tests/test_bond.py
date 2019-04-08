@@ -2,7 +2,8 @@
 import time
 from .conftest import TestBase
 from .contract_modules import *
-from ..models import Token
+from .. import db
+from ..models import Token, Bank
 from logging import getLogger
 logger = getLogger('api')
 
@@ -382,7 +383,6 @@ class TestBond(TestBase):
         assert response.status_code == 200
         assert '<title>債券保有者詳細'.encode('utf-8') in response.data
         assert eth_account['issuer']['account_address'].encode('utf-8') in response.data
-        assert '株式会社１'.encode('utf-8') in response.data
         assert '1234567'.encode('utf-8') in response.data
         assert '東京都'.encode('utf-8') in response.data
         assert '中央区'.encode('utf-8') in response.data

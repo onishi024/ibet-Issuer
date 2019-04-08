@@ -190,7 +190,6 @@ def bankinfo():
             flash_errors(form)
             return render_template('account/bankinfo.html', form=form)
     else: # GET
-        form.name.data = ''
         form.bank_name.data = ''
         form.bank_code.data = ''
         form.branch_name.data = ''
@@ -212,7 +211,6 @@ def bankinfo():
             
             try:
                 # 銀行口座情報の取得
-                form.name.data = bank.name
                 form.bank_name.data = bank.bank_name
                 form.bank_code.data = bank.bank_code
                 form.branch_name.data = bank.branch_name
@@ -223,7 +221,7 @@ def bankinfo():
             except:
                 pass
 
-        return render_template('account/bankinfo.html', form=form, bank=bank)
+        return render_template('account/bankinfo.html', form=form)
 
 def personalinfo_regist(form):
     # ローカルに保存されている発行体のRSA公開鍵を取得
@@ -231,7 +229,7 @@ def personalinfo_regist(form):
     cipher = PKCS1_OAEP.new(key)
 
     personal_info_json = {
-        "name": form.name.data,
+        "name": "",
         "address":{
             "postal_code":"",
             "prefecture":"",
@@ -285,7 +283,6 @@ def payment_account_regist(form):
     cipher = PKCS1_OAEP.new(key_bank)
 
     payment_account_json = {
-        "name": form.name.data,
         "bank_account":{
             "bank_name": form.bank_name.data,
             "bank_code": form.bank_code.data,
@@ -316,7 +313,6 @@ def bank_account_regist(form):
     # 入力内容を格納
     bank_account = Bank()
     bank_account.eth_account = Config.ETH_ACCOUNT
-    bank_account.name = form.name.data
     bank_account.bank_name = form.bank_name.data
     bank_account.bank_code = form.bank_code.data
     bank_account.branch_name = form.branch_name.data
@@ -332,7 +328,6 @@ def bank_account_regist(form):
         db.session.add(bank_account)
     # 既に登録されている場合、更新
     else :
-        bank.name = bank_account.name
         bank.bank_name = bank_account.bank_name
         bank.bank_code = bank_account.bank_code
         bank.branch_name = bank_account.branch_name

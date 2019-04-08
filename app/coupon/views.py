@@ -1069,23 +1069,9 @@ def get_holders_coupon(token_address):
 def holder(token_address, account_address):
     logger.info('coupon/holder')
     personal_info = get_holder(token_address, account_address)
-    bank = db.session.query(Bank).filter(Bank.eth_account == Config.ETH_ACCOUNT).first()
-    bank_info = {
-        "name": bank.name,
-        "bank_account":{
-            "bank_name": bank.bank_name,
-            "bank_code": bank.bank_code,
-            "branch_office": bank.branch_name,
-            "branch_code": bank.branch_code,
-            "account_type": int(bank.account_type),
-            "account_number": bank.account_number,
-            "account_holder": bank.account_holder
-        }
-    }
     return render_template(
         'coupon/holder.html', 
         personal_info=personal_info, 
-        bank_info=bank_info,
         token_address=token_address)
 
 ###################################################

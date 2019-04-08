@@ -59,10 +59,6 @@ class PasswordChangeForm(Form):
 
 # 銀行口座情報登録フォーム
 class BankInfoForm(Form):
-    name = StringField("会社名", validators=[
-                    Required('会社名は必須です。'),
-                    Length(max=40, message='会社名は40文字までです。')
-                    ])
     bank_name = StringField("金融機関名", validators=[
                     Required('金融機関名は必須です。'),
                     Length(max=40, message='金融機関名は40文字までです。')
