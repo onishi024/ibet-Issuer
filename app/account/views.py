@@ -204,7 +204,7 @@ def bankinfo():
         )
 
         # PersonalInfoコントラクトへの登録状態を取得
-        bank = db.session.query(Bank).filter(Bank.eth_account == Config.ETH_ACCOUNT).first()
+        bank = Bank.query.filter().filter(Bank.eth_account == Config.ETH_ACCOUNT).first()
 
         if bank is not None:
             # 登録済みの場合は登録されている情報を取得
@@ -321,7 +321,7 @@ def bank_account_regist(form):
     bank_account.account_number = form.account_number.data
     bank_account.account_holder = form.account_holder.data
 
-    bank = db.session.query(Bank).filter(Bank.eth_account == Config.ETH_ACCOUNT).first()
+    bank = Bank.query.filter().filter(Bank.eth_account == Config.ETH_ACCOUNT).first()
 
     # 入力された口座情報をDBに登録
     if bank is None:
