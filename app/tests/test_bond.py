@@ -3,7 +3,7 @@ import time
 from .conftest import TestBase
 from .contract_modules import *
 from .. import db
-from ..models import Token, Bank
+from ..models import Token
 from logging import getLogger
 logger = getLogger('api')
 

@@ -8,7 +8,7 @@ from flask_login import login_required
 from . import membership
 from .. import db
 from ..util import *
-from ..models import Token, Bank
+from ..models import Token
 from .forms import *
 from config import Config
 from app.contracts import Contract

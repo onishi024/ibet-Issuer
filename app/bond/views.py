@@ -10,7 +10,7 @@ from flask_login import login_required
 from . import bond
 from .. import db
 from ..util import *
-from ..models import Token, Certification, Bank
+from ..models import Token, Certification
 from .forms import *
 from config import Config
 from app.contracts import Contract

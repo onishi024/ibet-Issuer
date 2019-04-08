@@ -9,7 +9,6 @@ from flask_login import login_required
 from . import coupon
 from .. import db
 from ..util import *
-from ..models import Bank
 from .forms import *
 from config import Config
 from app.contracts import Contract
