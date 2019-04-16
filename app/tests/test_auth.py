@@ -1,8 +1,8 @@
 # -*- coding:utf-8 -*-
-import pytest
 from flask import url_for
 
 from .conftest import TestBase
+
 
 class TestAuth(TestBase):
 
@@ -16,7 +16,7 @@ class TestAuth(TestBase):
         client = app.test_client()
         response = client.post(
             url_for('auth.login'),
-            data = {
+            data={
                 'login_id': 'user',
                 'password': '1234'
             }
@@ -32,7 +32,7 @@ class TestAuth(TestBase):
         # ログイン
         response = client.post(
             url_for('auth.login'),
-            data = {
+            data={
                 'login_id': 'user',
                 'password': '1234'
             }
@@ -40,9 +40,8 @@ class TestAuth(TestBase):
         assert response.status_code == 302
 
         # ログアウト
-        response = client.post(url_for('auth.logout'), data = {})
+        response = client.post(url_for('auth.logout'), data={})
         assert response.status_code == 302
-
 
     ##########################################################################
     # エラー系
@@ -54,7 +53,7 @@ class TestAuth(TestBase):
         client = app.test_client()
         response = client.post(
             url_for('auth.login'),
-            data = {
+            data={
                 'login_id': 'user',
                 'password': '4321'
             }
@@ -69,7 +68,7 @@ class TestAuth(TestBase):
         client = app.test_client()
         response = client.post(
             url_for('auth.login'),
-            data = {
+            data={
                 'login_id': 'useruser',
                 'password': '1234'
             }

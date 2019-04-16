@@ -4,57 +4,58 @@ from .conftest import TestBase
 from .contract_modules import *
 from ..models import Token
 from logging import getLogger
+
 logger = getLogger('api')
 
-class TestCoupon(TestBase):
 
+class TestCoupon(TestBase):
     ##################
     # URL
     ##################
-    url_list = 'coupon/list' # 発行済一覧
-    url_issue = 'coupon/issue' # 新規発行
-    url_setting = 'coupon/setting/' # 詳細設定
-    url_valid = 'coupon/valid' # 有効化（取扱開始）
-    url_invalid = 'coupon/invalid' # 無効化（取扱中止）
-    url_add_supply = 'coupon/add_supply/' # 追加発行
-    url_start_initial_offering = 'coupon/start_initial_offering' # 募集申込開始
-    url_stop_initial_offering = 'coupon/stop_initial_offering' # 募集申込停止
-    url_applications = 'coupon/applications/' # 募集申込一覧
-    url_allocate = 'coupon/allocate' # 割当（募集申込）
-    url_transfer = 'coupon/transfer' # 割当
-    url_transfer_ownership = 'coupon/transfer_ownership/' # 所有者移転
-    url_holders = 'coupon/holders/' # 保有者一覧
-    url_holder = 'coupon/holder/' # 保有者詳細
-    url_positions = 'coupon/positions' # 売出管理
-    url_sell = 'coupon/sell/' # 新規売出
-    url_cancel_order = 'coupon/cancel_order/' # 売出中止
-    url_release = 'coupon/release' # 公開
+    url_list = 'coupon/list'  # 発行済一覧
+    url_issue = 'coupon/issue'  # 新規発行
+    url_setting = 'coupon/setting/'  # 詳細設定
+    url_valid = 'coupon/valid'  # 有効化（取扱開始）
+    url_invalid = 'coupon/invalid'  # 無効化（取扱中止）
+    url_add_supply = 'coupon/add_supply/'  # 追加発行
+    url_start_initial_offering = 'coupon/start_initial_offering'  # 募集申込開始
+    url_stop_initial_offering = 'coupon/stop_initial_offering'  # 募集申込停止
+    url_applications = 'coupon/applications/'  # 募集申込一覧
+    url_allocate = 'coupon/allocate'  # 割当（募集申込）
+    url_transfer = 'coupon/transfer'  # 割当
+    url_transfer_ownership = 'coupon/transfer_ownership/'  # 所有者移転
+    url_holders = 'coupon/holders/'  # 保有者一覧
+    url_holder = 'coupon/holder/'  # 保有者詳細
+    url_positions = 'coupon/positions'  # 売出管理
+    url_sell = 'coupon/sell/'  # 新規売出
+    url_cancel_order = 'coupon/cancel_order/'  # 売出中止
+    url_release = 'coupon/release'  # 公開
 
     ##################
     # PersonalInfo情報の暗号化
     ##################
     issuer_personal_info_json = {
-        "name":"株式会社１",
-        "address":{
-            "postal_code":"1234567",
-            "prefecture":"東京都",
-            "city":"中央区",
-            "address1":"日本橋11-1",
-            "address2":"東京マンション１０１"
+        "name": "株式会社１",
+        "address": {
+            "postal_code": "1234567",
+            "prefecture": "東京都",
+            "city": "中央区",
+            "address1": "日本橋11-1",
+            "address2": "東京マンション１０１"
         },
-        "email":"abcd1234@aaa.bbb.cc"
+        "email": "abcd1234@aaa.bbb.cc"
     }
 
     trader_personal_info_json = {
-        "name":"ﾀﾝﾀｲﾃｽﾄ",
-        "address":{
-            "postal_code":"1040053",
-            "prefecture":"東京都",
-            "city":"中央区",
-            "address1":"勝どき6丁目３－２",
-            "address2":"ＴＴＴ６０１２"
+        "name": "ﾀﾝﾀｲﾃｽﾄ",
+        "address": {
+            "postal_code": "1040053",
+            "prefecture": "東京都",
+            "city": "中央区",
+            "address1": "勝どき6丁目３－２",
+            "address2": "ＴＴＴ６０１２"
         },
-        "email":"abcd1234@aaa.bbb.cc"
+        "email": "abcd1234@aaa.bbb.cc"
     }
 
     key = RSA.importKey(open('data/rsa/public.pem').read())
@@ -67,7 +68,6 @@ class TestCoupon(TestBase):
     trader_encrypted_info = \
         base64.encodestring(
             cipher.encrypt(json.dumps(trader_personal_info_json).encode('utf-8')))
-
 
     # ＜前処理＞
     def test_normal_0(self, app, shared_contract):
@@ -429,11 +429,11 @@ class TestCoupon(TestBase):
         # issuer
         assert eth_account['issuer']['account_address'].encode('utf-8') in response.data
         assert '株式会社１'.encode('utf-8') in response.data
-        assert '2000000'.encode('utf-8') in response.data # issuerの保有数量
+        assert '2000000'.encode('utf-8') in response.data  # issuerの保有数量
         # trader
         assert eth_account['trader']['account_address'].encode('utf-8') in response.data
         assert 'ﾀﾝﾀｲﾃｽﾄ'.encode('utf-8') in response.data
-        assert '100'.encode('utf-8') in response.data # traderの保有数量
+        assert '100'.encode('utf-8') in response.data  # traderの保有数量
 
     # ＜正常系8＞
     # ＜保有者詳細＞
@@ -443,8 +443,9 @@ class TestCoupon(TestBase):
         client = self.client_with_admin_login(app)
 
         # 保有者詳細画面の参照
-        response = client.get(self.url_holder + tokens[0].token_address + '/' + \
-            eth_account['issuer']['account_address'])
+        response = client.get(
+            self.url_holder + tokens[0].token_address + '/' + eth_account['issuer']['account_address']
+        )
         assert response.status_code == 200
         assert '<title>保有者詳細'.encode('utf-8') in response.data
         assert eth_account['issuer']['account_address'].encode('utf-8') in response.data
@@ -559,7 +560,7 @@ class TestCoupon(TestBase):
 
         # 所有者移転
         response = client.post(
-            self.url_transfer_ownership + token.token_address + '/' + issuer_address ,
+            self.url_transfer_ownership + token.token_address + '/' + issuer_address,
             data={
                 'to_address': trader_address,
                 'amount': 10
@@ -574,13 +575,11 @@ class TestCoupon(TestBase):
 
         # 発行体
         assert issuer_address.encode('utf-8') in response.data
-        assert '<td>株式会社１</td>\n            <td>1999990</td>\n            <td>0</td>'.\
-            encode('utf-8') in response.data
+        assert '<td>株式会社１</td>\n            <td>1999990</td>\n            <td>0</td>'.encode('utf-8') in response.data
 
         # 投資家
         assert trader_address.encode('utf-8') in response.data
-        assert '<td>ﾀﾝﾀｲﾃｽﾄ</td>\n            <td>110</td>\n            <td>0</td>'.\
-            encode('utf-8') in response.data
+        assert '<td>ﾀﾝﾀｲﾃｽﾄ</td>\n            <td>110</td>\n            <td>0</td>'.encode('utf-8') in response.data
 
     # ＜正常系11＞
     # ＜公開＞
@@ -758,7 +757,7 @@ class TestCoupon(TestBase):
 
         # 割当（募集申込）
         url = self.url_allocate + '/' + token_address + '/' + trader_address
-        response = client.post(url, data = {'amount': 10})
+        response = client.post(url, data={'amount': 10})
         assert response.status_code == 302
         time.sleep(10)
 
@@ -948,7 +947,7 @@ class TestCoupon(TestBase):
 
         # 所有者移転
         response = client.post(
-            self.url_transfer_ownership + error_address + '/' + issuer_address ,
+            self.url_transfer_ownership + error_address + '/' + issuer_address,
             data={
                 'to_address': trader_address,
                 'amount': 10
@@ -970,7 +969,7 @@ class TestCoupon(TestBase):
 
         # 所有者移転
         response = client.post(
-            self.url_transfer_ownership + token.token_address + '/' + error_address ,
+            self.url_transfer_ownership + token.token_address + '/' + error_address,
             data={
                 'to_address': trader_address,
                 'amount': 10
@@ -987,12 +986,10 @@ class TestCoupon(TestBase):
         token = tokens[0]
         issuer_address = \
             to_checksum_address(eth_account['issuer']['account_address'])
-        trader_address = \
-            to_checksum_address(eth_account['trader']['account_address'])
 
         # 所有者移転
         response = client.post(
-            self.url_transfer_ownership + token.token_address + '/' + issuer_address ,
+            self.url_transfer_ownership + token.token_address + '/' + issuer_address,
             data={
             }
         )
@@ -1013,7 +1010,7 @@ class TestCoupon(TestBase):
 
         # 所有者移転
         response = client.post(
-            self.url_transfer_ownership + token.token_address + '/' + issuer_address ,
+            self.url_transfer_ownership + token.token_address + '/' + issuer_address,
             data={
                 'to_address': error_address,
                 'amount': 10
@@ -1036,7 +1033,7 @@ class TestCoupon(TestBase):
 
         # 所有者移転
         response = client.post(
-            self.url_transfer_ownership + token.token_address + '/' + issuer_address ,
+            self.url_transfer_ownership + token.token_address + '/' + issuer_address,
             data={
                 'to_address': trader_address,
                 'amount': 100000001
@@ -1059,7 +1056,7 @@ class TestCoupon(TestBase):
 
         # 所有者移転
         response = client.post(
-            self.url_transfer_ownership + token.token_address + '/' + issuer_address ,
+            self.url_transfer_ownership + token.token_address + '/' + issuer_address,
             data={
                 'to_address': trader_address,
                 'amount': 2000001

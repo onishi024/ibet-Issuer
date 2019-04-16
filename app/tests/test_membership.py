@@ -630,9 +630,9 @@ class TestMembership(TestBase):
         # 約定データの作成
         amount = 20
         exchange = shared_contract['IbetMembershipExchange']
-        orderid = get_latest_orderid_membership(exchange) - 1
+        orderid = get_latest_orderid_membership(exchange)
         take_buy_membership_token(eth_account['trader'], exchange, orderid, amount)
-        agreementid = get_latest_agreementid_membership(exchange, orderid) - 1
+        agreementid = get_latest_agreementid_membership(exchange, orderid)
         membership_confirm_agreement(eth_account['agent'], exchange, orderid, agreementid)
 
         # 保有者一覧の参照

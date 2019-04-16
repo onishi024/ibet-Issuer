@@ -338,7 +338,7 @@ def get_holders(token_address):
     for account_address in holders_uniq:
         balance = TokenContract.functions.balanceOf(account_address).call()
         commitment = ExchangeContract.functions. \
-            commitments(account_address, token_address).call()
+            commitmentOf(account_address, token_address).call()
         if balance > 0 or commitment > 0:
             encrypted_info = PersonalInfoContract.functions. \
                 personal_info(account_address, token_owner).call()[2]
@@ -762,7 +762,7 @@ def positions():
 
             # 拘束中数量を取得する
             commitment = ExchangeContract.functions. \
-                commitments(owner, row.token_address).call()
+                commitmentOf(owner, row.token_address).call()
 
             # 拘束数量がゼロよりも大きい場合、売出中のステータスを返す
             on_sale = False
@@ -905,12 +905,12 @@ def cancel_order(token_address):
     # キャンセル済みではない注文の注文IDを取得する
     for entry in entries:
         order_id_tmp = dict(entry['args'])['orderId']
-        canceled = ExchangeContract.functions.orderBook(order_id_tmp).call()[6]
+        canceled = ExchangeContract.functions.getOrder(order_id_tmp).call()[6]
         if canceled == False:
             order_id = order_id_tmp
 
     # 注文情報を取得する
-    orderBook = ExchangeContract.functions.orderBook(order_id).call()
+    orderBook = ExchangeContract.functions.getOrder(order_id).call()
     token_address = orderBook[1]
     amount = orderBook[2]
     price = orderBook[3]
