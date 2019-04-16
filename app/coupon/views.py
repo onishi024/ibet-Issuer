@@ -14,19 +14,23 @@ from config import Config
 from app.contracts import Contract
 
 from logging import getLogger
+
 logger = getLogger('api')
 
 from web3.middleware import geth_poa_middleware
+
 web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
 web3.middleware_stack.inject(geth_poa_middleware, layer=0)
 
-#+++++++++++++++++++++++++++++++
+
+# +++++++++++++++++++++++++++++++
 # Utils
-#+++++++++++++++++++++++++++++++
+# +++++++++++++++++++++++++++++++
 def flash_errors(form):
     for field, errors in form.errors.items():
         for error in errors:
             flash(error, 'error')
+
 
 ####################################################
 # [クーポン]一覧
@@ -51,7 +55,7 @@ def list():
                 # Token-Contractへの接続
                 TokenContract = web3.eth.contract(
                     address=row.token_address,
-                    abi = json.loads(
+                    abi=json.loads(
                         row.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
                 )
                 # Token-Contractから情報を取得する
@@ -60,18 +64,19 @@ def list():
                 status = TokenContract.functions.status().call()
 
             token_list.append({
-                'name':name,
-                'symbol':symbol,
-                'status':status,
-                'tx_hash':row.tx_hash,
-                'created':row.created,
-                'token_address':row.token_address
+                'name': name,
+                'symbol': symbol,
+                'status': status,
+                'tx_hash': row.tx_hash,
+                'created': row.created,
+                'token_address': row.token_address
             })
         except Exception as e:
             logger.error(e)
             pass
 
     return render_template('coupon/list.html', tokens=token_list)
+
 
 ####################################################
 # [クーポン]募集申込一覧
@@ -82,7 +87,8 @@ def applications(token_address):
     logger.info('coupon/applications')
     applications, token_name = get_applications(token_address)
     return render_template('coupon/applications.html', \
-        applications=applications, token_address=token_address, token_name=token_name)
+                           applications=applications, token_address=token_address, token_name=token_name)
+
 
 def get_applications(token_address):
     cipher = None
@@ -93,14 +99,14 @@ def get_applications(token_address):
         traceback.print_exc()
         pass
 
-    token = Token.query.filter(Token.token_address==token_address).first()
+    token = Token.query.filter(Token.token_address == token_address).first()
     token_abi = json.loads(
         token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
 
     # 会員権Token
     TokenContract = web3.eth.contract(
-        address= token_address,
-        abi = token_abi
+        address=token_address,
+        abi=token_abi
     )
 
     # PersonalInfo
@@ -111,8 +117,8 @@ def get_applications(token_address):
     try:
         event_filter = TokenContract.eventFilter(
             'ApplyFor', {
-                'filter':{},
-                'fromBlock':'earliest'
+                'filter': {},
+                'fromBlock': 'earliest'
             }
         )
         entries = event_filter.get_all_entries()
@@ -133,7 +139,7 @@ def get_applications(token_address):
 
     applications = []
     for account_address in account_list:
-        encrypted_info = PersonalInfoContract.functions.\
+        encrypted_info = PersonalInfoContract.functions. \
             personal_info(account_address, token_owner).call()[2]
 
         account_name = ''
@@ -164,6 +170,7 @@ def get_applications(token_address):
 
     return applications, token_name
 
+
 ####################################################
 # [クーポン]公開
 ####################################################
@@ -175,21 +182,22 @@ def release():
 
     token_address = request.form.get('token_address')
     list_contract_address = Config.TOKEN_LIST_CONTRACT_ADDRESS
-    ListContract = Contract.\
+    ListContract = Contract. \
         get_contract('TokenList', list_contract_address)
 
     try:
-        gas = ListContract.estimateGas().\
+        gas = ListContract.estimateGas(). \
             register(token_address, 'IbetCoupon')
-        tx = ListContract.functions.\
-            register(token_address, 'IbetCoupon').\
-            transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
+        tx = ListContract.functions. \
+            register(token_address, 'IbetCoupon'). \
+            transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
         web3.eth.waitForTransactionReceipt(tx)
         flash('処理を受け付けました。', 'success')
     except ValueError:
         flash('既に公開されています。', 'error')
 
     return redirect(url_for('.setting', token_address=token_address))
+
 
 ####################################################
 # [クーポン]新規発行
@@ -202,7 +210,7 @@ def issue():
     if request.method == 'POST':
         if form.validate():
             if not Web3.isAddress(form.tradableExchange.data):
-                flash('DEXアドレスは有効なアドレスではありません。','error')
+                flash('DEXアドレスは有効なアドレスではありません。', 'error')
                 return render_template('coupon/issue.html', form=form)
 
             eth_unlock_account()
@@ -240,31 +248,32 @@ def issue():
             ####### 画像URL登録処理 #######
             if form.image_1.data != '' or form.image_2.data != '' or form.image_3.data != '':
                 tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash)
-                if tx_receipt is not None :
+                if tx_receipt is not None:
                     TokenContract = web3.eth.contract(
-                        address= tx_receipt['contractAddress'],
-                        abi = abi
+                        address=tx_receipt['contractAddress'],
+                        abi=abi
                     )
                     if form.image_1.data != '':
                         gas = TokenContract.estimateGas().setImageURL(0, form.image_1.data)
-                        TokenContract.functions.setImageURL(0, form.image_1.data).\
-                            transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
+                        TokenContract.functions.setImageURL(0, form.image_1.data). \
+                            transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
                     if form.image_2.data != '':
                         gas = TokenContract.estimateGas().setImageURL(1, form.image_2.data)
-                        TokenContract.functions.setImageURL(1, form.image_2.data).\
-                            transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
+                        TokenContract.functions.setImageURL(1, form.image_2.data). \
+                            transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
                     if form.image_3.data != '':
                         gas = TokenContract.estimateGas().setImageURL(2, form.image_3.data)
-                        TokenContract.functions.setImageURL(2, form.image_3.data).\
-                            transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
+                        TokenContract.functions.setImageURL(2, form.image_3.data). \
+                            transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
 
             flash('新規発行を受け付けました。発行完了までに数分程かかることがあります。', 'success')
             return redirect(url_for('.list'))
         else:
             flash_errors(form)
             return render_template('coupon/issue.html', form=form)
-    else: # GET
+    else:  # GET
         return render_template('coupon/issue.html', form=form)
+
 
 # 追加発行
 @coupon.route('/add_supply/<string:token_address>', methods=['GET', 'POST'])
@@ -272,14 +281,14 @@ def issue():
 def add_supply(token_address):
     logger.info('coupon/add_supply')
 
-    token = Token.query.filter(Token.token_address==token_address).first()
+    token = Token.query.filter(Token.token_address == token_address).first()
     if token is None:
         abort(404)
 
     token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
     TokenContract = web3.eth.contract(
-        address= token.token_address,
-        abi = token_abi
+        address=token.token_address,
+        abi=token_abi
     )
     form = AddSupplyForm()
     form.token_address.data = token.token_address
@@ -292,8 +301,8 @@ def add_supply(token_address):
             if 100000000 >= (form.totalSupply.data + form.addSupply.data):
                 eth_unlock_account()
                 gas = TokenContract.estimateGas().issue(form.addSupply.data)
-                TokenContract.functions.issue(form.addSupply.data).\
-                    transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
+                TokenContract.functions.issue(form.addSupply.data). \
+                    transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
                 flash('追加発行を受け付けました。発行完了までに数分程かかることがあります。', 'success')
                 return redirect(url_for('.list'))
             else:
@@ -303,17 +312,18 @@ def add_supply(token_address):
             flash_errors(form)
             return render_template(
                 'coupon/add_supply.html',
-                form = form,
-                token_address = token_address,
-                token_name = name
+                form=form,
+                token_address=token_address,
+                token_name=name
             )
-    else: # GET
+    else:  # GET
         return render_template(
             'coupon/add_supply.html',
-            form = form,
-            token_address = token_address,
-            token_name = name
+            form=form,
+            token_address=token_address,
+            token_name=name
         )
+
 
 ####################################################
 # [クーポン]設定内容修正
@@ -322,15 +332,15 @@ def add_supply(token_address):
 @login_required
 def setting(token_address):
     logger.info('coupon/setting')
-    token = Token.query.filter(Token.token_address==token_address).first()
+    token = Token.query.filter(Token.token_address == token_address).first()
     if token is None:
         abort(404)
 
     token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
 
     TokenContract = web3.eth.contract(
-        address= token.token_address,
-        abi = token_abi
+        address=token.token_address,
+        abi=token_abi
     )
 
     name = TokenContract.functions.name().call()
@@ -354,9 +364,9 @@ def setting(token_address):
 
     # TokenListへの登録有無
     list_contract_address = Config.TOKEN_LIST_CONTRACT_ADDRESS
-    ListContract = Contract.\
+    ListContract = Contract. \
         get_contract('TokenList', list_contract_address)
-    token_struct = ListContract.functions.\
+    token_struct = ListContract.functions. \
         getTokenByAddress(token_address).call()
 
     isReleased = False
@@ -365,10 +375,10 @@ def setting(token_address):
 
     form = SettingCouponForm()
     if request.method == 'POST':
-        if form.validate(): # Validationチェック
+        if form.validate():  # Validationチェック
             # Addressフォーマットチェック
             if not Web3.isAddress(form.tradableExchange.data):
-                flash('DEXアドレスは有効なアドレスではありません。','error')
+                flash('DEXアドレスは有効なアドレスではありません。', 'error')
                 form.token_address.data = token.token_address
                 form.name.data = name
                 form.symbol.data = symbol
@@ -381,34 +391,34 @@ def setting(token_address):
 
             # DEXアドレス変更
             if form.tradableExchange.data != tradableExchange:
-                gas = TokenContract.estimateGas().\
+                gas = TokenContract.estimateGas(). \
                     setTradableExchange(to_checksum_address(form.tradableExchange.data))
-                TokenContract.functions.\
-                    setTradableExchange(to_checksum_address(form.tradableExchange.data)).\
-                    transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
+                TokenContract.functions. \
+                    setTradableExchange(to_checksum_address(form.tradableExchange.data)). \
+                    transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
 
             # トークン詳細変更
             if form.details.data != details:
                 gas = TokenContract.estimateGas().setDetails(form.details.data)
-                TokenContract.functions.setDetails(form.details.data).\
-                    transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
+                TokenContract.functions.setDetails(form.details.data). \
+                    transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
 
             # リターン詳細変更
             if form.return_details.data != return_details:
                 gas = TokenContract.estimateGas().setReturnDetails(form.return_details.data)
-                TokenContract.functions.setReturnDetails(form.return_details.data).\
-                    transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
+                TokenContract.functions.setReturnDetails(form.return_details.data). \
+                    transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
 
             # メモ欄変更
             if form.memo.data != memo:
                 gas = TokenContract.estimateGas().setMemo(form.memo.data)
-                TokenContract.functions.setMemo(form.memo.data).\
-                    transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
+                TokenContract.functions.setMemo(form.memo.data). \
+                    transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
 
             # 有効期限変更
             if form.expirationDate.data != expirationDate:
                 gas = TokenContract.estimateGas().setExpirationDate(form.expirationDate.data)
-                TokenContract.functions.setExpirationDate(form.expirationDate.data).\
+                TokenContract.functions.setExpirationDate(form.expirationDate.data). \
                     transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
 
             # 譲渡制限変更
@@ -417,26 +427,26 @@ def setting(token_address):
                 if form.transferable.data == 'False':
                     transferable_bool = False
                 gas = TokenContract.estimateGas().setTransferable(transferable_bool)
-                TokenContract.functions.setTransferable(transferable_bool).\
+                TokenContract.functions.setTransferable(transferable_bool). \
                     transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
 
             # 画像（小）変更
             if form.image_1.data != image_1:
                 gas = TokenContract.estimateGas().setImageURL(0, form.image_1.data)
-                TokenContract.functions.setImageURL(0, form.image_1.data).\
-                    transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
+                TokenContract.functions.setImageURL(0, form.image_1.data). \
+                    transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
 
             # 画像（中）変更
             if form.image_2.data != image_2:
                 gas = TokenContract.estimateGas().setImageURL(1, form.image_2.data)
-                TokenContract.functions.setImageURL(1, form.image_2.data).\
-                    transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
+                TokenContract.functions.setImageURL(1, form.image_2.data). \
+                    transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
 
             # 画像（大）変更
             if form.image_3.data != image_3:
                 gas = TokenContract.estimateGas().setImageURL(2, form.image_3.data)
-                TokenContract.functions.setImageURL(2, form.image_3.data).\
-                    transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
+                TokenContract.functions.setImageURL(2, form.image_3.data). \
+                    transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
 
             flash('設定変更を受け付けました。変更完了までに数分程かかることがあります。', 'success')
             return redirect(url_for('.list'))
@@ -452,10 +462,10 @@ def setting(token_address):
             form.bytecode.data = token.bytecode
             return render_template(
                 'coupon/setting.html',
-                form=form, token_address = token_address,
-                isReleased = isReleased, status = status, token_name = name
+                form=form, token_address=token_address,
+                isReleased=isReleased, status=status, token_name=name
             )
-    else: # GET
+    else:  # GET
         form.token_address.data = token.token_address
         form.name.data = name
         form.symbol.data = symbol
@@ -473,13 +483,14 @@ def setting(token_address):
         form.bytecode.data = token.bytecode
         return render_template(
             'coupon/setting.html',
-            form = form,
-            token_address = token_address,
-            token_name = name,
-            isReleased = isReleased,
-            status = status,
-            initial_offering_status = initial_offering_status
+            form=form,
+            token_address=token_address,
+            token_name=name,
+            isReleased=isReleased,
+            status=status,
+            initial_offering_status=initial_offering_status
         )
+
 
 ####################################################
 # [クーポン]保有一覧（売出管理画面）
@@ -504,7 +515,7 @@ def positions():
             # Tokenコントラクトに接続
             TokenContract = web3.eth.contract(
                 address=row.token_address,
-                abi = json.loads(
+                abi=json.loads(
                     row.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
             )
 
@@ -514,8 +525,8 @@ def positions():
             balance = TokenContract.functions.balanceOf(owner).call()
 
             # 拘束中数量を取得する
-            commitment = ExchangeContract.functions.\
-                commitments(owner, row.token_address).call()
+            commitment = ExchangeContract.functions. \
+                commitmentOf(owner, row.token_address).call()
 
             # 拘束数量がゼロよりも大きい場合、売出中のステータスを返す
             on_sale = False
@@ -528,17 +539,18 @@ def positions():
                 symbol = TokenContract.functions.symbol().call()
                 totalSupply = TokenContract.functions.totalSupply().call()
                 position_list.append({
-                    'token_address':row.token_address,
-                    'name':name,
-                    'symbol':symbol,
-                    'totalSupply':totalSupply,
-                    'balance':balance,
-                    'created':row.created,
-                    'commitment':commitment,
-                    'on_sale':on_sale,
+                    'token_address': row.token_address,
+                    'name': name,
+                    'symbol': symbol,
+                    'totalSupply': totalSupply,
+                    'balance': balance,
+                    'created': row.created,
+                    'commitment': commitment,
+                    'on_sale': on_sale,
                 })
 
     return render_template('coupon/positions.html', position_list=position_list)
+
 
 ####################################################
 # [クーポン]売出
@@ -549,15 +561,15 @@ def sell(token_address):
     logger.info('coupon/sell')
     form = SellForm()
 
-    token = Token.query.filter(Token.token_address==token_address).first()
+    token = Token.query.filter(Token.token_address == token_address).first()
     if token is None:
         abort(404)
 
     token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
 
     TokenContract = web3.eth.contract(
-        address= token.token_address,
-        abi = token_abi
+        address=token.token_address,
+        abi=token_abi
     )
 
     name = TokenContract.functions.name().call()
@@ -580,17 +592,17 @@ def sell(token_address):
             agent_address = Config.AGENT_ADDRESS
 
             deposit_gas = TokenContract.estimateGas().transfer(token_exchange_address, balance)
-            TokenContract.functions.transfer(token_exchange_address, balance).\
-                transact({'from':owner, 'gas':deposit_gas})
+            TokenContract.functions.transfer(token_exchange_address, balance). \
+                transact({'from': owner, 'gas': deposit_gas})
 
             ExchangeContract = Contract.get_contract(
                 'IbetCouponExchange', token_exchange_address)
 
-            sell_gas = ExchangeContract.estimateGas().\
+            sell_gas = ExchangeContract.estimateGas(). \
                 createOrder(token_address, balance, form.sellPrice.data, False, agent_address)
-            txid = ExchangeContract.functions.\
-                createOrder(token_address, balance, form.sellPrice.data, False, agent_address).\
-                transact({'from':owner, 'gas':sell_gas})
+            txid = ExchangeContract.functions. \
+                createOrder(token_address, balance, form.sellPrice.data, False, agent_address). \
+                transact({'from': owner, 'gas': sell_gas})
             tx = web3.eth.waitForTransactionReceipt(txid)
             flash('新規売出を受け付けました。売出開始までに数分程かかることがあります。', 'success')
             return redirect(url_for('.positions'))
@@ -598,7 +610,7 @@ def sell(token_address):
             flash_errors(form)
             return redirect(url_for('.sell', token_address=token_address))
 
-    else: # GET
+    else:  # GET
         form.token_address.data = token.token_address
         form.name.data = name
         form.symbol.data = symbol
@@ -614,10 +626,11 @@ def sell(token_address):
         form.sellPrice.data = None
         return render_template(
             'coupon/sell.html',
-            token_address = token_address,
-            token_name = name,
-            form = form
+            token_address=token_address,
+            token_name=name,
+            form=form
         )
+
 
 ####################################################
 # [クーポン]売出停止
@@ -629,24 +642,24 @@ def cancel_order(token_address):
     form = CancelOrderForm()
 
     # トークンのABIを取得する
-    token = Token.query.filter(Token.token_address==token_address).first()
+    token = Token.query.filter(Token.token_address == token_address).first()
     if token is None:
         abort(404)
     token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
 
     # Exchangeコントラクトに接続
     token_exchange_address = Config.IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS
-    ExchangeContract = Contract.\
+    ExchangeContract = Contract. \
         get_contract('IbetCouponExchange', token_exchange_address)
 
     # 新規注文（NewOrder）のイベント情報を検索する
     event_filter = ExchangeContract.eventFilter(
         'NewOrder', {
-            'filter':{
-                'tokenAddress':token_address,
-                'accountAddress':Config.ETH_ACCOUNT
+            'filter': {
+                'tokenAddress': token_address,
+                'accountAddress': Config.ETH_ACCOUNT
             },
-            'fromBlock':'earliest'
+            'fromBlock': 'earliest'
         }
     )
 
@@ -654,7 +667,7 @@ def cancel_order(token_address):
     # キャンセル済みではない注文の注文IDを取得する
     for entry in entries:
         order_id_tmp = dict(entry['args'])['orderId']
-        canceled = ExchangeContract.functions.orderBook(order_id_tmp).call()[6]
+        canceled = ExchangeContract.functions.getOrder(order_id_tmp).call()[6]
         if canceled == False:
             order_id = order_id_tmp
 
@@ -662,8 +675,8 @@ def cancel_order(token_address):
         if form.validate():
             eth_unlock_account()
             gas = ExchangeContract.estimateGas().cancelOrder(order_id)
-            txid = ExchangeContract.functions.cancelOrder(order_id).\
-                transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
+            txid = ExchangeContract.functions.cancelOrder(order_id). \
+                transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
             tx = web3.eth.waitForTransactionReceipt(txid)
             flash('売出停止処理を受け付けました。停止されるまでに数分程かかることがあります。', 'success')
             return redirect(url_for('.positions'))
@@ -671,17 +684,17 @@ def cancel_order(token_address):
             flash_errors(form)
             return redirect(url_for('.cancel_order', order_id=order_id))
 
-    else: # GET
+    else:  # GET
         # 注文情報を取得する
-        orderBook = ExchangeContract.functions.orderBook(order_id).call()
+        orderBook = ExchangeContract.functions.getOrder(order_id).call()
         token_address = orderBook[1]
         amount = orderBook[2]
         price = orderBook[3]
 
         # トークンの商品名、略称、総発行量を取得する
         TokenContract = web3.eth.contract(
-            address= to_checksum_address(token_address),
-            abi = token_abi
+            address=to_checksum_address(token_address),
+            abi=token_abi
         )
         name = TokenContract.functions.name().call()
         symbol = TokenContract.functions.symbol().call()
@@ -696,6 +709,7 @@ def cancel_order(token_address):
         form.price.data = price
         return render_template('coupon/cancel_order.html', form=form)
 
+
 ####################################################
 # [クーポン]割当
 ####################################################
@@ -709,26 +723,26 @@ def transfer():
         if form.validate():
             # Addressフォーマットチェック（token_address）
             if not Web3.isAddress(form.token_address.data):
-                flash('クーポンアドレスは有効なアドレスではありません。','error')
+                flash('クーポンアドレスは有効なアドレスではありません。', 'error')
                 return render_template('coupon/transfer.html', form=form)
 
             # Addressフォーマットチェック（send_address）
             if not Web3.isAddress(form.to_address.data):
-                flash('割当先アドレスは有効なアドレスではありません。','error')
+                flash('割当先アドレスは有効なアドレスではありません。', 'error')
                 return render_template('coupon/transfer.html', form=form)
 
             eth_unlock_account()
 
             # Tokenコントラクト接続
-            token = Token.query.\
-                filter(Token.token_address==form.token_address.data).first()
+            token = Token.query. \
+                filter(Token.token_address == form.token_address.data).first()
             token_abi = json.loads(
                 token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
             token_exchange_address = \
                 Config.IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS
             TokenContract = web3.eth.contract(
-                address= token.token_address,
-                abi = token_abi
+                address=token.token_address,
+                abi=token_abi
             )
 
             # 割当処理（発行体アドレス→指定アドレス）
@@ -742,8 +756,9 @@ def transfer():
         else:
             flash_errors(form)
             return render_template('coupon/transfer.html', form=form)
-    else: # GET
+    else:  # GET
         return render_template('coupon/transfer.html', form=form)
+
 
 # 割当（募集申込）
 @coupon.route(
@@ -758,7 +773,7 @@ def allocate(token_address, account_address):
         abort(404)
 
     # Tokenコントラクト接続
-    token = Token.query.filter(Token.token_address==token_address).first()
+    token = Token.query.filter(Token.token_address == token_address).first()
     if token is None:
         abort(404)
     token_abi = json.loads(
@@ -772,15 +787,15 @@ def allocate(token_address, account_address):
         if form.validate():
             # 残高チェック
             amount = int(form.amount.data)
-            balance = TokenContract.functions.\
+            balance = TokenContract.functions. \
                 balanceOf(to_checksum_address(Config.ETH_ACCOUNT)).call()
             if amount > balance:
-                flash('移転数量が残高を超えています。','error')
+                flash('移転数量が残高を超えています。', 'error')
                 return render_template(
                     'coupon/allocate.html',
-                    token_address = token_address,
-                    account_address = account_address,
-                    form = form
+                    token_address=token_address,
+                    account_address=account_address,
+                    form=form
                 )
 
             # 割当処理（発行体アドレス→指定アドレス）
@@ -794,17 +809,18 @@ def allocate(token_address, account_address):
             flash_errors(form)
             return render_template(
                 'coupon/allocate.html',
-                token_address = token_address,
-                account_address = account_address,
-                form = form
+                token_address=token_address,
+                account_address=account_address,
+                form=form
             )
-    else: # GET
+    else:  # GET
         return render_template(
             'coupon/allocate.html',
-            token_address = token_address,
-            account_address = account_address,
-            form = form
+            token_address=token_address,
+            account_address=account_address,
+            form=form
         )
+
 
 def transfer_token(TokenContract, from_address, to_address, amount):
     eth_unlock_account()
@@ -813,26 +829,27 @@ def transfer_token(TokenContract, from_address, to_address, amount):
         'IbetCouponExchange', token_exchange_address)
 
     # 取引所コントラクトへトークン送信
-    deposit_gas = TokenContract.estimateGas().\
+    deposit_gas = TokenContract.estimateGas(). \
         transferFrom(from_address, token_exchange_address, amount)
-    TokenContract.functions.\
-        transferFrom(from_address, token_exchange_address, amount).\
-        transact({'from':Config.ETH_ACCOUNT, 'gas':deposit_gas})
+    TokenContract.functions. \
+        transferFrom(from_address, token_exchange_address, amount). \
+        transact({'from': Config.ETH_ACCOUNT, 'gas': deposit_gas})
 
     # 取引所コントラクトからtransferで送信相手へ送信
-    transfer_gas = ExchangeContract.estimateGas().\
+    transfer_gas = ExchangeContract.estimateGas(). \
         transfer(to_checksum_address(TokenContract.address), to_address, amount)
-    tx_hash = ExchangeContract.functions.\
-        transfer(to_checksum_address(TokenContract.address), to_address, amount).\
-        transact({'from':Config.ETH_ACCOUNT, 'gas':transfer_gas})
+    tx_hash = ExchangeContract.functions. \
+        transfer(to_checksum_address(TokenContract.address), to_address, amount). \
+        transact({'from': Config.ETH_ACCOUNT, 'gas': transfer_gas})
     return tx_hash
+
 
 ####################################################
 # [クーポン]保有者移転
 ####################################################
 @coupon.route(
     '/transfer_ownership/<string:token_address>/<string:account_address>',
-    methods=['GET','POST'])
+    methods=['GET', 'POST'])
 @login_required
 def transfer_ownership(token_address, account_address):
     logger.info('coupon/transfer_ownership')
@@ -842,19 +859,19 @@ def transfer_ownership(token_address, account_address):
         abort(404)
 
     # ABI参照
-    token = Token.query.filter(Token.token_address==token_address).first()
+    token = Token.query.filter(Token.token_address == token_address).first()
     if token is None:
         abort(404)
     token_abi = json.loads(
         token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
 
     TokenContract = web3.eth.contract(
-        address= token.token_address,
-        abi = token_abi
+        address=token.token_address,
+        abi=token_abi
     )
 
     # 残高参照
-    balance = TokenContract.functions.\
+    balance = TokenContract.functions. \
         balanceOf(to_checksum_address(account_address)).call()
 
     form = TransferOwnershipForm()
@@ -865,13 +882,13 @@ def transfer_ownership(token_address, account_address):
             amount = int(form.amount.data)
 
             if amount > balance:
-                flash('移転数量が残高を超えています。','error')
+                flash('移転数量が残高を超えています。', 'error')
                 form.from_address.data = from_address
                 return render_template(
                     'coupon/transfer_ownership.html',
-                    token_address = token_address,
-                    account_address = account_address,
-                    form = form
+                    token_address=token_address,
+                    account_address=account_address,
+                    form=form
                 )
 
             eth_unlock_account()
@@ -879,17 +896,17 @@ def transfer_ownership(token_address, account_address):
             ExchangeContract = Contract.get_contract(
                 'IbetCouponExchange', token_exchange_address)
 
-            deposit_gas = TokenContract.estimateGas().\
+            deposit_gas = TokenContract.estimateGas(). \
                 transferFrom(from_address, token_exchange_address, amount)
-            TokenContract.functions.\
-                transferFrom(from_address, token_exchange_address, amount).\
-                transact({'from':Config.ETH_ACCOUNT, 'gas':deposit_gas})
+            TokenContract.functions. \
+                transferFrom(from_address, token_exchange_address, amount). \
+                transact({'from': Config.ETH_ACCOUNT, 'gas': deposit_gas})
 
-            transfer_gas = ExchangeContract.estimateGas().\
+            transfer_gas = ExchangeContract.estimateGas(). \
                 transfer(to_checksum_address(token_address), to_address, amount)
-            txid = ExchangeContract.functions.\
-                transfer(to_checksum_address(token_address), to_address, amount).\
-                transact({'from':Config.ETH_ACCOUNT, 'gas':transfer_gas})
+            txid = ExchangeContract.functions. \
+                transfer(to_checksum_address(token_address), to_address, amount). \
+                transact({'from': Config.ETH_ACCOUNT, 'gas': transfer_gas})
 
             tx = web3.eth.waitForTransactionReceipt(txid)
             return redirect(url_for('.holders', token_address=token_address))
@@ -898,20 +915,21 @@ def transfer_ownership(token_address, account_address):
             form.from_address.data = account_address
             return render_template(
                 'coupon/transfer_ownership.html',
-                token_address = token_address,
-                account_address = account_address,
-                form = form
+                token_address=token_address,
+                account_address=account_address,
+                form=form
             )
-    else: # GET
+    else:  # GET
         form.from_address.data = account_address
         form.to_address.data = ''
         form.amount.data = balance
         return render_template(
             'coupon/transfer_ownership.html',
-            token_address = token_address,
-            account_address = account_address,
-            form = form
+            token_address=token_address,
+            account_address=account_address,
+            form=form
         )
+
 
 ####################################################
 # [クーポン]利用履歴
@@ -925,23 +943,24 @@ def usage_history(token_address):
 
     return render_template(
         'coupon/usage_history.html',
-        token_address = token_address,
-        token_name = token_name,
-        usage_list = usage_list
+        token_address=token_address,
+        token_name=token_name,
+        usage_list=usage_list
     )
+
 
 # クーポントークンの利用履歴を返す
 def get_usege_history_coupon(token_address):
     # Coupon Token Contract
     # Note: token_addressに対して、Couponトークンのものであるかはチェックしていない。
-    token = Token.query.filter(Token.token_address==token_address).first()
+    token = Token.query.filter(Token.token_address == token_address).first()
     if token is None:
         abort(404)
 
-    token_abi = json.loads(token.abi.replace("'", '"').\
-        replace('True', 'true').replace('False', 'false'))
+    token_abi = json.loads(token.abi.replace("'", '"'). \
+                           replace('True', 'true').replace('False', 'false'))
     CouponContract = web3.eth.contract(
-        address= token_address, abi = token_abi)
+        address=token_address, abi=token_abi)
 
     # クーポン名を取得
     token_name = CouponContract.functions.name().call()
@@ -950,8 +969,8 @@ def get_usege_history_coupon(token_address):
     try:
         event_filter = CouponContract.eventFilter(
             'Consume', {
-                'filter':{},
-                'fromBlock':'earliest'
+                'filter': {},
+                'fromBlock': 'earliest'
             }
         )
         entries = event_filter.get_all_entries()
@@ -963,7 +982,7 @@ def get_usege_history_coupon(token_address):
     for entry in entries:
         usage = {
             'block_timestamp': datetime.fromtimestamp(
-                web3.eth.getBlock(entry['blockNumber'])['timestamp'],JST).\
+                web3.eth.getBlock(entry['blockNumber'])['timestamp'], JST). \
                 strftime("%Y/%m/%d %H:%M:%S"),
             'consumer': entry['args']['consumer'],
             'value': entry['args']['value']
@@ -971,6 +990,7 @@ def get_usege_history_coupon(token_address):
         usage_list.append(usage)
 
     return token_address, token_name, usage_list
+
 
 ####################################################
 # [クーポン]保有者一覧
@@ -981,7 +1001,8 @@ def holders(token_address):
     logger.info('coupon/holders')
     holders, token_name = get_holders_coupon(token_address)
     return render_template('coupon/holders.html', \
-        holders=holders, token_address=token_address, token_name=token_name)
+                           holders=holders, token_address=token_address, token_name=token_name)
+
 
 # クーポントークンの保有者一覧、token_nameを返す
 def get_holders_coupon(token_address):
@@ -995,12 +1016,12 @@ def get_holders_coupon(token_address):
 
     # Coupon Token Contract
     # Note: token_addressに対して、Couponトークンのものであるかはチェックしていない。
-    token = Token.query.filter(Token.token_address==token_address).first()
+    token = Token.query.filter(Token.token_address == token_address).first()
     token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
 
     TokenContract = web3.eth.contract(
-        address= token_address,
-        abi = token_abi
+        address=token_address,
+        abi=token_abi
     )
 
     # PersonalInfo Contract
@@ -1014,8 +1035,8 @@ def get_holders_coupon(token_address):
 
     event_filter = TokenContract.eventFilter(
         'Transfer', {
-            'filter':{},
-            'fromBlock':'earliest'
+            'filter': {},
+            'fromBlock': 'earliest'
         }
     )
     entries = event_filter.get_all_entries()
@@ -1037,7 +1058,7 @@ def get_holders_coupon(token_address):
         balance = TokenContract.functions.balanceOf(account_address).call()
         used = TokenContract.functions.usedOf(account_address).call()
         if balance > 0 or used > 0:
-            encrypted_info = PersonalInfoContract.functions.\
+            encrypted_info = PersonalInfoContract.functions. \
                 personal_info(account_address, token_owner).call()[2]
             if encrypted_info == '' or cipher == None:
                 name = ''
@@ -1051,14 +1072,15 @@ def get_holders_coupon(token_address):
                     name = ''
 
             holder = {
-                'account_address':account_address,
-                'name':name,
-                'balance':balance,
+                'account_address': account_address,
+                'name': name,
+                'balance': balance,
                 'used': used
             }
             holders.append(holder)
 
     return holders, token_name
+
 
 ####################################################
 # [クーポン]保有者詳細
@@ -1069,9 +1091,10 @@ def holder(token_address, account_address):
     logger.info('coupon/holder')
     personal_info = get_holder(token_address, account_address)
     return render_template(
-        'coupon/holder.html', 
-        personal_info=personal_info, 
+        'coupon/holder.html',
+        personal_info=personal_info,
         token_address=token_address)
+
 
 ###################################################
 # [クーポン]有効化/無効化
@@ -1084,6 +1107,7 @@ def valid():
     coupon_valid(token_address, True)
     return redirect(url_for('.setting', token_address=token_address))
 
+
 @coupon.route('/invalid', methods=['POST'])
 @login_required
 def invalid():
@@ -1092,24 +1116,26 @@ def invalid():
     coupon_valid(token_address, False)
     return redirect(url_for('.setting', token_address=token_address))
 
+
 def coupon_valid(token_address, status):
     eth_unlock_account()
-    token = Token.query.filter(Token.token_address==token_address).first()
+    token = Token.query.filter(Token.token_address == token_address).first()
     token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
     TokenContract = web3.eth.contract(
-        address= token.token_address,
-        abi = token_abi
+        address=token.token_address,
+        abi=token_abi
     )
 
     try:
         gas = TokenContract.estimateGas().setStatus(status)
-        tx = TokenContract.functions.setStatus(status).\
-                    transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
+        tx = TokenContract.functions.setStatus(status). \
+            transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
         web3.eth.waitForTransactionReceipt(tx)
         flash('処理を受け付けました。', 'success')
     except Exception as e:
         logger.error(e)
         flash('更新処理でエラーが発生しました。', 'error')
+
 
 ####################################################
 # [クーポン]募集申込開始/停止
@@ -1122,6 +1148,7 @@ def start_initial_offering():
     set_initial_offering_status(token_address, True)
     return redirect(url_for('.setting', token_address=token_address))
 
+
 @coupon.route('/stop_initial_offering', methods=['POST'])
 @login_required
 def stop_initial_offering():
@@ -1130,32 +1157,34 @@ def stop_initial_offering():
     set_initial_offering_status(token_address, False)
     return redirect(url_for('.setting', token_address=token_address))
 
+
 def set_initial_offering_status(token_address, status):
     eth_unlock_account()
-    token = Token.query.filter(Token.token_address==token_address).first()
+    token = Token.query.filter(Token.token_address == token_address).first()
     token_abi = json.loads(
         token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
 
     TokenContract = web3.eth.contract(
-        address= token.token_address,
-        abi = token_abi
+        address=token.token_address,
+        abi=token_abi
     )
 
     try:
         gas = TokenContract.estimateGas().setInitialOfferingStatus(status)
-        tx = TokenContract.functions.setInitialOfferingStatus(status).\
-            transact({'from':Config.ETH_ACCOUNT, 'gas':gas})
+        tx = TokenContract.functions.setInitialOfferingStatus(status). \
+            transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
         web3.eth.waitForTransactionReceipt(tx)
         flash('処理を受け付けました。', 'success')
-    except:
+    except Exception as e:
         logger.error(e)
         flash('更新処理でエラーが発生しました。', 'error')
 
-#+++++++++++++++++++++++++++++++
+
+# +++++++++++++++++++++++++++++++
 # Custom Filter
-#+++++++++++++++++++++++++++++++
+# +++++++++++++++++++++++++++++++
 @coupon.app_template_filter()
-def format_date(date): # date = datetime object.
+def format_date(date):  # date = datetime object.
     if date:
         if isinstance(date, datetime):
             return date.strftime('%Y/%m/%d %H:%M')

@@ -15,6 +15,7 @@ from app.contracts import Contract
 from ..models import Token
 
 from logging import getLogger
+
 logger = getLogger('api')
 
 web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
@@ -23,6 +24,8 @@ web3.middleware_stack.inject(geth_poa_middleware, layer=0)
 '''
 PersonalInfo関連
 '''
+
+
 # 名簿用個人情報登録
 # NOTE: issuer address に対する情報の公開を行う
 def register_personalinfo(invoker, personal_info, encrypted_info):
@@ -34,9 +37,10 @@ def register_personalinfo(invoker, personal_info, encrypted_info):
         'PersonalInfo', personal_info['address'])
 
     issuer = eth_account['issuer']
-    tx_hash = PersonalInfoContract.functions.register(issuer['account_address'], encrypted_info).\
-        transact({'from':invoker['account_address'], 'gas':4000000})
+    tx_hash = PersonalInfoContract.functions.register(issuer['account_address'], encrypted_info). \
+        transact({'from': invoker['account_address'], 'gas': 4000000})
     tx = web3.eth.waitForTransactionReceipt(tx_hash)
+
 
 # personalInfoの暗号済情報を復号化して返す
 def get_personal_encrypted_info(personal_info, account_address, token_owner):
@@ -44,9 +48,9 @@ def get_personal_encrypted_info(personal_info, account_address, token_owner):
     PersonalInfoContract = Contract.get_contract(
         'PersonalInfo', personal_info['address'])
     encrypted_info = PersonalInfoContract.functions.personal_info(
-                to_checksum_address(account_address),
-                to_checksum_address(token_owner)
-        ).call()[2]
+        to_checksum_address(account_address),
+        to_checksum_address(token_owner)
+    ).call()[2]
     # 復号化
     key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
     cipher = PKCS1_OAEP.new(key)
@@ -54,9 +58,12 @@ def get_personal_encrypted_info(personal_info, account_address, token_owner):
     message = cipher.decrypt(ciphertext)
     return json.loads(message)
 
+
 '''
 PaymentGateway情報登録
 '''
+
+
 # 収納代行利用規約登録
 def register_terms(invoker, payment_gateway):
     PaymentGatewayContract = Contract.get_contract(
@@ -67,9 +74,10 @@ def register_terms(invoker, payment_gateway):
     web3.personal.unlockAccount(invoker['account_address'],
                                 invoker['password'])
 
-    tx_hash = PaymentGatewayContract.functions.addTerms('test terms').\
-        transact({'from':invoker['account_address'], 'gas':4000000})
+    tx_hash = PaymentGatewayContract.functions.addTerms('test terms'). \
+        transact({'from': invoker['account_address'], 'gas': 4000000})
     tx = web3.eth.waitForTransactionReceipt(tx_hash)
+
 
 # 決済用銀行口座情報登録
 def register_only_payment_account(invoker, payment_gateway, encrypted_info):
@@ -82,9 +90,10 @@ def register_only_payment_account(invoker, payment_gateway, encrypted_info):
                                 invoker['password'])
 
     agent = eth_account['agent']
-    tx_hash = PaymentGatewayContract.functions.register(agent['account_address'], encrypted_info).\
-        transact({'from':invoker['account_address'], 'gas':4000000})
-    tx = web3.eth.waitForTransactionReceipt(tx_hash)
+    tx_hash = PaymentGatewayContract.functions.register(agent['account_address'], encrypted_info). \
+        transact({'from': invoker['account_address'], 'gas': 4000000})
+    web3.eth.waitForTransactionReceipt(tx_hash)
+
 
 # 決済口座の認可
 def approve_payment_account(invoker, payment_gateway):
@@ -96,9 +105,10 @@ def approve_payment_account(invoker, payment_gateway):
     web3.eth.defaultAccount = agent['account_address']
     web3.personal.unlockAccount(agent['account_address'], agent['password'])
 
-    tx_hash = PaymentGatewayContract.functions.approve(invoker['account_address']).\
-        transact({'from':agent['account_address'], 'gas':4000000})
-    tx = web3.eth.waitForTransactionReceipt(tx_hash)
+    tx_hash = PaymentGatewayContract.functions.approve(invoker['account_address']). \
+        transact({'from': agent['account_address'], 'gas': 4000000})
+    web3.eth.waitForTransactionReceipt(tx_hash)
+
 
 # 決済用銀行口座情報登録（認可まで）
 def register_payment_account(invoker, payment_gateway, encrypted_info):
@@ -111,25 +121,26 @@ def register_payment_account(invoker, payment_gateway, encrypted_info):
                                 invoker['password'])
 
     agent = eth_account['agent']
-    tx_hash = PaymentGatewayContract.functions.register(agent['account_address'], encrypted_info).\
-        transact({'from':invoker['account_address'], 'gas':4000000})
-    tx = web3.eth.waitForTransactionReceipt(tx_hash)
+    tx_hash = PaymentGatewayContract.functions.register(agent['account_address'], encrypted_info). \
+        transact({'from': invoker['account_address'], 'gas': 4000000})
+    web3.eth.waitForTransactionReceipt(tx_hash)
 
     # 2) 認可 from Agent
     web3.eth.defaultAccount = agent['account_address']
     web3.personal.unlockAccount(agent['account_address'], agent['password'])
 
-    tx_hash = PaymentGatewayContract.functions.approve(invoker['account_address']).\
-        transact({'from':agent['account_address'], 'gas':4000000})
-    tx = web3.eth.waitForTransactionReceipt(tx_hash)
+    tx_hash = PaymentGatewayContract.functions.approve(invoker['account_address']). \
+        transact({'from': agent['account_address'], 'gas': 4000000})
+    web3.eth.waitForTransactionReceipt(tx_hash)
+
 
 # PaymentGatewayの暗号化済情報を復号化して返す
 def get_payment_account_encrypted_info(payment_gateway, account_address, agent_address):
     PaymentGatewayContract = Contract.get_contract(
         'PaymentGateway', payment_gateway['address'])
     payment_account = PaymentGatewayContract.functions.payment_accounts(
-            to_checksum_address(account_address),
-            to_checksum_address(agent_address)
+        to_checksum_address(account_address),
+        to_checksum_address(agent_address)
     ).call()
     logger.info(payment_account)
 
@@ -140,9 +151,12 @@ def get_payment_account_encrypted_info(payment_gateway, account_address, agent_a
     message = cipher.decrypt(ciphertext)
     return json.loads(message)
 
+
 '''
 債券トークン関連：IbetStraightBond
 '''
+
+
 # 債券トークンの発行
 def issue_bond_token(invoker, attribute):
     web3.eth.defaultAccount = invoker['account_address']
@@ -150,18 +164,18 @@ def issue_bond_token(invoker, attribute):
                                 invoker['password'])
 
     interestPaymentDate = json.dumps({
-        'interestPaymentDate1':attribute['interestPaymentDate1'],
-        'interestPaymentDate2':attribute['interestPaymentDate2'],
-        'interestPaymentDate3':attribute['interestPaymentDate3'],
-        'interestPaymentDate4':attribute['interestPaymentDate4'],
-        'interestPaymentDate5':attribute['interestPaymentDate5'],
-        'interestPaymentDate6':attribute['interestPaymentDate6'],
-        'interestPaymentDate7':attribute['interestPaymentDate7'],
-        'interestPaymentDate8':attribute['interestPaymentDate8'],
-        'interestPaymentDate9':attribute['interestPaymentDate9'],
-        'interestPaymentDate10':attribute['interestPaymentDate10'],
-        'interestPaymentDate11':attribute['interestPaymentDate11'],
-        'interestPaymentDate12':attribute['interestPaymentDate12']
+        'interestPaymentDate1': attribute['interestPaymentDate1'],
+        'interestPaymentDate2': attribute['interestPaymentDate2'],
+        'interestPaymentDate3': attribute['interestPaymentDate3'],
+        'interestPaymentDate4': attribute['interestPaymentDate4'],
+        'interestPaymentDate5': attribute['interestPaymentDate5'],
+        'interestPaymentDate6': attribute['interestPaymentDate6'],
+        'interestPaymentDate7': attribute['interestPaymentDate7'],
+        'interestPaymentDate8': attribute['interestPaymentDate8'],
+        'interestPaymentDate9': attribute['interestPaymentDate9'],
+        'interestPaymentDate10': attribute['interestPaymentDate10'],
+        'interestPaymentDate11': attribute['interestPaymentDate11'],
+        'interestPaymentDate12': attribute['interestPaymentDate12']
     })
 
     arguments = [
@@ -177,6 +191,7 @@ def issue_bond_token(invoker, attribute):
 
     return {'address': contract_address, 'abi': abi}
 
+
 # 債券トークンのリスト登録
 def register_bond_list(invoker, bond_token, token_list):
     TokenListContract = Contract.get_contract(
@@ -186,14 +201,16 @@ def register_bond_list(invoker, bond_token, token_list):
     web3.personal.unlockAccount(invoker['account_address'],
                                 invoker['password'])
 
-    tx_hash = TokenListContract.functions.register(bond_token['address'], 'IbetStraightBond').\
-        transact({'from':invoker['account_address'], 'gas':4000000})
-    tx = web3.eth.waitForTransactionReceipt(tx_hash)
+    tx_hash = TokenListContract.functions.register(bond_token['address'], 'IbetStraightBond'). \
+        transact({'from': invoker['account_address'], 'gas': 4000000})
+    web3.eth.waitForTransactionReceipt(tx_hash)
+
 
 # 債券トークンの売出
 def offer_bond_token(invoker, bond_exchange, bond_token, amount, price):
     bond_transfer_to_exchange(invoker, bond_exchange, bond_token, amount)
     make_sell_bond_token(invoker, bond_exchange, bond_token, amount, price)
+
 
 # 取引コントラクトに債券トークンをチャージ
 def bond_transfer_to_exchange(invoker, bond_exchange, bond_token, amount):
@@ -204,26 +221,28 @@ def bond_transfer_to_exchange(invoker, bond_exchange, bond_token, amount):
     TokenContract = Contract.get_contract(
         'IbetStraightBond', bond_token['address'])
 
-    tx_hash = TokenContract.functions.transfer(bond_exchange['address'], amount).\
-        transact({'from':invoker['account_address'], 'gas':4000000})
-    tx = web3.eth.waitForTransactionReceipt(tx_hash)
+    tx_hash = TokenContract.functions.transfer(bond_exchange['address'], amount). \
+        transact({'from': invoker['account_address'], 'gas': 4000000})
+    web3.eth.waitForTransactionReceipt(tx_hash)
+
 
 # 債券トークンの売りMake注文
 def make_sell_bond_token(invoker, bond_exchange, bond_token, amount, price):
     web3.eth.defaultAccount = invoker['account_address']
-    web3.personal.unlockAccount(invoker['account_address'],invoker['password'])
+    web3.personal.unlockAccount(invoker['account_address'], invoker['password'])
 
     ExchangeContract = Contract.get_contract(
         'IbetStraightBondExchange', bond_exchange['address'])
 
     agent = eth_account['agent']
 
-    gas = ExchangeContract.estimateGas().\
+    gas = ExchangeContract.estimateGas(). \
         createOrder(bond_token['address'], amount, price, False, agent['account_address'])
-    tx_hash = ExchangeContract.functions.\
-        createOrder(bond_token['address'], amount, price, False, agent['account_address']).\
-        transact({'from':invoker['account_address'], 'gas':gas})
-    tx = web3.eth.waitForTransactionReceipt(tx_hash)
+    tx_hash = ExchangeContract.functions. \
+        createOrder(bond_token['address'], amount, price, False, agent['account_address']). \
+        transact({'from': invoker['account_address'], 'gas': gas})
+    web3.eth.waitForTransactionReceipt(tx_hash)
+
 
 # 債券トークンの買いTake注文
 def take_buy_bond_token(invoker, bond_exchange, order_id, amount):
@@ -234,10 +253,11 @@ def take_buy_bond_token(invoker, bond_exchange, order_id, amount):
     ExchangeContract = Contract.get_contract(
         'IbetStraightBondExchange', bond_exchange['address'])
 
-    tx_hash = ExchangeContract.functions.\
-        executeOrder(order_id, amount, True).\
-        transact({'from':invoker['account_address'], 'gas':4000000})
-    tx = web3.eth.waitForTransactionReceipt(tx_hash)
+    tx_hash = ExchangeContract.functions. \
+        executeOrder(order_id, amount, True). \
+        transact({'from': invoker['account_address'], 'gas': 4000000})
+    web3.eth.waitForTransactionReceipt(tx_hash)
+
 
 # 直近注文IDを取得
 def get_latest_orderid(bond_exchange):
@@ -246,12 +266,14 @@ def get_latest_orderid(bond_exchange):
     latest_orderid = ExchangeContract.functions.latestOrderId().call()
     return latest_orderid
 
+
 # 直近約定IDを取得
 def get_latest_agreementid(bond_exchange, order_id):
     ExchangeContract = Contract.get_contract(
         'IbetStraightBondExchange', bond_exchange['address'])
-    latest_agreementid = ExchangeContract.functions.latestAgreementIds(order_id).call()
+    latest_agreementid = ExchangeContract.functions.latestAgreementId(order_id).call()
     return latest_agreementid
+
 
 # 債券約定の資金決済
 def bond_confirm_agreement(invoker, bond_exchange, order_id, agreement_id):
@@ -262,10 +284,11 @@ def bond_confirm_agreement(invoker, bond_exchange, order_id, agreement_id):
     ExchangeContract = Contract.get_contract(
         'IbetStraightBondExchange', bond_exchange['address'])
 
-    tx_hash = ExchangeContract.functions.\
-        confirmAgreement(order_id, agreement_id).\
-        transact({'from':invoker['account_address'], 'gas':4000000})
-    tx = web3.eth.waitForTransactionReceipt(tx_hash)
+    tx_hash = ExchangeContract.functions. \
+        confirmAgreement(order_id, agreement_id). \
+        transact({'from': invoker['account_address'], 'gas': 4000000})
+    web3.eth.waitForTransactionReceipt(tx_hash)
+
 
 # 認定実施
 def exec_sign(token_address, invoker):
@@ -276,9 +299,10 @@ def exec_sign(token_address, invoker):
     TokenContract = Contract.get_contract(
         'IbetStraightBond', token_address)
 
-    tx_hash = TokenContract.functions.sign().\
-        transact({'from':invoker['account_address'], 'gas':4000000})
-    tx = web3.eth.waitForTransactionReceipt(tx_hash)
+    tx_hash = TokenContract.functions.sign(). \
+        transact({'from': invoker['account_address'], 'gas': 4000000})
+    web3.eth.waitForTransactionReceipt(tx_hash)
+
 
 # 認定区分を取得
 def get_signature(token_address, signer_address):
@@ -286,15 +310,19 @@ def get_signature(token_address, signer_address):
         'IbetStraightBond', token_address)
     return TokenContract.functions.signatures(signer_address).call()
 
+
 '''
 会員権トークン関連：IbetMembership
 '''
+
+
 # 直近注文IDを取得
 def get_latest_orderid_membership(membership_exchange):
     ExchangeContract = Contract.get_contract(
         'IbetMembershipExchange', membership_exchange['address'])
     latest_orderid = ExchangeContract.functions.latestOrderId().call()
     return latest_orderid
+
 
 # 会員権トークンの買いTake注文
 def take_buy_membership_token(invoker, membership_exchange, order_id, amount):
@@ -305,17 +333,19 @@ def take_buy_membership_token(invoker, membership_exchange, order_id, amount):
     ExchangeContract = Contract.get_contract(
         'IbetMembershipExchange', membership_exchange['address'])
 
-    tx_hash = ExchangeContract.functions.\
-        executeOrder(order_id, amount, True).\
-        transact({'from':invoker['account_address'], 'gas':4000000})
-    tx = web3.eth.waitForTransactionReceipt(tx_hash)
+    tx_hash = ExchangeContract.functions. \
+        executeOrder(order_id, amount, True). \
+        transact({'from': invoker['account_address'], 'gas': 4000000})
+    web3.eth.waitForTransactionReceipt(tx_hash)
+
 
 # 直近約定IDを取得
 def get_latest_agreementid_membership(membership_exchange, order_id):
     ExchangeContract = Contract.get_contract(
         'IbetMembershipExchange', membership_exchange['address'])
-    latest_agreementid = ExchangeContract.functions.latestAgreementIds(order_id).call()
+    latest_agreementid = ExchangeContract.functions.latestAgreementId(order_id).call()
     return latest_agreementid
+
 
 # 会員権約定の資金決済
 def membership_confirm_agreement(invoker, membership_exchange, order_id, agreement_id):
@@ -326,10 +356,11 @@ def membership_confirm_agreement(invoker, membership_exchange, order_id, agreeme
     ExchangeContract = Contract.get_contract(
         'IbetMembershipExchange', membership_exchange['address'])
 
-    tx_hash = ExchangeContract.functions.\
-        confirmAgreement(order_id, agreement_id).\
-        transact({'from':invoker['account_address'], 'gas':4000000})
-    tx = web3.eth.waitForTransactionReceipt(tx_hash)
+    tx_hash = ExchangeContract.functions. \
+        confirmAgreement(order_id, agreement_id). \
+        transact({'from': invoker['account_address'], 'gas': 4000000})
+    web3.eth.waitForTransactionReceipt(tx_hash)
+
 
 # 会員権の直近価格
 def get_membership_lastprice(membership_exchange, token_address):
@@ -337,58 +368,69 @@ def get_membership_lastprice(membership_exchange, token_address):
         'IbetMembershipExchange', membership_exchange['address'])
     return ExchangeContract.functions.lastPrice(token_address).call()
 
+
 # 会員権取引コントラクトの拘束数量
-def get_membership_ex_commitments(membership_exchange, account_address, token_address):
+def get_membership_ex_commitment(membership_exchange, account_address, token_address):
     ExchangeContract = Contract.get_contract(
         'IbetMembershipExchange', membership_exchange['address'])
-    commitment = ExchangeContract.functions.\
-        commitments(account_address, token_address).call()
+    commitment = ExchangeContract.functions. \
+        commitmentOf(account_address, token_address).call()
     return commitment
+
 
 # 会員権のオーダー取得
 def get_membership_orderBook(membership_exchange, order_id):
     ExchangeContract = Contract.get_contract(
         'IbetMembershipExchange', membership_exchange['address'])
-    return ExchangeContract.functions.orderBook(order_id).call()
+    return ExchangeContract.functions.getOrder(order_id).call()
+
 
 # 会員権の約定取得
-def get_membership_agreements(membership_exchange, order_id, agreement_id):
+def get_membership_agreement(membership_exchange, order_id, agreement_id):
     ExchangeContract = Contract.get_contract(
         'IbetMembershipExchange', membership_exchange['address'])
-    return ExchangeContract.functions.agreements(order_id, agreement_id).call()
+    return ExchangeContract.functions.getAgreement(order_id, agreement_id).call()
+
 
 # 会員権：募集申込
 def membership_apply_for_offering(invoker, token_address):
     web3.eth.defaultAccount = invoker['account_address']
-    web3.personal.unlockAccount(invoker['account_address'],invoker['password'])
+    web3.personal.unlockAccount(invoker['account_address'], invoker['password'])
     TokenContract = Contract.get_contract('IbetMembership', token_address)
-    tx_hash = TokenContract.functions.\
-        applyForOffering('abcdefgh').\
-        transact({'from':invoker['account_address'], 'gas':4000000})
-    tx = web3.eth.waitForTransactionReceipt(tx_hash)
+    tx_hash = TokenContract.functions. \
+        applyForOffering('abcdefgh'). \
+        transact({'from': invoker['account_address'], 'gas': 4000000})
+    web3.eth.waitForTransactionReceipt(tx_hash)
+
 
 '''
 クーポントークン関連：IbetCoupon
 '''
+
+
 # クーポン：募集申込
 def coupon_apply_for_offering(invoker, token_address):
     web3.eth.defaultAccount = invoker['account_address']
-    web3.personal.unlockAccount(invoker['account_address'],invoker['password'])
+    web3.personal.unlockAccount(invoker['account_address'], invoker['password'])
     TokenContract = Contract.get_contract('IbetCoupon', token_address)
-    tx_hash = TokenContract.functions.\
-        applyForOffering('abcdefgh').\
-        transact({'from':invoker['account_address'], 'gas':4000000})
-    tx = web3.eth.waitForTransactionReceipt(tx_hash)
+    tx_hash = TokenContract.functions. \
+        applyForOffering('abcdefgh'). \
+        transact({'from': invoker['account_address'], 'gas': 4000000})
+    web3.eth.waitForTransactionReceipt(tx_hash)
+
 
 '''
 TokenList関連
 '''
+
+
 # トークン数取得
 def get_token_list_length(token_list):
     TokenListContract = Contract.get_contract(
         'TokenList', token_list['address'])
     list_length = TokenListContract.functions.getListLength().call()
     return list_length
+
 
 # トークン数取得
 def get_token_list(token_list, token_address):
@@ -397,9 +439,12 @@ def get_token_list(token_list, token_address):
     token = TokenListContract.functions.getTokenByAddress(token_address).call()
     return token
 
+
 '''
 共通処理
 '''
+
+
 # 発行済みトークンのアドレスをDBへ登録
 def processorIssueEvent(db):
     # コントラクトアドレスが登録されていないTokenの一覧を抽出
@@ -410,9 +455,10 @@ def processorIssueEvent(db):
             tx_hash_hex = '0x' + tx_hash[2:]
             try:
                 tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash_hex)
-            except:
+            except Exception as e:
+                logger.error(e)
                 continue
-            if tx_receipt is not None :
+            if tx_receipt is not None:
                 # ブロックの状態を確認して、コントラクトアドレスが登録されているかを確認する。
                 if 'contractAddress' in tx_receipt.keys():
                     admin_address = tx_receipt['from']

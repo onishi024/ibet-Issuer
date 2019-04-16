@@ -4,51 +4,52 @@ from .conftest import TestBase
 from .contract_modules import *
 from ..models import Token
 from logging import getLogger
+
 logger = getLogger('api')
 
-class TestBond(TestBase):
 
+class TestBond(TestBase):
     ##################
     # URL
     ##################
-    url_list = '/bond/list' # 発行済一覧
-    url_positions = '/bond/positions' # 売出管理
-    url_issue = '/bond/issue' # 新規発行
-    url_setting = '/bond/setting/' # 詳細設定
-    url_sell = 'bond/sell/' # 新規売出
-    url_cancel_order = 'bond/cancel_order/' # 売出停止
-    url_release = 'bond/release' # 公開
-    url_holders = 'bond/holders/' # 保有者一覧
-    url_holder = 'bond/holder/' # 保有者詳細
-    url_signature = 'bond/request_signature/' # 認定依頼
-    url_redeem = 'bond/redeem' # 償還
-    url_transfer_ownership = 'bond/transfer_ownership/' # 所有者移転
+    url_list = '/bond/list'  # 発行済一覧
+    url_positions = '/bond/positions'  # 売出管理
+    url_issue = '/bond/issue'  # 新規発行
+    url_setting = '/bond/setting/'  # 詳細設定
+    url_sell = 'bond/sell/'  # 新規売出
+    url_cancel_order = 'bond/cancel_order/'  # 売出停止
+    url_release = 'bond/release'  # 公開
+    url_holders = 'bond/holders/'  # 保有者一覧
+    url_holder = 'bond/holder/'  # 保有者詳細
+    url_signature = 'bond/request_signature/'  # 認定依頼
+    url_redeem = 'bond/redeem'  # 償還
+    url_transfer_ownership = 'bond/transfer_ownership/'  # 所有者移転
 
     ##################
     # PersonalInfo情報の暗号化
     ##################
     issuer_personal_info_json = {
-        "name":"株式会社１",
-        "address":{
-            "postal_code":"1234567",
-            "prefecture":"東京都",
-            "city":"中央区",
-            "address1":"日本橋11-1",
-            "address2":"東京マンション１０１"
+        "name": "株式会社１",
+        "address": {
+            "postal_code": "1234567",
+            "prefecture": "東京都",
+            "city": "中央区",
+            "address1": "日本橋11-1",
+            "address2": "東京マンション１０１"
         },
-        "email":"abcd1234@aaa.bbb.cc"
+        "email": "abcd1234@aaa.bbb.cc"
     }
 
     trader_personal_info_json = {
-        "name":"ﾀﾝﾀｲﾃｽﾄ",
-        "address":{
-            "postal_code":"1040053",
-            "prefecture":"東京都",
-            "city":"中央区",
-            "address1":"勝どき6丁目３－２",
-            "address2":"ＴＴＴ６０１２"
+        "name": "ﾀﾝﾀｲﾃｽﾄ",
+        "address": {
+            "postal_code": "1040053",
+            "prefecture": "東京都",
+            "city": "中央区",
+            "address1": "勝どき6丁目３－２",
+            "address2": "ＴＴＴ６０１２"
         },
-        "email":"abcd1234@aaa.bbb.cc"
+        "email": "abcd1234@aaa.bbb.cc"
     }
 
     key = RSA.importKey(open('data/rsa/public.pem').read())
@@ -492,7 +493,7 @@ class TestBond(TestBase):
 
         # 所有者移転
         response = client.post(
-            self.url_transfer_ownership + token.token_address + '/' + issuer_address ,
+            self.url_transfer_ownership + token.token_address + '/' + issuer_address,
             data={
                 'to_address': trader_address,
                 'amount': 10
@@ -507,14 +508,11 @@ class TestBond(TestBase):
 
         # 発行体
         assert issuer_address.encode('utf-8') in response.data
-        assert '<td>株式会社１</td>\n            <td>999990</td>\n            <td>0</td>'.\
-            encode('utf-8') in response.data
+        assert '<td>株式会社１</td>\n            <td>999990</td>\n            <td>0</td>'.encode('utf-8') in response.data
 
         # 投資家
         assert trader_address.encode('utf-8') in response.data
-        assert '<td>ﾀﾝﾀｲﾃｽﾄ</td>\n            <td>10</td>\n            <td>0</td>'.\
-            encode('utf-8') in response.data
-
+        assert '<td>ﾀﾝﾀｲﾃｽﾄ</td>\n            <td>10</td>\n            <td>0</td>'.encode('utf-8') in response.data
 
     #############################################################################
     # エラー系
@@ -631,7 +629,6 @@ class TestBond(TestBase):
         assert response.status_code == 200
         assert '認定者は必須です。'.encode('utf-8') in response.data
 
-
     # ＜エラー系4＞
     #   認定（認定依頼先アドレスのフォーマットエラー）
     def test_error_4(self, app, shared_contract):
@@ -643,12 +640,11 @@ class TestBond(TestBase):
             url_signature,
             data={
                 'token_address': token.token_address,
-                'signer': '0xc94b0d702422587e361dd6cd08b55dfe1961181f1' # 1桁多い
+                'signer': '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'  # 1桁多い
             }
         )
         assert response.status_code == 200
         assert '有効なアドレスではありません。'.encode('utf-8') in response.data
-
 
     # ＜エラー系5＞
     #   認定（認定依頼がすでに登録されている）
@@ -681,7 +677,7 @@ class TestBond(TestBase):
 
         # 所有者移転
         response = client.post(
-            self.url_transfer_ownership + error_address + '/' + issuer_address ,
+            self.url_transfer_ownership + error_address + '/' + issuer_address,
             data={
                 'to_address': trader_address,
                 'amount': 10
@@ -703,7 +699,7 @@ class TestBond(TestBase):
 
         # 所有者移転
         response = client.post(
-            self.url_transfer_ownership + token.token_address + '/' + error_address ,
+            self.url_transfer_ownership + token.token_address + '/' + error_address,
             data={
                 'to_address': trader_address,
                 'amount': 10
@@ -720,12 +716,10 @@ class TestBond(TestBase):
         token = tokens[0]
         issuer_address = \
             to_checksum_address(eth_account['issuer']['account_address'])
-        trader_address = \
-            to_checksum_address(eth_account['trader']['account_address'])
 
         # 所有者移転
         response = client.post(
-            self.url_transfer_ownership + token.token_address + '/' + issuer_address ,
+            self.url_transfer_ownership + token.token_address + '/' + issuer_address,
             data={
             }
         )
@@ -746,7 +740,7 @@ class TestBond(TestBase):
 
         # 所有者移転
         response = client.post(
-            self.url_transfer_ownership + token.token_address + '/' + issuer_address ,
+            self.url_transfer_ownership + token.token_address + '/' + issuer_address,
             data={
                 'to_address': error_address,
                 'amount': 10
@@ -769,7 +763,7 @@ class TestBond(TestBase):
 
         # 所有者移転
         response = client.post(
-            self.url_transfer_ownership + token.token_address + '/' + issuer_address ,
+            self.url_transfer_ownership + token.token_address + '/' + issuer_address,
             data={
                 'to_address': trader_address,
                 'amount': 100000001
@@ -792,7 +786,7 @@ class TestBond(TestBase):
 
         # 所有者移転
         response = client.post(
-            self.url_transfer_ownership + token.token_address + '/' + issuer_address ,
+            self.url_transfer_ownership + token.token_address + '/' + issuer_address,
             data={
                 'to_address': trader_address,
                 'amount': 1000001

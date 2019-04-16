@@ -215,7 +215,7 @@ def main(data_count):
     token_dict = issue_token(exchange_address, data_count, token_type)
     register_token_list(token_dict, token_type)
     offer_token(agent_address, exchange_address, token_dict, data_count, token_type, ExchangeContract)
-    order_id = get_latest_orderid(ExchangeContract) - 1
+    order_id = get_latest_orderid(ExchangeContract)
     print("token_address: " + token_dict['address'])
     print("order_id: " + str(order_id))
 
