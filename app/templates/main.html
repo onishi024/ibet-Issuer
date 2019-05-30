@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}トップ - {% endblock %}
-{% block page_header %}トップメニュー{% endblock %}
+{% block page_header %}トップメニュー <small>Top Menu</small>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
     <li><a href="{{ url_for('index.index') }}">トップ</a></li>
@@ -13,16 +13,11 @@
             <div class="col-md-12">
                 <div class="box box-solid">
                     <!-- /.box-header -->
+                    <div class="box-header">
+                        <h3 class="box-title">ibet for issuer</h3>
+                    </div>
                     <div class="box-body">
-                      <h4><b>ibet:issuer</b></h4>
-                      <br>
-                      <p>・自社のノードから金融商品を発行することが可能です。</p>
-                      <p>・このアプリケーションを利用して、金融商品の新規発行や、発行済商品に対する各種オペレーションを実施します。</p>
-                      <p>・『債券発行管理』メニューからは、債券の新規発行が可能です。</p>
-                      <p>・『会員権発行管理』メニューからは、会員権の新規発行が可能です。</p>
-                      <p>・『クーポン発行管理』メニューからは、クーポンの新規発行・管理が行えます。また、任意のアカウントに対してクーポンの割当が可能です。</p>
-                      <p>・『アカウント管理』のメニューは管理者のみ利用が可能です。アプリケーションで利用するアカウントの管理を行うことができます。</p>
-                      <br>
+                      <p>このアプリケーションを利用して、デジタルアセットの新規発行や、発行済商品に対する各種オペレーションを実施することができます。</p>
                       <p class="text-center">
                           <img src="{{url_for('static', filename='eth_address.png')}}" width="256" height="256" alt=""/>
                       </p>

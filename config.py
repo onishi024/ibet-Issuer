@@ -41,28 +41,28 @@ class Config:
     }
 
     NAVI_MENU_USER = [
-        ('bond', 'glyphicon glyphicon-list-alt', '債券発行管理', [
-            ('bond_list', 'fa fa-list', '債券一覧', 'bond.list'),
-            ('bond_issue', 'fa fa-plus-square-o', '債券新規発行', 'bond.issue'),
-            ('bond_position', 'fa fa-yen', '債券売出管理', 'bond.positions'),
+        ('bond', 'glyphicon glyphicon-th', '債券 (BETA)', [
+            ('bond_issue', 'fa fa-circle-o', '新規発行', 'bond.issue'),
+            ('bond_list', 'fa fa-circle-o', '発行済一覧', 'bond.list'),
+            ('bond_position', 'fa fa-circle-o', '売出管理', 'bond.positions'),
         ]),
-        ('membership', 'glyphicon glyphicon-list-alt', '会員権発行管理', [
-            ('membership_list', 'fa fa-list', '会員権一覧', 'membership.list'),
-            ('membership_issue', 'fa fa-plus-square-o', '会員権新規発行', 'membership.issue'),
-            ('membership_position', 'fa fa-yen', '会員権売出管理', 'membership.positions'),
+        ('membership', 'glyphicon glyphicon-th', '会員権', [
+            ('membership_issue', 'fa fa-circle-o', '新規発行', 'membership.issue'),
+            ('membership_list', 'fa fa-circle-o', '発行済一覧', 'membership.list'),
+            ('membership_position', 'fa fa-circle-o', '売出管理', 'membership.positions'),
         ]),
-        ('coupon', 'glyphicon glyphicon-list-alt', 'クーポン発行管理', [
-            ('coupon_list', 'fa fa-list', 'クーポン一覧', 'coupon.list'),
-            ('coupon_issue', 'fa fa-plus-square-o', 'クーポン発行', 'coupon.issue'),
-            ('coupon_position', 'fa fa-yen', 'クーポン売出管理', 'coupon.positions'),
-            ('coupon_transfer', 'fa fa-send', 'クーポン割当', 'coupon.transfer')
+        ('coupon', 'glyphicon glyphicon-th', 'クーポン', [
+            ('coupon_issue', 'fa fa-circle-o', '新規発行', 'coupon.issue'),
+            ('coupon_list', 'fa fa-circle-o', '発行済一覧', 'coupon.list'),
+            ('coupon_position', 'fa fa-circle-o', '売出管理', 'coupon.positions'),
+            ('coupon_transfer', 'fa fa-circle-o', '割当', 'coupon.transfer')
         ]),
     ]
 
     NAVI_MENU_ADMIN = [
-        ('account', 'glyphicon glyphicon-user', 'アカウント管理', [
-            ('account_list', 'fa fa-list', 'アカウント一覧', 'account.list'),
-            ('account_bank_info', 'fa fa-bank', '銀行情報登録', 'account.bankinfo'),
+        ('account', 'glyphicon glyphicon-cog', 'Settings', [
+            ('account_list', 'fa fa-circle-o', 'アカウント管理', 'account.list'),
+            ('account_bank_info', 'fa fa-circle-o', '銀行口座情報', 'account.bankinfo'),
         ]),
     ]
 

@@ -143,7 +143,7 @@ desired effect
       <!-- Sidebar Menu -->
       <ul class="sidebar-menu" data-widget="tree">
         {% set active_page = active_page|default('index') -%}
-        <li class="header">メニュー</li>
+        <li class="header">Menu</li>
         {% set navigation_menu = config['NAVI_MENU_USER'] %}
         {% for main_id, main_icon, main_caption, sub_menus in navigation_menu %}
             <li class="{% if active_page.startswith(main_id) %}active treeview{% else %}treeview{% endif %}">
@@ -160,7 +160,7 @@ desired effect
             </li>
         {% endfor %}
         {% if current_user.is_anonymous or current_user.role.name == 'admin' %}
-            <li class="header">管理者メニュー</li>
+            <li class="header">Administration</li>
             {% set navigation_menu = config['NAVI_MENU_ADMIN'] %}
             {% for main_id, main_icon, main_caption, sub_menus in navigation_menu %}
                 <li class="{% if active_page.startswith(main_id) %}active treeview{% else %}treeview{% endif %}">

@@ -73,13 +73,14 @@
 #}
 <div class="login-box">
   <div class="login-logo">
-    <img src="/static/img/ibet-logo-white@2x.png" width="60%" height="60%" class="user-image" alt="icon">
+    <img src="/static/img/ibet-logo-white@2x.png" width="50%" height="50%" class="user-image" alt="icon">
   </div>
+  <br>
   <!-- /.login-logo -->
   <div class="login-box-body">
     <form action="{{ url_for('auth.login', next=next_url) }}" method="post">
       <div class="form-group has-feedback">
-        <label>ユーザーID</label>
+        <label>ログインID</label>
         {{ form.login_id(class="form-control", placeholder="") }}
       </div>
       <div class="form-group has-feedback">

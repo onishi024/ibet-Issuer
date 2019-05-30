@@ -100,6 +100,20 @@ class IssueCouponForm(Form):
         ]
     )
 
+    contact_information = TextAreaField(
+        "問い合わせ先",
+        validators=[
+            Length(max=2000, message='問い合わせ先は2,000文字以内で入力してください。')
+        ]
+    )
+
+    privacy_policy = TextAreaField(
+        "プライバシーポリシー",
+        validators=[
+            Length(max=2000, message='プライバシーポリシーは2,000文字以内で入力してください。')
+        ]
+    )
+
     submit = SubmitField('登録')
 
     def __init__(self, issue_coupon=None, *args, **kwargs):
@@ -165,6 +179,20 @@ class SettingCouponForm(Form):
     tradableExchange = StringField(
         "DEXアドレス",
         validators=[]
+    )
+
+    contact_information = TextAreaField(
+        "問い合わせ先",
+        validators=[
+            Length(max=2000, message='問い合わせ先は2,000文字以内で入力してください。')
+        ]
+    )
+
+    privacy_policy = TextAreaField(
+        "プライバシーポリシー",
+        validators=[
+            Length(max=2000, message='プライバシーポリシーは2,000文字以内で入力してください。')
+        ]
     )
 
     abi = TextAreaField(

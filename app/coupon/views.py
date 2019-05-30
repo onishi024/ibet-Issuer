@@ -207,15 +207,18 @@ def release():
 def issue():
     logger.info('coupon/issue')
     form = IssueCouponForm()
+
     if request.method == 'POST':
         if form.validate():
+            # Exchangeコントラクトのアドレスフォーマットチェック
             if not Web3.isAddress(form.tradableExchange.data):
                 flash('DEXアドレスは有効なアドレスではありません。', 'error')
                 return render_template('coupon/issue.html', form=form)
 
+            # EOAアンロック
             eth_unlock_account()
 
-            ####### トークン発行処理 #######
+            # トークン発行（トークンコントラクトのデプロイ）
             tmpVal = True
             if form.transferable.data == 'False':
                 tmpVal = False
@@ -229,12 +232,15 @@ def issue():
                 form.return_details.data,
                 form.memo.data,
                 form.expirationDate.data,
-                tmpVal
+                tmpVal,
+                form.contact_information.data,
+                form.privacy_policy.data
             ]
             _, bytecode, bytecode_runtime = Contract.get_contract_info('IbetCoupon')
             contract_address, abi, tx_hash = \
                 Contract.deploy_contract('IbetCoupon', arguments, Config.ETH_ACCOUNT)
 
+            # 発行情報をDBに登録
             token = Token()
             token.template_id = Config.TEMPLATE_ID_COUPON
             token.tx_hash = tx_hash
@@ -245,9 +251,11 @@ def issue():
             token.bytecode_runtime = bytecode_runtime
             db.session.add(token)
 
-            ####### 画像URL登録処理 #######
+            # 商品画像URLの登録処理
             if form.image_1.data != '' or form.image_2.data != '' or form.image_3.data != '':
+                # NOTE:トークン作成のトランザクションがブロックに取り込まれるまで待つ
                 tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash)
+
                 if tx_receipt is not None:
                     TokenContract = web3.eth.contract(
                         address=tx_receipt['contractAddress'],
@@ -268,10 +276,12 @@ def issue():
 
             flash('新規発行を受け付けました。発行完了までに数分程かかることがあります。', 'success')
             return redirect(url_for('.list'))
-        else:
+
+        else: # バリデーションエラー
             flash_errors(form)
             return render_template('coupon/issue.html', form=form)
-    else:  # GET
+
+    else: # GET
         return render_template('coupon/issue.html', form=form)
 
 
@@ -332,17 +342,20 @@ def add_supply(token_address):
 @login_required
 def setting(token_address):
     logger.info('coupon/setting')
+
+    # 指定したトークンが存在しない場合、エラーを返す
     token = Token.query.filter(Token.token_address == token_address).first()
     if token is None:
         abort(404)
 
+    # ABI参照
     token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
 
+    # トークン情報の参照
     TokenContract = web3.eth.contract(
         address=token.token_address,
         abi=token_abi
     )
-
     name = TokenContract.functions.name().call()
     symbol = TokenContract.functions.symbol().call()
     totalSupply = TokenContract.functions.totalSupply().call()
@@ -356,6 +369,8 @@ def setting(token_address):
     image_2 = TokenContract.functions.getImageURL(1).call()
     image_3 = TokenContract.functions.getImageURL(2).call()
     tradableExchange = TokenContract.functions.tradableExchange().call()
+    contact_information = TokenContract.functions.contactInformation().call()
+    privacy_policy = TokenContract.functions.privacyPolicy().call()
 
     try:
         initial_offering_status = TokenContract.functions.initialOfferingStatus().call()
@@ -385,8 +400,13 @@ def setting(token_address):
                 form.totalSupply.data = totalSupply
                 form.abi.data = token.abi
                 form.bytecode.data = token.bytecode
-                return redirect(url_for('.setting', token_address=token_address))
+                return render_template(
+                    'coupon/setting.html',
+                    form=form, token_address=token_address,
+                    isRelease=isReleased, status=status, token_name=name
+                )
 
+            # EOAアンロック
             eth_unlock_account()
 
             # DEXアドレス変更
@@ -430,22 +450,30 @@ def setting(token_address):
                 TokenContract.functions.setTransferable(transferable_bool). \
                     transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
 
-            # 画像（小）変更
+            # 画像変更
             if form.image_1.data != image_1:
                 gas = TokenContract.estimateGas().setImageURL(0, form.image_1.data)
                 TokenContract.functions.setImageURL(0, form.image_1.data). \
                     transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
-
-            # 画像（中）変更
             if form.image_2.data != image_2:
                 gas = TokenContract.estimateGas().setImageURL(1, form.image_2.data)
                 TokenContract.functions.setImageURL(1, form.image_2.data). \
                     transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
-
-            # 画像（大）変更
             if form.image_3.data != image_3:
                 gas = TokenContract.estimateGas().setImageURL(2, form.image_3.data)
                 TokenContract.functions.setImageURL(2, form.image_3.data). \
+                    transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
+
+            # 問い合わせ先変更
+            if form.contact_information.data != contact_information:
+                gas = TokenContract.estimateGas().setContactInformation(form.contact_information.data)
+                TokenContract.functions.setContactInformation(form.contact_information.data). \
+                    transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
+
+            # プライバシーポリシー
+            if form.privacy_policy.data != privacy_policy:
+                gas = TokenContract.estimateGas().setPrivacyPolicy(form.privacy_policy.data)
+                TokenContract.functions.setPrivacyPolicy(form.privacy_policy.data). \
                     transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
 
             flash('設定変更を受け付けました。変更完了までに数分程かかることがあります。', 'success')
@@ -456,8 +484,6 @@ def setting(token_address):
             form.name.data = name
             form.symbol.data = symbol
             form.totalSupply.data = totalSupply
-            form.expirationDate.data = expirationDate
-            form.transferable.data = transferable
             form.abi.data = token.abi
             form.bytecode.data = token.bytecode
             return render_template(
@@ -479,6 +505,8 @@ def setting(token_address):
         form.image_1.data = image_1
         form.image_2.data = image_2
         form.image_3.data = image_3
+        form.contact_information.data = contact_information
+        form.privacy_policy.data = privacy_policy
         form.abi.data = token.abi
         form.bytecode.data = token.bytecode
         return render_template(

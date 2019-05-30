@@ -293,19 +293,22 @@ def holder(token_address, account_address):
 @login_required
 def setting(token_address):
     logger.info('bond.setting')
+
+    # 指定したトークンが存在しない場合、エラーを返す
     token = Token.query.filter(Token.token_address == token_address).first()
     if token is None:
         abort(404)
 
+    # ABI参照
     token_abi = json.loads(
         token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false')
     )
 
+    # トークン情報の参照
     TokenContract = web3.eth.contract(
         address=token.token_address,
         abi=token_abi
     )
-
     name = TokenContract.functions.name().call()
     symbol = TokenContract.functions.symbol().call()
     totalSupply = TokenContract.functions.totalSupply().call()
@@ -325,6 +328,8 @@ def setting(token_address):
     image_1 = TokenContract.functions.getImageURL(0).call()
     image_2 = TokenContract.functions.getImageURL(1).call()
     image_3 = TokenContract.functions.getImageURL(2).call()
+    contact_information = TokenContract.functions.contactInformation().call()
+    privacy_policy = TokenContract.functions.privacyPolicy().call()
 
     # TokenList登録状態取得
     list_contract_address = Config.TOKEN_LIST_CONTRACT_ADDRESS
@@ -355,6 +360,7 @@ def setting(token_address):
     form = SettingForm()
     if request.method == 'POST':
         if form.validate():  # Validationチェック
+            # Addressフォーマットチェック
             if not Web3.isAddress(form.tradableExchange.data):
                 flash('DEXアドレスは有効なアドレスではありません。', 'error')
                 form.token_address.data = token.token_address
@@ -379,8 +385,10 @@ def setting(token_address):
                     signatures=signatures
                 )
 
+            # EOAアンロック
             eth_unlock_account()
 
+            # 画像変更
             if form.image_1.data != image_1:
                 gas = TokenContract.estimateGas().setImageURL(0, form.image_1.data)
                 TokenContract.functions.setImageURL(0, form.image_1.data). \
@@ -393,12 +401,27 @@ def setting(token_address):
                 gas = TokenContract.estimateGas().setImageURL(2, form.image_3.data)
                 TokenContract.functions.setImageURL(2, form.image_3.data). \
                     transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
+
+            # DEXアドレス変更
             if form.tradableExchange.data != tradableExchange:
                 gas = TokenContract.estimateGas(). \
                     setTradableExchange(to_checksum_address(form.tradableExchange.data))
                 TokenContract.functions. \
                     setTradableExchange(to_checksum_address(form.tradableExchange.data)). \
                     transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
+
+            # 問い合わせ先変更
+            if form.contact_information.data != contact_information:
+                gas = TokenContract.estimateGas().setContactInformation(form.contact_information.data)
+                TokenContract.functions.setContactInformation(form.contact_information.data). \
+                    transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
+
+            # プライバシーポリシー
+            if form.privacy_policy.data != privacy_policy:
+                gas = TokenContract.estimateGas().setPrivacyPolicy(form.privacy_policy.data)
+                TokenContract.functions.setPrivacyPolicy(form.privacy_policy.data). \
+                    transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
+
             flash('設定変更を受け付けました。変更完了までに数分程かかることがあります。', 'success')
             return redirect(url_for('.list'))
         else:
@@ -442,6 +465,8 @@ def setting(token_address):
         form.image_2.data = image_2
         form.image_3.data = image_3
         form.tradableExchange.data = tradableExchange
+        form.contact_information.data = contact_information
+        form.privacy_policy.data = privacy_policy
         form.abi.data = token.abi
         form.bytecode.data = token.bytecode
         return render_template(
@@ -589,15 +614,18 @@ def redeem():
 def issue():
     logger.info('bond.issue')
     form = IssueForm()
+
     if request.method == 'POST':
         if form.validate():
+            # Exchangeコントラクトのアドレスフォーマットチェック
             if not Web3.isAddress(form.tradableExchange.data):
                 flash('DEXアドレスは有効なアドレスではありません。', 'error')
                 return render_template('bond/issue.html', form=form)
 
+            # EOAアンロック
             eth_unlock_account()
 
-            ####### トークン発行処理 #######
+            # トークン発行（トークンコントラクトのデプロイ）
             interestPaymentDate = {
                 'interestPaymentDate1': form.interestPaymentDate1.data,
                 'interestPaymentDate2': form.interestPaymentDate2.data,
@@ -627,13 +655,16 @@ def issue():
                 form.returnDate.data,
                 form.returnAmount.data,
                 form.purpose.data,
-                form.memo.data
+                form.memo.data,
+                form.contact_information.data,
+                form.privacy_policy.data
             ]
             _, bytecode, bytecode_runtime = Contract.get_contract_info('IbetStraightBond')
             contract_address, abi, tx_hash = \
                 Contract.deploy_contract(
                     'IbetStraightBond', arguments, Config.ETH_ACCOUNT)
 
+            # 発行情報をDBに登録
             token = Token()
             token.template_id = Config.TEMPLATE_ID_SB
             token.tx_hash = tx_hash
