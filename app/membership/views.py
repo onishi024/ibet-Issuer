@@ -473,17 +473,20 @@ def holder(token_address, account_address):
 @login_required
 def setting(token_address):
     logger.info('membership.setting')
+
+    # 指定したトークンが存在しない場合、エラーを返す
     token = Token.query.filter(Token.token_address == token_address).first()
     if token is None:
         abort(404)
 
+    # ABI参照
     token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
 
+    # トークン情報の参照
     TokenContract = web3.eth.contract(
         address=token.token_address,
         abi=token_abi
     )
-
     name = TokenContract.functions.name().call()
     symbol = TokenContract.functions.symbol().call()
     totalSupply = TokenContract.functions.totalSupply().call()
@@ -497,6 +500,8 @@ def setting(token_address):
     image_1 = TokenContract.functions.getImageURL(0).call()
     image_2 = TokenContract.functions.getImageURL(1).call()
     image_3 = TokenContract.functions.getImageURL(2).call()
+    contact_information = TokenContract.functions.contactInformation().call()
+    privacy_policy = TokenContract.functions.privacyPolicy().call()
 
     try:
         initial_offering_status = TokenContract.functions.initialOfferingStatus().call()
@@ -530,28 +535,38 @@ def setting(token_address):
                     isRelease=isRelease, status=status, token_name=name
                 )
 
+            # アカウントアンロック
             eth_unlock_account()
 
+            # トークン詳細変更
             if form.details.data != details:
                 gas = TokenContract.estimateGas().setDetails(form.details.data)
                 TokenContract.functions.setDetails(form.details.data).transact(
                     {'from': Config.ETH_ACCOUNT, 'gas': gas}
                 )
+
+            # リターン詳細変更
             if form.returnDetails.data != returnDetails:
                 gas = TokenContract.estimateGas().setReturnDetails(form.returnDetails.data)
                 TokenContract.functions.setReturnDetails(form.returnDetails.data).transact(
                     {'from': Config.ETH_ACCOUNT, 'gas': gas}
                 )
+
+            # 有効期限変更
             if form.expirationDate.data != expirationDate:
                 gas = TokenContract.estimateGas().setExpirationDate(form.expirationDate.data)
                 TokenContract.functions.setExpirationDate(form.expirationDate.data).transact(
                     {'from': Config.ETH_ACCOUNT, 'gas': gas}
                 )
+
+            # メモ欄変更
             if form.memo.data != memo:
                 gas = TokenContract.estimateGas().setMemo(form.memo.data)
                 TokenContract.functions.setMemo(form.memo.data).transact(
                     {'from': Config.ETH_ACCOUNT, 'gas': gas}
                 )
+
+            # 譲渡制限変更
             if form.transferable.data != transferable:
                 tmpVal = True
                 if form.transferable.data == 'False':
@@ -560,6 +575,8 @@ def setting(token_address):
                 TokenContract.functions.setTransferable(tmpVal).transact(
                     {'from': Config.ETH_ACCOUNT, 'gas': gas}
                 )
+
+            # 画像変更
             if form.image_1.data != image_1:
                 gas = TokenContract.estimateGas().setImageURL(0, form.image_1.data)
                 TokenContract.functions.setImageURL(0, form.image_1.data).transact(
@@ -575,12 +592,26 @@ def setting(token_address):
                 TokenContract.functions.setImageURL(2, form.image_3.data).transact(
                     {'from': Config.ETH_ACCOUNT, 'gas': gas}
                 )
+
+            # DEXアドレス変更
             if form.tradableExchange.data != tradableExchange:
                 gas = TokenContract.estimateGas().setTradableExchange(to_checksum_address(form.tradableExchange.data))
                 TokenContract.functions.setTradableExchange(
                     to_checksum_address(form.tradableExchange.data)).transact(
                     {'from': Config.ETH_ACCOUNT, 'gas': gas}
                 )
+
+            # 問い合わせ先変更
+            if form.contact_information.data != contact_information:
+                gas = TokenContract.estimateGas().setContactInformation(form.contact_information.data)
+                TokenContract.functions.setContactInformation(form.contact_information.data). \
+                    transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
+
+            # プライバシーポリシー変更
+            if form.privacy_policy.data != privacy_policy:
+                gas = TokenContract.estimateGas().setPrivacyPolicy(form.privacy_policy.data)
+                TokenContract.functions.setPrivacyPolicy(form.privacy_policy.data). \
+                    transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
 
             flash('変更を受け付けました。変更完了までに数分程かかることがあります。', 'success')
             return redirect(url_for('.list'))
@@ -611,6 +642,8 @@ def setting(token_address):
         form.image_2.data = image_2
         form.image_3.data = image_3
         form.tradableExchange.data = tradableExchange
+        form.contact_information.data = contact_information
+        form.privacy_policy.data = privacy_policy
         form.abi.data = token.abi
         form.bytecode.data = token.bytecode
         return render_template(
@@ -622,6 +655,7 @@ def setting(token_address):
             status=status,
             initial_offering_status=initial_offering_status
         )
+
 
 ####################################################
 # [会員権]公開
@@ -650,6 +684,7 @@ def release():
 
     return redirect(url_for('.setting', token_address=token_address))
 
+
 ####################################################
 # [会員権]新規発行
 ####################################################
@@ -658,18 +693,22 @@ def release():
 def issue():
     logger.info('membership.issue')
     form = IssueForm()
+
     if request.method == 'POST':
         if form.validate():
+            # Exchangeコントラクトのアドレスフォーマットチェック
             if not Web3.isAddress(form.tradableExchange.data):
                 flash('DEXアドレスは有効なアドレスではありません。', 'error')
                 return render_template('membership/issue.html', form=form)
 
+            # EOAアンロック
             eth_unlock_account()
 
-            ####### トークン発行処理 #######
+            # トークン発行（トークンコントラクトのデプロイ）
             tmpVal = True
             if form.transferable.data == 'False':
                 tmpVal = False
+
             arguments = [
                 form.name.data,
                 form.symbol.data,
@@ -679,12 +718,15 @@ def issue():
                 form.returnDetails.data,
                 form.expirationDate.data,
                 form.memo.data,
-                tmpVal
+                tmpVal,
+                form.contact_information.data,
+                form.privacy_policy.data
             ]
             _, bytecode, bytecode_runtime = Contract.get_contract_info('IbetMembership')
             contract_address, abi, tx_hash = \
                 Contract.deploy_contract('IbetMembership', arguments, Config.ETH_ACCOUNT)
 
+            # 発行情報をDBに登録
             token = Token()
             token.template_id = Config.TEMPLATE_ID_MEMBERSHIP
             token.tx_hash = tx_hash
@@ -695,7 +737,7 @@ def issue():
             token.bytecode_runtime = bytecode_runtime
             db.session.add(token)
 
-            ####### 画像URL登録処理 #######
+            # 商品画像URLの登録処理
             if form.image_1.data != '' or form.image_2.data != '' or form.image_3.data != '':
                 tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash)
                 if tx_receipt is not None:

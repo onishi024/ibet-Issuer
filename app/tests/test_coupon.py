@@ -891,10 +891,6 @@ class TestCoupon(TestBase):
                 'image_3': 'https://test.com/image_32.jpg',
             }
         )
-        assert response.status_code == 302
-        time.sleep(10)
-
-        response = client.get(url_setting)
         assert response.status_code == 200
         assert 'DEXアドレスは有効なアドレスではありません。'.encode('utf-8') in response.data
 

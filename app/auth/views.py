@@ -32,5 +32,4 @@ def login():
 @login_required
 def logout():
     logout_user()
-    #flash('ログアウトしました。', 'info')
     return redirect(url_for('index.index'))

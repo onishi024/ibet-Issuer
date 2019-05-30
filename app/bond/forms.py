@@ -204,6 +204,20 @@ class IssueForm(Form):
         ]
     )
 
+    contact_information = TextAreaField(
+        "問い合わせ先",
+        validators=[
+            Length(max=2000, message='問い合わせ先は2,000文字以内で入力してください。')
+        ]
+    )
+
+    privacy_policy = TextAreaField(
+        "プライバシーポリシー",
+        validators=[
+            Length(max=2000, message='プライバシーポリシーは2,000文字以内で入力してください。')
+        ]
+    )
+
     submit = SubmitField('新規発行')
 
     def __init__(self, issue_token=None, *args, **kwargs):
@@ -262,6 +276,20 @@ class SettingForm(Form):
     tradableExchange = StringField(
         "DEXアドレス",
         validators=[]
+    )
+
+    contact_information = TextAreaField(
+        "問い合わせ先",
+        validators=[
+            Length(max=2000, message='問い合わせ先は2,000文字以内で入力してください。')
+        ]
+    )
+
+    privacy_policy = TextAreaField(
+        "プライバシーポリシー",
+        validators=[
+            Length(max=2000, message='プライバシーポリシーは2,000文字以内で入力してください。')
+        ]
     )
 
     abi = TextAreaField("インターフェース", validators=[])
