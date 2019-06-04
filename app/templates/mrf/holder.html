@@ -1,17 +1,17 @@
 {% extends "base.html" %}
 {% block head %}
-    {{ super() }}
+{{ super() }}
 {% endblock %}
-{% set active_page = "membership_list" %}
+{% set active_page = "mrf_list" %}
 
 {% block title %}保有者詳細 - {% endblock %}
-{% block page_header %}保有者詳細 <span class="badge bg-secondary">会員権</span>{% endblock %}
+{% block page_header %}保有者詳細 <span class="badge bg-secondary">MRF</span>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
-    <li><a href="{{ url_for('index.index') }}">トップ</a></li>
-    <li><a href="{{ url_for('membership.list') }}">会員権一覧</a></li>
-    <li><a href="{{ url_for("membership.holders", token_address=token_address) }}">保有者一覧</a></li>
-    <li class="active">保有者詳細</li>
+<li><a href="{{ url_for('index.index') }}">トップ</a></li>
+<li><a href="{{ url_for('mrf.list') }}">MRF一覧</a></li>
+<li><a href="{{ url_for('mrf.holders', token_address=token_address) }}">保有者一覧</a></li>
+<li class="active">保有者詳細</li>
 {% endblock %}
 
 {% block page_content %}
@@ -82,7 +82,7 @@
       <div class="col-md-1"></div>
     </div>
     <div class="box-footer">
-        <button type="button" class="btn btn-default" onclick="location.href='{{ url_for("membership.holders", token_address=token_address) }}'">一覧に戻る</button>
+        <button type="button" class="btn btn-default" onclick="location.href='{{ url_for("mrf.holders", token_address=token_address) }}'">一覧に戻る</button>
     </div>
   </div>
 </section>
