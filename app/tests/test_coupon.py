@@ -154,7 +154,6 @@ class TestCoupon(TestBase):
         response = client.get(self.url_list)
         assert response.status_code == 200
         assert '<title>クーポン一覧'.encode('utf-8') in response.data
-        assert '<td>&lt;処理中&gt;</td>'.encode('utf-8') in response.data
         assert token.tx_hash.encode('utf-8') in response.data
 
     # ＜正常系2_3＞

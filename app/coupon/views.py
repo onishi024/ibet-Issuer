@@ -48,9 +48,9 @@ def list():
         try:
             # トークンがデプロイ済みの場合、トークン情報を取得する
             if row.token_address == None:
-                name = '<処理中>'
-                symbol = '<処理中>'
-                status = '<処理中>'
+                name = '--'
+                symbol = '--'
+                status = '--'
             else:
                 # Token-Contractへの接続
                 TokenContract = web3.eth.contract(
