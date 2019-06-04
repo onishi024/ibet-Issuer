@@ -10,11 +10,13 @@ from eth_utils import to_checksum_address
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
+
 class Config:
     # Tokenテーブルのtemplate_id
     TEMPLATE_ID_SB = 1
     TEMPLATE_ID_COUPON = 2
     TEMPLATE_ID_MEMBERSHIP = 3
+    TEMPLATE_ID_MRF = 4
 
     # Payment Agent List
     APP_ENV = os.getenv('FLASK_CONFIG') or 'default'
@@ -46,6 +48,10 @@ class Config:
             ('bond_list', 'fa fa-circle-o', '発行済一覧', 'bond.list'),
             ('bond_position', 'fa fa-circle-o', '売出管理', 'bond.positions'),
         ]),
+        ('mrf', 'glyphicon glyphicon-th', 'MRF (BETA)', [
+            ('mrf_issue', 'fa fa-circle-o', '新規発行', 'mrf.issue'),
+            ('mrf_list', 'fa fa-circle-o', '発行済一覧', 'mrf.list'),
+        ]),
         ('membership', 'glyphicon glyphicon-th', '会員権', [
             ('membership_issue', 'fa fa-circle-o', '新規発行', 'membership.issue'),
             ('membership_list', 'fa fa-circle-o', '発行済一覧', 'membership.list'),
@@ -69,18 +75,18 @@ class Config:
     LOG_CONFIG = ({
         'version': 1,
         'formatters': {'default': {
-                'format': 'WEBAPL [%(asctime)s] [%(process)d] [%(levelname)s] %(message)s [in %(pathname)s:%(lineno)d]',
+            'format': 'WEBAPL [%(asctime)s] [%(process)d] [%(levelname)s] %(message)s [in %(pathname)s:%(lineno)d]',
         }},
         'handlers': {'console': {
-                'class': 'logging.StreamHandler',
-                'stream': sys.stdout,
-                'formatter': 'default'
+            'class': 'logging.StreamHandler',
+            'stream': sys.stdout,
+            'formatter': 'default'
         }},
         'loggers': {
             'api': {
-                'handlers': ['console',],
+                'handlers': ['console', ],
                 'propagate': False,
-        }},
+            }},
         'root': {
             'level': 'DEBUG',
         }
@@ -140,45 +146,47 @@ class Config:
     if os.environ.get('AGENT_ADDRESS') is not None:
         AGENT_ADDRESS = to_checksum_address(os.environ.get('AGENT_ADDRESS'))
 
-    #RSA鍵ファイルのパスワード
+    # RSA鍵ファイルのパスワード
     RSA_PASSWORD = os.environ.get('RSA_PASSWORD')
 
     @staticmethod
     def init_app(app):
         pass
 
+
 class DevelopmentConfig(Config):
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or 'postgresql://issueruser:issuerpass@localhost:5432/issuerdb'
+    SQLALCHEMY_DATABASE_URI = os.environ.get(
+        'DEV_DATABASE_URL') or 'postgresql://issueruser:issuerpass@localhost:5432/issuerdb'
+
 
 class TestingConfig(Config):
     TESTING = True
     LOGIN_DISABLED = True
-    SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL') or 'postgresql://issueruser:issuerpass@localhost:5432/issuerdb_test'
+    SQLALCHEMY_DATABASE_URI = os.environ.get(
+        'TEST_DATABASE_URL') or 'postgresql://issueruser:issuerpass@localhost:5432/issuerdb_test'
     WTF_CSRF_ENABLED = False
 
-# seleniumのテストの際にFlaskを起動する時にのみ必要(そうしないとログイン画面が出てこない)
-class SeleniumConfig(TestingConfig):
-    LOGIN_DISABLED = False
 
 class ProductionConfig(Config):
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'postgresql://issueruser:issuerpass@localhost:5432/issuerdb'
+    SQLALCHEMY_DATABASE_URI = os.environ.get(
+        'DATABASE_URL') or 'postgresql://issueruser:issuerpass@localhost:5432/issuerdb'
 
     LOG_CONFIG = ({
         'version': 1,
         'formatters': {'default': {
-                'format': 'WEBAPL [%(asctime)s] [%(process)d] [%(levelname)s] %(message)s',
+            'format': 'WEBAPL [%(asctime)s] [%(process)d] [%(levelname)s] %(message)s',
         }},
         'handlers': {'console': {
-                'class': 'logging.StreamHandler',
-                'stream': sys.stdout,
-                'formatter': 'default'
+            'class': 'logging.StreamHandler',
+            'stream': sys.stdout,
+            'formatter': 'default'
         }},
         'loggers': {
             'api': {
-                'handlers': ['console',],
+                'handlers': ['console', ],
                 'propagate': False,
-        }},
+            }},
         'root': {
             'level': 'WARNING',
         }
@@ -188,15 +196,16 @@ class ProductionConfig(Config):
     def init_app(cls, app):
         Config.init_app(app)
 
+
 class UnixConfig(ProductionConfig):
     @classmethod
     def init_app(cls, app):
         ProductionConfig.init_app(app)
 
+
 config = {
     'development': DevelopmentConfig,
     'testing': TestingConfig,
-    'selenium': SeleniumConfig,
     'production': ProductionConfig,
     'unix': UnixConfig,
     'default': DevelopmentConfig

@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block head %}
+{{ super() }}
+<!-- DataTables -->
+<link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
+{% endblock %}
+{% set active_page = "mrf_list" %}
+
+{% block title %}保有者一覧 - {% endblock %}
+{% block page_header %}保有者一覧 <span class="badge bg-secondary">MRF</span>{% endblock %}
+{% block page_description %}{% endblock %}
+{% block breadcrumb %}
+<li><a href="{{ url_for('index.index') }}">トップ</a></li>
+<li><a href="{{ url_for('mrf.list') }}">MRF一覧</a></li>
+<li class="active">保有者一覧</li>
+{% endblock %}
+
+{% block page_content %}
+<section class="content">
+    <div class="box box-default">
+        <div class="box-header">
+            <h3 class="box-title">{{ token_name }}　<small>{{ token_address }}</small></h3>
+        </div>
+        <div class="box-body">
+            <table id="data_table" class="table table-bordered table-hover">
+                <thead>
+                <tr>
+                    <th>アカウントアドレス</th>
+                    <th>氏名</th>
+                    <th>保有数量</th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for holder in holders %}
+                <tr>
+                    <!--アカウントアドレス-->
+                    <td style="word-break : break-all; width: 400px;"><small>{{ holder.account_address }}</small></td>
+                    <!--氏名-->
+                    <td>{{ holder.name }}</td>
+                    <!--保有数量-->
+                    <td>{{ holder.balance }}</td>
+                    <!--保有者詳細リンク-->
+                    <td><a href="{{ url_for('mrf.holder', token_address=token_address, account_address=holder.account_address) }}">保有者情報詳細</a></td>
+                    <!--移転リンク-->
+                    <td align="center">
+                        <button type="button" class="btn btn-success btn-sm"
+                                onclick="location.href= '{{ url_for("mrf.transfer_ownership", token_address=token_address, account_address=holder.account_address) }}'">
+                        移転
+                        </button>
+                    </td>
+                    <!--償却リンク-->
+                    <td align="center">
+                        <button type="button" class="btn btn-danger btn-sm"
+                                onclick="location.href= '{{ url_for("mrf.burn", token_address=token_address, account_address=holder.account_address) }}'">
+                        償却
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="box-footer">
+            <button type="button" class="btn btn-default" onclick="location.href='{{ url_for("mrf.list") }}'">一覧に戻る</button>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block required_js %}
+{{ super() }}
+<!-- DataTables -->
+<script src="/static/adminlte/bower_components/datatables.net/js/jquery.dataTables.min.js"></script>
+<script src="/static/adminlte/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+<!-- SlimScroll -->
+<script src="/static/adminlte/bower_components/jquery-slimscroll/jquery.slimscroll.min.js"></script>
+<!-- FastClick -->
+<script src="/static/adminlte/bower_components/fastclick/lib/fastclick.js"></script>
+<!-- AdminLTE for demo purposes -->
+<script src="/static/adminlte/dist/js/demo.js"></script>
+<script>
+  $(function () {
+    $('#data_table').DataTable({
+      'paging'      : true,
+      'lengthChange': true,
+      'searching'   : true,
+      'ordering'    : true,
+      'info'        : true,
+      'autoWidth'   : true,
+      'pagingType': "full_numbers",
+      'language': {
+          'info': "_TOTAL_ 件中 _START_ 〜 _END_ 件目",
+          'lengthMenu': "表示件数 _MENU_ 件",
+          'search': "検索:",
+          'paginate': {
+              'first': "最初へ",
+              'previous': "前へ",
+              'next': "次へ",
+              'last': "最後へ",
+          },
+          "emptyTable": "データが存在しません",
+          "sInfoEmpty":	" 0 件中 0 から 0 まで表示"
+      },
+    })
+  })
+</script>
+{% endblock %}

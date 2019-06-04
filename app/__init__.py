@@ -41,6 +41,9 @@ def create_app(config_name):
     from .bond import bond as token_blueprint
     app.register_blueprint(token_blueprint)
 
+    from .mrf import mrf as mrf_blueprint
+    app.register_blueprint(mrf_blueprint)
+
     from .coupon import coupon as coupon_blueprint
     app.register_blueprint(coupon_blueprint)
 
