@@ -17,6 +17,7 @@ class Config:
     TEMPLATE_ID_COUPON = 2
     TEMPLATE_ID_MEMBERSHIP = 3
     TEMPLATE_ID_MRF = 4
+    TEMPLATE_ID_JDR = 5
 
     # Payment Agent List
     APP_ENV = os.getenv('FLASK_CONFIG') or 'default'
@@ -51,6 +52,10 @@ class Config:
         ('mrf', 'glyphicon glyphicon-th', 'MRF (BETA)', [
             ('mrf_issue', 'fa fa-circle-o', '新規発行', 'mrf.issue'),
             ('mrf_list', 'fa fa-circle-o', '発行済一覧', 'mrf.list'),
+        ]),
+        ('jdr', 'glyphicon glyphicon-th', 'JDR (BETA)', [
+            ('jdr_issue', 'fa fa-circle-o', '新規発行', 'jdr.issue'),
+            ('jdr_list', 'fa fa-circle-o', '発行済一覧', 'jdr.list'),
         ]),
         ('membership', 'glyphicon glyphicon-th', '会員権', [
             ('membership_issue', 'fa fa-circle-o', '新規発行', 'membership.issue'),

@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% block head %}
+{{ super() }}
+<!-- DataTables -->
+<link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
+{% endblock %}
+{% set active_page = "jdr_list" %}
+
+{% block title %}JDR一覧 - {% endblock %}
+{% block page_header %}JDR一覧 <span class="badge bg-secondary">JDR</span>{% endblock %}
+{% block page_description %}{% endblock %}
+{% block breadcrumb %}
+<li><a href="{{ url_for('index.index') }}">トップ</a></li>
+<li class="active">JDR一覧</li>
+{% endblock %}
+
+{% block page_content %}
+<section class="content">
+    <div class="box box-default">
+        <div class="box-header">
+            <h3 class="box-title">JDR一覧</h3>
+        </div>
+        <div class="box-body">
+            <table id="data_table" class="table table-bordered table-hover">
+                <thead>
+                <tr>
+                    <th style="width: 100px">名称</th>
+    			    <th style="width: 50px">略称</th>
+    			    <th style="width: 40px">登録日時</th>
+                    <th style="width: 110px">アドレス</th>
+                    <th style="width: 30px">受付ID</th>
+                    <th style="width: 30px">取扱</th>
+                    <th style="width: 50px"></th>
+    		    </tr>
+                </thead>
+                <tbody>
+                    {% for token in tokens %}
+                    <tr>
+                        <!--名称-->
+                        {% if token.token_address != None %}
+                        <td style="word-break : break-all;">
+                            <a href="{{ url_for('jdr.setting', token_address=token.token_address) }}">
+                            {{ token.name }}
+                            </a>
+                        </td>
+                        {% else %}
+                        <td align="center"><i class="fa fa-refresh fa-spin"></i></td>
+                        {% endif %}
+
+                        <!--略称-->
+                        <td>{{ token.symbol }}</td>
+
+                        <!--作成日時-->
+                        <td align="center">
+                            <small>{{ token.created | format_date }}</small>
+                        </td>
+
+                        <!--トークンアドレス-->
+                        {% if token.token_address != None %}
+                        <td style="word-break : break-all;"><small>{{ token.token_address }}</small></td>
+                        {% else %}
+                        <td>-</td>
+                        {% endif %}
+
+                        <!--TX-->
+                        <td align="center">
+                            <button type="button" class="btn btn-default btn-sm"
+                                    onclick="viewTxHash('{{token.tx_hash}}')">
+                                表示
+                            </button>
+                        </td>
+
+                        <!--取扱ステータス-->
+                        {% if token.status == true %}
+                        <td align="center"><span class="badge bg-green">取扱中</span></td>
+                        {% elif token.status == false %}
+                        <td align="center"><span class="badge bg-red">停止中</span></td>
+                        {% else %}
+                        <td align="center">{{ token.status }}</td>
+                        {% endif %}
+
+                        <!--保有者一覧リンク-->
+                        {% if token.token_address != None %}
+                        <td align="center">
+                            <a href="{{ url_for('jdr.holders', token_address=token.token_address) }}">
+                                保有者
+                            </a>
+                        </td>
+                        {% else %}
+                        <td></td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block required_js %}
+{{ super() }}
+<div class="modal modal-default fade" id="modal-txhash" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title">受付ID</h4>
+            </div>
+            <div class="modal-body" id="modal-txhash-body"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">閉じる</button>
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+</div>
+
+<!-- DataTables -->
+<script src="/static/adminlte/bower_components/datatables.net/js/jquery.dataTables.min.js"></script>
+<script src="/static/adminlte/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+<!-- SlimScroll -->
+<script src="/static/adminlte/bower_components/jquery-slimscroll/jquery.slimscroll.min.js"></script>
+<!-- FastClick -->
+<script src="/static/adminlte/bower_components/fastclick/lib/fastclick.js"></script>
+<!-- AdminLTE for demo purposes -->
+<script src="/static/adminlte/dist/js/demo.js"></script>
+<script>
+  $(function () {
+    $('#data_table').DataTable({
+      'paging'      : true,
+      'lengthChange': true,
+      'searching'   : true,
+      'ordering'    : true,
+      'info'        : true,
+      'autoWidth'   : true,
+      'pagingType': "full_numbers",
+      'language': {
+          'info': "_TOTAL_ 件中 _START_ 〜 _END_ 件目",
+          'lengthMenu': "表示件数 _MENU_ 件",
+          'search': "検索:",
+          'paginate': {
+              'first': "最初へ",
+              'previous': "前へ",
+              'next': "次へ",
+              'last': "最後へ",
+          },
+          "emptyTable": "データが存在しません",
+          "sInfoEmpty":	" 0 件中 0 から 0 まで表示"
+      },
+    })
+  })
+
+  function viewTxHash(txhash) {
+    $('#modal-txhash-body').html(txhash);
+    $('#modal-txhash').modal('show');
+  }
+</script>
+
+{% endblock %}

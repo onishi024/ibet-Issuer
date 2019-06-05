@@ -3,7 +3,7 @@ from flask import request, redirect, url_for, flash
 from flask import render_template
 from flask_login import login_required
 
-from . import mrf
+from . import jdr
 from .forms import *
 from .. import db
 from ..util import *
@@ -35,7 +35,7 @@ def flash_errors(form):
 # +++++++++++++++++++++++++++++++
 # 権限エラー
 # +++++++++++++++++++++++++++++++
-@mrf.route('/PermissionDenied', methods=['GET', 'POST'])
+@jdr.route('/PermissionDenied', methods=['GET', 'POST'])
 @login_required
 def permissionDenied():
     return render_template('permissiondenied.html')
@@ -44,10 +44,10 @@ def permissionDenied():
 # +++++++++++++++++++++++++++++++
 # 新規発行
 # +++++++++++++++++++++++++++++++
-@mrf.route('/issue', methods=['GET', 'POST'])
+@jdr.route('/issue', methods=['GET', 'POST'])
 @login_required
 def issue():
-    logger.info('mrf.issue')
+    logger.info('jdr.issue')
     form = IssueForm()
 
     if request.method == 'POST':
@@ -55,7 +55,7 @@ def issue():
             # Exchangeコントラクトのアドレスフォーマットチェック
             if not Web3.isAddress(form.tradableExchange.data):
                 flash('DEXアドレスは有効なアドレスではありません。', 'error')
-                return render_template('mrf/issue.html', form=form)
+                return render_template('jdr/issue.html', form=form)
 
             # EOAアンロック
             eth_unlock_account()
@@ -71,13 +71,13 @@ def issue():
                 form.contact_information.data,
                 form.privacy_policy.data
             ]
-            _, bytecode, bytecode_runtime = Contract.get_contract_info('IbetMRF')
+            _, bytecode, bytecode_runtime = Contract.get_contract_info('IbetDepositaryReceipt')
             contract_address, abi, tx_hash = \
-                Contract.deploy_contract('IbetMRF', arguments, Config.ETH_ACCOUNT)
+                Contract.deploy_contract('IbetDepositaryReceipt', arguments, Config.ETH_ACCOUNT)
 
             # 発行情報をDBに登録
             token = Token()
-            token.template_id = Config.TEMPLATE_ID_MRF
+            token.template_id = Config.TEMPLATE_ID_JDR
             token.tx_hash = tx_hash
             token.admin_address = None
             token.token_address = None
@@ -114,21 +114,21 @@ def issue():
             return redirect(url_for('.list'))
         else:
             flash_errors(form)
-            return render_template('mrf/issue.html', form=form)
+            return render_template('jdr/issue.html', form=form)
     else:  # GET
-        return render_template('mrf/issue.html', form=form)
+        return render_template('jdr/issue.html', form=form)
 
 
 # +++++++++++++++++++++++++++++++
 # 発行済一覧
 # +++++++++++++++++++++++++++++++
-@mrf.route('/list', methods=['GET'])
+@jdr.route('/list', methods=['GET'])
 @login_required
 def list():
-    logger.info('mrf/list')
+    logger.info('jdr/list')
 
     # 発行済トークンの情報をDBから取得する
-    tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MRF).all()
+    tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_JDR).all()
 
     token_list = []
     for row in tokens:
@@ -169,16 +169,16 @@ def list():
             logger.error(e)
             pass
 
-    return render_template('mrf/list.html', tokens=token_list)
+    return render_template('jdr/list.html', tokens=token_list)
 
 
 # +++++++++++++++++++++++++++++++
 # 設定変更
 # +++++++++++++++++++++++++++++++
-@mrf.route('/setting/<string:token_address>', methods=['GET', 'POST'])
+@jdr.route('/setting/<string:token_address>', methods=['GET', 'POST'])
 @login_required
 def setting(token_address):
-    logger.info('mrf.setting')
+    logger.info('jdr.setting')
 
     # 指定したトークンが存在しない場合、エラーを返す
     token = Token.query.filter(Token.token_address == token_address).first()
@@ -221,7 +221,7 @@ def setting(token_address):
                 form.abi.data = token.abi
                 form.bytecode.data = token.bytecode
                 return render_template(
-                    'mrf/setting.html',
+                    'jdr/setting.html',
                     form=form, token_address=token_address,
                     status=status, token_name=name
                 )
@@ -291,7 +291,7 @@ def setting(token_address):
             form.abi.data = token.abi
             form.bytecode.data = token.bytecode
             return render_template(
-                'mrf/setting.html',
+                'jdr/setting.html',
                 form=form, token_address=token_address,
                 status=status, token_name=name
             )
@@ -311,7 +311,7 @@ def setting(token_address):
         form.abi.data = token.abi
         form.bytecode.data = token.bytecode
         return render_template(
-            'mrf/setting.html',
+            'jdr/setting.html',
             form=form,
             token_address=token_address,
             token_name=name,
@@ -322,13 +322,13 @@ def setting(token_address):
 # +++++++++++++++++++++++++++++++
 # 保有者一覧
 # +++++++++++++++++++++++++++++++
-@mrf.route('/holders/<string:token_address>', methods=['GET'])
+@jdr.route('/holders/<string:token_address>', methods=['GET'])
 @login_required
 def holders(token_address):
-    logger.info('mrf/holders')
+    logger.info('jdr/holders')
     holders, token_name = get_holders(token_address)
     return render_template(
-        'mrf/holders.html',
+        'jdr/holders.html',
         holders=holders,
         token_address=token_address,
         token_name=token_name
@@ -363,7 +363,7 @@ def get_holders(token_address):
     PersonalInfoContract = Contract.get_contract(
         'PersonalInfo', personalinfo_address)
 
-    # MRFトークンから発生している"Transfer"のログ情報から
+    # JDRトークンから発生している"Transfer"のログ情報から
     # 残高が存在している可能性のあるアドレスを抽出する
     holders_temp = []
     holders_temp.append(TokenContract.functions.owner().call())
@@ -418,13 +418,13 @@ def get_holders(token_address):
 # +++++++++++++++++++++++++++++++
 # 保有者詳細
 # +++++++++++++++++++++++++++++++
-@mrf.route('/holder/<string:token_address>/<string:account_address>', methods=['GET'])
+@jdr.route('/holder/<string:token_address>/<string:account_address>', methods=['GET'])
 @login_required
 def holder(token_address, account_address):
-    logger.info('mrf/holder')
+    logger.info('jdr/holder')
     personal_info = get_holder(token_address, account_address)
     return render_template(
-        'mrf/holder.html',
+        'jdr/holder.html',
         personal_info=personal_info,
         token_address=token_address
     )
@@ -433,12 +433,12 @@ def holder(token_address, account_address):
 # +++++++++++++++++++++++++++++++
 # 保有者移転
 # +++++++++++++++++++++++++++++++
-@mrf.route(
+@jdr.route(
     '/transfer_ownership/<string:token_address>/<string:account_address>',
     methods=['GET', 'POST'])
 @login_required
 def transfer_ownership(token_address, account_address):
-    logger.info('mrf/transfer_ownership')
+    logger.info('jdr/transfer_ownership')
 
     # アドレスフォーマットのチェック
     if not Web3.isAddress(account_address) or not Web3.isAddress(token_address):
@@ -477,7 +477,7 @@ def transfer_ownership(token_address, account_address):
                 flash('移転数量が残高を超えています。', 'error')
                 form.from_address.data = from_address
                 return render_template(
-                    'mrf/transfer_ownership.html',
+                    'jdr/transfer_ownership.html',
                     token_address=token_address,
                     account_address=account_address,
                     form=form
@@ -499,7 +499,7 @@ def transfer_ownership(token_address, account_address):
             flash_errors(form)
             form.from_address.data = account_address
             return render_template(
-                'mrf/transfer_ownership.html',
+                'jdr/transfer_ownership.html',
                 token_address=token_address,
                 account_address=account_address,
                 form=form
@@ -509,7 +509,7 @@ def transfer_ownership(token_address, account_address):
         form.to_address.data = ''
         form.amount.data = balance
         return render_template(
-            'mrf/transfer_ownership.html',
+            'jdr/transfer_ownership.html',
             token_address=token_address,
             account_address=account_address,
             form=form
@@ -519,10 +519,10 @@ def transfer_ownership(token_address, account_address):
 # +++++++++++++++++++++++++++++++
 # 償却
 # +++++++++++++++++++++++++++++++
-@mrf.route('/burn/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
+@jdr.route('/burn/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
 @login_required
 def burn(token_address, account_address):
-    logger.info('mrf/burn')
+    logger.info('jdr/burn')
 
     # アドレスフォーマットのチェック
     if not Web3.isAddress(account_address) or not Web3.isAddress(token_address):
@@ -559,7 +559,7 @@ def burn(token_address, account_address):
                 form.account_address.data = account_address
                 form.balance.data = balance
                 return render_template(
-                    'mrf/burn.html',
+                    'jdr/burn.html',
                     token_address=token_address,
                     account_address=account_address,
                     form=form
@@ -582,7 +582,7 @@ def burn(token_address, account_address):
             form.account_address.data = account_address
             form.balance.data = balance
             return render_template(
-                'mrf/burn.html',
+                'jdr/burn.html',
                 token_address=token_address,
                 account_address=account_address,
                 form=form
@@ -592,7 +592,7 @@ def burn(token_address, account_address):
         form.account_address.data = account_address
         form.balance.data = balance
         return render_template(
-            'mrf/burn.html',
+            'jdr/burn.html',
             token_address=token_address,
             account_address=account_address,
             form=form
@@ -602,10 +602,10 @@ def burn(token_address, account_address):
 # +++++++++++++++++++++++++++++++
 # 追加発行
 # +++++++++++++++++++++++++++++++
-@mrf.route('/additional_issue/<string:token_address>', methods=['GET', 'POST'])
+@jdr.route('/additional_issue/<string:token_address>', methods=['GET', 'POST'])
 @login_required
 def additional_issue(token_address):
-    logger.info('mrf/additional_issue')
+    logger.info('jdr/additional_issue')
 
     # ABI参照
     token = Token.query.filter(Token.token_address == token_address).first()
@@ -642,14 +642,14 @@ def additional_issue(token_address):
         else:  # 入力値エラーの場合
             flash_errors(form)
             return render_template(
-                'mrf/additional_issue.html',
+                'jdr/additional_issue.html',
                 form=form,
                 token_address=token_address,
                 token_name=name
             )
     else:  # GET
         return render_template(
-            'mrf/additional_issue.html',
+            'jdr/additional_issue.html',
             form=form,
             token_address=token_address,
             token_name=name
@@ -659,18 +659,18 @@ def additional_issue(token_address):
 # +++++++++++++++++++++++++++++++
 # 有効化/無効化
 # +++++++++++++++++++++++++++++++
-@mrf.route('/valid', methods=['POST'])
+@jdr.route('/valid', methods=['POST'])
 @login_required
 def valid():
-    logger.info('mrf/valid')
+    logger.info('jdr/valid')
     token_address = request.form.get('token_address')
     setStatus(token_address, True)
     return redirect(url_for('.setting', token_address=token_address))
 
-@mrf.route('/invalid', methods=['POST'])
+@jdr.route('/invalid', methods=['POST'])
 @login_required
 def invalid():
-    logger.info('mrf/invalid')
+    logger.info('jdr/invalid')
     token_address = request.form.get('token_address')
     setStatus(token_address, False)
     return redirect(url_for('.setting', token_address=token_address))
