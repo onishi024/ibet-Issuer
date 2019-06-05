@@ -1,0 +1,129 @@
+{% extends "base.html" %} {% block head %} {{ super() }}
+<!-- DataTables -->
+<link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
+{% endblock %}
+{% set active_page = "jdr_issue" %}
+{% block title %}JDR新規発行 - {% endblock %}
+{% block page_header %}JDR新規発行 <span class="badge bg-secondary">JDR</span>{% endblock %}
+{% block page_description %}{% endblock %}
+{% block breadcrumb %}
+<li><a href="{{ url_for('index.index') }}">トップ</a></li>
+<li class="active">JDR新規発行</li>
+{% endblock %} {% block page_content %}
+<section class="content">
+    <div class="box box-default">
+        <form class="form-horizontal" method="POST" role="form" action="{{ url_for('jdr.issue') }}">
+            {{ form.csrf_token }}
+            <div class="box-header">
+                <h3 class="box-title">発行条件</h3>
+            </div>
+            <div class="box-body">
+                <div class="form-group">
+                    {{ form.name.label(class="col-md-2 control-label") }}
+                    <div class="col-md-8">
+                        {{ form.name(class="form-control", autocomplete="off") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.symbol.label(class="col-md-2 control-label") }}
+                    <div class="col-md-4">
+                        {{ form.symbol(class="form-control", autocomplete="off") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.totalSupply.label(class="col-md-2 control-label") }}
+                    <div class="col-md-4">
+                        {{ form.totalSupply(class="form-control", autocomplete="off") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.details.label(class="col-md-2 control-label") }}
+                    <div class="col-md-8">
+                        {{ form.details(class="form-control") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.memo.label(class="col-md-2 control-label") }}
+                    <div class="col-md-8">
+                        {{ form.memo(class="form-control") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.tradableExchange.label(class="col-md-2 control-label") }}
+                    <div class="col-md-8">
+                        {{ form.tradableExchange(class="form-control", autocomplete="off") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.image_1.label(class="col-md-2 control-label") }}
+                    <div class="col-md-8">
+                        {{ form.image_1(class="form-control", autocomplete="off") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.image_2.label(class="col-md-2 control-label") }}
+                    <div class="col-md-8">
+                        {{ form.image_2(class="form-control", autocomplete="off") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.image_3.label(class="col-md-2 control-label") }}
+                    <div class="col-md-8">
+                        {{ form.image_3(class="form-control", autocomplete="off") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.contact_information.label(class="col-md-2 control-label") }}
+                    <div class="col-md-8">
+                        {{ form.contact_information(class="form-control", autocomplete="off") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.privacy_policy.label(class="col-md-2 control-label") }}
+                    <div class="col-md-8">
+                        {{ form.privacy_policy(class="form-control", autocomplete="off") }}
+                    </div>
+                </div>
+            </div>
+            <div class="box-footer">
+              <button type="submit" class="btn btn-success" id="load" data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中">新規発行</button>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %} {% block required_js %} {{ super() }}
+<script type="text/javascript" src="/static/adminlte/bower_components/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js"></script>
+<script type="text/javascript" src="/static/js/bootstrap-timepicker.min.js"></script>
+<script type="text/javascript">
+    $.fn.datepicker.dates['ja'] = {
+        days: ["日曜日", "月曜日", "火曜日", "水曜日", "木曜日", "金曜日", "土曜日"],
+        daysShort: ["日", "月", "火", "水", "木", "金", "土"],
+        daysMin: ["日", "月", "火", "水", "木", "金", "土"],
+        months: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"],
+        monthsShort: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"],
+        today: "今日",
+        clear: "Clear",
+        format: "yyyy/mm/dd",
+        titleFormat: "yyyy年 MM",
+        weekStart: 0
+    };
+    //Date picker
+    $('[id="datepicker"]').datepicker({
+        language: 'ja',
+        format: 'yyyymmdd',
+        todayHighlight: true,
+        autoclose: true,
+        orientation: "bottom right",
+        todayBtn: true
+    });
+</script>
+<script type="text/javascript">
+  $('#load.btn').on('click', function() {
+    var $this = $(this);
+    $this.button('loading');
+    setTimeout(function() {
+      $this.button('reset');
+    }, 8000);
+  });
+</script>
+{% endblock %}

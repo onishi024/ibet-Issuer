@@ -44,6 +44,9 @@ def create_app(config_name):
     from .mrf import mrf as mrf_blueprint
     app.register_blueprint(mrf_blueprint)
 
+    from .jdr import jdr as jdr_blueprint
+    app.register_blueprint(jdr_blueprint)
+
     from .coupon import coupon as coupon_blueprint
     app.register_blueprint(coupon_blueprint)
 

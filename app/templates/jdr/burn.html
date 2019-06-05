@@ -3,14 +3,14 @@
 {{ super() }}
 <link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
 {% endblock %}
-{% set active_page = "mrf_list" %}
+{% set active_page = "jdr_list" %}
 
 {% block title %}償却 - {% endblock %}
-{% block page_header %}償却 <span class="badge bg-secondary">MRF</span>{% endblock %}
+{% block page_header %}償却 <span class="badge bg-secondary">JDR</span>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
 <li><a href="{{ url_for('index.index') }}">トップ</a></li>
-<li><a href="{{ url_for('mrf.list') }}">MRF一覧</a></li>
+<li><a href="{{ url_for('jdr.list') }}">JDR一覧</a></li>
 <li class="active">償却</li>
 {% endblock %}
 
@@ -20,7 +20,7 @@
     <div class="box-header with-border">
       <h3 class="box-title">償却</h3>
     </div>
-    <form class="form-horizontal" method="POST" role="form" action="{{ url_for('mrf.burn', token_address=token_address, account_address=form.account_address.data) }}">
+    <form class="form-horizontal" method="POST" role="form" action="{{ url_for('jdr.burn', token_address=token_address, account_address=form.account_address.data) }}">
       {{ form.csrf_token }}
       <div class="box-body">
         <div class="form-group">
@@ -43,7 +43,7 @@
         </div>
       </div>
       <div class="box-footer">
-        <button type="button" class="btn btn-default" onclick="location.href='{{ url_for("mrf.holders", token_address=token_address) }}'">戻る</button>
+        <button type="button" class="btn btn-default" onclick="location.href='{{ url_for("jdr.holders", token_address=token_address) }}'">戻る</button>
         <button type="submit" class="btn btn-danger" id="load" data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中">償却</button>
       </div>
     </form>
