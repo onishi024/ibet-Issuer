@@ -44,19 +44,6 @@ class Config:
     }
 
     NAVI_MENU_USER = [
-        ('bond', 'glyphicon glyphicon-th', '債券 (BETA)', [
-            ('bond_issue', 'fa fa-circle-o', '新規発行', 'bond.issue'),
-            ('bond_list', 'fa fa-circle-o', '発行済一覧', 'bond.list'),
-            ('bond_position', 'fa fa-circle-o', '売出管理', 'bond.positions'),
-        ]),
-        ('mrf', 'glyphicon glyphicon-th', 'MRF (BETA)', [
-            ('mrf_issue', 'fa fa-circle-o', '新規発行', 'mrf.issue'),
-            ('mrf_list', 'fa fa-circle-o', '発行済一覧', 'mrf.list'),
-        ]),
-        ('jdr', 'glyphicon glyphicon-th', 'JDR (BETA)', [
-            ('jdr_issue', 'fa fa-circle-o', '新規発行', 'jdr.issue'),
-            ('jdr_list', 'fa fa-circle-o', '発行済一覧', 'jdr.list'),
-        ]),
         ('membership', 'glyphicon glyphicon-th', '会員権', [
             ('membership_issue', 'fa fa-circle-o', '新規発行', 'membership.issue'),
             ('membership_list', 'fa fa-circle-o', '発行済一覧', 'membership.list'),
@@ -67,6 +54,19 @@ class Config:
             ('coupon_list', 'fa fa-circle-o', '発行済一覧', 'coupon.list'),
             ('coupon_position', 'fa fa-circle-o', '売出管理', 'coupon.positions'),
             ('coupon_transfer', 'fa fa-circle-o', '割当', 'coupon.transfer')
+        ]),
+        ('bond', 'fa fa-flask', '債券 (Beta)', [
+            ('bond_issue', 'fa fa-circle-o', '新規発行', 'bond.issue'),
+            ('bond_list', 'fa fa-circle-o', '発行済一覧', 'bond.list'),
+            ('bond_position', 'fa fa-circle-o', '売出管理', 'bond.positions'),
+        ]),
+        ('jdr', 'fa fa-flask', 'JDR (Beta)', [
+            ('jdr_issue', 'fa fa-circle-o', '新規発行', 'jdr.issue'),
+            ('jdr_list', 'fa fa-circle-o', '発行済一覧', 'jdr.list'),
+        ]),
+        ('mrf', 'fa fa-flask', 'MRF (Beta)', [
+            ('mrf_issue', 'fa fa-circle-o', '新規発行', 'mrf.issue'),
+            ('mrf_list', 'fa fa-circle-o', '発行済一覧', 'mrf.list'),
         ]),
     ]
 

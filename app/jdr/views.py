@@ -208,6 +208,16 @@ def setting(token_address):
     contact_information = TokenContract.functions.contactInformation().call()
     privacy_policy = TokenContract.functions.privacyPolicy().call()
 
+    # TokenList登録状態取得
+    ListContract = Contract.get_contract(
+        'TokenList',
+        Config.TOKEN_LIST_CONTRACT_ADDRESS
+    )
+    listed_token = ListContract.functions.getTokenByAddress(token_address).call()
+    released = False
+    if listed_token[0] == token_address:
+        released = True
+
     form = SettingForm()
     if request.method == 'POST':
         if form.validate():  # Validationチェック
@@ -223,7 +233,7 @@ def setting(token_address):
                 return render_template(
                     'jdr/setting.html',
                     form=form, token_address=token_address,
-                    status=status, token_name=name
+                    released=released, status=status, token_name=name
                 )
 
             # アカウントアンロック
@@ -293,7 +303,7 @@ def setting(token_address):
             return render_template(
                 'jdr/setting.html',
                 form=form, token_address=token_address,
-                status=status, token_name=name
+                released=released, status=status, token_name=name
             )
     else:  # GET
         form.token_address.data = token.token_address
@@ -315,6 +325,7 @@ def setting(token_address):
             form=form,
             token_address=token_address,
             token_name=name,
+            released=released,
             status=status
         )
 
@@ -667,6 +678,7 @@ def valid():
     setStatus(token_address, True)
     return redirect(url_for('.setting', token_address=token_address))
 
+
 @jdr.route('/invalid', methods=['POST'])
 @login_required
 def invalid():
@@ -674,6 +686,7 @@ def invalid():
     token_address = request.form.get('token_address')
     setStatus(token_address, False)
     return redirect(url_for('.setting', token_address=token_address))
+
 
 def setStatus(token_address, isvalid):
     # アカウントアンロック
@@ -699,3 +712,38 @@ def setStatus(token_address, isvalid):
     except Exception as e:
         logger.error(e)
         flash('更新処理でエラーが発生しました。', 'error')
+
+
+# +++++++++++++++++++++++++++++++
+# 公開
+# +++++++++++++++++++++++++++++++
+@jdr.route('/release', methods=['POST'])
+@login_required
+def release():
+    logger.info('jdr/release')
+
+    # アカウントアンロック
+    eth_unlock_account()
+
+    token_address = request.form.get('token_address')
+
+    # TokenListコントラクト設定
+    ListContract = Contract.get_contract(
+        'TokenList',
+        Config.TOKEN_LIST_CONTRACT_ADDRESS
+    )
+
+    # 公開
+    # NOTE:token_templateは”IbetDepositaryReceipt”を指定
+    try:
+        gas = ListContract.estimateGas(). \
+            register(token_address, 'IbetDepositaryReceipt')
+        tx = ListContract.functions. \
+            register(token_address, 'IbetDepositaryReceipt'). \
+            transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
+        web3.eth.waitForTransactionReceipt(tx)
+        flash('処理を受け付けました。', 'success')
+    except ValueError:
+        flash('登録処理でエラーが発生しました。', 'error')
+
+    return redirect(url_for('.setting', token_address=token_address))
