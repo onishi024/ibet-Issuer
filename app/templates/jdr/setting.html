@@ -21,30 +21,45 @@
         <div class="box-header with-border">
             <h3 class="box-title"><small>{{ token_address }}</small></h3>
             <div class="pull-right box-tools">
+                <!-- 公開/公開済 -->
+                {% if released %}
+                <button class="btn btn-default btn-sm" type="button"
+                        style="width: 120px" disabled>
+                    公開済
+                </button>
+                {% else %}
+                <button id="release"
+                        class="btn btn-warning btn-sm" type="button"
+                        data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中"
+                        style="width: 120px">
+                    公開 <i class="fa fa-exclamation-triangle"></i>
+                </button>
+                {% endif %}
+
                 <!-- 取扱開始/停止 -->
                 {% if status %}
-                  <button 
-                    id="invalid"
-                    type="button" class="btn btn-danger btn-sm"
-                    data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中"
-                    style="width: 120px">
+                <button id="invalid"
+                        type="button" class="btn btn-danger btn-sm"
+                        data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中"
+                        style="width: 120px">
                     取扱停止 <i class="fa fa-exclamation-triangle"></i>
-                  </button>
-                {% else %}
-                  <button
-                    id="valid"
-                    type="button" class="btn btn-success btn-sm"
-                    data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中"
-                    style="width: 120px">
-                    取扱開始 <i class="fa fa-exclamation-triangle"></i>
-                  </button>
-                {% endif %}
-                <!-- 追加発行 -->
-                <button
-                  type="button" class="btn btn-default btn-sm" style="width: 120px"
-                  onclick="location.href='{{ url_for("jdr.additional_issue", token_address=token_address)}}'">
-                  追加発行 <i class="fa fa-arrow-circle-right"></i>
                 </button>
+                {% else %}
+                <button id="valid"
+                        type="button" class="btn btn-success btn-sm"
+                        data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中"
+                        style="width: 120px">
+                    取扱開始 <i class="fa fa-exclamation-triangle"></i>
+                </button>
+                {% endif %}
+
+                <!-- 追加発行 -->
+                <button type="button"
+                        class="btn btn-default btn-sm" style="width: 120px"
+                        onclick="location.href='{{ url_for("jdr.additional_issue", token_address=token_address)}}'">
+                    追加発行 <i class="fa fa-arrow-circle-right"></i>
+                </button>
+
             </div>
         </div>
         <form class="form-horizontal" method="POST" role="form" action="{{ url_for('jdr.setting', token_address=form.token_address.data) }}">
@@ -187,13 +202,18 @@
 <script type="text/javascript">
     $(document).ready(function() {
         $('#modal-ok').click(function () {
-          $("#modal-cancel").prop("disabled", true);
-          var $this = $(this);
-          $this.parents('form').submit();
-          $this.button('loading');
-          setTimeout(function () {
-              $this.button('reset');
-          }, 10000);
+            $("#modal-cancel").prop("disabled", true);
+            var $this = $(this);
+            $this.parents('form').submit();
+            $this.button('loading');
+            setTimeout(function () {
+                $this.button('reset');
+            }, 10000);
+        });
+        $('#release').click(function(){
+            $("#modal-text").html("この商品を公開します。よろしいですか？");
+            $('#modal-form').attr('action', "{{ url_for('jdr.release') }}");
+            $('#modal-confirm').modal();
         });
         $('#invalid').click(function(){
             $("#modal-text").html("この商品を取扱停止します。よろしいですか？");
