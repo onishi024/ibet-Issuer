@@ -91,7 +91,7 @@ class IssueForm(Form):
     def __init__(self, issue_data=None, *args, **kwargs):
         super(IssueForm, self).__init__(*args, **kwargs)
         self.issue_data = issue_data
-        self. description = {
+        self.description = {
             'name': '新規発行するJDRの名称を入力してください。',
             'symbol': '新規発行するJDRの略称を入力してください。',
             'totalSupply': '新規発行するJDRの総発行量を入力してください。',
