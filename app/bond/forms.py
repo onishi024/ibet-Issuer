@@ -223,6 +223,23 @@ class IssueForm(Form):
     def __init__(self, issue_token=None, *args, **kwargs):
         super(IssueForm, self).__init__(*args, **kwargs)
         self.issue_token = issue_token
+        self.description = {
+            'name': '新規発行する債券の名称を入力してください。',
+            'symbol': '新規発行する債券の略称を入力してください。',
+            'totalSupply': '新規発行する債券の総発行量を入力してください。',
+            'faceValue': '新規発行する債券の額面での金額を入力してください。',
+            'interestRate': '新規発行する債券の税引き前の金利を入力してください。',
+            'interestPaymentDate': '新規発行する債券の利払日を入力してください。',
+            'redemptionDate': '新規発行する債券の償還日を入力してください。',
+            'redemptionAmount': '新規発行する債券の額面での償還金額を入力してください。',
+            'returnDate': '新規発行する債券のリターンを実施する日程を入力してください。',
+            'returnAmount': '新規発行する債券を購入することで得られるリターンを入力してください。',
+            'purpose': '新規発行する債券の発行目的を入力してください。',
+            'memo': '新規発行する債券のメモを入力してください。',
+            'tradableExchange': '新規発行する債券を取引可能にする取引所コントラクトのコントラクトアドレスを入力してください。',
+            'contact_information': '新規発行する債券の問い合わせ先メールアドレスまたは電話番号を入力してください。',
+            'privacy_policy': '新規発行する債券のプライバシーポリシーを入力してください。',
+        }
 
 class SettingForm(Form):
     token_address = StringField("トークンアドレス", validators=[])
