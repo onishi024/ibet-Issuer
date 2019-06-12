@@ -39,7 +39,7 @@ class TestMembership(TestBase):
         'symbol': 'KAIINKEN',
         'totalSupply': 1000000,
         'details': 'details',
-        'returnDetails': 'returnDetails',
+        'return_details': 'returnDetails',
         'expirationDate': '20191231',
         'memo': 'memo',
         'transferable': 'True',
@@ -54,7 +54,7 @@ class TestMembership(TestBase):
         'symbol': '2KENME',
         'totalSupply': 2000000,
         'details': '2details',
-        'returnDetails': '2returnDetails',
+        'return_details': '2returnDetails',
         'expirationDate': '20201231',
         'memo': '2memo',
         'transferable': 'False',
@@ -69,7 +69,7 @@ class TestMembership(TestBase):
         'symbol': 'KAIINKEN',
         'totalSupply': 1000000,
         'details': '3details',
-        'returnDetails': '3returnDetails',
+        'return_details': '3returnDetails',
         'expirationDate': '20211231',
         'memo': '3memo',
         'transferable': 'False',
@@ -186,7 +186,7 @@ class TestMembership(TestBase):
         assert self.token_data1['symbol'].encode('utf-8') in response.data
         assert str(self.token_data1['totalSupply']).encode('utf-8') in response.data
         assert self.token_data1['details'].encode('utf-8') in response.data
-        assert self.token_data1['returnDetails'].encode('utf-8') in response.data
+        assert self.token_data1['return_details'].encode('utf-8') in response.data
         assert self.token_data1['expirationDate'].encode('utf-8') in response.data
         assert self.token_data1['memo'].encode('utf-8') in response.data
         assert '<option selected value="True">なし</option>'.encode('utf-8') in response.data
@@ -254,7 +254,7 @@ class TestMembership(TestBase):
         assert self.token_data2['symbol'].encode('utf-8') in response.data
         assert str(self.token_data2['totalSupply']).encode('utf-8') in response.data
         assert self.token_data2['details'].encode('utf-8') in response.data
-        assert self.token_data2['returnDetails'].encode('utf-8') in response.data
+        assert self.token_data2['return_details'].encode('utf-8') in response.data
         assert self.token_data2['expirationDate'].encode('utf-8') in response.data
         assert self.token_data2['memo'].encode('utf-8') in response.data
         assert '<option selected value="False">あり</option>'.encode('utf-8') in response.data
@@ -423,7 +423,7 @@ class TestMembership(TestBase):
         assert self.token_data3['symbol'].encode('utf-8') in response.data
         assert str(self.token_data3['totalSupply']).encode('utf-8') in response.data
         assert self.token_data3['details'].encode('utf-8') in response.data
-        assert self.token_data3['returnDetails'].encode('utf-8') in response.data
+        assert self.token_data3['return_details'].encode('utf-8') in response.data
         assert self.token_data3['expirationDate'].encode('utf-8') in response.data
         assert self.token_data3['memo'].encode('utf-8') in response.data
         assert '<option selected value="False">あり</option>'.encode('utf-8') in response.data
@@ -465,7 +465,7 @@ class TestMembership(TestBase):
         assert self.token_data1['symbol'].encode('utf-8') in response.data
         assert str(self.token_data1['totalSupply']).encode('utf-8') in response.data
         assert self.token_data1['details'].encode('utf-8') in response.data
-        assert self.token_data1['returnDetails'].encode('utf-8') in response.data
+        assert self.token_data1['return_details'].encode('utf-8') in response.data
         assert self.token_data1['expirationDate'].encode('utf-8') in response.data
         assert self.token_data1['memo'].encode('utf-8') in response.data
         assert '<option selected value="True">なし</option>'.encode('utf-8') in response.data
@@ -949,7 +949,7 @@ class TestMembership(TestBase):
                 'symbol': '2KENME',
                 'totalSupply': 2000000,
                 'details': '2details',
-                'returnDetails': '2returnDetails',
+                'return_details': '2returnDetails',
                 'expirationDate': '20201231',
                 'memo': '2memo',
                 'transferable': 'False',

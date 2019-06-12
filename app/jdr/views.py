@@ -50,26 +50,12 @@ def issue():
     logger.info('jdr.issue')
     form = IssueForm()
 
-    form_description = {
-    'name': '新規発行するJDRの名称を入力してください。',
-    'symbol': '新規発行するJDRの略称を入力してください。',
-    'totalSupply': '新規発行するJDRの総発行量を入力してください。',
-    'details': '新規発行するJDRの詳細説明文を入力してください。この文章はユーザーのJDR売買画面にも表示されます。',
-    'memo': '新規発行するJDRのメモを入力してください。',
-    'tradableExchange': '新規発行するJDRを取引可能にする取引所コントラクトのコントラクトアドレスを入力してください。',
-    'image_1': '新規発行するJDRの売買画面で表示されるメイン画像のURLを入力してください。',
-    'image_2': '新規発行するJDRの売買画面で表示されるサブ画像①のURLを入力してください。',
-    'image_3': '新規発行するJDRの売買画面で表示されるサブ画像②のURLを入力してください。',
-    'contact_information': '新規発行するJDRの問い合わせ先メールアドレスまたは電話番号を入力してください。',
-    'privacy_policy': '新規発行するJDRのプライバシーポリシーを入力してください。',
-    }
-
     if request.method == 'POST':
         if form.validate():
             # Exchangeコントラクトのアドレスフォーマットチェック
             if not Web3.isAddress(form.tradableExchange.data):
                 flash('DEXアドレスは有効なアドレスではありません。', 'error')
-                return render_template('jdr/issue.html', form=form, form_description=form_description)
+                return render_template('jdr/issue.html', form=form, form_description=form.description)
 
             # EOAアンロック
             eth_unlock_account()
@@ -128,9 +114,9 @@ def issue():
             return redirect(url_for('.list'))
         else:
             flash_errors(form)
-            return render_template('jdr/issue.html', form=form, form_description=form_description)
+            return render_template('jdr/issue.html', form=form, form_description=form.description)
     else:  # GET
-        return render_template('jdr/issue.html', form=form, form_description=form_description)
+        return render_template('jdr/issue.html', form=form, form_description=form.description)
 
 
 # +++++++++++++++++++++++++++++++
@@ -670,16 +656,14 @@ def additional_issue(token_address):
                 'jdr/additional_issue.html',
                 form=form,
                 token_address=token_address,
-                token_name=name,
-                form_description=form_description
+                token_name=name
             )
     else:  # GET
         return render_template(
             'jdr/additional_issue.html',
             form=form,
             token_address=token_address,
-            token_name=name,
-            form_description=form_description
+            token_name=name
         )
 
 

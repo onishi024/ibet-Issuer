@@ -694,29 +694,12 @@ def issue():
     logger.info('membership.issue')
     form = IssueForm()
 
-    form_description = {
-        'name': '新規発行する会員権の名称を入力してください。',
-        'symbol': '新規発行する会員権の略称を入力してください。',
-        'totalSupply': '新規発行する会員権の総発行量を入力してください。',
-        'details': '新規発行する会員権の詳細説明文を入力してください。この文章はユーザーの会員権売買画面にも表示されます。',
-        'return_details': '新規発行する会員権を購入することで得られる詳細説明文を入力してください。',
-        'memo': '新規発行する会員権のメモを入力してください。',
-        'expirationDate': '新規発行する会員権の有効期限を入力してください。',
-        'transferable': '新規発行する会員権を譲渡可能にする場合は「なし」、譲渡不可にする場合は「あり」を選択してください。',
-        'tradableExchange': '新規発行する会員権を取引可能にする取引所コントラクトのコントラクトアドレスを入力してください。',
-        'image_1': '新規発行する会員権の売買画面で表示されるメイン画像のURLを入力してください。',
-        'image_2': '新規発行する会員権の売買画面で表示されるサブ画像①のURLを入力してください。',
-        'image_3': '新規発行する会員権の売買画面で表示されるサブ画像②のURLを入力してください。',
-        'contact_information': '新規発行する会員権の問い合わせ先メールアドレスまたは電話番号を入力してください。',
-        'privacy_policy': '新規発行する会員権のプライバシーポリシーを入力してください。',
-    }
-
     if request.method == 'POST':
         if form.validate():
             # Exchangeコントラクトのアドレスフォーマットチェック
             if not Web3.isAddress(form.tradableExchange.data):
                 flash('DEXアドレスは有効なアドレスではありません。', 'error')
-                return render_template('membership/issue.html', form=form, form_description=form_description)
+                return render_template('membership/issue.html', form=form, form_description=form.description)
 
             # EOAアンロック
             eth_unlock_account()
@@ -782,9 +765,9 @@ def issue():
             return redirect(url_for('.list'))
         else:
             flash_errors(form)
-            return render_template('membership/issue.html', form=form, form_description=form_description)
+            return render_template('membership/issue.html', form=form, form_description=form.description)
     else:  # GET
-        return render_template('membership/issue.html', form=form, form_description=form_description)
+        return render_template('membership/issue.html', form=form, form_description=form.description)
 
 
 ####################################################

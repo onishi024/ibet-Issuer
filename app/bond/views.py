@@ -615,30 +615,12 @@ def issue():
     logger.info('bond.issue')
     form = IssueForm()
 
-    form_description = {
-        'name': '新規発行する債券の名称を入力してください。',
-        'symbol': '新規発行する債券の略称を入力してください。',
-        'totalSupply': '新規発行する債券の総発行量を入力してください。',
-        'faceValue': '新規発行する債券の額面での金額を入力してください。',
-        'interestRate': '新規発行する債券の税引き前の金利を入力してください。',
-        'interestPaymentDate': '新規発行する債券の支払日を入力してください。',
-        'redemptionDate': '新規発行する債券の償還日を入力してください。',
-        'redemptionAmount': '新規発行する債券の額面での償還金額を入力してください。',
-        'returnDate': '新規発行する債券のリターンを実施する日程を入力してください。',
-        'returnAmount': '新規発行する債券を購入することで得られるリターンを入力してください。',
-        'purpose': '新規発行する債券の発行目的を入力してください。',
-        'memo': '新規発行する債券のメモを入力してください。',
-        'tradableExchange': '新規発行する債券を取引可能にする取引所コントラクトのコントラクトアドレスを入力してください。',
-        'contact_information': '新規発行する債券の問い合わせ先メールアドレスまたは電話番号を入力してください。',
-        'privacy_policy': '新規発行する債券のプライバシーポリシーを入力してください。',
-    }
-
     if request.method == 'POST':
         if form.validate():
             # Exchangeコントラクトのアドレスフォーマットチェック
             if not Web3.isAddress(form.tradableExchange.data):
                 flash('DEXアドレスは有効なアドレスではありません。', 'error')
-                return render_template('bond/issue.html', form=form, form_description=form_description)
+                return render_template('bond/issue.html', form=form, form_description=form.description)
 
             # EOAアンロック
             eth_unlock_account()
@@ -697,9 +679,9 @@ def issue():
             return redirect(url_for('.list'))
         else:
             flash_errors(form)
-            return render_template('bond/issue.html', form=form, form_description=form_description)
+            return render_template('bond/issue.html', form=form, form_description=form.description)
     else:  # GET
-        return render_template('bond/issue.html', form=form, form_description=form_description)
+        return render_template('bond/issue.html', form=form, form_description=form.description)
 
 
 ####################################################

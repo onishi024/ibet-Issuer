@@ -120,6 +120,22 @@ class IssueCouponForm(Form):
         super(IssueCouponForm, self).__init__(*args, **kwargs)
         self.issue_coupon = issue_coupon
         self.transferable.choices = [('True', 'なし'), ('False', 'あり')]
+        self.description = {
+            'name': '新規発行するクーポンの名称を入力してください。',
+            'symbol': '新規発行するクーポンの略称を入力してください。',
+            'totalSupply': '新規発行するクーポンの総発行量を入力してください。',
+            'details': '新規発行するクーポンの詳細説明文を入力してください。この文章はユーザーのクーポン売買画面にも表示されます。',
+            'return_details': '新規発行するクーポンを購入することで得られる詳細説明文を入力してください。',
+            'memo': '新規発行するクーポンのメモを入力してください。',
+            'expirationDate': '新規発行するクーポンの有効期限を入力してください。',
+            'transferable': '新規発行するクーポンを譲渡可能にする場合は「なし」、譲渡不可にする場合は「あり」を選択してください。',
+            'tradableExchange': '新規発行するクーポンを取引可能にする取引所コントラクトのコントラクトアドレスを入力してください。',
+            'image_1': '新規発行するクーポンの売買画面で表示されるメイン画像のURLを入力してください。',
+            'image_2': '新規発行するクーポンの売買画面で表示されるサブ画像①のURLを入力してください。',
+            'image_3': '新規発行するクーポンの売買画面で表示されるサブ画像②のURLを入力してください。',
+            'contact_information': '新規発行するクーポンの問い合わせ先メールアドレスまたは電話番号を入力してください。',
+            'privacy_policy': '新規発行するクーポンのプライバシーポリシーを入力してください。',
+        }
 
 class SettingCouponForm(Form):
     token_address = StringField("トークンアドレス", validators=[])
@@ -257,6 +273,11 @@ class TransferForm(Form):
     def __init__(self, transfer_coupon=None, *args, **kwargs):
         super(TransferForm, self).__init__(*args, **kwargs)
         self.transfer_coupon = transfer_coupon
+        self.description = {
+            'token_address': '割当を行うクーポンのアドレスを入力してください。アドレスは「Menu＞クーポン＞発行済一覧」画面の「アドレス」列に記載されています。',
+            'to_address': 'クーポンを割り当てる先のウォレットアドレスを入力してください。',
+            'amount': '割当を行うクーポンの数量を入力してください。',
+        }
 
 class TransferOwnershipForm(Form):
     from_address = StringField("現在の所有者",validators = [])
