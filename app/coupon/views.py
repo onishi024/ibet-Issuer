@@ -208,12 +208,29 @@ def issue():
     logger.info('coupon/issue')
     form = IssueCouponForm()
 
+    form_description = {
+        'name': '新規発行するクーポンの名称を入力してください。',
+        'symbol': '新規発行するクーポンの略称を入力してください。',
+        'totalSupply': '新規発行するクーポンの総発行量を入力してください。',
+        'details': '新規発行するクーポンの詳細説明文を入力してください。この文章はユーザーのクーポン売買画面にも表示されます。',
+        'return_details': '新規発行するクーポンを購入することで得られる詳細説明文を入力してください。',
+        'memo': '新規発行するクーポンのメモを入力してください。',
+        'expirationDate': '新規発行するクーポンの有効期限を入力してください。',
+        'transferable': '新規発行するクーポンを譲渡可能にする場合は「なし」、譲渡不可にする場合は「あり」を選択してください。',
+        'tradableExchange': '新規発行するクーポンを取引可能にする取引所コントラクトのコントラクトアドレスを入力してください。',
+        'image_1': '新規発行するクーポンの売買画面で表示されるメイン画像のURLを入力してください。',
+        'image_2': '新規発行するクーポンの売買画面で表示されるサブ画像①のURLを入力してください。',
+        'image_3': '新規発行するクーポンの売買画面で表示されるサブ画像②のURLを入力してください。',
+        'contact_information': '新規発行するクーポンの問い合わせ先メールアドレスまたは電話番号を入力してください。',
+        'privacy_policy': '新規発行するクーポンのプライバシーポリシーを入力してください。',
+    }
+
     if request.method == 'POST':
         if form.validate():
             # Exchangeコントラクトのアドレスフォーマットチェック
             if not Web3.isAddress(form.tradableExchange.data):
                 flash('DEXアドレスは有効なアドレスではありません。', 'error')
-                return render_template('coupon/issue.html', form=form)
+                return render_template('coupon/issue.html', form=form, form_description=form_description)
 
             # EOAアンロック
             eth_unlock_account()
@@ -279,10 +296,10 @@ def issue():
 
         else: # バリデーションエラー
             flash_errors(form)
-            return render_template('coupon/issue.html', form=form)
+            return render_template('coupon/issue.html', form=form, form_description=form_description)
 
     else: # GET
-        return render_template('coupon/issue.html', form=form)
+        return render_template('coupon/issue.html', form=form, form_description=form_description)
 
 
 # 追加発行
@@ -747,17 +764,24 @@ def cancel_order(token_address):
 def transfer():
     logger.info('coupon/transfer')
     form = TransferForm()
+
+    form_description = {
+        'token_address': '割当を行うクーポンのアドレスを入力してください。アドレスは「Menu＞クーポン＞発行済一覧」画面の「アドレス」列に記載されています。',
+        'to_address': 'クーポンを割り当てる先のウォレットアドレスを入力してください。',
+        'amount': '割当を行うクーポンの数量を入力してください。',
+    }
+
     if request.method == 'POST':
         if form.validate():
             # Addressフォーマットチェック（token_address）
             if not Web3.isAddress(form.token_address.data):
                 flash('クーポンアドレスは有効なアドレスではありません。', 'error')
-                return render_template('coupon/transfer.html', form=form)
+                return render_template('coupon/transfer.html', form=form, form_description=form_description)
 
             # Addressフォーマットチェック（send_address）
             if not Web3.isAddress(form.to_address.data):
                 flash('割当先アドレスは有効なアドレスではありません。', 'error')
-                return render_template('coupon/transfer.html', form=form)
+                return render_template('coupon/transfer.html', form=form, form_description=form_description)
 
             eth_unlock_account()
 
@@ -780,12 +804,12 @@ def transfer():
             tx_hash = transfer_token(TokenContract, from_address, to_address, amount)
 
             flash('処理を受け付けました。割当完了までに数分程かかることがあります。', 'success')
-            return render_template('coupon/transfer.html', form=form)
+            return render_template('coupon/transfer.html', form=form, form_description=form_description)
         else:
             flash_errors(form)
-            return render_template('coupon/transfer.html', form=form)
+            return render_template('coupon/transfer.html', form=form, form_description=form_description)
     else:  # GET
-        return render_template('coupon/transfer.html', form=form)
+        return render_template('coupon/transfer.html', form=form, form_description=form_description)
 
 
 # 割当（募集申込）
