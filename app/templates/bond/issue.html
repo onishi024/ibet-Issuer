@@ -23,175 +23,295 @@
               <h3 class="box-title">発行条件</h3>
             </div>
             <div class="box-body">
-              <div class="form-group">
-                  {{ form.name.label(class="col-md-2 control-label") }}
-                  <div class="col-md-4">
-                      {{ form.name(class="form-control", autocomplete="off") }}
-                  </div>
-              </div>
-              <div class="form-group">
-                  {{ form.symbol.label(class="col-md-2 control-label") }}
-                  <div class="col-md-4">
-                      {{ form.symbol(class="form-control", autocomplete="off") }}
-                  </div>
-              </div>
-              <div class="form-group">
-                  {{ form.totalSupply.label(class="col-md-2 control-label") }}
-                  <div class="col-md-4">
-                      {{ form.totalSupply(class="form-control", autocomplete="off") }}
-                  </div>
-              </div>
-              <div class="form-group">
-                  {{ form.faceValue.label(class="col-md-2 control-label") }}
-                  <div class="col-md-4">
-                      {{ form.faceValue(class="form-control", autocomplete="off") }}
-                  </div>
-              </div>
-              <div class="form-group">
-                  {{ form.interestRate.label(class="col-md-2 control-label") }}
-                  <div class="col-md-4">
-                      {{ form.interestRate(class="form-control", autocomplete="off") }}
-                  </div>
-              </div>
+                <div class="form-group">
+                    {{ form.name.label(class="col-md-2 control-label") }}
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <div class="input-group-addon">
+                                <i class="fa fa-info" data-toggle="tooltip" title="{{ form_description['name'] }}" name="thename"></i>
+                            </div>
+                            {{ form.name(class="form-control", autocomplete="off") }}
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.symbol.label(class="col-md-2 control-label") }}
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <div class="input-group-addon">
+                                <i class="fa fa-info" data-toggle="tooltip" title="{{ form_description['symbol'] }}" name="thename"></i>
+                            </div>
+                            {{ form.symbol(class="form-control", autocomplete="off") }}
+                            </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.totalSupply.label(class="col-md-2 control-label") }}
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <div class="input-group-addon">
+                                <i class="fa fa-info" data-toggle="tooltip" title="{{ form_description['totalSupply'] }}" name="thename"></i>
+                            </div>
+                            {{ form.totalSupply(class="form-control", autocomplete="off") }}
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.faceValue.label(class="col-md-2 control-label") }}
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <div class="input-group-addon">
+                                <i class="fa fa-info" data-toggle="tooltip" title="{{ form_description['faceValue'] }}" name="thename"></i>
+                            </div>
+                            {{ form.faceValue(class="form-control", autocomplete="off") }}
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.interestRate.label(class="col-md-2 control-label") }}
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <div class="input-group-addon">
+                                <i class="fa fa-info" data-toggle="tooltip" title="{{ form_description['interestRate'] }}" name="thename"></i>
+                            </div>
+                            {{ form.interestRate(class="form-control", autocomplete="off") }}
+                        </div>
+                    </div>
+                </div>
 
-              <div class="form-group">
-                    {{ form.interestPaymentDate1.label(class="col-md-2 control-label") }}
-                    <div class="col-md-4">
-                        {{ form.interestPaymentDate1(class="form-control", placeholder="MMDD（例：3/31 → 0331）", autocomplete="off") }}
-                    </div>
-                    <div class="col-md-4">
-                        <button type="button" class="btn btn-default" onclick="addPayDate()"><i class="fa fa-plus-circle"></i> 利払日追加</button>
-                    </div>
-              </div>
-              <div class="form-group" id="divInterestPaymentDate2" style="display: none;">
-                    {{ form.interestPaymentDate2.label(class="col-md-2 control-label") }}
-                    <div class="col-md-4">
-                        {{ form.interestPaymentDate2(class="form-control", placeholder="MMDD（例：3/31 → 0331）", autocomplete="off") }}
-                    </div>
-              </div>
-              <div class="form-group" id="divInterestPaymentDate3" style="display: none;">
-                    {{ form.interestPaymentDate3.label(class="col-md-2 control-label") }}
-                    <div class="col-md-4">
-                        {{ form.interestPaymentDate3(class="form-control", placeholder="MMDD（例：3/31 → 0331）", autocomplete="off") }}
-                    </div>
-              </div>
-              <div class="form-group" id="divInterestPaymentDate4" style="display: none;">
-                    {{ form.interestPaymentDate4.label(class="col-md-2 control-label") }}
-                    <div class="col-md-4">
-                        {{ form.interestPaymentDate4(class="form-control", placeholder="MMDD（例：3/31 → 0331）", autocomplete="off") }}
-                    </div>
-              </div>
-              <div class="form-group" id="divInterestPaymentDate5" style="display: none;">
-                    {{ form.interestPaymentDate5.label(class="col-md-2 control-label") }}
-                    <div class="col-md-4">
-                        {{ form.interestPaymentDate5(class="form-control", placeholder="MMDD（例：3/31 → 0331）", autocomplete="off") }}
-                    </div>
-              </div>
-              <div class="form-group" id="divInterestPaymentDate6" style="display: none;">
-                    {{ form.interestPaymentDate6.label(class="col-md-2 control-label") }}
-                    <div class="col-md-4">
-                        {{ form.interestPaymentDate6(class="form-control", placeholder="MMDD（例：3/31 → 0331）", autocomplete="off") }}
-                    </div>
-              </div>
-              <div class="form-group" id="divInterestPaymentDate7" style="display: none;">
-                    {{ form.interestPaymentDate7.label(class="col-md-2 control-label") }}
-                    <div class="col-md-4">
-                        {{ form.interestPaymentDate7(class="form-control", placeholder="MMDD（例：3/31 → 0331）", autocomplete="off") }}
-                    </div>
-              </div>
-              <div class="form-group" id="divInterestPaymentDate8" style="display: none;">
-                    {{ form.interestPaymentDate8.label(class="col-md-2 control-label") }}
-                    <div class="col-md-4">
-                        {{ form.interestPaymentDate8(class="form-control", placeholder="MMDD（例：3/31 → 0331）", autocomplete="off") }}
-                    </div>
-              </div>
-              <div class="form-group" id="divInterestPaymentDate9" style="display: none;">
-                    {{ form.interestPaymentDate9.label(class="col-md-2 control-label") }}
-                    <div class="col-md-4">
-                        {{ form.interestPaymentDate9(class="form-control", placeholder="MMDD（例：3/31 → 0331）", autocomplete="off") }}
-                    </div>
-              </div>
-              <div class="form-group" id="divInterestPaymentDate10" style="display: none;">
-                    {{ form.interestPaymentDate10.label(class="col-md-2 control-label") }}
-                    <div class="col-md-4">
-                        {{ form.interestPaymentDate10(class="form-control", placeholder="MMDD（例：3/31 → 0331）", autocomplete="off") }}
-                    </div>
-              </div>
-              <div class="form-group" id="divInterestPaymentDate11" style="display: none;">
-                    {{ form.interestPaymentDate11.label(class="col-md-2 control-label") }}
-                    <div class="col-md-4">
-                        {{ form.interestPaymentDate11(class="form-control", placeholder="MMDD（例：3/31 → 0331）", autocomplete="off") }}
-                    </div>
-              </div>
-              <div class="form-group" id="divInterestPaymentDate12" style="display: none;">
-                    {{ form.interestPaymentDate12.label(class="col-md-2 control-label") }}
-                    <div class="col-md-4">
-                        {{ form.interestPaymentDate12(class="form-control", placeholder="MMDD（例：3/31 → 0331）", autocomplete="off") }}
-                    </div>
-              </div>
+                <div class="form-group">
+                        {{ form.interestPaymentDate1.label(class="col-md-2 control-label") }}
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-info" data-toggle="tooltip" title="{{ form_description['interestPaymentDate'] }}" name="thename"></i>
+                                </div>
+                                {{ form.interestPaymentDate1(class="form-control", placeholder="MMDD（例：3/31 → 0331）", autocomplete="off") }}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="button" class="btn btn-default" onclick="addPayDate()"><i class="fa fa-plus-circle"></i> 利払日追加</button>
+                        </div>
+                </div>
+                <div class="form-group" id="divInterestPaymentDate2" style="display: none;">
+                        {{ form.interestPaymentDate2.label(class="col-md-2 control-label") }}
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-info" data-toggle="tooltip" title="{{ form_description['interestPaymentDate'] }}" name="thename"></i>
+                                </div>
+                                {{ form.interestPaymentDate2(class="form-control", placeholder="MMDD（例：3/31 → 0331）", autocomplete="off") }}
+                            </div>
+                        </div>
+                </div>
+                <div class="form-group" id="divInterestPaymentDate3" style="display: none;">
+                        {{ form.interestPaymentDate3.label(class="col-md-2 control-label") }}
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-info" data-toggle="tooltip" title="{{ form_description['interestPaymentDate'] }}" name="thename"></i>
+                                </div>
+                                {{ form.interestPaymentDate3(class="form-control", placeholder="MMDD（例：3/31 → 0331）", autocomplete="off") }}
+                            </div>
+                        </div>
+                </div>
+                <div class="form-group" id="divInterestPaymentDate4" style="display: none;">
+                        {{ form.interestPaymentDate4.label(class="col-md-2 control-label") }}
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-info" data-toggle="tooltip" title="{{ form_description['interestPaymentDate'] }}" name="thename"></i>
+                                </div>
+                                {{ form.interestPaymentDate4(class="form-control", placeholder="MMDD（例：3/31 → 0331）", autocomplete="off") }}
+                            </div>
+                        </div>
+                </div>
+                <div class="form-group" id="divInterestPaymentDate5" style="display: none;">
+                        {{ form.interestPaymentDate5.label(class="col-md-2 control-label") }}
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-info" data-toggle="tooltip" title="{{ form_description['interestPaymentDate'] }}" name="thename"></i>
+                                </div>
+                                {{ form.interestPaymentDate5(class="form-control", placeholder="MMDD（例：3/31 → 0331）", autocomplete="off") }}
+                            </div>
+                        </div>
+                </div>
+                <div class="form-group" id="divInterestPaymentDate6" style="display: none;">
+                        {{ form.interestPaymentDate6.label(class="col-md-2 control-label") }}
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-info" data-toggle="tooltip" title="{{ form_description['interestPaymentDate'] }}" name="thename"></i>
+                                </div>
+                                {{ form.interestPaymentDate6(class="form-control", placeholder="MMDD（例：3/31 → 0331）", autocomplete="off") }}
+                            </div>
+                        </div>
+                </div>
+                <div class="form-group" id="divInterestPaymentDate7" style="display: none;">
+                        {{ form.interestPaymentDate7.label(class="col-md-2 control-label") }}
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-info" data-toggle="tooltip" title="{{ form_description['interestPaymentDate'] }}" name="thename"></i>
+                                </div>
+                                {{ form.interestPaymentDate7(class="form-control", placeholder="MMDD（例：3/31 → 0331）", autocomplete="off") }}
+                            </div>
+                        </div>
+                </div>
+                <div class="form-group" id="divInterestPaymentDate8" style="display: none;">
+                        {{ form.interestPaymentDate8.label(class="col-md-2 control-label") }}
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-info" data-toggle="tooltip" title="{{ form_description['interestPaymentDate'] }}" name="thename"></i>
+                                </div>
+                                {{ form.interestPaymentDate8(class="form-control", placeholder="MMDD（例：3/31 → 0331）", autocomplete="off") }}
+                            </div>
+                        </div>
+                </div>
+                <div class="form-group" id="divInterestPaymentDate9" style="display: none;">
+                        {{ form.interestPaymentDate9.label(class="col-md-2 control-label") }}
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-info" data-toggle="tooltip" title="{{ form_description['interestPaymentDate'] }}" name="thename"></i>
+                                </div>
+                                {{ form.interestPaymentDate9(class="form-control", placeholder="MMDD（例：3/31 → 0331）", autocomplete="off") }}
+                            </div>
+                        </div>
+                </div>
+                <div class="form-group" id="divInterestPaymentDate10" style="display: none;">
+                        {{ form.interestPaymentDate10.label(class="col-md-2 control-label") }}
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-info" data-toggle="tooltip" title="{{ form_description['interestPaymentDate'] }}" name="thename"></i>
+                                </div>
+                                {{ form.interestPaymentDate10(class="form-control", placeholder="MMDD（例：3/31 → 0331）", autocomplete="off") }}
+                            </div>
+                        </div>
+                </div>
+                <div class="form-group" id="divInterestPaymentDate11" style="display: none;">
+                        {{ form.interestPaymentDate11.label(class="col-md-2 control-label") }}
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-info" data-toggle="tooltip" title="{{ form_description['interestPaymentDate'] }}" name="thename"></i>
+                                </div>
+                                {{ form.interestPaymentDate11(class="form-control", placeholder="MMDD（例：3/31 → 0331）", autocomplete="off") }}
+                            </div>
+                        </div>
+                </div>
+                <div class="form-group" id="divInterestPaymentDate12" style="display: none;">
+                        {{ form.interestPaymentDate12.label(class="col-md-2 control-label") }}
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-info" data-toggle="tooltip" title="{{ form_description['interestPaymentDate'] }}" name="thename"></i>
+                                </div>
+                                {{ form.interestPaymentDate12(class="form-control", placeholder="MMDD（例：3/31 → 0331）", autocomplete="off") }}
+                            </div>
+                        </div>
+                </div>
 
-              <div class="form-group">
-                  {{ form.redemptionDate.label(class="col-md-2 control-label") }}
-                  <div class="col-md-4">
-                      <div class="input-group date">
-                          <div class="input-group-addon">
-                              <i class="fa fa-calendar"></i>
-                          </div>
-                          {{ form.redemptionDate(class="form-control pull-right", id="datepicker", autocomplete="off") }}
-                      </div>
-                  </div>
-              </div>
-              <div class="form-group">
-                  {{ form.redemptionAmount.label(class="col-md-2 control-label") }}
-                  <div class="col-md-4">
-                      {{ form.redemptionAmount(class="form-control", autocomplete="off") }}
-                  </div>
-              </div>
-              <div class="form-group">
-                  {{ form.returnDate.label(class="col-md-2 control-label") }}
-                  <div class="col-md-4">
-                      <div class="input-group date">
-                          <div class="input-group-addon">
-                              <i class="fa fa-calendar"></i>
-                          </div>
-                          {{ form.returnDate(class="form-control pull-right", id="datepicker", autocomplete="off") }}
-                      </div>
-                  </div>
-              </div>
-              <div class="form-group">
-                  {{ form.returnAmount.label(class="col-md-2 control-label") }}
-                  <div class="col-md-8">
-                      {{ form.returnAmount(class="form-control", autocomplete="off") }}
-                  </div>
-              </div>
-              <div class="form-group">
-                  {{ form.purpose.label(class="col-md-2 control-label") }}
-                  <div class="col-md-8">
-                      {{ form.purpose(class="form-control") }}
-                  </div>
-              </div>
+                <div class="form-group">
+                    {{ form.redemptionDate.label(class="col-md-2 control-label") }}
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <div class="input-group-addon">
+                                <i class="fa fa-info" data-toggle="tooltip" title="{{ form_description['redemptionDate'] }}" name="thename"></i>
+                            </div>
+                            {{ form.redemptionDate(class="form-control pull-right", id="datepicker", autocomplete="off") }}
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.redemptionAmount.label(class="col-md-2 control-label") }}
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <div class="input-group-addon">
+                                <i class="fa fa-info" data-toggle="tooltip" title="{{ form_description['redemptionAmount'] }}" name="thename"></i>
+                            </div>
+                            {{ form.redemptionAmount(class="form-control", autocomplete="off") }}
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.returnDate.label(class="col-md-2 control-label") }}
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <div class="input-group-addon">
+                                <i class="fa fa-info" data-toggle="tooltip" title="{{ form_description['returnDate'] }}" name="thename"></i>
+                            </div>
+                            {{ form.returnDate(class="form-control pull-right", id="datepicker", autocomplete="off") }}
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.returnAmount.label(class="col-md-2 control-label") }}
+                    <div class="col-md-8">
+                        <div class="input-group">
+                            <div class="input-group-addon">
+                                <i class="fa fa-info" data-toggle="tooltip" title="{{ form_description['returnAmount'] }}" name="thename"></i>
+                            </div>
+                            {{ form.returnAmount(class="form-control", autocomplete="off") }}
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.purpose.label(class="col-md-2 control-label") }}
+                    <div class="col-md-8">
+                        <div class="input-group">
+                            <div class="input-group-addon">
+                                <i class="fa fa-info" data-toggle="tooltip" title="{{ form_description['purpose'] }}" name="thename"></i>
+                            </div>
+                            {{ form.purpose(class="form-control") }}
+                        </div>
+                    </div>
+                </div>
                 <div class="form-group">
                     {{ form.memo.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
-                        {{ form.memo(class="form-control") }}
+                        <div class="input-group">
+                            <div class="input-group-addon">
+                                <i class="fa fa-info" data-toggle="tooltip" title="{{ form_description['memo'] }}" name="thename"></i>
+                            </div>
+                            {{ form.memo(class="form-control") }}
+                        </div>
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.tradableExchange.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
-                        {{ form.tradableExchange(class="form-control", autocomplete="off") }}
+                        <div class="input-group">
+                            <div class="input-group-addon">
+                                <i class="fa fa-info" data-toggle="tooltip" title="{{ form_description['tradableExchange'] }}" name="thename"></i>
+                            </div>
+                            {{ form.tradableExchange(class="form-control", autocomplete="off") }}
+                        </div>
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.contact_information.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
-                        {{ form.contact_information(class="form-control", autocomplete="off") }}
+                        <div class="input-group">
+                            <div class="input-group-addon">
+                                <i class="fa fa-info" data-toggle="tooltip" title="{{ form_description['contact_information'] }}" name="thename"></i>
+                            </div>
+                            {{ form.contact_information(class="form-control", autocomplete="off") }}
+                        </div>
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.privacy_policy.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
-                        {{ form.privacy_policy(class="form-control", autocomplete="off") }}
+                        <div class="input-group">
+                            <div class="input-group-addon">
+                                <i class="fa fa-info" data-toggle="tooltip" title="{{ form_description['privacy_policy'] }}" name="thename"></i>
+                            </div>
+                            {{ form.privacy_policy(class="form-control", autocomplete="off") }}
+                        </div>
                     </div>
                 </div>
           </div>

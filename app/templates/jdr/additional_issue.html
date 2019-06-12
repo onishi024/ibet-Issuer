@@ -28,13 +28,23 @@
                 <div class="form-group">
                     {{ form.total_supply.label(class="col-md-2 control-label") }}
                     <div class="col-md-4">
-                        {{ form.total_supply(class="form-control", disabled=True) }}
+                        <div class="input-group">
+                            <div class="input-group-addon">
+                                <i class="fa fa-info" data-toggle="tooltip" title="{{ form_description['total_supply'] }}" name="thename"></i>
+                            </div>
+                            {{ form.total_supply(class="form-control", disabled=True) }}
+                        </div>
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.amount.label(class="col-md-2 control-label") }}
                     <div class="col-md-4">
-                        {{ form.amount(class="form-control", autocomplete="off") }}
+                        <div class="input-group">
+                            <div class="input-group-addon">
+                                <i class="fa fa-info" data-toggle="tooltip" title="{{ form_description['amount'] }}" name="thename"></i>
+                            </div>
+                            {{ form.amount(class="form-control", autocomplete="off") }}
+                        </div>
                     </div>
                 </div>
             </div>

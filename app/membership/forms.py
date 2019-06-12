@@ -42,7 +42,7 @@ class IssueForm(Form):
         ]
     )
 
-    returnDetails = TextAreaField(
+    return_details = TextAreaField(
         "リターン詳細",
         validators = [
             Length(max=2000, message='リターン詳細は2,000文字以内で入力してください。')
@@ -135,7 +135,7 @@ class SettingForm(Form):
             Length(max=2000, message='会員権詳細は2,000文字以内で入力してください。')
         ])
 
-    returnDetails = TextAreaField(
+    return_details = TextAreaField(
         "リターン詳細",
         validators = [
             Length(max=2000, message='リターン詳細は2,000文字以内で入力してください。')
@@ -228,7 +228,7 @@ class SellForm(Form):
     symbol = StringField("略称", validators=[])
     totalSupply = IntegerField("総発行量", validators=[])
     details = TextAreaField("会員権詳細", validators=[])
-    returnDetails = TextAreaField("リターン詳細", validators=[])
+    return_details = TextAreaField("リターン詳細", validators=[])
     expirationDate = StringField("有効期限", validators=[])
     memo = TextAreaField("メモ", validators=[])
     tradableExchange = StringField("DEXアドレス", validators=[])

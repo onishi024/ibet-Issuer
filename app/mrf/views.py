@@ -50,12 +50,27 @@ def issue():
     logger.info('mrf.issue')
     form = IssueForm()
 
+    form_description = {
+        'name': '新規発行するMRFの名称を入力してください。',
+        'symbol': '新規発行するMRFの略称を入力してください。',
+        'totalSupply': '新規発行するMRFの総発行量を入力してください。',
+        'details': '新規発行するMRFの詳細説明文を入力してください。この文章はユーザーのMRF売買画面にも表示されます。',
+        'memo': '新規発行するMRFのメモを入力してください。',
+        'tradableExchange': '新規発行するMRFを取引可能にする取引所コントラクトのコントラクトアドレスを入力してください。',
+        'image_1': '新規発行するMRFの売買画面で表示されるメイン画像のURLを入力してください。',
+        'image_2': '新規発行するMRFの売買画面で表示されるサブ画像①のURLを入力してください。',
+        'image_3': '新規発行するMRFの売買画面で表示されるサブ画像②のURLを入力してください。',
+        'contact_information': '新規発行するMRFの問い合わせ先メールアドレスまたは電話番号を入力してください。',
+        'contact_information': '新規発行するMRFの問い合わせ先メールアドレスまたは電話番号を入力してください。',
+        'privacy_policy': '新規発行するMRFのプライバシーポリシーを入力してください。',
+    }
+
     if request.method == 'POST':
         if form.validate():
             # Exchangeコントラクトのアドレスフォーマットチェック
             if not Web3.isAddress(form.tradableExchange.data):
                 flash('DEXアドレスは有効なアドレスではありません。', 'error')
-                return render_template('mrf/issue.html', form=form)
+                return render_template('mrf/issue.html', form=form, form_description=form_description)
 
             # EOAアンロック
             eth_unlock_account()
@@ -114,9 +129,9 @@ def issue():
             return redirect(url_for('.list'))
         else:
             flash_errors(form)
-            return render_template('mrf/issue.html', form=form)
+            return render_template('mrf/issue.html', form=form, form_description=form_description)
     else:  # GET
-        return render_template('mrf/issue.html', form=form)
+        return render_template('mrf/issue.html', form=form, form_description=form_description)
 
 
 # +++++++++++++++++++++++++++++++
@@ -645,14 +660,16 @@ def additional_issue(token_address):
                 'mrf/additional_issue.html',
                 form=form,
                 token_address=token_address,
-                token_name=name
+                token_name=name,
+                form_description=form_description
             )
     else:  # GET
         return render_template(
             'mrf/additional_issue.html',
             form=form,
             token_address=token_address,
-            token_name=name
+            token_name=name,
+            form_description=form_description
         )
 
 
