@@ -26,31 +26,31 @@
                 <div class="form-group">
                     {{ form.name.label(class="col-md-2 control-label") }}
                     <div class="col-md-4">
-                            {{ form.name(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right", title=form_description['name'] )}}
+                            {{ form.name(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：ibet社債", title=form_description['name'] )}}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.symbol.label(class="col-md-2 control-label") }}
                     <div class="col-md-4">
-                            {{ form.symbol(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right", title=form_description['symbol'] )}}
+                            {{ form.symbol(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：IBD", title=form_description['symbol'] )}}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.totalSupply.label(class="col-md-2 control-label") }}
                     <div class="col-md-4">
-                            {{ form.totalSupply(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right", title=form_description['totalSupply'] )}}
+                            {{ form.totalSupply(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：100000", title=form_description['totalSupply'] )}}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.faceValue.label(class="col-md-2 control-label") }}
                     <div class="col-md-4">
-                        {{ form.faceValue(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right", title=form_description['faceValue'] )}}
+                        {{ form.faceValue(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：100000", title=form_description['faceValue'] )}}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.interestRate.label(class="col-md-2 control-label") }}
                     <div class="col-md-4">
-                        {{ form.interestRate(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right", title=form_description['interestRate'] )}}
+                        {{ form.interestRate(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：0.001", title=form_description['interestRate'] )}}
                     </div>
                 </div>
 
@@ -133,55 +133,55 @@
                 <div class="form-group">
                     {{ form.redemptionDate.label(class="col-md-2 control-label") }}
                     <div class="col-md-4">
-                            {{ form.redemptionDate(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right", title=form_description['redemptionDate'] )}}
+                            {{ form.redemptionDate(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="YYYYMMDD（例：2022/3/31 → 20220331）", title=form_description['redemptionDate'] )}}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.redemptionAmount.label(class="col-md-2 control-label") }}
                     <div class="col-md-4">
-                            {{ form.redemptionAmount(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right", title=form_description['redemptionAmount'] )}}
+                            {{ form.redemptionAmount(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：100000", title=form_description['redemptionAmount'] )}}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.returnDate.label(class="col-md-2 control-label") }}
                     <div class="col-md-4">
-                            {{ form.returnDate(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right", title=form_description['returnDate'] )}}
+                            {{ form.returnDate(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="YYYYMMDD（例：2022/3/31 → 20220331）", title=form_description['returnDate'] )}}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.returnAmount.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
-                            {{ form.returnAmount(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right", title=form_description['returnAmount'] )}}
+                            {{ form.returnAmount(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：この社債を持っていると、ibetの特定のサービスを受けることができます。", title=form_description['returnAmount'] )}}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.purpose.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
-                            {{ form.purpose(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right", title=form_description['purpose'] )}}
+                            {{ form.purpose(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：ibet社の新規プロジェクト実行資金", title=form_description['purpose'] )}}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.memo.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
-                            {{ form.memo(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right", title=form_description['memo'] )}}
+                            {{ form.memo(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：特定投資家にのみ販売", title=form_description['memo'] )}}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.tradableExchange.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
-                            {{ form.tradableExchange(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right", title=form_description['tradableExchange'] )}}
+                            {{ form.tradableExchange(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：0x123456789A123456789B123456789C123456789D", title=form_description['tradableExchange'] )}}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.contact_information.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
-                            {{ form.contact_information(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right", title=form_description['contact_information'] )}}
+                            {{ form.contact_information(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：08012345678 or ibet@ibet.com", title=form_description['contact_information'] )}}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.privacy_policy.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
-                            {{ form.privacy_policy(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right", title=form_description['privacy_policy'] )}}
+                            {{ form.privacy_policy(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="個人情報取り扱いに関する取り決め 1. 個人情報は、第三者には公開しません。", title=form_description['privacy_policy'] )}}
                     </div>
                 </div>
           </div>
