@@ -23,158 +23,87 @@
             {{ form.csrf_token }}
             <div class="box-body">
                 <div class="form-group">
-                        {{ form.name.label(class="col-md-2 control-label") }}
+                    {{ form.name.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
-                        <div class="input-group">
-                            <div class="input-group-addon">
-                                <i class="fa fa-info" data-toggle="tooltip" title="{{ form_description['name'] }}"></i>
-                            </div>
-                            {{ form.name(class="form-control", autocomplete="off") }}
-                        </div>
+                        {{ form.name(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right", title=form_description['name'] )}}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.symbol.label(class="col-md-2 control-label") }}
                     <div class="col-md-4">
-                        <div class="input-group">
-                            <div class="input-group-addon">
-                                <i class="fa fa-info" data-toggle="tooltip" title="{{ form_description['symbol'] }}"></i>
-                            </div>
-                            {{ form.symbol(class="form-control", autocomplete="off") }}
-                        </div>
-
+                        {{ form.symbol(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right", title=form_description['symbol'] )}}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.totalSupply.label(class="col-md-2 control-label") }}
                     <div class="col-md-4">
-                        <div class="input-group">
-                            <div class="input-group-addon">
-                                <i class="fa fa-info" data-toggle="tooltip" title="{{ form_description['totalSupply'] }}"></i>
-                            </div>
-                            {{ form.totalSupply(class="form-control", autocomplete="off") }}
-                        </div>
+                        {{ form.totalSupply(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right", title=form_description['totalSupply'] )}}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.details.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
-                        <div class="input-group">
-                            <div class="input-group-addon">
-                                <i class="fa fa-info" data-toggle="tooltip" title="{{ form_description['details'] }}"></i>
-                            </div>
-                            {{ form.details(class="form-control") }}
-                        </div>
+                        {{ form.details(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right", title=form_description['details'] )}}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.return_details.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
-                        <div class="input-group">
-                            <div class="input-group-addon">
-                                <i class="fa fa-info" data-toggle="tooltip" title="{{ form_description['return_details'] }}"></i>
-                            </div>
-                            {{ form.return_details(class="form-control") }}
-                        </div>
+                        {{ form.return_details(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right", title=form_description['return_details'] )}}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.memo.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
-                        <div class="input-group">
-                            <div class="input-group-addon">
-                                <i class="fa fa-info" data-toggle="tooltip" title="{{ form_description['memo'] }}"></i>
-                            </div>
-                            {{ form.memo(class="form-control") }}
-                        </div>
+                        {{ form.memo(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right", title=form_description['memo'] )}}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.expirationDate.label(class="col-md-2 control-label") }}
                     <div class="col-md-4">
-                        <div class="input-group">
-                            <div class="input-group-addon">
-                                <i class="fa fa-info" data-toggle="tooltip" title="{{ form_description['expirationDate'] }}"></i>
-                            </div>
-                            {{ form.expirationDate(class="form-control pull-right", id="datepicker", autocomplete="off") }}
-                        </div>
+                        {{ form.expirationDate(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right", title=form_description['expirationDate'] )}}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.transferable.label(class="col-md-2 control-label") }}
                     <div class="col-md-4">
-                        <div class="input-group">
-                            <div class="input-group-addon">
-                                <i class="fa fa-info" data-toggle="tooltip" title="{{ form_description['transferable'] }}"></i>
-                            </div>
-                            {{ form.transferable(class="form-control") }}
-                        </div>
+                        {{ form.transferable(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right", title=form_description['transferable'] )}}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.tradableExchange.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
-                        <div class="input-group">
-                            <div class="input-group-addon">
-                                <i class="fa fa-info" data-toggle="tooltip" title="{{ form_description['tradableExchange'] }}"></i>
-                            </div>
-                            {{ form.tradableExchange(class="form-control", autocomplete="off") }}
-                        </div>
+                        {{ form.tradableExchange(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right", title=form_description['tradableExchange'] )}}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.image_1.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
-                        <div class="input-group">
-                            <div class="input-group-addon">
-                                <i class="fa fa-info" data-toggle="tooltip" title="{{ form_description['image_1'] }}"></i>
-                            </div>
-                            {{ form.image_1(class="form-control", autocomplete="off") }}
-                        </div>
+                        {{ form.image_1(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right", title=form_description['image_1'] )}}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.image_2.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
-                        <div class="input-group">
-                            <div class="input-group-addon">
-                                <i class="fa fa-info" data-toggle="tooltip" title="{{ form_description['image_2'] }}"></i>
-                            </div>
-                            {{ form.image_2(class="form-control", autocomplete="off") }}
-                        </div>
+                        {{ form.image_2(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right", title=form_description['image_2'] )}}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.image_3.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
-                        <div class="input-group">
-                            <div class="input-group-addon">
-                                <i class="fa fa-info" data-toggle="tooltip" title="{{ form_description['image_3'] }}"></i>
-                            </div>
-                            {{ form.image_3(class="form-control", autocomplete="off") }}
-                        </div>
+                        {{ form.image_3(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right", title=form_description['image_3'] )}}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.contact_information.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
-                        <div class="input-group">
-                            <div class="input-group-addon">
-                                <i class="fa fa-info" data-toggle="tooltip" title="{{ form_description['contact_information'] }}"></i>
-                            </div>
-                            {{ form.contact_information(class="form-control", autocomplete="off") }}
-                        </div>
+                        {{ form.contact_information(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right", title=form_description['contact_information'] )}}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.privacy_policy.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
-                        <div class="input-group">
-                            <div class="input-group-addon">
-                                <i class="fa fa-info" data-toggle="tooltip" title="{{ form_description['privacy_policy'] }}"></i>
-                            </div>
-                            {{ form.privacy_policy(class="form-control", autocomplete="off") }}
-                        </div>
+                        {{ form.privacy_policy(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right", title=form_description['privacy_policy'] )}}
                     </div>
                 </div>
             </div>
