@@ -25,7 +25,7 @@
             <div class="box-body">
                 <div class="form-group">
                     {{ form.name.label(class="col-md-2 control-label") }}
-                    <div class="col-md-4">
+                    <div class="col-md-8">
                             {{ form.name(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：ibet社債", title=form_description['name'] )}}
                     </div>
                 </div>
@@ -157,7 +157,7 @@
                 <div class="form-group">
                     {{ form.purpose.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
-                            {{ form.purpose(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：ibet社の新規プロジェクト実行資金", title=form_description['purpose'] )}}
+                            {{ form.purpose(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：新規プロジェクト実行資金", title=form_description['purpose'] )}}
                     </div>
                 </div>
                 <div class="form-group">

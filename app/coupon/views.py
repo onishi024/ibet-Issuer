@@ -753,12 +753,12 @@ def transfer():
             # Addressフォーマットチェック（token_address）
             if not Web3.isAddress(form.token_address.data):
                 flash('クーポンアドレスは有効なアドレスではありません。', 'error')
-                return render_template('coupon/transfer.html', form=form, form_description=form.description)
+                return render_template('coupon/transfer.html', form=form)
 
             # Addressフォーマットチェック（send_address）
             if not Web3.isAddress(form.to_address.data):
                 flash('割当先アドレスは有効なアドレスではありません。', 'error')
-                return render_template('coupon/transfer.html', form=form, form_description=form.description)
+                return render_template('coupon/transfer.html', form=form)
 
             eth_unlock_account()
 
@@ -781,12 +781,12 @@ def transfer():
             tx_hash = transfer_token(TokenContract, from_address, to_address, amount)
 
             flash('処理を受け付けました。割当完了までに数分程かかることがあります。', 'success')
-            return render_template('coupon/transfer.html', form=form, form_description=form.description)
+            return render_template('coupon/transfer.html', form=form)
         else:
             flash_errors(form)
-            return render_template('coupon/transfer.html', form=form, form_description=form.description)
+            return render_template('coupon/transfer.html', form=form)
     else:  # GET
-        return render_template('coupon/transfer.html', form=form, form_description=form.description)
+        return render_template('coupon/transfer.html', form=form)
 
 
 # 割当（募集申込）

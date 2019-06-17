@@ -3,11 +3,12 @@ from flask_wtf import FlaskForm as Form
 
 from wtforms import IntegerField, StringField, TextAreaField, \
     SubmitField, HiddenField, DecimalField
-from wtforms.validators import Required, URL, Optional, Length, Regexp, \
+from wtforms.validators import DataRequired, URL, Optional, Length, Regexp, \
     NumberRange
 from wtforms import ValidationError
 
 from web3 import Web3
+
 
 class IssueForm(Form):
     mmdd_regexp = '^(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])$'
@@ -15,16 +16,16 @@ class IssueForm(Form):
 
     name = StringField(
         "商品名",
-        validators = [
-            Required('商品名は必須です。'),
+        validators=[
+            DataRequired('商品名は必須です。'),
             Length(min=1, max=50, message='商品名は50文字以内で入力してください。')
         ]
     )
 
     symbol = StringField(
         "略称",
-        validators = [
-            Required('略称は必須です。'),
+        validators=[
+            DataRequired('略称は必須です。'),
             Regexp('^[a-zA-Z0-9]+$', message='略称は半角英数字で入力してください。'),
             Length(min=1, max=10, message='略称は10文字以内の半角英数字で入力してください。')
         ]
@@ -32,15 +33,15 @@ class IssueForm(Form):
 
     totalSupply = IntegerField(
         "総発行量",
-        validators = [
-            Required('総発行量は必須です。'),
+        validators=[
+            DataRequired('総発行量は必須です。'),
             NumberRange(min=1, max=100000000, message='総発行量は100,000,000が上限です。'),
         ]
     )
 
     faceValue = IntegerField(
         "額面（円）",
-        validators = [
+        validators=[
             NumberRange(min=0, max=5000000000, message='額面は5,000,000,000円が上限です。')
         ],
         default=0
@@ -49,7 +50,7 @@ class IssueForm(Form):
     interestRate = DecimalField(
         "金利[税引前]（%）",
         places=3,
-        validators = [
+        validators=[
             NumberRange(min=0.000, max=100.000, message='金利は100％が上限です。')
         ],
         default=0
@@ -57,7 +58,7 @@ class IssueForm(Form):
 
     interestPaymentDate1 = StringField(
         "利払日１",
-        validators = [
+        validators=[
             Optional(),
             Regexp(mmdd_regexp, message='利払日１はMMDDで入力してください。'),
         ]
@@ -65,7 +66,7 @@ class IssueForm(Form):
 
     interestPaymentDate2 = StringField(
         "利払日２",
-        validators = [
+        validators=[
             Optional(),
             Regexp(mmdd_regexp, message='利払日２はMMDDで入力してください。'),
         ]
@@ -73,7 +74,7 @@ class IssueForm(Form):
 
     interestPaymentDate3 = StringField(
         "利払日３",
-        validators = [
+        validators=[
             Optional(),
             Regexp(mmdd_regexp, message='利払日３はMMDDで入力してください。'),
         ]
@@ -81,7 +82,7 @@ class IssueForm(Form):
 
     interestPaymentDate4 = StringField(
         "利払日４",
-        validators = [
+        validators=[
             Optional(),
             Regexp(mmdd_regexp, message='利払日４はMMDDで入力してください。'),
         ]
@@ -89,7 +90,7 @@ class IssueForm(Form):
 
     interestPaymentDate5 = StringField(
         "利払日５",
-        validators = [
+        validators=[
             Optional(),
             Regexp(mmdd_regexp, message='利払日５はMMDDで入力してください。'),
         ]
@@ -97,7 +98,7 @@ class IssueForm(Form):
 
     interestPaymentDate6 = StringField(
         "利払日６",
-        validators = [
+        validators=[
             Optional(),
             Regexp(mmdd_regexp, message='利払日６はMMDDで入力してください。'),
         ]
@@ -105,7 +106,7 @@ class IssueForm(Form):
 
     interestPaymentDate7 = StringField(
         "利払日７",
-        validators = [
+        validators=[
             Optional(),
             Regexp(mmdd_regexp, message='利払日７はMMDDで入力してください。'),
         ]
@@ -113,7 +114,7 @@ class IssueForm(Form):
 
     interestPaymentDate8 = StringField(
         "利払日８",
-        validators = [
+        validators=[
             Optional(),
             Regexp(mmdd_regexp, message='利払日８はMMDDで入力してください。'),
         ]
@@ -121,7 +122,7 @@ class IssueForm(Form):
 
     interestPaymentDate9 = StringField(
         "利払日９",
-        validators = [
+        validators=[
             Optional(),
             Regexp(mmdd_regexp, message='利払日９はMMDDで入力してください。'),
         ]
@@ -129,7 +130,7 @@ class IssueForm(Form):
 
     interestPaymentDate10 = StringField(
         "利払日１０",
-        validators = [
+        validators=[
             Optional(),
             Regexp(mmdd_regexp, message='利払日１０はMMDDで入力してください。'),
         ]
@@ -137,7 +138,7 @@ class IssueForm(Form):
 
     interestPaymentDate11 = StringField(
         "利払日１１",
-        validators = [
+        validators=[
             Optional(),
             Regexp(mmdd_regexp, message='利払日１１はMMDDで入力してください。'),
         ]
@@ -145,7 +146,7 @@ class IssueForm(Form):
 
     interestPaymentDate12 = StringField(
         "利払日１２",
-        validators = [
+        validators=[
             Optional(),
             Regexp(mmdd_regexp, message='利払日１２はMMDDで入力してください。'),
         ]
@@ -153,7 +154,7 @@ class IssueForm(Form):
 
     redemptionDate = StringField(
         "償還日",
-        validators = [
+        validators=[
             Optional(),
             Regexp(yyyymmdd_regexp, message='償還日はYYYYMMDDで入力してください。'),
         ]
@@ -161,7 +162,7 @@ class IssueForm(Form):
 
     redemptionAmount = IntegerField(
         "償還金額（額面当り）",
-        validators = [
+        validators=[
             NumberRange(min=0, max=5000000000, message='償還金額は5,000,000,000円が上限です。')
         ],
         default=0
@@ -169,7 +170,7 @@ class IssueForm(Form):
 
     returnDate = StringField(
         "リターン実施日",
-        validators = [
+        validators=[
             Optional(),
             Regexp(yyyymmdd_regexp, message='リターン実施日はYYYYMMDDで入力してください。'),
         ]
@@ -177,22 +178,22 @@ class IssueForm(Form):
 
     returnAmount = TextAreaField(
         "リターン内容",
-        validators = [
+        validators=[
             Length(max=2000, message='リターン内容は2,000文字以内で入力してください。')
         ]
     )
 
     purpose = TextAreaField(
         "発行目的",
-        validators = [
-            Required('発行目的は必須です。'),
+        validators=[
+            DataRequired('発行目的は必須です。'),
             Length(max=2000, message='発行目的は2,000文字以内で入力してください。')
         ]
     )
 
     memo = TextAreaField(
         "メモ",
-        validators = [
+        validators=[
             Length(max=2000, message='メモは2,000文字以内で入力してください。')
         ]
     )
@@ -200,7 +201,7 @@ class IssueForm(Form):
     tradableExchange = StringField(
         "DEXアドレス",
         validators=[
-            Required('DEXアドレスは必須です。')
+            DataRequired('DEXアドレスは必須です。')
         ]
     )
 
@@ -224,22 +225,23 @@ class IssueForm(Form):
         super(IssueForm, self).__init__(*args, **kwargs)
         self.issue_token = issue_token
         self.description = {
-            'name': '新規発行する債券の名称を入力してください。',
-            'symbol': '新規発行する債券の略称を入力してください。',
-            'totalSupply': '新規発行する債券の総発行量を入力してください。',
-            'faceValue': '新規発行する債券の額面での金額を入力してください。',
-            'interestRate': '新規発行する債券の税引き前の金利を入力してください。',
-            'interestPaymentDate': '新規発行する債券の利払日を入力してください。',
-            'redemptionDate': '新規発行する債券の償還日を入力してください。',
-            'redemptionAmount': '新規発行する債券の額面での償還金額を入力してください。',
-            'returnDate': '新規発行する債券のリターンを実施する日程を入力してください。',
-            'returnAmount': '新規発行する債券を購入することで得られるリターンを入力してください。',
-            'purpose': '新規発行する債券の発行目的を入力してください。',
-            'memo': '新規発行する債券のメモを入力してください。',
-            'tradableExchange': '新規発行する債券を取引可能にする取引所コントラクトのコントラクトアドレスを入力してください。',
-            'contact_information': '新規発行する債券の問い合わせ先メールアドレスまたは電話番号を入力してください。',
-            'privacy_policy': '新規発行する債券のプライバシーポリシーを入力してください。',
+            'name': '',
+            'symbol': '商品を識別するための略称を設定してください。',
+            'totalSupply': '',
+            'faceValue': '',
+            'interestRate': '税引前金利を入力してください。',
+            'interestPaymentDate': '',
+            'redemptionDate': '',
+            'redemptionAmount': '額面当りの償還金額を入力してください。',
+            'returnDate': 'リターンを実施する日付を入力してください。',
+            'returnAmount': '商品を購入することで得られるリターン（特典）の内容を入力してください。',
+            'purpose': '商品の発行目的を入力してください。',
+            'memo': '商品の補足情報を入力してください。',
+            'tradableExchange': '商品が取引可能な取引所コントラクトのアドレスを入力してください。',
+            'contact_information': '商品に関する問い合わせ先情報を入力してください。',
+            'privacy_policy': '商品に関するプライバシーポリシーを入力してください。',
         }
+
 
 class SettingForm(Form):
     token_address = StringField("トークンアドレス", validators=[])
@@ -317,6 +319,7 @@ class SettingForm(Form):
         super(SettingForm, self).__init__(*args, **kwargs)
         self.token_setting = token_setting
 
+
 class SellTokenForm(Form):
     token_address = StringField("トークンアドレス", validators=[])
     name = StringField("商品名", validators=[])
@@ -349,7 +352,7 @@ class SellTokenForm(Form):
     sellPrice = IntegerField(
         "売出価格（額面当り）",
         validators=[
-            Required('売出価格は必須です。'),
+            DataRequired('売出価格は必須です。'),
             NumberRange(min=1, max=6000000, message='売出価格は6,000,000円が上限です。'),
         ]
     )
@@ -359,6 +362,7 @@ class SellTokenForm(Form):
     def __init__(self, sell_token=None, *args, **kwargs):
         super(SellTokenForm, self).__init__(*args, **kwargs)
         self.sell_token = sell_token
+
 
 class CancelOrderForm(Form):
     order_id = IntegerField("注文ID", validators=[])
@@ -375,27 +379,29 @@ class CancelOrderForm(Form):
         super(CancelOrderForm, self).__init__(*args, **kwargs)
         self.sell_token = cancel_order
 
+
 class RequestSignatureForm(Form):
-    token_address = HiddenField("トークンアドレス", validators=[Required('トークンアドレスは必須です。')])
-    signer = StringField("認定者", validators=[Required('認定者は必須です。')])
+    token_address = HiddenField("トークンアドレス", validators=[DataRequired('トークンアドレスは必須です。')])
+    signer = StringField("認定者", validators=[DataRequired('認定者は必須です。')])
     submit = SubmitField('認定依頼')
 
     def __init__(self, request_signature=None, *args, **kwargs):
         super(RequestSignatureForm, self).__init__(*args, **kwargs)
         self.request_signature = request_signature
 
+
 class TransferOwnershipForm(Form):
-    from_address = StringField("現在の所有者",validators = [])
+    from_address = StringField("現在の所有者", validators=[])
     to_address = StringField(
         "移転先",
-        validators = [
-            Required('移転先は必須です。')
+        validators=[
+            DataRequired('移転先は必須です。')
         ]
     )
     amount = IntegerField(
         "移転数量",
-        validators = [
-            Required('移転数量は必須です。'),
+        validators=[
+            DataRequired('移転数量は必須です。'),
             NumberRange(min=1, max=100000000, message='移転数量は100,000,000が上限です。'),
         ]
     )
