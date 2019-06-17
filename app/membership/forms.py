@@ -2,26 +2,27 @@
 from flask_wtf import FlaskForm as Form
 
 from wtforms import IntegerField, StringField, TextAreaField, SubmitField, SelectField
-from wtforms.validators import Required, URL, Optional, Length, Regexp, NumberRange
+from wtforms.validators import DataRequired, URL, Optional, Length, Regexp, NumberRange
 from wtforms import ValidationError
 
 from web3 import Web3
+
 
 class IssueForm(Form):
     yyyymmdd_regexp = '^(19[0-9]{2}|20[0-9]{2})(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])$'
 
     name = StringField(
         "名称",
-        validators = [
-            Required('名称は必須です。'),
+        validators=[
+            DataRequired('名称は必須です。'),
             Length(min=1, max=50, message='名称は50文字以内で入力してください。')
         ]
     )
 
     symbol = StringField(
         "略称",
-        validators = [
-            Required('略称は必須です。'),
+        validators=[
+            DataRequired('略称は必須です。'),
             Regexp('^[a-zA-Z0-9]+$', message='略称は半角英数字で入力してください。'),
             Length(min=1, max=10, message='略称は10文字以内の半角英数字で入力してください。')
         ]
@@ -29,29 +30,29 @@ class IssueForm(Form):
 
     totalSupply = IntegerField(
         "総発行量",
-        validators = [
-            Required('総発行量は必須です。'),
+        validators=[
+            DataRequired('総発行量は必須です。'),
             NumberRange(min=1, max=100000000, message='総発行量は100,000,000が上限です。'),
         ]
     )
 
     details = TextAreaField(
         "会員権詳細",
-        validators = [
+        validators=[
             Length(max=2000, message='会員権詳細は2,000文字以内で入力してください。')
         ]
     )
 
     return_details = TextAreaField(
         "リターン詳細",
-        validators = [
+        validators=[
             Length(max=2000, message='リターン詳細は2,000文字以内で入力してください。')
         ]
     )
 
     expirationDate = StringField(
         "有効期限",
-        validators = [
+        validators=[
             Optional(),
             Regexp(yyyymmdd_regexp, message='有効期限はYYYYMMDDで入力してください。'),
         ]
@@ -59,7 +60,7 @@ class IssueForm(Form):
 
     memo = TextAreaField(
         "メモ",
-        validators = [
+        validators=[
             Length(max=2000, message='メモは2,000文字以内で入力してください。')
         ]
     )
@@ -96,7 +97,7 @@ class IssueForm(Form):
     tradableExchange = StringField(
         "DEXアドレス",
         validators=[
-            Required('DEXアドレスは必須です。')
+            DataRequired('DEXアドレスは必須です。')
         ]
     )
 
@@ -121,21 +122,22 @@ class IssueForm(Form):
         self.issue_data = issue_data
         self.transferable.choices = [('True', 'なし'), ('False', 'あり')]
         self.description = {
-            'name': '新規発行する会員権の名称を入力してください。',
-            'symbol': '新規発行する会員権の略称を入力してください。',
-            'totalSupply': '新規発行する会員権の総発行量を入力してください。',
-            'details': '新規発行する会員権の詳細説明文を入力してください。この文章はユーザーの会員権売買画面にも表示されます。',
-            'return_details': '新規発行する会員権を購入することで得られる詳細説明文を入力してください。',
-            'memo': '新規発行する会員権のメモを入力してください。',
-            'expirationDate': '新規発行する会員権の有効期限を入力してください。',
-            'transferable': '新規発行する会員権を譲渡可能にする場合は「なし」、譲渡不可にする場合は「あり」を選択してください。',
-            'tradableExchange': '新規発行する会員権を取引可能にする取引所コントラクトのコントラクトアドレスを入力してください。',
-            'image_1': '新規発行する会員権の売買画面で表示されるメイン画像のURLを入力してください。',
-            'image_2': '新規発行する会員権の売買画面で表示されるサブ画像①のURLを入力してください。',
-            'image_3': '新規発行する会員権の売買画面で表示されるサブ画像②のURLを入力してください。',
-            'contact_information': '新規発行する会員権の問い合わせ先メールアドレスまたは電話番号を入力してください。',
-            'privacy_policy': '新規発行する会員権のプライバシーポリシーを入力してください。',
+            'name': '',
+            'symbol': '商品を識別するための略称を設定してください。',
+            'totalSupply': '',
+            'details': '商品の詳細説明を入力してください。',
+            'return_details': '商品を購入することで得られるリターン（特典）の説明を入力してください。',
+            'memo': '商品の補足情報を入力してください。',
+            'expirationDate': '商品の有効期限を入力してください。',
+            'transferable': '譲渡可能な場合は「なし」、譲渡不可の場合は「あり」を選択してください。',
+            'tradableExchange': '商品が取引可能な取引所コントラクトのアドレスを入力してください。',
+            'image_1': '商品画像のURLを入力してください。',
+            'image_2': '商品画像のURLを入力してください',
+            'image_3': '商品画像のURLを入力してください',
+            'contact_information': '商品に関する問い合わせ先情報を入力してください。',
+            'privacy_policy': '商品に関するプライバシーポリシーを入力してください。',
         }
+
 
 class SettingForm(Form):
     yyyymmdd_regexp = '^(19[0-9]{2}|20[0-9]{2})(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])$'
@@ -147,20 +149,20 @@ class SettingForm(Form):
 
     details = TextAreaField(
         "会員権詳細",
-        validators = [
+        validators=[
             Length(max=2000, message='会員権詳細は2,000文字以内で入力してください。')
         ])
 
     return_details = TextAreaField(
         "リターン詳細",
-        validators = [
+        validators=[
             Length(max=2000, message='リターン詳細は2,000文字以内で入力してください。')
         ]
     )
 
     expirationDate = StringField(
         "有効期限",
-        validators = [
+        validators=[
             Optional(),
             Regexp(yyyymmdd_regexp, message='有効期限はYYYYMMDDで入力してください。'),
         ]
@@ -168,7 +170,7 @@ class SettingForm(Form):
 
     memo = TextAreaField(
         "メモ",
-        validators = [
+        validators=[
             Length(max=2000, message='メモは2,000文字以内で入力してください。')
         ]
     )
@@ -238,6 +240,7 @@ class SettingForm(Form):
         self.token_setting = token_setting
         self.transferable.choices = [('True', 'なし'), ('False', 'あり')]
 
+
 class SellForm(Form):
     token_address = StringField("トークンアドレス", validators=[])
     name = StringField("名称", validators=[])
@@ -256,7 +259,7 @@ class SellForm(Form):
     sellPrice = IntegerField(
         "売出価格",
         validators=[
-            Required('売出価格は必須です。'),
+            DataRequired('売出価格は必須です。'),
             NumberRange(min=1, max=6000000, message='売出価格は6,000,000円が上限です。'),
         ]
     )
@@ -266,6 +269,7 @@ class SellForm(Form):
     def __init__(self, sell_token=None, *args, **kwargs):
         super(SellForm, self).__init__(*args, **kwargs)
         self.sell_token = sell_token
+
 
 class CancelOrderForm(Form):
     order_id = IntegerField("注文ID", validators=[])
@@ -281,25 +285,26 @@ class CancelOrderForm(Form):
         super(CancelOrderForm, self).__init__(*args, **kwargs)
         self.sell_token = cancel_order
 
+
 class TransferForm(Form):
     token_address = StringField(
         "会員権アドレス",
         validators=[
-            Required('会員権アドレスは必須です。')
+            DataRequired('会員権アドレスは必須です。')
         ]
     )
 
     to_address = StringField(
         "割当先アドレス",
         validators=[
-            Required('割当先アドレスは必須です。')
+            DataRequired('割当先アドレスは必須です。')
         ]
     )
 
     amount = IntegerField(
         "割当数量",
         validators=[
-            Required('割当数量は必須です。'),
+            DataRequired('割当数量は必須です。'),
             NumberRange(min=1, max=100000000, message='割当数量は100,000,000が上限です。'),
         ]
     )
@@ -310,18 +315,19 @@ class TransferForm(Form):
         super(TransferForm, self).__init__(*args, **kwargs)
         self.transfer_membership = transfer_membership
 
+
 class TransferOwnershipForm(Form):
-    from_address = StringField("現在の所有者",validators = [])
+    from_address = StringField("現在の所有者", validators=[])
     to_address = StringField(
         "移転先",
-        validators = [
-            Required('移転先は必須です。')
+        validators=[
+            DataRequired('移転先は必須です。')
         ]
     )
     amount = IntegerField(
         "移転数量",
-        validators = [
-            Required('移転数量は必須です。'),
+        validators=[
+            DataRequired('移転数量は必須です。'),
             NumberRange(min=1, max=100000000, message='移転数量は100,000,000が上限です。'),
         ]
     )
@@ -336,14 +342,15 @@ class TransferOwnershipForm(Form):
         if not Web3.isAddress(field.data):
             raise ValidationError('移転先は無効なアドレスです。')
 
+
 class AddSupplyForm(Form):
     token_address = StringField("トークンアドレス", validators=[])
     name = StringField("名称", validators=[])
     totalSupply = IntegerField("総発行量", validators=[])
     addSupply = IntegerField(
         "追加発行量",
-        validators = [
-            Required('追加発行量は必須です。'),
+        validators=[
+            DataRequired('追加発行量は必須です。'),
             NumberRange(min=1, max=100000000, message='追加発行量は100,000,000が上限です。'),
         ]
     )

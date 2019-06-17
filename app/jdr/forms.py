@@ -92,17 +92,17 @@ class IssueForm(Form):
         super(IssueForm, self).__init__(*args, **kwargs)
         self.issue_data = issue_data
         self.description = {
-            'name': '新規発行するJDRの名称を入力してください。',
-            'symbol': '新規発行するJDRの略称を入力してください。',
-            'totalSupply': '新規発行するJDRの総発行量を入力してください。',
-            'details': '新規発行するJDRの詳細説明文を入力してください。この文章はユーザーのJDR売買画面にも表示されます。',
-            'memo': '新規発行するJDRのメモを入力してください。',
-            'tradableExchange': '新規発行するJDRを取引可能にする取引所コントラクトのコントラクトアドレスを入力してください。',
-            'image_1': '新規発行するJDRの売買画面で表示されるメイン画像のURLを入力してください。',
-            'image_2': '新規発行するJDRの売買画面で表示されるサブ画像①のURLを入力してください。',
-            'image_3': '新規発行するJDRの売買画面で表示されるサブ画像②のURLを入力してください。',
-            'contact_information': '新規発行するJDRの問い合わせ先メールアドレスまたは電話番号を入力してください。',
-            'privacy_policy': '新規発行するJDRのプライバシーポリシーを入力してください。',
+            'name': '',
+            'symbol': '商品を識別するための略称を設定してください。',
+            'totalSupply': '',
+            'details': '商品を識別するための略称を設定してください。',
+            'memo': '商品の補足情報を入力してください。',
+            'tradableExchange': '商品が取引可能な取引所コントラクトのアドレスを入力してください。',
+            'image_1': '商品画像のURLを入力してください。',
+            'image_2': '商品画像のURLを入力してください。',
+            'image_3': '商品画像のURLを入力してください。',
+            'contact_information': '商品に関する問い合わせ先情報を入力してください。',
+            'privacy_policy': '商品に関するプライバシーポリシーを入力してください。',
         }
 
 
