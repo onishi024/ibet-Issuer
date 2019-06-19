@@ -42,10 +42,34 @@
                 </div>
             </div>
             <div class="box-footer">
-                <button type="submit" class="btn btn-success" id="load" data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中">割当</button>
+                <button type="submit" class="btn btn-success" id="load" data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中">個別割当</button>
             </div>
         </form>
     </div>
+
+    <div class="box box-default">
+        <div class="box-header with-border">
+            <h3 class="box-title">CSVから一括クーポン割当</h3>
+        </div>
+
+        <form method="post" action="{{ url_for('coupon.bulktransfer') }}" enctype="multipart/form-data">
+            <div class="box-body">
+                <div class="input-group">
+                    <label class="input-group-btn">
+                        <span class="btn btn-primary">
+                            Choose File<input type="file" id="send_data" name="send_data" style="display:none">
+                        </span>
+                    </label>
+                    <input type="text" class="form-control" readonly="" style="width:200px;">
+                </div>
+
+            </div>
+            <div class="box-footer">
+                <button type="submit" class="btn btn-success" id="load" data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中">一括割当</button>
+            </div>
+        </form>
+    </div>
+
 </section>
 {% endblock %}
 
@@ -58,6 +82,13 @@
     setTimeout(function() {
       $this.button('reset');
     }, 8000);
+  });
+
+  $(document).on('change', ':file', function() {
+    var input = $(this),
+    numFiles = input.get(0).files ? input.get(0).files.length : 1,
+    label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
+    input.parent().parent().next(':text').val(label);
   });
 </script>
 {% endblock %}

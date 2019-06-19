@@ -1,10 +1,17 @@
 # -*- coding:utf-8 -*-
+import io
+import os
+import csv
 import datetime
 import traceback
 
-from flask import request, redirect, url_for, flash
+from flask import request, redirect, url_for, flash, jsonify
 from flask import render_template
 from flask_login import login_required
+from flask import send_from_directory
+from flask import make_response
+
+from werkzeug import secure_filename
 
 from . import coupon
 from .. import db
@@ -789,6 +796,85 @@ def transfer():
         return render_template('coupon/transfer.html', form=form)
 
 
+# 割当（CSV一括）
+@coupon.route('/bulktransfer', methods=['POST'])
+@login_required
+def bulktransfer():
+    logger.info('coupon/bulktransfer')
+    form = TransferForm()
+
+    send_data = request.files['send_data']
+    transfer_set = []
+    try:
+        if not send_data:
+            return "No file"
+
+        stream = io.StringIO(send_data.stream.read().decode("UTF8"), newline=None)
+        csv_input = csv.reader(stream)
+        for row in csv_input:
+            transfer_set.append(row)
+        logger.info(transfer_set)
+
+        if check_transfer(transfer_set):
+            flash('処理を受け付けました。割当完了までに数分程かかることがあります。', 'success')
+            return render_template('coupon/transfer.html', form=form, transfer_set=transfer_set)
+        else:
+            flash_errors(form)
+            return render_template('coupon/transfer.html', form=form, transfer_set=transfer_set)
+
+    except Exception as e:
+        logger.error(e)
+        flash('CSVアップロードでエラーが発生しました。', 'error')
+        transfer_set = "error"
+
+    return render_template('coupon/transfer.html', form=form, transfer_set=transfer_set)
+
+
+def check_transfer(transfer_set):
+    logger.info('coupon/check_transfer')
+    form = TransferForm()
+
+    try:
+        # transferの構成：[coupon_address, to_address, amount]
+        for transfer_row in transfer_set:
+            # Addressフォーマットチェック（token_address）
+            if not Web3.isAddress(transfer_row[0]):
+                flash('クーポンアドレスは有効なアドレスではありません。', 'error')
+                return render_template('coupon/transfer.html', form=form)
+
+            # Addressフォーマットチェック（send_address）
+            if not Web3.isAddress(transfer_row[1]):
+                flash('割当先アドレスは有効なアドレスではありません。', 'error')
+                return render_template('coupon/transfer.html', form=form)
+
+            eth_unlock_account()
+
+            # Tokenコントラクト接続
+            token = Token.query. \
+                filter(Token.token_address == transfer_row[0]).first()
+            token_abi = json.loads(
+                token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+            token_exchange_address = \
+                Config.IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS
+            TokenContract = web3.eth.contract(
+                address=token.token_address,
+                abi=token_abi
+            )
+
+            # 割当処理（発行体アドレス→指定アドレス）
+            from_address = Config.ETH_ACCOUNT
+            to_address = to_checksum_address(form.to_address.data)
+            amount = transfer_row[2]
+            tx_hash = transfer_token(TokenContract, from_address, to_address, amount)
+
+    except Exception as e:
+        logger.error(e)
+        flash('割当でエラーが発生しました。', 'error')
+        return False
+
+    return True
+
+
 # 割当（募集申込）
 @coupon.route(
     '/allocate/<string:token_address>/<string:account_address>',
@@ -871,6 +957,20 @@ def transfer_token(TokenContract, from_address, to_address, amount):
         transfer(to_checksum_address(TokenContract.address), to_address, amount). \
         transact({'from': Config.ETH_ACCOUNT, 'gas': transfer_gas})
     return tx_hash
+
+
+def csv_upload():
+    filebuffer = request.files.get('csvfile')
+    if filebuffer is None:
+        return jsonify(message='ファイルを指定してください'), 400
+    elif 'text/csv' is not filebuffer.mimetype:
+        return jsonify(message='CSVファイル以外は受け付けません'), 415
+
+    text_stream = io.TextIOWrapper(filebuffer.stream, encoding='cp932')
+    for row in csv.reader(text_stream):
+        return row
+
+    return jsonify(message=f'{filebuffer.filename!r}を読み込みました'), 200
 
 
 ####################################################
