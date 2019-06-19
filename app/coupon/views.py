@@ -5,13 +5,9 @@ import csv
 import datetime
 import traceback
 
-from flask import request, redirect, url_for, flash, jsonify
+from flask import request, redirect, url_for, flash
 from flask import render_template
 from flask_login import login_required
-from flask import send_from_directory
-from flask import make_response
-
-from werkzeug import secure_filename
 
 from . import coupon
 from .. import db
@@ -959,18 +955,18 @@ def transfer_token(TokenContract, from_address, to_address, amount):
     return tx_hash
 
 
-def csv_upload():
-    filebuffer = request.files.get('csvfile')
-    if filebuffer is None:
-        return jsonify(message='ファイルを指定してください'), 400
-    elif 'text/csv' is not filebuffer.mimetype:
-        return jsonify(message='CSVファイル以外は受け付けません'), 415
-
-    text_stream = io.TextIOWrapper(filebuffer.stream, encoding='cp932')
-    for row in csv.reader(text_stream):
-        return row
-
-    return jsonify(message=f'{filebuffer.filename!r}を読み込みました'), 200
+# def csv_upload():
+#     filebuffer = request.files.get('csvfile')
+#     if filebuffer is None:
+#         return jsonify(message='ファイルを指定してください'), 400
+#     elif 'text/csv' is not filebuffer.mimetype:
+#         return jsonify(message='CSVファイル以外は受け付けません'), 415
+#
+#     text_stream = io.TextIOWrapper(filebuffer.stream, encoding='cp932')
+#     for row in csv.reader(text_stream):
+#         return row
+#
+#     return jsonify(message=f'{filebuffer.filename!r}を読み込みました'), 200
 
 
 ####################################################
