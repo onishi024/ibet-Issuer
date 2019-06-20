@@ -870,51 +870,6 @@ def bulk_transfer():
         return render_template('coupon/bulk_transfer.html', form=form)
 
 
-def check(transfer_set):
-    logger.info('coupon/check_transfer')
-    form = TransferForm()
-
-    try:
-        # transferの構成：[coupon_address, to_address, amount]
-        for transfer_row in transfer_set:
-            # Addressフォーマットチェック（token_address）
-            if not Web3.isAddress(transfer_row[0]):
-                flash('クーポンアドレスは有効なアドレスではありません。', 'error')
-                return render_template('coupon/transfer.html', form=form)
-
-            # Addressフォーマットチェック（send_address）
-            if not Web3.isAddress(transfer_row[1]):
-                flash('割当先アドレスは有効なアドレスではありません。', 'error')
-                return render_template('coupon/transfer.html', form=form)
-
-            # eth_unlock_account()
-            #
-            # # Tokenコントラクト接続
-            # token = Token.query. \
-            #     filter(Token.token_address == transfer_row[0]).first()
-            # token_abi = json.loads(
-            #     token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
-            # token_exchange_address = \
-            #     Config.IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS
-            # TokenContract = web3.eth.contract(
-            #     address=token.token_address,
-            #     abi=token_abi
-            # )
-            #
-            # # 割当処理（発行体アドレス→指定アドレス）
-            # from_address = Config.ETH_ACCOUNT
-            # to_address = to_checksum_address(form.to_address.data)
-            # amount = transfer_row[2]
-            # tx_hash = transfer_token(TokenContract, from_address, to_address, amount)
-
-    except Exception as e:
-        logger.error(e)
-        flash('割当でエラーが発生しました。', 'error')
-        return False
-
-    return True
-
-
 # 割当（募集申込）
 @coupon.route(
     '/allocate/<string:token_address>/<string:account_address>',
