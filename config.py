@@ -53,7 +53,8 @@ class Config:
             ('coupon_issue', 'fa fa-circle-o', '新規発行', 'coupon.issue'),
             ('coupon_list', 'fa fa-circle-o', '発行済一覧', 'coupon.list'),
             ('coupon_position', 'fa fa-circle-o', '売出管理', 'coupon.positions'),
-            ('coupon_transfer', 'fa fa-circle-o', '割当', 'coupon.transfer')
+            ('coupon_transfer', 'fa fa-circle-o', '割当', 'coupon.transfer'),
+            ('coupon_bulk_transfer', 'fa fa-circle-o', 'CSV一括割当', 'coupon.bulk_transfer')
         ]),
         ('bond', 'fa fa-flask', '債券 (Beta)', [
             ('bond_issue', 'fa fa-circle-o', '新規発行', 'bond.issue'),

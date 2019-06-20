@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block head %}
+    {{ super() }}
+    <link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
+{% endblock %}
+{% set active_page = "coupon_bulk_transfer" %}
+
+{% block title %}クーポン一括割当 - {% endblock %}
+{% block page_header %}クーポン一括割当 <span class="badge bg-secondary">クーポン</span>{% endblock %}
+{% block page_description %}{% endblock %}
+{% block breadcrumb %}
+    <li><a href="{{ url_for('index.index') }}">トップ</a></li>
+    <li class="active">クーポン一括割当</li>
+{% endblock %}
+
+{% block page_content %}
+<section class="content">
+    <div class="box box-default">
+        <div class="box-header with-border">
+            <h3 class="box-title">CSVから一括クーポン割当</h3>
+        </div>
+
+        <form method="post" action="{{ url_for('coupon.bulk_transfer') }}" enctype="multipart/form-data">
+            {{ form.csrf_token }}
+            <div class="box-body">
+                <div class="input-group">
+                    <label class="input-group-btn">
+                        <span class="btn btn-primary">
+                            {{ form.transfer_csv.label }}
+                            {{ form.transfer_csv(class="form-control", autocomplete="off", style="display:none") }}
+                        </span>
+                    </label>
+                    <input type="text" class="form-control" readonly="" style="height:39px; width:200px;">
+                </div>
+
+            </div>
+            <div class="box-footer">
+                <button type="submit" class="btn btn-success" id="load" data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中">一括割当</button>
+            </div>
+        </form>
+    </div>
+
+</section>
+{% endblock %}
+
+{% block required_js %}
+{{ super() }}
+<script type="text/javascript">
+  $('#load.btn').on('click', function() {
+    var $this = $(this);
+    $this.button('loading');
+    setTimeout(function() {
+      $this.button('reset');
+    }, 8000);
+  });
+
+  $(document).on('change', ':file', function() {
+    var input = $(this),
+    numFiles = input.get(0).files ? input.get(0).files.length : 1,
+    label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
+    input.parent().parent().next(':text').val(label);
+  });
+</script>
+{% endblock %}

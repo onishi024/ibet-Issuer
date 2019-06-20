@@ -8,11 +8,13 @@ import traceback
 from flask import request, redirect, url_for, flash
 from flask import render_template
 from flask_login import login_required
+from sqlalchemy.orm import sessionmaker
 
 from . import coupon
 from .. import db
 from ..util import *
 from .forms import *
+from ..models import CSVTransfer
 from config import Config
 from app.contracts import Contract
 
@@ -793,40 +795,82 @@ def transfer():
 
 
 # 割当（CSV一括）
-@coupon.route('/bulktransfer', methods=['POST'])
+@coupon.route('/bulk_transfer', methods=['GET', 'POST'])
 @login_required
-def bulktransfer():
-    logger.info('coupon/bulktransfer')
-    form = TransferForm()
-
-    send_data = request.files['send_data']
+def bulk_transfer():
+    logger.info('coupon/bulk_transfer')
+    form = BulkTransferForm()
     transfer_set = []
-    try:
-        if not send_data:
-            return "No file"
 
-        stream = io.StringIO(send_data.stream.read().decode("UTF8"), newline=None)
-        csv_input = csv.reader(stream)
-        for row in csv_input:
-            transfer_set.append(row)
-        logger.info(transfer_set)
+    Session = sessionmaker()
+    session = Session()
 
-        if check_transfer(transfer_set):
+    if request.method == 'POST':
+        if form.validate():
+            send_data = request.files['transfer_csv']
+            transfer_set = []
+            try:
+                stream = io.StringIO(send_data.stream.read().decode("UTF8"), newline=None)
+                csv_input = csv.reader(stream)
+                for row in csv_input:
+                    transfer_set.append(row)
+                logger.info(transfer_set)
+
+            except Exception as e:
+                logger.error(e)
+                flash('CSVアップロードでエラーが発生しました。', 'error')
+                transfer_set = "error"
+                return render_template('coupon/bulk_transfer.html', form=form, transfer_set=transfer_set)
+
+            # transfer_rowの構成：[coupon_address, to_address, amount]
+            for transfer_row in transfer_set:
+                # Addressフォーマットチェック（token_address）
+                if not Web3.isAddress(transfer_row[0]):
+                    flash('無効なクーポンアドレスが含まれています。', 'error')
+                    message = '無効なクーポンアドレスが含まれています。' + transfer_row[0]
+                    logger.error(message)
+                    session.rollback()
+                    return render_template('coupon/bulk_transfer.html', form=form)
+
+                # Addressフォーマットチェック（send_address）
+                if not Web3.isAddress(transfer_row[1]):
+                    flash('無効な割当先アドレスが含まれています。', 'error')
+                    message = '無効な割当先アドレスが含まれています' + transfer_row[1]
+                    logger.error(message)
+                    session.rollback()
+                    return render_template('coupon/bulk_transfer.html', form=form)
+
+                # amountチェック
+                if 100000000 < int(transfer_row[2]):
+                    flash('割当量が適切ではありません。', 'error')
+                    message = '割当量が適切ではありません' + transfer_row[2]
+                    logger.error(message)
+                    session.rollback()
+                    return render_template('coupon/bulk_transfer.html', form=form)
+
+
+
+                # DB登録処理
+                csvtransfer = CSVTransfer()
+                csvtransfer.coupon_address = transfer_row[0]
+                csvtransfer.to_address = transfer_row[1]
+                csvtransfer.amount = transfer_row[2]
+                csvtransfer.transferred = False
+                db.session.add(csvtransfer)
+
+            db.session.commit()
             flash('処理を受け付けました。割当完了までに数分程かかることがあります。', 'success')
-            return render_template('coupon/transfer.html', form=form, transfer_set=transfer_set)
+            return render_template('coupon/bulk_transfer.html', form=form, transfer_set=transfer_set)
+
         else:
             flash_errors(form)
-            return render_template('coupon/transfer.html', form=form, transfer_set=transfer_set)
+            return render_template('coupon/bulk_transfer.html', form=form, transfer_set=transfer_set)
 
-    except Exception as e:
-        logger.error(e)
-        flash('CSVアップロードでエラーが発生しました。', 'error')
-        transfer_set = "error"
-
-    return render_template('coupon/transfer.html', form=form, transfer_set=transfer_set)
+    else:  # GET
+        return render_template('coupon/bulk_transfer.html', form=form)
 
 
-def check_transfer(transfer_set):
+def check(transfer_set):
     logger.info('coupon/check_transfer')
     form = TransferForm()
 
@@ -843,25 +887,25 @@ def check_transfer(transfer_set):
                 flash('割当先アドレスは有効なアドレスではありません。', 'error')
                 return render_template('coupon/transfer.html', form=form)
 
-            eth_unlock_account()
-
-            # Tokenコントラクト接続
-            token = Token.query. \
-                filter(Token.token_address == transfer_row[0]).first()
-            token_abi = json.loads(
-                token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
-            token_exchange_address = \
-                Config.IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS
-            TokenContract = web3.eth.contract(
-                address=token.token_address,
-                abi=token_abi
-            )
-
-            # 割当処理（発行体アドレス→指定アドレス）
-            from_address = Config.ETH_ACCOUNT
-            to_address = to_checksum_address(form.to_address.data)
-            amount = transfer_row[2]
-            tx_hash = transfer_token(TokenContract, from_address, to_address, amount)
+            # eth_unlock_account()
+            #
+            # # Tokenコントラクト接続
+            # token = Token.query. \
+            #     filter(Token.token_address == transfer_row[0]).first()
+            # token_abi = json.loads(
+            #     token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+            # token_exchange_address = \
+            #     Config.IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS
+            # TokenContract = web3.eth.contract(
+            #     address=token.token_address,
+            #     abi=token_abi
+            # )
+            #
+            # # 割当処理（発行体アドレス→指定アドレス）
+            # from_address = Config.ETH_ACCOUNT
+            # to_address = to_checksum_address(form.to_address.data)
+            # amount = transfer_row[2]
+            # tx_hash = transfer_token(TokenContract, from_address, to_address, amount)
 
     except Exception as e:
         logger.error(e)

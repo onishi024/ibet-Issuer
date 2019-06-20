@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 from flask_wtf import FlaskForm as Form
 
-from wtforms import IntegerField, StringField, TextAreaField, SubmitField, SelectField
+from wtforms import IntegerField, StringField, TextAreaField, SubmitField, SelectField, FileField
 from wtforms.validators import DataRequired, URL, Optional, Length, Regexp, NumberRange
 from wtforms import ValidationError
 
@@ -277,6 +277,20 @@ class TransferForm(Form):
     def __init__(self, transfer_coupon=None, *args, **kwargs):
         super(TransferForm, self).__init__(*args, **kwargs)
         self.transfer_coupon = transfer_coupon
+
+
+class BulkTransferForm(Form):
+    transfer_csv = FileField(
+        "割当CSVファイル",
+        validators=[
+            DataRequired('ファイルを選択してください。')
+        ]
+    )
+    submit = SubmitField('アップロード')
+
+    def __init__(self, bulk_transfer_data=None, *args, **kwargs):
+        super(BulkTransferForm, self).__init__(*args, **kwargs)
+        self.bulk_transfer_data = bulk_transfer_data
 
 
 class TransferOwnershipForm(Form):
