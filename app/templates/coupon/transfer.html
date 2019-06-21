@@ -22,6 +22,12 @@
         <form class="form-horizontal" method="POST" role="form" action="{{ url_for('coupon.transfer') }}">
             {{ form.csrf_token }}
             <div class="box-body">
+                <p class="help-block">
+                    <small>
+                        <i class="fa fa-info-circle" aria-hidden="true"></i>
+                        割当を行うクーポンの情報を入力してください。
+                    </small>
+                </p>
                 <div class="form-group">
                     {{ form.token_address.label(class="col-md-2 control-label") }}
                     <div class="col-md-4">
