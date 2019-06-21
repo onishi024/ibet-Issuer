@@ -23,7 +23,6 @@ from config import Config
 log_fmt = 'PROCESSOR [%(asctime)s] [%(process)d] [%(levelname)s] %(message)s'
 logging.basicConfig(level=logging.INFO, format=log_fmt)
 
-
 """
 CSVアップロードされた割当情報から、Transferコントラクトを実行する
 """
@@ -37,9 +36,10 @@ db_session.configure(bind=engine)
 
 token_exchange_address = Config.IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS
 
-
+####################################################
+# Transfer Contract
+####################################################
 def transfer_token(TokenContract, from_address, to_address, amount):
-    eth_unlock_account()
     token_exchange_address = Config.IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS
     ExchangeContract = Contract.get_contract(
         'IbetCouponExchange', token_exchange_address)
@@ -62,53 +62,47 @@ def transfer_token(TokenContract, from_address, to_address, amount):
 
 # 常時起動（無限ループ）
 while True:
-
     logging.info('start batch')
-    # Issue済ではない一覧を抽出
+    # Issue済ではない割当一覧を抽出
     try:
         untransferred_list = db_session.query(CSVTransfer). \
             filter(CSVTransfer.transferred == False).all()
+        logging.info('Got coupon list')
+        logging.info(untransferred_list)
     except Exception as err:
         logging.error("%s", err)
         break
 
     # EOAのアンロック
     eth_unlock_account()
-    logging.info('eth_unlock_account() called')
 
     for item in untransferred_list:
         logging.info('starting for roop')
         # Tokenコントラクト接続
+        token = db_session.query(Token).filter(Token.token_address == item.coupon_address).first()
+        token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+        TokenContract = web3.eth.contract(
+            address=token.token_address,
+            abi=token_abi
+        )
+        logging.info('connected to Token Contract')
+
+        # 割当処理（発行体アドレス→指定アドレス）
+        from_address = Config.ETH_ACCOUNT
+        to_address = to_checksum_address(item.to_address)
+        amount = item.amount
+        tx_hash = transfer_token(TokenContract, from_address, to_address, amount)
+        logging.info('Token Transferred')
+
+        # 発行済状態に更新
         try:
-            token = Token.query.filter(Token.token_address == item.coupon_address).first()
-            token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
-            TokenContract = web3.eth.contract(
-                address=token.coupon_address,
-                abi=token_abi
-            )
-            logging.info('connected to Token Contract')
+            item.transferred = True
+            logging.info("The coupon was transferred. : {}".format(item.coupon_address))
+        except Exception as err:
+            logging.error("%s", err)
+            break
+        logging.info('db updated')
 
-            # 割当処理（発行体アドレス→指定アドレス）
-            from_address = Config.ETH_ACCOUNT
-            to_address = to_checksum_address(item.to_address)
-            amount = item.amount
-            tx_hash = transfer_token(TokenContract, from_address, to_address, amount)
-            logging.info('Token Transferred')
-
-            # 発行済状態に更新
-            try:
-                item.transferred = True
-                logging.info("The coupon was transferred. : {}".format(item.coupon_address))
-            except Exception as err:
-                logging.error("%s", err)
-                break
-            logging.info('db updated')
-
-            db_session.commit()
-
-        except Exception as e:
-            logging.error(e)
-
-
+        db_session.commit()
 
     time.sleep(3)

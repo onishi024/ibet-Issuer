@@ -17,12 +17,12 @@ log_fmt = 'PROCESSOR [%(asctime)s] [%(process)d] [%(levelname)s] %(message)s'
 logging.basicConfig(level=logging.INFO, format=log_fmt)
 
 while True:
-
     # コントラクトアドレスが登録されていないTokenの一覧を抽出
     try:
         token_unprocessed = engine.execute(
             "select * from tokens where token_address IS NULL"
         )
+        logging.info(token_unprocessed)
     except Exception as err:
         logging.error("%s", err)
         break
@@ -33,10 +33,14 @@ while True:
 
         try:
             tx_receipt = web3.eth.getTransactionReceipt(tx_hash_hex)
+            logging.info('getTransactionReceipt()')
         except:
+            logging.info('cannot get TransactionReceipt')
             continue
 
         if tx_receipt is not None :
+            logging.info('tx_receipt is exists')
+
             # ブロックの状態を確認して、コントラクトアドレスが登録されているかを確認する。
             if 'contractAddress' in tx_receipt.keys():
                 admin_address = tx_receipt['from']

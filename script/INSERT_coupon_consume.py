@@ -72,6 +72,10 @@ def issue_token(exchange_address, data_count, token_type):
     attribute['details'] = 'details'
     attribute['expirationDate'] = '20181010'
     attribute['transferable'] = True
+    attribute['status'] = True
+    attribute['contactInformation'] = '08012345678'
+    attribute['privacyPolicy'] = 'プライバシーポリシーの内容'
+
     arguments = [
         attribute['name'], attribute['symbol'], attribute['totalSupply'],
         attribute['tradableExchange'],

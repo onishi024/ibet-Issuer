@@ -91,7 +91,7 @@ class CSVTransfer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     coupon_address = db.Column(db.String(42), nullable=False)
     to_address = db.Column(db.String(42), nullable=False)
-    amount = db.Column(db.String(10), nullable=False)
+    amount = db.Column(db.Integer, nullable=False)
     transferred = db.Column(db.Boolean, default=False)
 
     def __repr__(self):

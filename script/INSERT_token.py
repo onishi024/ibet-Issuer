@@ -52,6 +52,10 @@ def issue_token(exchange_address, data_count, token_type):
     attribute['details'] = 'details'
     attribute['expirationDate'] = '20181010'
     attribute['transferable'] = True
+    attribute['status'] = True
+    attribute['contactInformation'] = '08012345678'
+    attribute['privacyPolicy'] = 'プライバシーポリシーの内容'
+
     if token_type == 'IbetStraightBond':
         attribute['faceValue'] = 100
         attribute['interestRate'] = 1
@@ -70,7 +74,8 @@ def issue_token(exchange_address, data_count, token_type):
             attribute['faceValue'], attribute['interestRate'], interestPaymentDate,
             attribute['redemptionDate'], attribute['redemptionAmount'],
             attribute['returnDate'], attribute['returnAmount'],
-            attribute['purpose'], attribute['memo']
+            attribute['purpose'], attribute['memo'],
+            attribute['status'], attribute['contactInformation'], attribute['privacyPolicy']
         ]
         template_id = Config.TEMPLATE_ID_SB
     elif token_type == 'IbetMembership':
@@ -80,7 +85,8 @@ def issue_token(exchange_address, data_count, token_type):
             attribute['tradableExchange'],
             attribute['details'], attribute['returnDetails'],
             attribute['expirationDate'], attribute['memo'],
-            attribute['transferable']
+            attribute['transferable'],
+            attribute['status'], attribute['contactInformation'], attribute['privacyPolicy']
         ]
         template_id = Config.TEMPLATE_ID_MEMBERSHIP
     elif token_type == 'IbetCoupon':
@@ -88,7 +94,8 @@ def issue_token(exchange_address, data_count, token_type):
             attribute['name'], attribute['symbol'], attribute['totalSupply'],
             attribute['tradableExchange'],
             attribute['details'],  attribute['memo'], attribute['expirationDate'],
-            attribute['transferable']
+            attribute['transferable'],
+            attribute['status'], attribute['contactInformation'], attribute['privacyPolicy']
         ]
         template_id = Config.TEMPLATE_ID_COUPON
 
