@@ -67,8 +67,6 @@ while True:
     try:
         untransferred_list = db_session.query(CSVTransfer). \
             filter(CSVTransfer.transferred == False).all()
-        logging.info('Got coupon list')
-        logging.info(untransferred_list)
     except Exception as err:
         logging.error("%s", err)
         break
@@ -77,7 +75,6 @@ while True:
     eth_unlock_account()
 
     for item in untransferred_list:
-        logging.info('starting for roop')
         # Tokenコントラクト接続
         token = db_session.query(Token).filter(Token.token_address == item.coupon_address).first()
         token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
@@ -85,14 +82,11 @@ while True:
             address=token.token_address,
             abi=token_abi
         )
-        logging.info('connected to Token Contract')
-
         # 割当処理（発行体アドレス→指定アドレス）
         from_address = Config.ETH_ACCOUNT
         to_address = to_checksum_address(item.to_address)
         amount = item.amount
         tx_hash = transfer_token(TokenContract, from_address, to_address, amount)
-        logging.info('Token Transferred')
 
         # 発行済状態に更新
         try:
