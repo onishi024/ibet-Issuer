@@ -17,7 +17,6 @@ log_fmt = 'PROCESSOR [%(asctime)s] [%(process)d] [%(levelname)s] %(message)s'
 logging.basicConfig(level=logging.INFO, format=log_fmt)
 
 while True:
-
     # コントラクトアドレスが登録されていないTokenの一覧を抽出
     try:
         token_unprocessed = engine.execute(

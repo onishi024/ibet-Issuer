@@ -6,6 +6,7 @@ from flask_login import UserMixin
 from . import db, login_manager
 from datetime import datetime
 
+
 class Role(db.Model):
     __tablename__ = 'roles'
     id = db.Column(db.Integer, primary_key=True)
@@ -16,6 +17,7 @@ class Role(db.Model):
 
     def __repr__(self):
         return '<Role %r>' % self.name
+
 
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
@@ -44,6 +46,7 @@ class User(UserMixin, db.Model):
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+
 @login_manager.user_loader
 def load_user(user_id):
     try:
@@ -51,9 +54,11 @@ def load_user(user_id):
     except Exception:
         pass
 
+
 @login_manager.unauthorized_handler
 def unauthorized_handler():
     return redirect(url_for('auth.login'))
+
 
 class Token(db.Model):
     __tablename__ = 'tokens'
@@ -79,6 +84,24 @@ class Token(db.Model):
     def get_id(cls):
         return Token.id
 
+
+# 一括登録した割当情報
+class CSVTransfer(db.Model):
+    __tablename__ = 'csv_transfer'
+    id = db.Column(db.Integer, primary_key=True)
+    coupon_address = db.Column(db.String(42), nullable=False)
+    to_address = db.Column(db.String(42), nullable=False)
+    amount = db.Column(db.Integer, nullable=False)
+    transferred = db.Column(db.Boolean, default=False)
+
+    def __repr__(self):
+        return "<CSVTransfer('coupon_address'='%s', 'to_address'='%s', 'amount'='%s', 'transferred'='%s')>"
+
+    @classmethod
+    def get_id(cls):
+        return CSVTransfer.id
+
+
 class Certification(db.Model):
     __tablename__ = 'certification'
     id = db.Column(db.Integer, primary_key=True)
@@ -94,6 +117,7 @@ class Certification(db.Model):
     @classmethod
     def get_id(cls):
         return Certification.id
+
 
 class Bank(db.Model):
     __tablename__ = 'bank'

@@ -1,15 +1,20 @@
 # -*- coding:utf-8 -*-
+import io
+import os
+import csv
 import datetime
 import traceback
 
-from flask import request, redirect, url_for, flash
+from flask import request, redirect, url_for, flash, make_response
 from flask import render_template
 from flask_login import login_required
+from sqlalchemy.orm import sessionmaker
 
 from . import coupon
 from .. import db
 from ..util import *
 from .forms import *
+from ..models import CSVTransfer
 from config import Config
 from app.contracts import Contract
 
@@ -787,6 +792,99 @@ def transfer():
             return render_template('coupon/transfer.html', form=form)
     else:  # GET
         return render_template('coupon/transfer.html', form=form)
+
+
+# 割当（CSV一括）
+@coupon.route('/bulk_transfer', methods=['GET', 'POST'])
+@login_required
+def bulk_transfer():
+    logger.info('coupon/bulk_transfer')
+    form = BulkTransferForm()
+    transfer_set = []
+
+    if request.method == 'POST':
+        if form.validate():
+            send_data = request.files['transfer_csv']
+            transfer_set = []
+            try:
+                stream = io.StringIO(send_data.stream.read().decode("UTF8"), newline=None)
+                csv_input = csv.reader(stream)
+                for row in csv_input:
+                    transfer_set.append(row)
+                logger.info(transfer_set)
+
+            except Exception as e:
+                logger.error(e)
+                flash('CSVアップロードでエラーが発生しました。', 'error')
+                transfer_set = "error"
+                return render_template('coupon/bulk_transfer.html', form=form, transfer_set=transfer_set)
+
+            # transfer_rowの構成：[coupon_address, to_address, amount]
+            for transfer_row in transfer_set:
+                # Addressフォーマットチェック（token_address）
+                if not Web3.isAddress(transfer_row[0]):
+                    flash('無効なクーポンアドレスが含まれています。', 'error')
+                    message = '無効なクーポンアドレスが含まれています。' + transfer_row[0]
+                    logger.warning(message)
+                    return render_template('coupon/bulk_transfer.html', form=form)
+
+                # Addressフォーマットチェック（send_address）
+                if not Web3.isAddress(transfer_row[1]):
+                    flash('無効な割当先アドレスが含まれています。', 'error')
+                    message = '無効な割当先アドレスが含まれています' + transfer_row[1]
+                    logger.warning(message)
+                    return render_template('coupon/bulk_transfer.html', form=form)
+
+                # amountチェック
+                if 100000000 < int(transfer_row[2]):
+                    flash('割当量が適切ではありません。', 'error')
+                    message = '割当量が適切ではありません' + transfer_row[2]
+                    logger.warning(message)
+                    return render_template('coupon/bulk_transfer.html', form=form)
+
+                # DB登録処理
+                csvtransfer = CSVTransfer()
+                csvtransfer.coupon_address = transfer_row[0]
+                csvtransfer.to_address = transfer_row[1]
+                csvtransfer.amount = transfer_row[2]
+                csvtransfer.transferred = False
+                db.session.add(csvtransfer)
+
+            # 全てのデータが正常処理されたらコミットを行う
+            db.session.commit()
+
+            flash('処理を受け付けました。割当完了までに数分程かかることがあります。', 'success')
+            return render_template('coupon/bulk_transfer.html', form=form, transfer_set=transfer_set)
+
+        else:
+            flash_errors(form)
+            return render_template('coupon/bulk_transfer.html', form=form, transfer_set=transfer_set)
+
+    else:  # GET
+        return render_template('coupon/bulk_transfer.html', form=form)
+
+
+# サンプルCSVダウンロード
+@coupon.route('/sample_csv_download', methods=['POST'])
+@login_required
+def sample_csv_download():
+    logger.info('coupon/transfer_csv_download')
+
+    f = io.StringIO()
+    # データ行
+    data_row = \
+        '0x0b3c7F97383bCFf942E6b1038a47B9AA5377A252,0xF37aF18966609eCaDe3E4D1831996853c637cfF3,10' \
+        + '\n' \
+        + '0xC362102bC5bbA9fBd0F2f5d397f3644Aa32b3bA8,0xF37aF18966609eCaDe3E4D1831996853c637cfF3,20'
+
+    f.write(data_row)
+
+    res = make_response()
+    csvdata = f.getvalue()
+    res.data = csvdata.encode('sjis')
+    res.headers['Content-Type'] = 'text/plain'
+    res.headers['Content-Disposition'] = 'attachment; filename=' + 'transfer_list.csv'
+    return res
 
 
 # 割当（募集申込）
