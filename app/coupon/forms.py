@@ -281,7 +281,7 @@ class TransferForm(Form):
 
 class BulkTransferForm(Form):
     transfer_csv = FileField(
-        "割当CSVファイル",
+        "CSVファイル",
         validators=[
             DataRequired('ファイルを選択してください。')
         ]

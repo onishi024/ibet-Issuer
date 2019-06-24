@@ -802,9 +802,6 @@ def bulk_transfer():
     form = BulkTransferForm()
     transfer_set = []
 
-    Session = sessionmaker()
-    session = Session()
-
     if request.method == 'POST':
         if form.validate():
             send_data = request.files['transfer_csv']
@@ -828,27 +825,22 @@ def bulk_transfer():
                 if not Web3.isAddress(transfer_row[0]):
                     flash('無効なクーポンアドレスが含まれています。', 'error')
                     message = '無効なクーポンアドレスが含まれています。' + transfer_row[0]
-                    logger.error(message)
-                    session.rollback()
+                    logger.warning(message)
                     return render_template('coupon/bulk_transfer.html', form=form)
 
                 # Addressフォーマットチェック（send_address）
                 if not Web3.isAddress(transfer_row[1]):
                     flash('無効な割当先アドレスが含まれています。', 'error')
                     message = '無効な割当先アドレスが含まれています' + transfer_row[1]
-                    logger.error(message)
-                    session.rollback()
+                    logger.warning(message)
                     return render_template('coupon/bulk_transfer.html', form=form)
 
                 # amountチェック
                 if 100000000 < int(transfer_row[2]):
                     flash('割当量が適切ではありません。', 'error')
                     message = '割当量が適切ではありません' + transfer_row[2]
-                    logger.error(message)
-                    session.rollback()
+                    logger.warning(message)
                     return render_template('coupon/bulk_transfer.html', form=form)
-
-
 
                 # DB登録処理
                 csvtransfer = CSVTransfer()
@@ -858,7 +850,9 @@ def bulk_transfer():
                 csvtransfer.transferred = False
                 db.session.add(csvtransfer)
 
+            # 全てのデータが正常処理されたらコミットを行う
             db.session.commit()
+
             flash('処理を受け付けました。割当完了までに数分程かかることがあります。', 'success')
             return render_template('coupon/bulk_transfer.html', form=form, transfer_set=transfer_set)
 
@@ -870,10 +864,10 @@ def bulk_transfer():
         return render_template('coupon/bulk_transfer.html', form=form)
 
 
-# 割当（CSV一括）
-@coupon.route('/transfer_csv_download', methods=['POST'])
+# サンプルCSVダウンロード
+@coupon.route('/sample_csv_download', methods=['POST'])
 @login_required
-def transfer_csv_download():
+def sample_csv_download():
     logger.info('coupon/transfer_csv_download')
 
     f = io.StringIO()
@@ -889,7 +883,7 @@ def transfer_csv_download():
     csvdata = f.getvalue()
     res.data = csvdata.encode('sjis')
     res.headers['Content-Type'] = 'text/plain'
-    res.headers['Content-Disposition'] = 'attachment; filename=' + 'transfer_list_csv.txt'
+    res.headers['Content-Disposition'] = 'attachment; filename=' + 'transfer_list.csv'
     return res
 
 
