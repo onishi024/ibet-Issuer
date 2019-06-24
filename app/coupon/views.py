@@ -5,7 +5,7 @@ import csv
 import datetime
 import traceback
 
-from flask import request, redirect, url_for, flash
+from flask import request, redirect, url_for, flash, make_response
 from flask import render_template
 from flask_login import login_required
 from sqlalchemy.orm import sessionmaker
@@ -868,6 +868,29 @@ def bulk_transfer():
 
     else:  # GET
         return render_template('coupon/bulk_transfer.html', form=form)
+
+
+# 割当（CSV一括）
+@coupon.route('/transfer_csv_download', methods=['POST'])
+@login_required
+def transfer_csv_download():
+    logger.info('coupon/transfer_csv_download')
+
+    f = io.StringIO()
+    # データ行
+    data_row = \
+        '0x0b3c7F97383bCFf942E6b1038a47B9AA5377A252,0xF37aF18966609eCaDe3E4D1831996853c637cfF3,10' \
+        + '\n' \
+        + '0xC362102bC5bbA9fBd0F2f5d397f3644Aa32b3bA8,0xF37aF18966609eCaDe3E4D1831996853c637cfF3,20'
+
+    f.write(data_row)
+
+    res = make_response()
+    csvdata = f.getvalue()
+    res.data = csvdata.encode('sjis')
+    res.headers['Content-Type'] = 'text/plain'
+    res.headers['Content-Disposition'] = 'attachment; filename=' + 'transfer_list_csv.txt'
+    return res
 
 
 # 割当（募集申込）
