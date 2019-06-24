@@ -19,6 +19,28 @@
         <div class="box-header with-border">
             <h3 class="box-title">CSVから一括クーポン割当</h3>
         </div>
+        <form method="post" action="{{ url_for('coupon.bulk_transfer') }}" enctype="multipart/form-data">
+            {{ form.csrf_token }}
+            <div class="box-body" style="padding:10px 30px 10px 30px;">
+                <div class="col-md-12 input-group">
+                    <p class="help-block">
+                        <small>
+                            <i class="fa fa-info-circle" aria-hidden="true"></i>
+                            アップロードするファイルを選択してください。
+                        </small>
+                    </p>
+                    <p>{{ form.transfer_csv.label }}</p>
+                    <p>{{ form.transfer_csv(style="color:red; padding:10px; vertical-align:middle;") }}</p>
+                    <button type="submit" class="btn btn-success" id="load" data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中">一括割当</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="box box-default" style="min-width: 841px;">
+        <div class="box-header with-border">
+            <h3 class="box-title">サンプルダウンロード</h3>
+        </div>
 
         <div style="padding: 30px;">
             CSVの形式サンプル（タイトルヘッダは含めず、データ行のみにしてください。）
@@ -46,25 +68,6 @@
                 </div>
             </form>
         </div>
-
-        <form method="post" action="{{ url_for('coupon.bulk_transfer') }}" enctype="multipart/form-data">
-            {{ form.csrf_token }}
-            <div class="box-body">
-                <div class="col-md-12 input-group">
-                    <p class="help-block">
-                        <small>
-                            <i class="fa fa-info-circle" aria-hidden="true"></i>
-                            アップロードするファイルを選択してください。
-                        </small>
-                    </p>
-                    <p>{{ form.transfer_csv.label }}</p>
-                    <p>{{ form.transfer_csv(style="color:red; padding:10px; vertical-align:middle;") }}</p>
-                </div>
-            </div>
-            <div class="box-footer">
-                <button type="submit" class="btn btn-success" id="load" data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中">一括割当</button>
-            </div>
-        </form>
     </div>
 
 </section>
