@@ -284,6 +284,8 @@ def holders(token_address):
 
 
 def get_holders(token_address):
+    logger.info('start')
+
     cipher = None
     try:
         key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
@@ -292,6 +294,7 @@ def get_holders(token_address):
         traceback.print_exc()
         pass
 
+    logger.info('chk1')
     token = Token.query.filter(Token.token_address == token_address).first()
     token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
 
@@ -300,6 +303,7 @@ def get_holders(token_address):
         abi=token_abi
     )
 
+    logger.info('chk2')
     # Exchange Contract
     token_exchange_address = Config.IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS
     ExchangeContract = Contract.get_contract(
@@ -310,6 +314,7 @@ def get_holders(token_address):
     PersonalInfoContract = Contract.get_contract(
         'PersonalInfo', personalinfo_address)
 
+    logger.info('chk3')
     # 残高を保有している可能性のあるアドレスを抽出する
     holders_temp = []
     holders_temp.append(TokenContract.functions.owner().call())
@@ -321,9 +326,13 @@ def get_holders(token_address):
         }
     )
     entries = event_filter.get_all_entries()
+
+    logger.info('chk4')
+
     for entry in entries:
         holders_temp.append(entry['args']['to'])
 
+    logger.info('chk5')
     # 口座リストをユニークにする
     holders_uniq = []
     for x in holders_temp:
@@ -333,6 +342,7 @@ def get_holders(token_address):
     token_owner = TokenContract.functions.owner().call()
     token_name = TokenContract.functions.name().call()
 
+    logger.info('chk6')
     # 残高（balance）、または注文中の残高（commitment）が存在する情報を抽出
     holders = []
     for account_address in holders_uniq:
@@ -360,6 +370,8 @@ def get_holders(token_address):
                 'commitment': commitment
             }
             holders.append(holder)
+
+    logger.info('chk7')
 
     return holders, token_name
 
