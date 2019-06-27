@@ -155,6 +155,10 @@ class Config:
     # RSA鍵ファイルのパスワード
     RSA_PASSWORD = os.environ.get('RSA_PASSWORD')
 
+    # Stripeの上限・下限額
+    STRIPE_MINIMUM_VALUE = os.environ.get('STRIPE_MINIMUM_VALUE') or 50
+    STRIPE_MAXIMUM_VALUE = os.environ.get('STRIPE_MAXIMUM_VALUE') or 500000
+
     @staticmethod
     def init_app(app):
         pass

@@ -4,6 +4,7 @@ from flask_wtf import FlaskForm as Form
 from wtforms import IntegerField, StringField, TextAreaField, SubmitField, SelectField, FileField
 from wtforms.validators import DataRequired, URL, Optional, Length, Regexp, NumberRange
 from wtforms import ValidationError
+from config import Config
 
 from web3 import Web3
 
@@ -334,11 +335,12 @@ class SellForm(Form):
     abi = TextAreaField("インターフェース", validators=[])
     bytecode = TextAreaField("バイトコード", validators=[])
 
+    message = '売出価格は' + Config.STRIPE_MAXIMUM_VALUE + '円が上限です。'
     sellPrice = IntegerField(
         "売出価格",
         validators=[
             DataRequired('売出価格は必須です。'),
-            NumberRange(min=1, max=6000000, message='売出価格は6,000,000円が上限です。'),
+            NumberRange(min=1, max=Config.STRIPE_MAXIMUM_VALUE, message=message),
         ]
     )
 

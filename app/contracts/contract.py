@@ -35,7 +35,7 @@ class Contract:
         )
 
         tx_hash = contract.deploy(
-            transaction={'from': deployer, 'gas': 6000000},
+            transaction={'from': deployer, 'gas': Config.STRIPE_MAXIMUM_VALUE},
             args=args
         ).hex()
 
