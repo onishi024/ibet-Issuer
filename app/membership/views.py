@@ -1,7 +1,8 @@
 # -*- coding:utf-8 -*-
 import traceback
+import io
 
-from flask import request, redirect, url_for, flash
+from flask import request, redirect, url_for, flash, make_response
 from flask import render_template
 from flask_login import login_required
 
@@ -362,6 +363,35 @@ def get_holders(token_address):
             holders.append(holder)
 
     return holders, token_name
+
+
+# 保有者リストCSVダウンロード
+@membership.route('/holders_csv_download', methods=['POST'])
+@login_required
+def holders_csv_download():
+    logger.info('membership/holders_csv_download')
+
+    token_address = request.form.get('token_address')
+    holders, token_name = get_holders(token_address)
+
+    f = io.StringIO()
+    for holder in holders:
+        # データ行
+        data_row = \
+            token_name + ',' + token_address + ',' + holder["account_address"] + ',' + str(holder["balance"]) + ','\
+            + str(holder["commitment"])  \
+            + '\n'
+        f.write(data_row)
+        logger.info(holder)
+
+    now = datetime.now()
+    res = make_response()
+    csvdata = f.getvalue()
+    res.data = csvdata.encode('sjis')
+    res.headers['Content-Type'] = 'text/plain'
+    res.headers['Content-Disposition'] = 'attachment; filename=' + now.strftime("%Y%m%d%H%M%S") \
+        + 'bond_holders_list.csv'
+    return res
 
 
 ####################################################
