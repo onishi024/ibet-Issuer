@@ -340,7 +340,7 @@ class SellForm(Form):
         "売出価格",
         validators=[
             DataRequired('売出価格は必須です。'),
-            NumberRange(min=1, max=Config.STRIPE_MAXIMUM_VALUE, message=message),
+            NumberRange(min=1, max=int(Config.STRIPE_MAXIMUM_VALUE), message=message),
         ]
     )
 

@@ -157,7 +157,6 @@ class Config:
 
     # Stripeの上限・下限額
     STRIPE_MAXIMUM_VALUE = os.environ.get('STRIPE_MAXIMUM_VALUE') or 500000
-    # STRIPE_MAXIMUM_VALUE = os.environ.get('STRIPE_MAXIMUM_VALUE')
 
     @staticmethod
     def init_app(app):
