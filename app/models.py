@@ -131,5 +131,9 @@ class Bank(db.Model):
     account_number = db.Column(db.String(7), nullable=False)
     account_holder = db.Column(db.String(40), nullable=False)
 
+    class Alembic_version(db.Model):
+        __tablename__ = 'alembic_version'
+        id = db.Column(db.Integer, primary_key=True)
+
     def __repr__(self):
         return '<Bank %r>' % self.name

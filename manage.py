@@ -26,8 +26,42 @@ def make_shell_context():
             Role = Role,
         )
 
+
+class user_role_migrate(Command):
+    def run(self):
+        print ('user_rolo_migrate')
+        roles = ['admin','user',]
+        for r in roles:
+            role = Role.query.filter_by(name=r).first()
+            if role is None:
+                role = Role(name=r)
+            db.session.add(role)
+        users = [
+     {'login_id': 'admin', 'user_name': '管理者', 'role_id': 1, 'password': 'admin'},
+        ]
+
+        for u_dict in users:
+            user = User.query.filter_by(login_id=u_dict['login_id']).first()
+            if user is None:
+                user = User()
+                for key, value in u_dict.items():
+                    setattr(user, key, value)
+                db.session.add(user)
+
+        db.session.commit()
+
+
+class drop_alnum(Command):
+    def run(self):
+        print ('drop_alnum')
+        #sql = text('DROP TABLE IF EXISTS alembic_version;')
+        Alembic_version.__table__.drop(db.engine)
+
+
 manager.add_command("shell", Shell(make_context=make_shell_context))
 manager.add_command('db', MigrateCommand)
+manager.add_command("user_role_migrate", user_role_migrate())
+manager.add_command("drop_alnum", drop_alnum())
 
 import pytest
 @manager.option('-v', dest='v_opt', action="store_true", help='pytest -v option add.', default=False, required=False)
