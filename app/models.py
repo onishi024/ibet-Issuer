@@ -6,6 +6,9 @@ from flask_login import UserMixin
 from . import db, login_manager
 from datetime import datetime
 
+class AlembicVersion(db.Model):
+    __tablename__ = 'alembic_version'
+    id = db.Column(db.Integer, primary_key=True)
 
 class Role(db.Model):
     __tablename__ = 'roles'
@@ -130,10 +133,6 @@ class Bank(db.Model):
     account_type = db.Column(db.String(10), nullable=False)
     account_number = db.Column(db.String(7), nullable=False)
     account_holder = db.Column(db.String(40), nullable=False)
-
-    class Alembic_version(db.Model):
-        __tablename__ = 'alembic_version'
-        id = db.Column(db.Integer, primary_key=True)
 
     def __repr__(self):
         return '<Bank %r>' % self.name

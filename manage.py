@@ -1,7 +1,7 @@
 #!/usr/local/bin/python
 # -*- coding:utf-8 -*-
 import os
-import sys
+import pytest
 
 if os.path.exists('.env'):
     print('Importing environment from .env...')
@@ -11,33 +11,30 @@ if os.path.exists('.env'):
             os.environ[var[0]] = var[1]
 
 from app import create_app, db
-from app.models import User, Role
-from flask_script import Manager, Shell
+from app.models import AlembicVersion, User, Role
+from flask_script import Manager, Shell, Command
 from flask_migrate import Migrate, MigrateCommand
 
 app = create_app(os.getenv('FLASK_CONFIG') or 'default')
 manager = Manager(app)
 migrate = Migrate(app, db)
 
+
 def make_shell_context():
-    return dict(
-            app = app, db = db,
-            User = User,
-            Role = Role,
-        )
+    return {'app': app, 'db': db, 'User': User, 'Role': Role}
 
 
-class user_role_migrate(Command):
+class CreateInitUser(Command):
     def run(self):
-        print ('user_rolo_migrate')
-        roles = ['admin','user',]
+        roles = ['admin', 'user']
         for r in roles:
             role = Role.query.filter_by(name=r).first()
             if role is None:
                 role = Role(name=r)
             db.session.add(role)
+
         users = [
-     {'login_id': 'admin', 'user_name': '管理者', 'role_id': 1, 'password': 'admin'},
+            {'login_id': 'admin', 'user_name': '管理者', 'role_id': 1, 'password': 'admin'},
         ]
 
         for u_dict in users:
@@ -51,19 +48,17 @@ class user_role_migrate(Command):
         db.session.commit()
 
 
-class drop_alnum(Command):
+class DropAlembicVersion(Command):
     def run(self):
-        print ('drop_alnum')
-        #sql = text('DROP TABLE IF EXISTS alembic_version;')
-        Alembic_version.__table__.drop(db.engine)
+        AlembicVersion.__table__.drop(db.engine)
 
 
 manager.add_command("shell", Shell(make_context=make_shell_context))
-manager.add_command('db', MigrateCommand)
-manager.add_command("user_role_migrate", user_role_migrate())
-manager.add_command("drop_alnum", drop_alnum())
+manager.add_command("db", MigrateCommand)
+manager.add_command("createuser", CreateInitUser())
+manager.add_command("resetdb", DropAlembicVersion())
 
-import pytest
+
 @manager.option('-v', dest='v_opt', action="store_true", help='pytest -v option add.', default=False, required=False)
 @manager.option('-s', dest='s_opt', action="store_true", help='pytest -s option add.', default=False, required=False)
 @manager.option('-x', dest='x_opt', action="store_true", help='pytest -x option add.', default=False, required=False)
@@ -91,6 +86,7 @@ def test(v_opt, s_opt, x_opt, module, cov, pdb):
         pytest_args.append("app/tests/test_%s.py" % module)
 
     pytest.main(pytest_args)
+
 
 if __name__ == '__main__':
     manager.run()
