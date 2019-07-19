@@ -1119,6 +1119,34 @@ def get_usege_history_coupon(token_address):
     return token_address, token_name, usage_list
 
 
+# 利用履歴リストCSVダウンロード
+@coupon.route('/used_csv_download', methods=['POST'])
+@login_required
+def used_csv_download():
+    logger.info('coupon/used_csv_download')
+
+    token_address = request.form.get('token_address')
+    token_address, token_name, usage_list = get_usege_history_coupon(token_address)
+
+    f = io.StringIO()
+    for usage in usage_list:
+        # データ行
+        data_row = \
+            token_name + ',' + token_address + ',' + usage["token_name"] + ',' + usage["consumer"] + ',' +\
+                str(usage["value"]) + ',' + str(usage["block_timestamp"]) + '\n'
+        f.write(data_row)
+        logger.info(usage)
+
+    now = datetime.now()
+    res = make_response()
+    csvdata = f.getvalue()
+    res.data = csvdata.encode('sjis')
+    res.headers['Content-Type'] = 'text/plain'
+    res.headers['Content-Disposition'] = 'attachment; filename=' + now.strftime("%Y%m%d%H%M%S") + \
+        'coupon_used_list.csv'
+    return res
+
+
 ####################################################
 # [クーポン]保有者一覧
 ####################################################
