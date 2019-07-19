@@ -389,6 +389,7 @@ def holders_csv_download():
     f = io.StringIO()
     for holder in holders:
         # データ行
+
         data_row = \
             token_name + ',' + token_address + ',' + holder["account_address"] + ',' + str(holder["balance"]) + ','\
             + str(holder["commitment"])  \
