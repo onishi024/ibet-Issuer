@@ -14,7 +14,7 @@ from . import coupon
 from .. import db
 from ..util import *
 from .forms import *
-from ..models import CSVTransfer, Token
+from ..models import CSVTransfer
 from config import Config
 from app.contracts import Contract
 
