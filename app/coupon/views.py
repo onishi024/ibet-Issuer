@@ -1126,14 +1126,31 @@ def used_csv_download():
     logger.info('coupon/used_csv_download')
 
     token_address = request.form.get('token_address')
-    token_address, token_name, usage_list = get_usege_history_coupon(token_address)
+    # token_address, token_name, usage_list = get_usege_history_coupon(token_address)
+
+    # for debug ----------------------------------
+    token_address = "0x116Cd7643efcF4AF0963002b66a6CD74a9cd4Cd3"
+    token_name = "クーポンTEST"
+    usage_list = [
+        {
+            'block_timestamp': "2019/06/20 16:10:18",
+            'consumer': "0x61C80E8834Aa2360F760F71B84ae7B46F7bFfc8a",
+            'value': 1
+        },
+        {
+            'block_timestamp': "2019/06/20 16:10:18",
+            'consumer': "0x61C80E8834Aa2360F760F71B84ae7B46F7bFfc8a",
+            'value': 1
+        }
+    ]
+    # --------------------------------------------
 
     f = io.StringIO()
     for usage in usage_list:
         # データ行
         data_row = \
-            token_name + ',' + token_address + ',' + usage["token_name"] + ',' + usage["consumer"] + ',' +\
-                str(usage["value"]) + ',' + str(usage["block_timestamp"]) + '\n'
+            token_name + ',' + token_address + ',' + str(usage["block_timestamp"]) + ',' + usage["consumer"] + ',' \
+            + str(usage["value"]) + '\n'
         f.write(data_row)
         logger.info(usage)
 
@@ -1245,6 +1262,9 @@ def holders_csv_download():
 
     token_address = request.form.get('token_address')
     holders, token_name = get_holders_coupon(token_address)
+
+    # for debug
+    logger.info(token_name)
 
     f = io.StringIO()
     for holder in holders:
