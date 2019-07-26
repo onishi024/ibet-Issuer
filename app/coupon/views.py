@@ -1126,24 +1126,7 @@ def used_csv_download():
     logger.info('coupon/used_csv_download')
 
     token_address = request.form.get('token_address')
-    # token_address, token_name, usage_list = get_usege_history_coupon(token_address)
-
-    # for debug ----------------------------------
-    token_address = "0x116Cd7643efcF4AF0963002b66a6CD74a9cd4Cd3"
-    token_name = "クーポンTEST"
-    usage_list = [
-        {
-            'block_timestamp': "2019/06/20 16:10:18",
-            'consumer': "0x61C80E8834Aa2360F760F71B84ae7B46F7bFfc8a",
-            'value': 1
-        },
-        {
-            'block_timestamp': "2019/06/20 16:10:18",
-            'consumer': "0x61C80E8834Aa2360F760F71B84ae7B46F7bFfc8a",
-            'value': 1
-        }
-    ]
-    # --------------------------------------------
+    token_address, token_name, usage_list = get_usege_history_coupon(token_address)
 
     f = io.StringIO()
     for usage in usage_list:
