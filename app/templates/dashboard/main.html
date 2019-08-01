@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}トップ - {% endblock %}
+{% block page_header %}ダッシュボード <small></small>{% endblock %}
+{% block page_description %}{% endblock %}
+{% block breadcrumb %}
+    <li><a href="{{ url_for('index.index') }}">トップ</a></li>
+{% endblock %}
+
+{% block page_content %}
+    <section class="content">
+        <div class="row">
+            <div class="col-lg-6 col-md-6 col-sm-12">
+                <div class="box box-default">
+                    <div class="box-header">
+                        <h3 class="box-title">発行債券一覧</h3>
+                    </div>
+                    <div class="box-body">
+                        <table id="data_table" class="data_table table table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th style="width: 200px">名称</th>
+                                    <th style="width: 100px">略称</th>
+                                    <th style="width: 100px">現在価格</th>
+                                    <th style="width: 100px">発行額</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for token in sb_tokens %}
+                                    <tr>
+                                        {% if token.token_address != None %}
+                                        <td style="word-break : break-all; width: 250px;"><a href="{{ url_for('bond.setting', token_address=token.token_address) }}">{{ token.name }}</a></td>
+                                        {% else %}
+                                        <td>{{ token.name }}</td>
+                                        {% endif %}
+                                        <td>{{ token.symbol }}</td>
+                                        <td>{{ token.last_price }}</td>
+                                        <td>{{ token.totalSupply }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6 col-md-6 col-sm-12">
+                <div class="box box-default">
+                    <div class="box-header">
+                        <h3 class="box-title">発行クーポン一覧</h3>
+                    </div>
+                    <div class="box-body">
+                        <table id="data_table" class="data_table table table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th style="width: 200px">名称</th>
+                                    <th style="width: 100px">略称</th>
+                                    <th style="width: 100px">現在価格</th>
+                                    <th style="width: 100px">発行額</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for token in coupon_tokens %}
+                                    <tr>
+                                        {% if token.token_address != None %}
+                                        <td style="word-break : break-all; width: 250px;"><a href="{{ url_for('bond.setting', token_address=token.token_address) }}">{{ token.name }}</a></td>
+                                        {% else %}
+                                        <td>{{ token.name }}</td>
+                                        {% endif %}
+                                        <td>{{ token.symbol }}</td>
+                                        <td>{{ token.last_price }}</td>
+                                        <td>{{ token.totalSupply }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-12 col-md-12 col-sm-12">
+                <div class="box box-default">
+                    <div class="box-header">
+                        <h3 class="box-title">発行会員券一覧</h3>
+                    </div>
+                    <div class="box-body">
+                        <table id="data_table" class="data_table table table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th style="width: 200px">名称</th>
+                                    <th style="width: 100px">略称</th>
+                                    <th style="width: 100px">現在価格</th>
+                                    <th style="width: 100px">発行額</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for token in membership_tokens %}
+                                    <tr>
+                                        {% if token.token_address != None %}
+                                        <td style="word-break : break-all; width: 250px;"><a href="{{ url_for('bond.setting', token_address=token.token_address) }}">{{ token.name }}</a></td>
+                                        {% else %}
+                                        <td>{{ token.name }}</td>
+                                        {% endif %}
+                                        <td>{{ token.symbol }}</td>
+                                        <td>{{ token.last_price }}</td>
+                                        <td>{{ token.totalSupply }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+{% endblock %}
+
+{% block required_js %}
+{{ super() }}
+<div class="modal modal-default fade" id="modal-txhash" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">×</span></button>
+        <h4 class="modal-title">受付ID</h4>
+      </div>
+      <div class="modal-body" id="modal-txhash-body">
+      </div>
+      <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">閉じる</button>
+      </div>
+    </div>
+    <!-- /.modal-content -->
+  </div>
+  <!-- /.modal-dialog -->
+</div>
+
+<!-- DataTables -->
+<script src="/static/adminlte/bower_components/datatables.net/js/jquery.dataTables.min.js"></script>
+<script src="/static/adminlte/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+<!-- SlimScroll -->
+<script src="/static/adminlte/bower_components/jquery-slimscroll/jquery.slimscroll.min.js"></script>
+<!-- FastClick -->
+<script src="/static/adminlte/bower_components/fastclick/lib/fastclick.js"></script>
+<!-- AdminLTE for demo purposes -->
+<script src="/static/adminlte/dist/js/demo.js"></script>
+<script>
+  $(function () {
+    $('.data_table').DataTable({
+      'paging'      : true,
+      'lengthChange': true,
+      'searching'   : true,
+      'ordering'    : true,
+      'info'        : true,
+      'autoWidth'   : true,
+      'pagingType': "full_numbers",
+      'language': {
+          'info': "_TOTAL_ 件中 _START_ 〜 _END_ 件目",
+          'lengthMenu': "表示件数 _MENU_ 件",
+          'search': "検索:",
+          'paginate': {
+              'first': "最初へ",
+              'previous': "前へ",
+              'next': "次へ",
+              'last': "最後へ",
+          },
+          "emptyTable": "データが存在しません",
+          "sInfoEmpty":	" 0 件中 0 から 0 まで表示"
+      },
+    })
+  })
+  function viewTxHash(txhash) {
+    $('#modal-txhash-body').html(txhash);
+    $('#modal-txhash').modal('show');
+  }
+</script>
+
+{% endblock %}
