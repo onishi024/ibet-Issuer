@@ -61,7 +61,7 @@ class Config:
             ('bond_list', 'fa fa-circle-o', '発行済一覧', 'bond.list'),
             ('bond_position', 'fa fa-circle-o', '売出管理', 'bond.positions'),
         ]),
-        ('jdr', 'fa fa-flask', 'JDR (Beta)', [
+        ('jdr', 'fa fa-flask', '預託証券 (Beta)', [
             ('jdr_issue', 'fa fa-circle-o', '新規発行', 'jdr.issue'),
             ('jdr_list', 'fa fa-circle-o', '発行済一覧', 'jdr.list'),
         ]),

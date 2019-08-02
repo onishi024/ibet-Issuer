@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}トップ - {% endblock %}
+{% block page_header %}トップメニュー <small>Top Menu</small>{% endblock %}
+{% block page_description %}{% endblock %}
+{% block breadcrumb %}
+    <li><a href="{{ url_for('index.index') }}">トップ</a></li>
+{% endblock %}
+
+{% block page_content %}
+    <section class="content">
+        <div class="row">
+            <div class="col-lg-6 col-md-6 col-sm-12">
+                <div class="box box-solid box-success">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">会員券</h3>
+                        <div class="box-tools pull-right">
+                            <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                                <i class="fa fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="box-body">
+                        <table id="data_table_membership" class="table table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th style="width: 200px">名称</th>
+                                    <th style="width: 100px">略称</th>
+                                    <th style="width: 100px">価格</th>
+                                    <th style="width: 100px">発行量</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for token in membership_tokens %}
+                                    <tr>
+                                        <td style="word-break : break-all; width: 250px;">{{ token.name }}</td>
+                                        <td>{{ token.symbol }}</td>
+                                        <td>{{ "{:,}".format(token.last_price) }}</td>
+                                        <td>{{ "{:,}".format(token.total_supply) }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 col-md-6 col-sm-12">
+                <div class="box box-solid box-success">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">クーポン</h3>
+                        <div class="box-tools pull-right">
+                            <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                                <i class="fa fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="box-body">
+                        <table id="data_table_coupon" class="table table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th style="width: 200px">名称</th>
+                                    <th style="width: 100px">略称</th>
+                                    <th style="width: 100px">価格</th>
+                                    <th style="width: 100px">発行量</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for token in coupon_tokens %}
+                                    <tr>
+                                        <td style="word-break : break-all; width: 250px;">{{ token.name }}</td>
+                                        <td>{{ token.symbol }}</td>
+                                        <td>{{ "{:,}".format(token.last_price) }}</td>
+                                        <td>{{ "{:,}".format(token.total_supply) }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+{% endblock %}
+
+{% block required_js %}
+{{ super() }}
+<!-- DataTables -->
+<script src="/static/adminlte/bower_components/datatables.net/js/jquery.dataTables.min.js"></script>
+<script src="/static/adminlte/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+<!-- SlimScroll -->
+<script src="/static/adminlte/bower_components/jquery-slimscroll/jquery.slimscroll.min.js"></script>
+<!-- FastClick -->
+<script src="/static/adminlte/bower_components/fastclick/lib/fastclick.js"></script>
+<!-- AdminLTE for demo purposes -->
+<script src="/static/adminlte/dist/js/demo.js"></script>
+<script>
+  $(function () {
+    $('#data_table_membership').DataTable({
+      'paging'      : true,
+      'displayLength': 5,
+      'lengthChange': false,
+      'searching'   : false,
+      'ordering'    : true,
+      'info'        : true,
+      'autoWidth'   : true,
+      'pagingType': "simple_numbers",
+      'language': {
+          'info': "_TOTAL_ 件中 _START_ 〜 _END_ 件目",
+          'lengthMenu': "表示件数 _MENU_ 件",
+          'search': "検索:",
+          'paginate': {
+              'first': "最初へ",
+              'previous': "前へ",
+              'next': "次へ",
+              'last': "最後へ",
+          },
+          "emptyTable": "データが存在しません",
+          "sInfoEmpty":	" 0 件中 0 から 0 まで表示"
+      },
+    })
+  })
+  $(function () {
+    $('#data_table_coupon').DataTable({
+      'paging'      : true,
+      'displayLength': 5,
+      'lengthChange': false,
+      'searching'   : false,
+      'ordering'    : true,
+      'info'        : true,
+      'autoWidth'   : true,
+      'pagingType': "simple_numbers",
+      'language': {
+          'info': "_TOTAL_ 件中 _START_ 〜 _END_ 件目",
+          'lengthMenu': "表示件数 _MENU_ 件",
+          'search': "検索:",
+          'paginate': {
+              'first': "最初へ",
+              'previous': "前へ",
+              'next': "次へ",
+              'last': "最後へ",
+          },
+          "emptyTable": "データが存在しません",
+          "sInfoEmpty":	" 0 件中 0 から 0 まで表示"
+      },
+    })
+  })
+</script>
+
+{% endblock %}
