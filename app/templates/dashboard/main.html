@@ -11,7 +11,7 @@
     <section class="content">
         <div class="row">
             <div class="col-lg-6 col-md-6 col-sm-12">
-                <div class="box box-solid box-warning">
+                <div class="box box-solid box-success">
                     <div class="box-header with-border">
                         <h3 class="box-title">会員券</h3>
                         <div class="box-tools pull-right">
@@ -26,21 +26,17 @@
                                 <tr>
                                     <th style="width: 200px">名称</th>
                                     <th style="width: 100px">略称</th>
-                                    <th style="width: 100px">現在価格</th>
-                                    <th style="width: 100px">総発行額</th>
+                                    <th style="width: 100px">価格</th>
+                                    <th style="width: 100px">発行量</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for token in membership_tokens %}
                                     <tr>
-                                        {% if token.token_address != None %}
                                         <td style="word-break : break-all; width: 250px;">{{ token.name }}</td>
-                                        {% else %}
-                                        <td>{{ token.name }}</td>
-                                        {% endif %}
                                         <td>{{ token.symbol }}</td>
                                         <td>{{ "{:,}".format(token.last_price) }}</td>
-                                        <td>{{ "{:,}".format(token.total_amount) }}</td>
+                                        <td>{{ "{:,}".format(token.total_supply) }}</td>
                                     </tr>
                                 {% endfor %}
                             </tbody>
@@ -64,21 +60,17 @@
                                 <tr>
                                     <th style="width: 200px">名称</th>
                                     <th style="width: 100px">略称</th>
-                                    <th style="width: 100px">現在価格</th>
-                                    <th style="width: 100px">総発行額</th>
+                                    <th style="width: 100px">価格</th>
+                                    <th style="width: 100px">発行量</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for token in coupon_tokens %}
                                     <tr>
-                                        {% if token.token_address != None %}
                                         <td style="word-break : break-all; width: 250px;">{{ token.name }}</td>
-                                        {% else %}
-                                        <td>{{ token.name }}</td>
-                                        {% endif %}
                                         <td>{{ token.symbol }}</td>
                                         <td>{{ "{:,}".format(token.last_price) }}</td>
-                                        <td>{{ "{:,}".format(token.total_amount) }}</td>
+                                        <td>{{ "{:,}".format(token.total_supply) }}</td>
                                     </tr>
                                 {% endfor %}
                             </tbody>
@@ -106,12 +98,13 @@
   $(function () {
     $('#data_table_membership').DataTable({
       'paging'      : true,
+      'displayLength': 5,
       'lengthChange': false,
       'searching'   : false,
       'ordering'    : true,
       'info'        : true,
       'autoWidth'   : true,
-      'pagingType': "full_numbers",
+      'pagingType': "simple_numbers",
       'language': {
           'info': "_TOTAL_ 件中 _START_ 〜 _END_ 件目",
           'lengthMenu': "表示件数 _MENU_ 件",
@@ -130,12 +123,13 @@
   $(function () {
     $('#data_table_coupon').DataTable({
       'paging'      : true,
+      'displayLength': 5,
       'lengthChange': false,
       'searching'   : false,
       'ordering'    : true,
       'info'        : true,
       'autoWidth'   : true,
-      'pagingType': "full_numbers",
+      'pagingType': "simple_numbers",
       'language': {
           'info': "_TOTAL_ 件中 _START_ 〜 _END_ 件目",
           'lengthMenu': "表示件数 _MENU_ 件",
