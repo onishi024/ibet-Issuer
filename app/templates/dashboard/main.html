@@ -11,7 +11,7 @@
     <section class="content">
         <div class="row">
             <div class="col-lg-6 col-md-6 col-sm-12">
-                <div class="box box-solid box-default">
+                <div class="box box-solid box-warning">
                     <div class="box-header with-border">
                         <h3 class="box-title">会員券</h3>
                         <div class="box-tools pull-right">
@@ -40,7 +40,7 @@
                                         {% endif %}
                                         <td>{{ token.symbol }}</td>
                                         <td>{{ "{:,}".format(token.last_price) }}</td>
-                                        <td>{{ "{:,}".format(token.total_supply) }}</td>
+                                        <td>{{ "{:,}".format(token.total_amount) }}</td>
                                     </tr>
                                 {% endfor %}
                             </tbody>
@@ -49,7 +49,7 @@
                 </div>
             </div>
             <div class="col-lg-6 col-md-6 col-sm-12">
-                <div class="box box-solid box-default">
+                <div class="box box-solid box-success">
                     <div class="box-header with-border">
                         <h3 class="box-title">クーポン</h3>
                         <div class="box-tools pull-right">
@@ -65,7 +65,7 @@
                                     <th style="width: 200px">名称</th>
                                     <th style="width: 100px">略称</th>
                                     <th style="width: 100px">現在価格</th>
-                                    <th style="width: 100px">発行額</th>
+                                    <th style="width: 100px">総発行額</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -78,7 +78,7 @@
                                         {% endif %}
                                         <td>{{ token.symbol }}</td>
                                         <td>{{ "{:,}".format(token.last_price) }}</td>
-                                        <td>{{ "{:,}".format(token.total_supply) }}</td>
+                                        <td>{{ "{:,}".format(token.total_amount) }}</td>
                                     </tr>
                                 {% endfor %}
                             </tbody>

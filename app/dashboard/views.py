@@ -38,8 +38,8 @@ def token_list_membership(template_id):
             if row.token_address is None:
                 name = '--'
                 symbol = '--'
-                total_supply = None
                 last_price = None
+                total_amount = None
             else:
                 # Token-Contractへの接続
                 TokenContract = web3.eth.contract(
@@ -59,12 +59,13 @@ def token_list_membership(template_id):
                     Config.IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS
                 )
                 last_price = ExchangeContract.functions.lastPrice(row.token_address).call()
+                total_amount = last_price * total_supply
 
             token_list.append({
                 'name': name,
                 'symbol': symbol,
-                'total_supply': total_supply,
-                'last_price': last_price
+                'last_price': last_price,
+                'total_amount': total_amount
             })
 
         except Exception as e:
@@ -83,8 +84,8 @@ def token_list_coupon(template_id):
             if row.token_address is None:
                 name = '--'
                 symbol = '--'
-                total_supply = None
                 last_price = None
+                total_amount = None
             else:
                 # Token-Contractへの接続
                 TokenContract = web3.eth.contract(
@@ -106,12 +107,13 @@ def token_list_coupon(template_id):
 
                 # Token-Contractから情報を取得する
                 last_price = ExchangeContract.functions.lastPrice(row.token_address).call()
+                total_amount = last_price * total_supply
 
             token_list.append({
                 'name': name,
                 'symbol': symbol,
-                'total_supply': total_supply,
-                'last_price': last_price
+                'last_price': last_price,
+                'total_amount': total_amount
             })
 
         except Exception as e:
