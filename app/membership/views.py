@@ -277,12 +277,10 @@ def holders(token_address):
     logger.info('membership/holders')
     return render_template(
         'membership/holders.html',
-        host_url = request.host_url,
         token_address=token_address
     )
 
-
-@membership.route('/holders/list/<string:token_address>', methods=['GET'])
+@membership.route('/get_holders/<string:token_address>', methods=['GET'])
 @login_required
 def get_holders(token_address):
     logger.info('start')
@@ -370,7 +368,7 @@ def get_holders(token_address):
                 'balance': balance,
                 'commitment': commitment
             }
-        holders.append(holder)
+            holders.append(holder)
 
     logger.info('chk7')
     res = {
