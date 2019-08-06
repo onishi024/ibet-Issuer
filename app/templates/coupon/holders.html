@@ -3,6 +3,8 @@
   {{ super() }}
   <!-- DataTables -->
   <link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
+  <!-- pace.js -->
+  <link rel="stylesheet" href="/static/css/pace.css">
 {% endblock %}
 {% set active_page = "coupon_list" %}
 
@@ -20,7 +22,7 @@
   <div class="box box-default">
     <div class="box-header">
         <form method="post" action="{{ url_for('coupon.holders_csv_download') }}" enctype="multipart/form-data">
-            <h3 class="box-title">{{ token_name }}　<small>{{ token_address }}</small></h3>
+            <h3 class="box-title" id="token_name"></h3>
             <input type="text" name="token_address" style="display:none;" value="{{ token_address }}">
             <div class="pull-right box-tools">
                 <button type="submit" class="btn btn-default">保有者リストダウンロード</button>
@@ -40,16 +42,6 @@
       		</tr>
     		</thead>
     		<tbody>
-    		{% for holder in holders %}
-          <tr>
-            <td><small>{{ holder.account_address }}</small></td>
-            <td>{{ holder.name }}</td>
-            <td>{{ holder.balance }}</td>
-            <td>{{ holder.used }}</td>
-            <td><a href="{{ url_for('coupon.holder', token_address=token_address, account_address=holder.account_address) }}">保有者情報詳細</a></td>
-            <td align="center"><button type="button" class="btn btn-success btn-sm" onclick="location.href= '{{ url_for("coupon.transfer_ownership", token_address=token_address, account_address=holder.account_address) }}'">移転</button></td>
-          </tr>
-    		{% endfor %}
     		</tbody>
   	  </table>
   	</div>
@@ -71,7 +63,13 @@
 <script src="/static/adminlte/bower_components/fastclick/lib/fastclick.js"></script>
 <!-- AdminLTE for demo purposes -->
 <script src="/static/adminlte/dist/js/demo.js"></script>
+<!-- pace.js -->
+<script src="/static/js/pace.min.js"></script>
 <script>
+  token_address = {{ token_address | tojson }};
+  holders_list_url = '{{ url_for("coupon.get_holders", token_address=token_address) }}';
+  holder_detail_url_base = '{{ url_for("coupon.holder", token_address=token_address, account_address="account_address") }}';
+  holder_transfer_url_base = '{{ url_for("coupon.transfer_ownership", token_address=token_address, account_address="account_address") }}';
   $(function () {
     $('#data_table').DataTable({
       'paging'      : true,
@@ -91,10 +89,69 @@
               'next': "次へ",
               'last': "最後へ",
           },
-          "emptyTable": "データが存在しません",
+          "emptyTable": "データを読み込んでいます...",
           "sInfoEmpty":	" 0 件中 0 から 0 まで表示"
       },
     })
   })
+
+  window.onload = function getHolderList() {
+    $.ajax({
+      type: 'GET',
+      url: holders_list_url,
+      dataType: 'json',
+      contentType: 'application/json'
+    }).then(function (res) {
+      document.getElementById('token_name').innerHTML = res.token_name + '　<small>' + token_address + '</small>';
+      if (res && res.holders.length !== 0) {
+        $.each(res.holders, function () {
+          holder_detail_url = holder_detail_url_base.replace('account_address', this.account_address);
+          holder_transfer_url = holder_transfer_url_base.replace('account_address', this.account_address);
+          $('.table').dataTable().fnAddData([
+            this.account_address,
+            this.name,
+            this.balance,
+            this.commitment,
+            '保有者情報詳細',
+            '移転'
+          ]);
+          $($('tbody>tr:last>td:eq(4)')).wrapInner(`<a href="${holder_detail_url}" />`);
+          $($("tbody>tr:last>td:eq(5)")).attr('align', 'center');
+          $($("tbody>tr:last>td:eq(5)")).wrapInner(`<button type="button" class="btn btn-success btn-sm" onclick='location.href= "${holder_transfer_url}"' />`);
+        });
+      } else if (res && res.holders.length === 0) {
+        $(function () {
+          $('#data_table').DataTable().clear().destroy();
+          $('#data_table').DataTable({
+            'paging': true,
+            'lengthChange': true,
+            'searching': true,
+            'ordering': true,
+            'info': true,
+            'autoWidth': true,
+            'pagingType': "full_numbers",
+            'language': {
+              'info': "_TOTAL_ 件中 _START_ 〜 _END_ 件目",
+              'lengthMenu': "表示件数 _MENU_ 件",
+              'search': "検索:",
+              'paginate': {
+                'first': "最初へ",
+                'previous': "前へ",
+                'next': "次へ",
+                'last': "最後へ",
+              },
+              "emptyTable": "データが存在しません",
+              "sInfoEmpty": " 0 件中 0 から 0 まで表示"
+            },
+          })
+        })
+      } else {
+        alert('データ取得に失敗しました');
+      }
+    },
+      function () {
+        alert('データ取得に失敗しました');
+      });
+  };
 </script>
 {% endblock %}

@@ -275,15 +275,13 @@ def transfer_token(TokenContract, from_address, to_address, amount):
 @login_required
 def holders(token_address):
     logger.info('membership/holders')
-    holders, token_name = get_holders(token_address)
     return render_template(
         'membership/holders.html',
-        holders=holders,
-        token_address=token_address,
-        token_name=token_name
+        token_address=token_address
     )
 
-
+@membership.route('/get_holders/<string:token_address>', methods=['GET'])
+@login_required
 def get_holders(token_address):
     logger.info('start')
 
@@ -373,8 +371,11 @@ def get_holders(token_address):
             holders.append(holder)
 
     logger.info('chk7')
-
-    return holders, token_name
+    res = {
+        "holders": holders,
+        "token_name": token_name
+    }
+    return json.dumps(res)
 
 
 # 保有者リストCSVダウンロード

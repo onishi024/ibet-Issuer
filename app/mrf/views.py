@@ -326,16 +326,15 @@ def setting(token_address):
 @login_required
 def holders(token_address):
     logger.info('mrf/holders')
-    holders, token_name = get_holders(token_address)
     return render_template(
         'mrf/holders.html',
-        holders=holders,
-        token_address=token_address,
-        token_name=token_name
+        token_address=token_address
     )
 
 
 # 保有者一覧取得
+@mrf.route('/get_holders/<string:token_address>', methods=['GET'])
+@login_required
 def get_holders(token_address):
     # 個人情報復号化用の秘密鍵
     cipher = None
@@ -412,7 +411,11 @@ def get_holders(token_address):
             }
             holders.append(holder)
 
-    return holders, token_name
+    res = {
+        "holders": holders,
+        "token_name": token_name
+    }
+    return json.dumps(res)
 
 
 # +++++++++++++++++++++++++++++++

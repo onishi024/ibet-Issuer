@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 import time
+import json
 from .conftest import TestBase
 from .contract_modules import *
 from ..models import Token
@@ -25,6 +26,7 @@ class TestCoupon(TestBase):
     url_transfer = 'coupon/transfer'  # 割当
     url_transfer_ownership = 'coupon/transfer_ownership/'  # 所有者移転
     url_holders = 'coupon/holders/'  # 保有者一覧
+    url_get_holders = 'coupon/get_holders/'  # 保有者一覧（API）
     url_holder = 'coupon/holder/'  # 保有者詳細
     url_positions = 'coupon/positions'  # 売出管理
     url_sell = 'coupon/sell/'  # 新規売出
@@ -425,14 +427,24 @@ class TestCoupon(TestBase):
         response = client.get(self.url_holders + tokens[0].token_address)
         assert response.status_code == 200
         assert '<title>クーポン保有者一覧'.encode('utf-8') in response.data
+
+        # 保有者一覧APIの参照
+        response = client.get(self.url_get_holders + tokens[0].token_address)
+        response_data = json.loads(response.data)
+        assert response.status_code == 200
+        assert 'テストクーポン' == response_data['token_name']
+
         # issuer
-        assert eth_account['issuer']['account_address'].encode('utf-8') in response.data
-        assert '株式会社１'.encode('utf-8') in response.data
-        assert '2000000'.encode('utf-8') in response.data  # issuerの保有数量
+        assert eth_account['issuer']['account_address'] == response_data['holders'][0]['account_address']
+        assert '株式会社１' == response_data['holders'][0]['name']
+        assert 2000000 == response_data['holders'][0]['balance']
+        assert 0 == response_data['holders'][0]['used']
+
         # trader
-        assert eth_account['trader']['account_address'].encode('utf-8') in response.data
-        assert 'ﾀﾝﾀｲﾃｽﾄ'.encode('utf-8') in response.data
-        assert '100'.encode('utf-8') in response.data  # traderの保有数量
+        assert eth_account['trader']['account_address'] == response_data['holders'][1]['account_address']
+        assert 'ﾀﾝﾀｲﾃｽﾄ' == response_data['holders'][1]['name']
+        assert 100 == response_data['holders'][1]['balance']
+        assert 0 == response_data['holders'][1]['used']
 
     # ＜正常系8＞
     # ＜保有者詳細＞
@@ -572,13 +584,23 @@ class TestCoupon(TestBase):
         assert response.status_code == 200
         assert '<title>クーポン保有者一覧'.encode('utf-8') in response.data
 
-        # 発行体
-        assert issuer_address.encode('utf-8') in response.data
-        assert '<td>株式会社１</td>\n            <td>1999990</td>\n            <td>0</td>'.encode('utf-8') in response.data
+        # 保有者一覧APIの参照
+        response = client.get(self.url_get_holders + token.token_address)
+        response_data = json.loads(response.data)
 
-        # 投資家
-        assert trader_address.encode('utf-8') in response.data
-        assert '<td>ﾀﾝﾀｲﾃｽﾄ</td>\n            <td>110</td>\n            <td>0</td>'.encode('utf-8') in response.data
+        assert response.status_code == 200
+        assert 'テストクーポン' == response_data['token_name']
+        # issuer
+        assert issuer_address == response_data['holders'][0]['account_address']
+        assert '株式会社１' == response_data['holders'][0]['name']
+        assert 1999990 == response_data['holders'][0]['balance']
+        assert 0 == response_data['holders'][0]['used']
+
+        # trader
+        assert trader_address == response_data['holders'][1]['account_address']
+        assert 'ﾀﾝﾀｲﾃｽﾄ' == response_data['holders'][1]['name']
+        assert 110 == response_data['holders'][1]['balance']
+        assert 0 == response_data['holders'][1]['used']
 
     # ＜正常系11＞
     # ＜公開＞
@@ -765,15 +787,23 @@ class TestCoupon(TestBase):
         assert response.status_code == 200
         assert '<title>クーポン保有者一覧'.encode('utf-8') in response.data
 
-        # 発行体明細の内容の確認
-        assert issuer_address.encode('utf-8') in response.data
-        assert '<td>株式会社１'.encode('utf-8') in response.data
-        assert '<td>1999980</td>\n            <td>0</td>'.encode('utf-8') in response.data
+        # 保有者一覧APIの参照
+        response = client.get(self.url_get_holders + token_address)
+        response_data = json.loads(response.data)
 
-        # 投資家明細の内容の確認
-        assert trader_address.encode('utf-8') in response.data
-        assert '<td>ﾀﾝﾀｲﾃｽﾄ'.encode('utf-8') in response.data
-        assert '<td>120</td>\n            <td>0</td>'.encode('utf-8') in response.data
+        assert response.status_code == 200
+        assert 'テストクーポン' == response_data['token_name']
+        # issuer
+        assert issuer_address == response_data['holders'][0]['account_address']
+        assert '株式会社１' == response_data['holders'][0]['name']
+        assert 1999980 == response_data['holders'][0]['balance']
+        assert 0 == response_data['holders'][0]['used']
+
+        # trader
+        assert trader_address == response_data['holders'][1]['account_address']
+        assert 'ﾀﾝﾀｲﾃｽﾄ' == response_data['holders'][1]['name']
+        assert 120 == response_data['holders'][1]['balance']
+        assert 0 == response_data['holders'][1]['used']
 
     #############################################################################
     # エラー系

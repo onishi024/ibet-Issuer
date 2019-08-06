@@ -1154,13 +1154,15 @@ def used_csv_download():
 @login_required
 def holders(token_address):
     logger.info('coupon/holders')
-    holders, token_name = get_holders_coupon(token_address)
-    return render_template('coupon/holders.html', \
-                           holders=holders, token_address=token_address, token_name=token_name)
+    return render_template(
+        'coupon/holders.html',
+        token_address=token_address
+    )
 
-
+@coupon.route('/get_holders/<string:token_address>', methods=['GET'])
+@login_required
 # クーポントークンの保有者一覧、token_nameを返す
-def get_holders_coupon(token_address):
+def get_holders(token_address):
     cipher = None
     try:
         key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
@@ -1234,7 +1236,11 @@ def get_holders_coupon(token_address):
             }
             holders.append(holder)
 
-    return holders, token_name
+    res = {
+        "holders": holders,
+        "token_name": token_name
+    }
+    return json.dumps(res)
 
 
 # 保有者リストCSVダウンロード

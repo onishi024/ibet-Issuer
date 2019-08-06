@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 import time
+import json
 from .conftest import TestBase
 from .contract_modules import *
 from ..models import Token
@@ -20,6 +21,7 @@ class TestBond(TestBase):
     url_cancel_order = 'bond/cancel_order/'  # 売出停止
     url_release = 'bond/release'  # 公開
     url_holders = 'bond/holders/'  # 保有者一覧
+    url_get_holders = 'bond/get_holders/'  # 保有者一覧(API)
     url_holder = 'bond/holder/'  # 保有者詳細
     url_signature = 'bond/request_signature/'  # 認定依頼
     url_redeem = 'bond/redeem'  # 償還
@@ -356,9 +358,9 @@ class TestBond(TestBase):
         assert '<title>債券詳細設定'.encode('utf-8') in response.data
         assert '公開中です。公開開始までに数分程かかることがあります。'.encode('utf-8') in response.data
 
-    # ＜正常系11＞
+    # ＜正常系11-1＞
     #   債券保有者一覧
-    def test_normal_11(self, app, shared_contract):
+    def test_normal_11_1(self, app, shared_contract):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
         token = tokens[0]
         client = self.client_with_admin_login(app)
@@ -367,9 +369,25 @@ class TestBond(TestBase):
         response = client.get(self.url_holders + token.token_address)
         assert response.status_code == 200
         assert '<title>債券保有者一覧'.encode('utf-8') in response.data
-        assert eth_account['issuer']['account_address'].encode('utf-8') in response.data
-        assert '株式会社１'.encode('utf-8') in response.data
-        assert '1000000'.encode('utf-8') in response.data
+        assert token.token_address.encode('utf-8') in response.data
+
+    # ＜正常系11-2＞
+    #   債券保有者一覧(API)
+    def test_normal_11_2(self, app, shared_contract):
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
+        token = tokens[0]
+        client = self.client_with_admin_login(app)
+
+        # 保有者一覧の参照
+        response = client.get(self.url_get_holders + token.token_address)
+        response_data = json.loads(response.data)
+
+        assert response.status_code == 200
+        assert eth_account['issuer']['account_address'] == response_data['holders'][0]['account_address']
+        assert '株式会社１' == response_data['holders'][0]['name']
+        assert 1000000 == response_data['holders'][0]['balance']
+        assert 0 == response_data['holders'][0]['commitment']
+        assert 'テスト債券' == response_data['token_name']
 
     # ＜正常系12＞
     #   債券保有者詳細
@@ -502,17 +520,23 @@ class TestBond(TestBase):
         assert response.status_code == 302
 
         # 保有者一覧の参照
-        response = client.get(self.url_holders + token.token_address)
+        response = client.get(self.url_get_holders + token.token_address)
+        response_data = json.loads(response.data)
+        
         assert response.status_code == 200
-        assert '<title>債券保有者一覧'.encode('utf-8') in response.data
-
+        assert 'テスト債券' == response_data['token_name']
         # 発行体
-        assert issuer_address.encode('utf-8') in response.data
-        assert '<td>株式会社１</td>\n            <td>999990</td>\n            <td>0</td>'.encode('utf-8') in response.data
+        assert issuer_address == response_data['holders'][0]['account_address']
+        assert '株式会社１' == response_data['holders'][0]['name']
+        assert 999990 == response_data['holders'][0]['balance']
+        assert 0 == response_data['holders'][0]['commitment']
+       
 
         # 投資家
-        assert trader_address.encode('utf-8') in response.data
-        assert '<td>ﾀﾝﾀｲﾃｽﾄ</td>\n            <td>10</td>\n            <td>0</td>'.encode('utf-8') in response.data
+        assert trader_address == response_data['holders'][1]['account_address']
+        assert 'ﾀﾝﾀｲﾃｽﾄ' == response_data['holders'][1]['name']
+        assert 10 == response_data['holders'][1]['balance']
+        assert 0 == response_data['holders'][1]['commitment']
 
     #############################################################################
     # エラー系

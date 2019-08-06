@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 import time
+import json
 from .conftest import TestBase
 from .contract_modules import *
 from ..models import Token
@@ -27,6 +28,7 @@ class TestMembership(TestBase):
     url_allocate = 'membership/allocate' # 割当（募集申込）
     url_add_supply = 'membership/add_supply/' # 追加発行
     url_holders = 'membership/holders/' # 保有者一覧
+    url_get_holders = 'membership/get_holders/' # 保有者一覧（API）
     url_holder = 'membership/holder/' # 保有者詳細
     url_transfer_ownership = 'membership/transfer_ownership/' # 所有者移転
 
@@ -608,9 +610,16 @@ class TestMembership(TestBase):
         response = client.get(self.url_holders + token.token_address)
         assert response.status_code == 200
         assert '<title>保有者一覧'.encode('utf-8') in response.data
-        assert eth_account['issuer']['account_address'].encode('utf-8') in response.data
-        assert '株式会社１'.encode('utf-8') in response.data
-        assert '<td>10</td>\n            <td>1000000</td>'.encode('utf-8') in response.data
+
+        # 保有者一覧APIの参照
+        response = client.get(self.url_get_holders + token.token_address)
+        response_data = json.loads(response.data)
+
+        assert response.status_code == 200
+        assert eth_account['issuer']['account_address'] == response_data['holders'][0]['account_address']
+        assert '株式会社１' == response_data['holders'][0]['name']
+        assert 10 == response_data['holders'][0]['balance']
+        assert 1000000 == response_data['holders'][0]['commitment']
 
     # ＜正常系6_2＞
     # ＜保有者一覧＞
@@ -639,16 +648,24 @@ class TestMembership(TestBase):
         response = client.get(self.url_holders + token.token_address)
         assert response.status_code == 200
         assert '<title>保有者一覧'.encode('utf-8') in response.data
+        
+        # 保有者一覧APIの参照
+        response = client.get(self.url_get_holders + token.token_address)
+        response_data = json.loads(response.data)
+        assert response.status_code == 200
+        assert 'テスト会員権' == response_data['token_name']
 
-        # 発行体
-        assert eth_account['issuer']['account_address'].encode('utf-8') in response.data
-        assert '株式会社１'.encode('utf-8') in response.data
-        assert '<td>10</td>\n            <td>999980</td>'.encode('utf-8') in response.data
+        # issuer
+        assert eth_account['issuer']['account_address'] == response_data['holders'][0]['account_address']
+        assert '株式会社１' == response_data['holders'][0]['name']
+        assert 10 == response_data['holders'][0]['balance']
+        assert 999980 == response_data['holders'][0]['commitment']
 
-        # 投資家
-        assert eth_account['trader']['account_address'].encode('utf-8') in response.data
-        assert 'ﾀﾝﾀｲﾃｽﾄ'.encode('utf-8') in response.data
-        assert '<td>20</td>\n            <td>0</td>'.encode('utf-8') in response.data
+        # trader
+        assert eth_account['trader']['account_address'] == response_data['holders'][1]['account_address']
+        assert 'ﾀﾝﾀｲﾃｽﾄ' == response_data['holders'][1]['name']
+        assert 20 == response_data['holders'][1]['balance']
+        assert 0 == response_data['holders'][1]['commitment']
 
     # ＜正常系6_3＞
     # ＜保有者一覧＞
@@ -716,15 +733,23 @@ class TestMembership(TestBase):
         assert response.status_code == 200
         assert '<title>保有者一覧'.encode('utf-8') in response.data
 
-        # 発行体
-        assert issuer_address.encode('utf-8') in response.data
-        assert '<td>株式会社１'.encode('utf-8') in response.data
-        assert '<td>0</td>\n            <td>999980</td>'.encode('utf-8') in response.data
+        # 保有者一覧APIの参照
+        response = client.get(self.url_get_holders + token.token_address)
+        response_data = json.loads(response.data)
+        assert response.status_code == 200
+        assert 'テスト会員権' == response_data['token_name']
 
-        # 投資家
-        assert trader_address.encode('utf-8') in response.data
-        assert '<td>ﾀﾝﾀｲﾃｽﾄ'.encode('utf-8') in response.data
-        assert '<td>30</td>\n            <td>0</td>'.encode('utf-8') in response.data
+        # issuer
+        assert issuer_address == response_data['holders'][0]['account_address']
+        assert '株式会社１' == response_data['holders'][0]['name']
+        assert 0 == response_data['holders'][0]['balance']
+        assert 999980 == response_data['holders'][0]['commitment']
+
+        # trader
+        assert trader_address == response_data['holders'][1]['account_address']
+        assert 'ﾀﾝﾀｲﾃｽﾄ' == response_data['holders'][1]['name']
+        assert 30 == response_data['holders'][1]['balance']
+        assert 0 == response_data['holders'][1]['commitment']
 
     # ＜正常系8_1＞
     # ＜募集申込開始・停止＞
@@ -883,15 +908,23 @@ class TestMembership(TestBase):
         assert response.status_code == 200
         assert '<title>保有者一覧'.encode('utf-8') in response.data
 
-        # 発行体明細の内容の確認
-        assert issuer_address.encode('utf-8') in response.data
-        assert '<td>株式会社１'.encode('utf-8') in response.data
-        assert '<td>999970</td>\n            <td>0</td>'.encode('utf-8') in response.data
+        # 保有者一覧APIの参照
+        response = client.get(self.url_get_holders + token.token_address)
+        response_data = json.loads(response.data)
+        assert response.status_code == 200
+        assert 'テスト会員権' == response_data['token_name']
 
-        # 投資家明細の内容の確認
-        assert trader_address.encode('utf-8') in response.data
-        assert '<td>ﾀﾝﾀｲﾃｽﾄ'.encode('utf-8') in response.data
-        assert '<td>40</td>\n            <td>0</td>'.encode('utf-8') in response.data
+        # issuer
+        assert issuer_address == response_data['holders'][0]['account_address']
+        assert '株式会社１' == response_data['holders'][0]['name']
+        assert 999970 == response_data['holders'][0]['balance']
+        assert 0 == response_data['holders'][0]['commitment']
+
+        # trader
+        assert trader_address == response_data['holders'][1]['account_address']
+        assert 'ﾀﾝﾀｲﾃｽﾄ' == response_data['holders'][1]['name']
+        assert 40 == response_data['holders'][1]['balance']
+        assert 0 == response_data['holders'][1]['commitment']
 
     #############################################################################
     # エラー系
