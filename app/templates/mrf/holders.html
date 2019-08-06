@@ -26,14 +26,14 @@
         <div class="box-body">
             <table id="data_table" class="table table-bordered table-hover">
                 <thead>
-                <tr>
-                    <th>アカウントアドレス</th>
-                    <th>氏名</th>
-                    <th>保有数量</th>
-                    <th></th>
-                    <th></th>
-                    <th></th>
-                </tr>
+                    <tr>
+                        <th>アカウントアドレス</th>
+                        <th>氏名</th>
+                        <th>保有数量</th>
+                        <th style="width: 80px"></th>
+                        <th style="width: 80px"></th>
+                        <th style="width: 80px"></th>
+                    </tr>
                 </thead>
                 <tbody>
                 </tbody>
@@ -70,7 +70,7 @@
       'paging'      : true,
       'lengthChange': true,
       'searching'   : true,
-      'ordering'    : true,
+      'ordering'    : false,
       'info'        : true,
       'autoWidth'   : true,
       'pagingType': "full_numbers",
@@ -106,10 +106,11 @@
             this.account_address ? this.account_address : '--',
             this.name ? this.name : '--',
             this.balance ? this.balance : '--',
-            '保有者情報詳細',
+            '詳細',
             '移転',
             '償却'
           ]);
+          $($("tbody>tr:last>td:eq(3)")).attr('align', 'center');
           $($('tbody>tr:last>td:eq(3)')).wrapInner(`<a href="${holder_detail_url}" />`);
           $($("tbody>tr:last>td:eq(4)")).attr('align', 'center');
           $($("tbody>tr:last>td:eq(4)")).wrapInner(`<button type="button" class="btn btn-success btn-sm" onclick='location.href= "${holder_transfer_url}"' />`);
@@ -123,7 +124,7 @@
             'paging': true,
             'lengthChange': true,
             'searching': true,
-            'ordering': true,
+            'ordering': false,
             'info': true,
             'autoWidth': true,
             'pagingType': "full_numbers",

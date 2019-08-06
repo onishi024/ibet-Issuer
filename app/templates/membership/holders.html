@@ -37,8 +37,8 @@
             <th>氏名</th>
             <th>保有数量</th>
             <th>注文中数量</th>
-            <th></th>
-            <th></th>
+            <th style="width: 80px"></th>
+            <th style="width: 80px"></th>
           </tr>
         </thead>
         <tbody>
@@ -75,7 +75,7 @@
       'paging': true,
       'lengthChange': true,
       'searching': true,
-      'ordering': true,
+      'ordering': false,
       'info': true,
       'autoWidth': true,
       'pagingType': "full_numbers",
@@ -112,12 +112,13 @@
             this.name ? this.name : '--',
             this.balance ? this.balance : '--',
             this.commitment ? this.commitment : '--',
-            '保有者情報詳細',
+            '詳細',
             '移転'
           ]);
-          $($('td:eq(4)')).wrapInner(`<a href="${holder_detail_url}" />`);
-          $($("td:eq(5)")).attr('align', 'center');
-          $($("td:eq(5)")).wrapInner(`<button type="button" class="btn btn-success btn-sm" onclick='location.href= "${holder_transfer_url}"' />`);
+          $($("tbody>tr:last>td:eq(4)")).attr('align', 'center');
+          $($("tbody>tr:last>td:eq(4)")).wrapInner(`<a href="${holder_detail_url}" />`);
+          $($("tbody>tr:last>td:eq(5)")).attr('align', 'center');
+          $($("tbody>tr:last>td:eq(5)")).wrapInner(`<button type="button" class="btn btn-success btn-sm" onclick='location.href= "${holder_transfer_url}"' />`);
         });
       } else if (res && res.holders.length === 0) {
         $(function () {
@@ -126,7 +127,7 @@
             'paging': true,
             'lengthChange': true,
             'searching': true,
-            'ordering': true,
+            'ordering': false,
             'info': true,
             'autoWidth': true,
             'pagingType': "full_numbers",

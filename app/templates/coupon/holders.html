@@ -20,34 +20,34 @@
 {% block page_content %}
 <section class="content">
   <div class="box box-default">
-    <div class="box-header">
-        <form method="post" action="{{ url_for('coupon.holders_csv_download') }}" enctype="multipart/form-data">
-            <h3 class="box-title" id="token_name"></h3>
-            <input type="text" name="token_address" style="display:none;" value="{{ token_address }}">
-            <div class="pull-right box-tools">
-                <button type="submit" class="btn btn-default">保有者リストダウンロード</button>
-            </div>
-        </form>
-    </div>
-    <div class="box-body">
-  	  <table id="data_table" class="table table-bordered table-hover">
-    		<thead>
-    		  <tr>
-            <th>アカウントアドレス</th>
-      			<th>氏名</th>
-            <th>保有数量</th>
-            <th>使用済み数量</th>
-            <th></th>
-            <th></th>
-      		</tr>
-    		</thead>
-    		<tbody>
-    		</tbody>
-  	  </table>
-  	</div>
-    <div class="box-footer">
-        <button type="button" class="btn btn-default" onclick="location.href='{{ url_for("coupon.list") }}'">一覧に戻る</button>
-    </div>
+      <div class="box-header">
+          <form method="post" action="{{ url_for('coupon.holders_csv_download') }}" enctype="multipart/form-data">
+              <h3 class="box-title" id="token_name"></h3>
+              <input type="text" name="token_address" style="display:none;" value="{{ token_address }}">
+              <div class="pull-right box-tools">
+                  <button type="submit" class="btn btn-default">保有者リストダウンロード</button>
+              </div>
+          </form>
+      </div>
+      <div class="box-body">
+          <table id="data_table" class="table table-bordered table-hover">
+              <thead>
+              <tr>
+                  <th>アカウントアドレス</th>
+                  <th>氏名</th>
+                  <th>保有数量</th>
+                  <th>使用済み数量</th>
+                  <th style="width: 80px"></th>
+                  <th style="width: 80px"></th>
+              </tr>
+              </thead>
+              <tbody>
+              </tbody>
+          </table>
+      </div>
+      <div class="box-footer">
+          <button type="button" class="btn btn-default" onclick="location.href='{{ url_for("coupon.list") }}'">一覧に戻る</button>
+      </div>
   </div>
 </section>
 {% endblock %}
@@ -75,7 +75,7 @@
       'paging'      : true,
       'lengthChange': true,
       'searching'   : true,
-      'ordering'    : true,
+      'ordering'    : false,
       'info'        : true,
       'autoWidth'   : true,
       'pagingType': "full_numbers",
@@ -112,9 +112,10 @@
             this.name ? this.name : '--',
             this.balance ? this.balance : '--',
             this.used ? this.used : '--',
-            '保有者情報詳細',
+            '詳細',
             '移転'
           ]);
+          $($("tbody>tr:last>td:eq(4)")).attr('align', 'center');
           $($('tbody>tr:last>td:eq(4)')).wrapInner(`<a href="${holder_detail_url}" />`);
           $($("tbody>tr:last>td:eq(5)")).attr('align', 'center');
           $($("tbody>tr:last>td:eq(5)")).wrapInner(`<button type="button" class="btn btn-success btn-sm" onclick='location.href= "${holder_transfer_url}"' />`);
@@ -126,7 +127,7 @@
             'paging': true,
             'lengthChange': true,
             'searching': true,
-            'ordering': true,
+            'ordering': false,
             'info': true,
             'autoWidth': true,
             'pagingType': "full_numbers",
