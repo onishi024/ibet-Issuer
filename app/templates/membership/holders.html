@@ -115,9 +115,9 @@
             '保有者情報詳細',
             '移転'
           ]);
-          $($('tbody>tr:last>td:eq(4)')).wrapInner(`<a href="${holder_detail_url}" />`);
-          $($("tbody>tr:last>td:eq(5)")).attr('align', 'center');
-          $($("tbody>tr:last>td:eq(5)")).wrapInner(`<button type="button" class="btn btn-success btn-sm" onclick='location.href= "${holder_transfer_url}"' />`);
+          $($('td:eq(4)')).wrapInner(`<a href="${holder_detail_url}" />`);
+          $($("td:eq(5)")).attr('align', 'center');
+          $($("td:eq(5)")).wrapInner(`<button type="button" class="btn btn-success btn-sm" onclick='location.href= "${holder_transfer_url}"' />`);
         });
       } else if (res && res.holders.length === 0) {
         $(function () {
