@@ -22,7 +22,7 @@
   <div class="box box-default">
     <div class="box-header">
       <form method="post" action="{{ url_for('membership.holders_csv_download') }}" enctype="multipart/form-data">
-        <h3 class="box-title" id="token_name"></small></h3>
+        <h3 class="box-title" id="token_name"></h3>
         <input type="text" name="token_address" style="display:none;" value="{{ token_address }}">
         <div class="pull-right box-tools">
           <button type="submit" class="btn btn-default">保有者リストダウンロード</button>

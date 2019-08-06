@@ -34,8 +34,68 @@ def flash_errors(form):
             flash(error, 'error')
 
 
+####################################################
+# [債券]発行済一覧
+####################################################
+@bond.route('/list', methods=['GET'])
+@login_required
+def list():
+    logger.info('list')
+
+    # 発行済トークンの情報をDBから取得する
+    tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
+
+    token_list = []
+    for row in tokens:
+        try:
+            is_redeemed = False
+
+            # トークンがデプロイ済みの場合、トークン情報を取得する
+            if row.token_address == None:
+                name = '--'
+                symbol = '--'
+            else:
+                # Token-Contractへの接続
+                TokenContract = web3.eth.contract(
+                    address=row.token_address,
+                    abi=json.loads(
+                        row.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+                )
+
+                # Token-Contractから情報を取得する
+                name = TokenContract.functions.name().call()
+                symbol = TokenContract.functions.symbol().call()
+                is_redeemed = TokenContract.functions.isRedeemed().call()
+
+            token_list.append({
+                'name': name,
+                'symbol': symbol,
+                'created': row.created,
+                'tx_hash': row.tx_hash,
+                'token_address': row.token_address,
+                'is_redeemed': is_redeemed
+            })
+        except Exception as e:
+            logger.error(e)
+            pass
+
+    return render_template('bond/list.html', tokens=token_list)
+
+
+####################################################
+# [債券]保有者一覧
+####################################################
+@bond.route('/holders/<string:token_address>', methods=['GET'])
+@login_required
+def holders(token_address):
+    logger.info('holders')
+    return render_template('bond/holders.html',
+                           token_address=token_address)
+
 # 債券トークンの保有者一覧、token_nameを返す
-def get_holders_bond(token_address):
+@bond.route('/get_holders/<string:token_address>', methods=['GET'])
+@login_required
+def get_holders(token_address):
     cipher = None
     try:
         key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
@@ -121,68 +181,11 @@ def get_holders_bond(token_address):
             }
             holders.append(holder)
 
-    return holders, token_name
-
-
-####################################################
-# [債券]発行済一覧
-####################################################
-@bond.route('/list', methods=['GET'])
-@login_required
-def list():
-    logger.info('list')
-
-    # 発行済トークンの情報をDBから取得する
-    tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
-
-    token_list = []
-    for row in tokens:
-        try:
-            is_redeemed = False
-
-            # トークンがデプロイ済みの場合、トークン情報を取得する
-            if row.token_address == None:
-                name = '--'
-                symbol = '--'
-            else:
-                # Token-Contractへの接続
-                TokenContract = web3.eth.contract(
-                    address=row.token_address,
-                    abi=json.loads(
-                        row.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
-                )
-
-                # Token-Contractから情報を取得する
-                name = TokenContract.functions.name().call()
-                symbol = TokenContract.functions.symbol().call()
-                is_redeemed = TokenContract.functions.isRedeemed().call()
-
-            token_list.append({
-                'name': name,
-                'symbol': symbol,
-                'created': row.created,
-                'tx_hash': row.tx_hash,
-                'token_address': row.token_address,
-                'is_redeemed': is_redeemed
-            })
-        except Exception as e:
-            logger.error(e)
-            pass
-
-    return render_template('bond/list.html', tokens=token_list)
-
-
-####################################################
-# [債券]保有者一覧
-####################################################
-@bond.route('/holders/<string:token_address>', methods=['GET'])
-@login_required
-def holders(token_address):
-    logger.info('holders')
-    holders, token_name = get_holders_bond(token_address)
-    return render_template('bond/holders.html',
-                           holders=holders, token_address=token_address, token_name=token_name)
-
+    res = {
+        "holders": holders,
+        "token_name": token_name
+    }
+    return json.dumps(res)
 
 ####################################################
 # [債券]保有者移転
