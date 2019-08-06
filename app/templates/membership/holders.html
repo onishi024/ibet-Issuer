@@ -108,10 +108,10 @@
           holder_detail_url = holder_detail_url_base.replace('account_address', this.account_address);
           holder_transfer_url = holder_transfer_url_base.replace('account_address', this.account_address);
           $('.table').dataTable().fnAddData([
-            this.account_address,
-            this.name,
-            this.balance,
-            this.commitment,
+            this.account_address ? this.account_address : '--',
+            this.name ? this.name : '--',
+            this.balance ? this.balance : '--',
+            this.commitment ? this.commitment : '--',
             '保有者情報詳細',
             '移転'
           ]);
