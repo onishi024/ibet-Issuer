@@ -624,8 +624,9 @@ class TestMembership(TestBase):
 
         # トークン名APIの参照
         response = client.get(self.url_get_token_name + token.token_address)
+        response_data = json.loads(response.data)
         assert response.status_code == 200
-        assert 'テスト会員権'.encode('utf-8') == response.data
+        assert 'テスト会員権' == response_data
 
     # ＜正常系6_2＞
     # ＜保有者一覧＞
@@ -673,8 +674,9 @@ class TestMembership(TestBase):
 
         # トークン名APIの参照
         response = client.get(self.url_get_token_name + token.token_address)
+        response_data = json.loads(response.data)
         assert response.status_code == 200
-        assert 'テスト会員権'.encode('utf-8') == response.data
+        assert 'テスト会員権' == response_data
 
     # ＜正常系6_3＞
     # ＜保有者一覧＞
@@ -761,8 +763,9 @@ class TestMembership(TestBase):
 
         # トークン名APIの参照
         response = client.get(self.url_get_token_name + token.token_address)
+        response_data = json.loads(response.data)
         assert response.status_code == 200
-        assert 'テスト会員権'.encode('utf-8') == response.data
+        assert 'テスト会員権' == response_data
 
     # ＜正常系8_1＞
     # ＜募集申込開始・停止＞
@@ -940,8 +943,9 @@ class TestMembership(TestBase):
 
         # トークン名APIの参照
         response = client.get(self.url_get_token_name + token.token_address)
+        response_data = json.loads(response.data)
         assert response.status_code == 200
-        assert 'テスト会員権'.encode('utf-8') == response.data
+        assert 'テスト会員権' == response_data
 
     #############################################################################
     # エラー系

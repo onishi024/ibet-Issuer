@@ -447,9 +447,10 @@ class TestCoupon(TestBase):
         assert 0 == response_data[1]['used']
 
         # トークン名APIの参照
-        response = client.get(self.url_get_token_name + token.token_address)
+        response = client.get(self.url_get_token_name + tokens[0].token_address)
+        response_data = json.loads(response.data)
         assert response.status_code == 200
-        assert 'テストクーポン'.encode('utf-8') == response.data
+        assert 'テストクーポン' == response_data
 
     # ＜正常系8＞
     # ＜保有者詳細＞
@@ -608,8 +609,9 @@ class TestCoupon(TestBase):
 
         # トークン名APIの参照
         response = client.get(self.url_get_token_name + token.token_address)
+        response_data = json.loads(response.data)
         assert response.status_code == 200
-        assert 'テストクーポン'.encode('utf-8') == response.data
+        assert 'テストクーポン' == response_data
 
     # ＜正常系11＞
     # ＜公開＞
@@ -815,8 +817,9 @@ class TestCoupon(TestBase):
 
         # トークン名APIの参照
         response = client.get(self.url_get_token_name + token.token_address)
+        response_data = json.loads(response.data)
         assert response.status_code == 200
-        assert 'テストクーポン'.encode('utf-8') == response.data
+        assert 'テストクーポン' == response_data
 
 
     #############################################################################

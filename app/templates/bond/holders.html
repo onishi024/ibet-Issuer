@@ -63,6 +63,7 @@
 <script src="/static/js/pace.min.js"></script>
 <script>
   token_address = {{ token_address | tojson }};
+  token_name_url = '{{ url_for("bond.get_token_name", token_address=token_address) }}';
   holders_list_url = '{{ url_for("bond.get_holders", token_address=token_address) }}';
   holder_detail_url_base = '{{ url_for("bond.holder", token_address=token_address, account_address="account_address") }}';
   holder_transfer_url_base = '{{ url_for("bond.transfer_ownership", token_address=token_address, account_address="account_address") }}';
