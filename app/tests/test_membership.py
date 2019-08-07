@@ -29,6 +29,7 @@ class TestMembership(TestBase):
     url_add_supply = 'membership/add_supply/' # 追加発行
     url_holders = 'membership/holders/' # 保有者一覧
     url_get_holders = 'membership/get_holders/' # 保有者一覧（API）
+    url_get_token_name = 'membership/get_token_name/' # トークン名取得（API）
     url_holder = 'membership/holder/' # 保有者詳細
     url_transfer_ownership = 'membership/transfer_ownership/' # 所有者移転
 
@@ -616,10 +617,15 @@ class TestMembership(TestBase):
         response_data = json.loads(response.data)
 
         assert response.status_code == 200
-        assert eth_account['issuer']['account_address'] == response_data['holders'][0]['account_address']
-        assert '株式会社１' == response_data['holders'][0]['name']
-        assert 10 == response_data['holders'][0]['balance']
-        assert 1000000 == response_data['holders'][0]['commitment']
+        assert eth_account['issuer']['account_address'] == response_data[0]['account_address']
+        assert '株式会社１' == response_data[0]['name']
+        assert 10 == response_data[0]['balance']
+        assert 1000000 == response_data[0]['commitment']
+
+        # トークン名APIの参照
+        response = client.get(self.url_get_token_name + token.token_address)
+        assert response.status_code == 200
+        assert 'テスト会員権' == response
 
     # ＜正常系6_2＞
     # ＜保有者一覧＞
@@ -652,20 +658,23 @@ class TestMembership(TestBase):
         # 保有者一覧APIの参照
         response = client.get(self.url_get_holders + token.token_address)
         response_data = json.loads(response.data)
-        assert response.status_code == 200
-        assert 'テスト会員権' == response_data['token_name']
 
         # issuer
-        assert eth_account['issuer']['account_address'] == response_data['holders'][0]['account_address']
-        assert '株式会社１' == response_data['holders'][0]['name']
-        assert 10 == response_data['holders'][0]['balance']
-        assert 999980 == response_data['holders'][0]['commitment']
+        assert eth_account['issuer']['account_address'] == response_data[0]['account_address']
+        assert '株式会社１' == response_data[0]['name']
+        assert 10 == response_data[0]['balance']
+        assert 999980 == response_data[0]['commitment']
 
         # trader
-        assert eth_account['trader']['account_address'] == response_data['holders'][1]['account_address']
-        assert 'ﾀﾝﾀｲﾃｽﾄ' == response_data['holders'][1]['name']
-        assert 20 == response_data['holders'][1]['balance']
-        assert 0 == response_data['holders'][1]['commitment']
+        assert eth_account['trader']['account_address'] == response_data[1]['account_address']
+        assert 'ﾀﾝﾀｲﾃｽﾄ' == response_data[1]['name']
+        assert 20 == response_data[1]['balance']
+        assert 0 == response_data[1]['commitment']
+
+        # トークン名APIの参照
+        response = client.get(self.url_get_token_name + token.token_address)
+        assert response.status_code == 200
+        assert 'テスト会員権' == response
 
     # ＜正常系6_3＞
     # ＜保有者一覧＞
@@ -737,19 +746,23 @@ class TestMembership(TestBase):
         response = client.get(self.url_get_holders + token.token_address)
         response_data = json.loads(response.data)
         assert response.status_code == 200
-        assert 'テスト会員権' == response_data['token_name']
 
         # issuer
-        assert issuer_address == response_data['holders'][0]['account_address']
-        assert '株式会社１' == response_data['holders'][0]['name']
-        assert 0 == response_data['holders'][0]['balance']
-        assert 999980 == response_data['holders'][0]['commitment']
+        assert issuer_address == response_data[0]['account_address']
+        assert '株式会社１' == response_data[0]['name']
+        assert 0 == response_data[0]['balance']
+        assert 999980 == response_data[0]['commitment']
 
         # trader
-        assert trader_address == response_data['holders'][1]['account_address']
-        assert 'ﾀﾝﾀｲﾃｽﾄ' == response_data['holders'][1]['name']
-        assert 30 == response_data['holders'][1]['balance']
-        assert 0 == response_data['holders'][1]['commitment']
+        assert trader_address == response_data[1]['account_address']
+        assert 'ﾀﾝﾀｲﾃｽﾄ' == response_data[1]['name']
+        assert 30 == response_data[1]['balance']
+        assert 0 == response_data[1]['commitment']
+
+        # トークン名APIの参照
+        response = client.get(self.url_get_token_name + token.token_address)
+        assert response.status_code == 200
+        assert 'テスト会員権' == response
 
     # ＜正常系8_1＞
     # ＜募集申込開始・停止＞
@@ -912,19 +925,23 @@ class TestMembership(TestBase):
         response = client.get(self.url_get_holders + token.token_address)
         response_data = json.loads(response.data)
         assert response.status_code == 200
-        assert 'テスト会員権' == response_data['token_name']
 
         # issuer
-        assert issuer_address == response_data['holders'][0]['account_address']
-        assert '株式会社１' == response_data['holders'][0]['name']
-        assert 999970 == response_data['holders'][0]['balance']
-        assert 0 == response_data['holders'][0]['commitment']
+        assert issuer_address == response_data[0]['account_address']
+        assert '株式会社１' == response_data[0]['name']
+        assert 999970 == response_data[0]['balance']
+        assert 0 == response_data[0]['commitment']
 
         # trader
-        assert trader_address == response_data['holders'][1]['account_address']
-        assert 'ﾀﾝﾀｲﾃｽﾄ' == response_data['holders'][1]['name']
-        assert 40 == response_data['holders'][1]['balance']
-        assert 0 == response_data['holders'][1]['commitment']
+        assert trader_address == response_data[1]['account_address']
+        assert 'ﾀﾝﾀｲﾃｽﾄ' == response_data[1]['name']
+        assert 40 == response_data[1]['balance']
+        assert 0 == response_data[1]['commitment']
+
+        # トークン名APIの参照
+        response = client.get(self.url_get_token_name + token.token_address)
+        assert response.status_code == 200
+        assert 'テスト会員権' == response
 
     #############################################################################
     # エラー系

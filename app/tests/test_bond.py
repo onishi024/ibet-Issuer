@@ -22,6 +22,7 @@ class TestBond(TestBase):
     url_release = 'bond/release'  # 公開
     url_holders = 'bond/holders/'  # 保有者一覧
     url_get_holders = 'bond/get_holders/'  # 保有者一覧(API)
+    url_get_token_name = 'bond/get_token_name/' # トークン名取得（API）
     url_holder = 'bond/holder/'  # 保有者詳細
     url_signature = 'bond/request_signature/'  # 認定依頼
     url_redeem = 'bond/redeem'  # 償還
@@ -383,11 +384,15 @@ class TestBond(TestBase):
         response_data = json.loads(response.data)
 
         assert response.status_code == 200
-        assert eth_account['issuer']['account_address'] == response_data['holders'][0]['account_address']
-        assert '株式会社１' == response_data['holders'][0]['name']
-        assert 1000000 == response_data['holders'][0]['balance']
-        assert 0 == response_data['holders'][0]['commitment']
-        assert 'テスト債券' == response_data['token_name']
+        assert eth_account['issuer']['account_address'] == response_data[0]['account_address']
+        assert '株式会社１' == response_data[0]['name']
+        assert 1000000 == response_data[0]['balance']
+        assert 0 == response_data[0]['commitment']
+
+        # トークン名APIの参照
+        response = client.get(self.url_get_token_name + token.token_address)
+        assert response.status_code == 200
+        assert 'テスト債券' == response
 
     # ＜正常系12＞
     #   債券保有者詳細
@@ -524,19 +529,23 @@ class TestBond(TestBase):
         response_data = json.loads(response.data)
         
         assert response.status_code == 200
-        assert 'テスト債券' == response_data['token_name']
         # 発行体
-        assert issuer_address == response_data['holders'][0]['account_address']
-        assert '株式会社１' == response_data['holders'][0]['name']
-        assert 999990 == response_data['holders'][0]['balance']
-        assert 0 == response_data['holders'][0]['commitment']
+        assert issuer_address == response_data[0]['account_address']
+        assert '株式会社１' == response_data[0]['name']
+        assert 999990 == response_data[0]['balance']
+        assert 0 == response_data[0]['commitment']
        
 
         # 投資家
-        assert trader_address == response_data['holders'][1]['account_address']
-        assert 'ﾀﾝﾀｲﾃｽﾄ' == response_data['holders'][1]['name']
-        assert 10 == response_data['holders'][1]['balance']
-        assert 0 == response_data['holders'][1]['commitment']
+        assert trader_address == response_data[1]['account_address']
+        assert 'ﾀﾝﾀｲﾃｽﾄ' == response_data[1]['name']
+        assert 10 == response_data[1]['balance']
+        assert 0 == response_data[1]['commitment']
+
+        # トークン名APIの参照
+        response = client.get(self.url_get_token_name + token.token_address)
+        assert response.status_code == 200
+        assert 'テスト債券' == response
 
     #############################################################################
     # エラー系
