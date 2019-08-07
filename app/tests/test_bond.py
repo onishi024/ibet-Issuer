@@ -392,7 +392,7 @@ class TestBond(TestBase):
         # トークン名APIの参照
         response = client.get(self.url_get_token_name + token.token_address)
         assert response.status_code == 200
-        assert 'テスト債券' == response
+        assert 'テスト債券' == response.data
 
     # ＜正常系12＞
     #   債券保有者詳細
@@ -545,7 +545,7 @@ class TestBond(TestBase):
         # トークン名APIの参照
         response = client.get(self.url_get_token_name + token.token_address)
         assert response.status_code == 200
-        assert 'テスト債券' == response
+        assert 'テスト債券' == response.data
 
     #############################################################################
     # エラー系
