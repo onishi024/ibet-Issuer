@@ -449,7 +449,7 @@ class TestCoupon(TestBase):
         # トークン名APIの参照
         response = client.get(self.url_get_token_name + token.token_address)
         assert response.status_code == 200
-        assert 'テストクーポン' == response.data
+        assert 'テストクーポン'.encode('utf-8') == response.data
 
     # ＜正常系8＞
     # ＜保有者詳細＞
@@ -609,7 +609,7 @@ class TestCoupon(TestBase):
         # トークン名APIの参照
         response = client.get(self.url_get_token_name + token.token_address)
         assert response.status_code == 200
-        assert 'テストクーポン' == response.data
+        assert 'テストクーポン'.encode('utf-8') == response.data
 
     # ＜正常系11＞
     # ＜公開＞
@@ -816,7 +816,7 @@ class TestCoupon(TestBase):
         # トークン名APIの参照
         response = client.get(self.url_get_token_name + token.token_address)
         assert response.status_code == 200
-        assert 'テストクーポン' == response.data
+        assert 'テストクーポン'.encode('utf-8') == response.data
 
 
     #############################################################################
