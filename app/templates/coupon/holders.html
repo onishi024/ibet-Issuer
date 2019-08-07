@@ -5,6 +5,8 @@
   <link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
   <!-- pace.js -->
   <link rel="stylesheet" href="/static/css/pace.css">
+  <!-- common.css -->
+  <link rel="stylesheet" href="/static/css/common.css">
 {% endblock %}
 {% set active_page = "coupon_list" %}
 
@@ -33,12 +35,12 @@
           <table id="data_table" class="table table-bordered table-hover">
               <thead>
               <tr>
-                  <th>アカウントアドレス</th>
-                  <th>氏名</th>
-                  <th>保有数量</th>
-                  <th>使用済み数量</th>
-                  <th style="width: 80px"></th>
-                  <th style="width: 80px"></th>
+                  <th></th>
+                  <th></th>
+                  <th></th>
+                  <th></th>
+                  <th></th>
+                  <th></th>
               </tr>
               </thead>
               <tbody>
@@ -72,87 +74,176 @@
   holder_transfer_url_base = '{{ url_for("coupon.transfer_ownership", token_address=token_address, account_address="account_address") }}';
   $(function () {
     $('#data_table').DataTable({
-      'paging'      : true,
+      columns: [{
+        data: 'account_address',
+        title: 'アカウントアドレス',
+        className: 'tableAddress',
+        render: function (data) {
+          return '<small>' + data + '</small>'
+        }
+      }, {
+        data: "name",
+        orderable: true,
+        title: "氏名"
+      }, {
+        data: "balance",
+        orderable: true,
+        title: "保有数量"
+      }, {
+        data: "used",
+        orderable: true,
+        title: "使用済み数量"
+      }, {
+        data: "holder_detail",
+        orderable: false,
+        className: "text-center",
+        render: function (data) {
+          return `<a href="${data}" />詳細`;
+        }
+      }, {
+        data: "token_transfer",
+        orderable: false,
+        className: "text-center",
+        render: function (data) {
+          return `<button type="button" class="btn btn-success btn-sm" onclick='location.href= "${data}"' />移転`;
+        }
+      }],
+      ajax: {
+        url: holders_list_url,
+        dataSrc : function (json) {
+          returnJson = [];
+          for(index in json){
+            returnJsonRaw = {
+              account_address : json[index]['account_address'] ? json[index]['account_address'] : '--',
+              name: json[index]['name'] ? json[index]['name'] : '--',
+              balance: json[index]['balance'] ? json[index]['balance'] : '--',
+              used: json[index]['used'] ? json[index]['used'] : '--',
+              holder_detail: json[index]['account_address'] ? holder_detail_url_base.replace('account_address', json[index]['account_address']) : '--',
+              token_transfer: json[index]['account_address'] ? holder_transfer_url_base.replace('account_address', json[index]['account_address']) : '--'
+            };
+            returnJson.push(returnJsonRaw)
+          }
+            return returnJson;
+        }
+      },
+      'paging': true,
       'lengthChange': true,
-      'searching'   : true,
-      'ordering'    : false,
-      'info'        : true,
-      'autoWidth'   : true,
+      'searching': true,
+      'info': true,
+      'autoWidth': true,
       'pagingType': "full_numbers",
       'language': {
-          'info': "_TOTAL_ 件中 _START_ 〜 _END_ 件目",
-          'lengthMenu': "表示件数 _MENU_ 件",
-          'search': "検索:",
-          'paginate': {
-              'first': "最初へ",
-              'previous': "前へ",
-              'next': "次へ",
-              'last': "最後へ",
-          },
-          "emptyTable": "データを読み込んでいます...",
-          "sInfoEmpty":	" 0 件中 0 から 0 まで表示"
-      },
+        'info': "_TOTAL_ 件中 _START_ 〜 _END_ 件目",
+        'lengthMenu': "表示件数 _MENU_ 件",
+        'search': "検索:",
+        'paginate': {
+          'first': "最初へ",
+          'previous': "前へ",
+          'next': "次へ",
+          'last': "最後へ"
+        },
+        "emptyTable": "データが存在しません",
+        "sInfoEmpty": " 0 件中 0 から 0 まで表示"
+      }
     })
   })
 
-  window.onload = function getHolderList() {
-    $.ajax({
-      type: 'GET',
-      url: holders_list_url,
-      dataType: 'json',
-      contentType: 'application/json'
-    }).then(function (res) {
-      document.getElementById('token_name').innerHTML = res.token_name + '　<small>' + token_address + '</small>';
-      if (res && res.holders.length !== 0) {
-        $.each(res.holders, function () {
-          holder_detail_url = holder_detail_url_base.replace('account_address', this.account_address);
-          holder_transfer_url = holder_transfer_url_base.replace('account_address', this.account_address);
-          $('.table').dataTable().fnAddData([
-            this.account_address ? this.account_address : '--',
-            this.name ? this.name : '--',
-            this.balance ? this.balance : '--',
-            this.used ? this.used : '--',
-            '詳細',
-            '移転'
-          ]);
-          $($("tbody>tr:last>td:eq(4)")).attr('align', 'center');
-          $($('tbody>tr:last>td:eq(4)')).wrapInner(`<a href="${holder_detail_url}" />`);
-          $($("tbody>tr:last>td:eq(5)")).attr('align', 'center');
-          $($("tbody>tr:last>td:eq(5)")).wrapInner(`<button type="button" class="btn btn-success btn-sm" onclick='location.href= "${holder_transfer_url}"' />`);
+    window.onload = function getTokenName() {
+      $.ajax({
+        type: 'GET',
+        url: token_name_url,
+        dataType: 'json',
+        contentType: 'application/json'
+      }).then(function (res) {
+        document.getElementById('token_name').innerHTML = res + '　<small>' + token_address + '</small>';
+      },
+        function () {
+          alert('データ取得に失敗しました');
         });
-      } else if (res && res.holders.length === 0) {
-        $(function () {
-          $('#data_table').DataTable().clear().destroy();
-          $('#data_table').DataTable({
-            'paging': true,
-            'lengthChange': true,
-            'searching': true,
-            'ordering': false,
-            'info': true,
-            'autoWidth': true,
-            'pagingType': "full_numbers",
-            'language': {
-              'info': "_TOTAL_ 件中 _START_ 〜 _END_ 件目",
-              'lengthMenu': "表示件数 _MENU_ 件",
-              'search': "検索:",
-              'paginate': {
-                'first': "最初へ",
-                'previous': "前へ",
-                'next': "次へ",
-                'last': "最後へ",
-              },
-              "emptyTable": "データが存在しません",
-              "sInfoEmpty": " 0 件中 0 から 0 まで表示"
-            },
-          })
-        })
-      } else {
-        alert('データ取得に失敗しました');
-      }
-    },
-      function () {
-        alert('データ取得に失敗しました');
-      });
-  };
+    };
+  // $(function () {
+  //   $('#data_table').DataTable({
+  //     'paging'      : true,
+  //     'lengthChange': true,
+  //     'searching'   : true,
+  //     'ordering'    : false,
+  //     'info'        : true,
+  //     'autoWidth'   : true,
+  //     'pagingType': "full_numbers",
+  //     'language': {
+  //         'info': "_TOTAL_ 件中 _START_ 〜 _END_ 件目",
+  //         'lengthMenu': "表示件数 _MENU_ 件",
+  //         'search': "検索:",
+  //         'paginate': {
+  //             'first': "最初へ",
+  //             'previous': "前へ",
+  //             'next': "次へ",
+  //             'last': "最後へ",
+  //         },
+  //         "emptyTable": "データを読み込んでいます...",
+  //         "sInfoEmpty":	" 0 件中 0 から 0 まで表示"
+  //     },
+  //   })
+  // })
+
+  // window.onload = function getHolderList() {
+  //   $.ajax({
+  //     type: 'GET',
+  //     url: holders_list_url,
+  //     dataType: 'json',
+  //     contentType: 'application/json'
+  //   }).then(function (res) {
+  //     document.getElementById('token_name').innerHTML = res.token_name + '　<small>' + token_address + '</small>';
+  //     if (res && res.holders.length !== 0) {
+  //       $.each(res.holders, function () {
+  //         holder_detail_url = holder_detail_url_base.replace('account_address', this.account_address);
+  //         holder_transfer_url = holder_transfer_url_base.replace('account_address', this.account_address);
+  //         $('.table').dataTable().fnAddData([
+  //           this.account_address ? this.account_address : '--',
+  //           this.name ? this.name : '--',
+  //           this.balance ? this.balance : '--',
+  //           this.used ? this.used : '--',
+  //           '詳細',
+  //           '移転'
+  //         ]);
+  //         $($("tbody>tr:last>td:eq(4)")).attr('align', 'center');
+  //         $($('tbody>tr:last>td:eq(4)')).wrapInner(`<a href="${holder_detail_url}" />`);
+  //         $($("tbody>tr:last>td:eq(5)")).attr('align', 'center');
+  //         $($("tbody>tr:last>td:eq(5)")).wrapInner(`<button type="button" class="btn btn-success btn-sm" onclick='location.href= "${holder_transfer_url}"' />`);
+  //       });
+  //     } else if (res && res.holders.length === 0) {
+  //       $(function () {
+  //         $('#data_table').DataTable().clear().destroy();
+  //         $('#data_table').DataTable({
+  //           'paging': true,
+  //           'lengthChange': true,
+  //           'searching': true,
+  //           'ordering': false,
+  //           'info': true,
+  //           'autoWidth': true,
+  //           'pagingType': "full_numbers",
+  //           'language': {
+  //             'info': "_TOTAL_ 件中 _START_ 〜 _END_ 件目",
+  //             'lengthMenu': "表示件数 _MENU_ 件",
+  //             'search': "検索:",
+  //             'paginate': {
+  //               'first': "最初へ",
+  //               'previous': "前へ",
+  //               'next': "次へ",
+  //               'last': "最後へ",
+  //             },
+  //             "emptyTable": "データが存在しません",
+  //             "sInfoEmpty": " 0 件中 0 から 0 まで表示"
+  //           },
+  //         })
+  //       })
+  //     } else {
+  //       alert('データ取得に失敗しました');
+  //     }
+  //   },
+  //     function () {
+  //       alert('データ取得に失敗しました');
+  //     });
+  // };
 </script>
 {% endblock %}

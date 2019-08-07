@@ -1207,7 +1207,6 @@ def get_holders(token_address):
             holders_uniq.append(x)
 
     token_owner = TokenContract.functions.owner().call()
-    token_name = TokenContract.functions.name().call()
 
     # 残高（balance）、または使用済（used）が存在する情報を抽出
     holders = []
@@ -1236,12 +1235,25 @@ def get_holders(token_address):
             }
             holders.append(holder)
 
-    res = {
-        "holders": holders,
-        "token_name": token_name
-    }
-    return json.dumps(res)
+    return json.dumps(holders)
 
+@coupon.route('/get_token_name/<string:token_address>', methods=['GET'])
+@login_required
+def get_token_name(token_address):
+    logger.info('start')
+
+    logger.info('chk1')
+    token = Token.query.filter(Token.token_address == token_address).first()
+    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+
+    TokenContract = web3.eth.contract(
+        address=token_address,
+        abi=token_abi
+    )
+
+    token_name = TokenContract.functions.name().call()
+
+    return json.dumps(token_name)
 
 # 保有者リストCSVダウンロード
 @coupon.route('/holders_csv_download', methods=['POST'])
