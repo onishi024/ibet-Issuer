@@ -615,7 +615,7 @@ class TestMembership(TestBase):
         # 保有者一覧APIの参照
         response = client.get(self.url_get_holders + token.token_address)
         response_data = json.loads(response.data)
-        print(response_data)
+
         assert response.status_code == 200
         assert eth_account['issuer']['account_address'] == response_data[0]['account_address']
         assert '株式会社１' == response_data[0]['name']
