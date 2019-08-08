@@ -717,3 +717,59 @@ def setStatus(token_address, isvalid):
     except Exception as e:
         logger.error(e)
         flash('更新処理でエラーが発生しました。', 'error')
+
+
+# +++++++++++++++++++++++++++++++
+# 送金履歴
+# +++++++++++++++++++++++++++++++
+@mrf.route('/transfer_history/<string:token_address>', methods=['GET'])
+@login_required
+def transfer_history(token_address):
+    logger.info('mrf/transfer_history')
+    return render_template(
+        'mrf/transfer_history.html',
+        token_address=token_address
+    )
+
+
+# 送金（譲渡）履歴取得
+@mrf.route('/get_transfer_history/<string:token_address>', methods=['GET'])
+@login_required
+def get_transfer_history(token_address):
+    # ABI取得
+    token = Token.query.filter(Token.token_address == token_address).first()
+    token_abi = json.loads(
+        token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false')
+    )
+
+    # トークンコントラクト設定
+    TokenContract = web3.eth.contract(
+        address=token_address,
+        abi=token_abi
+    )
+
+    # MRFトークンから発生している"Transfer"のログ情報を検索
+    event_filter = TokenContract.eventFilter(
+        'Transfer', {
+            'filter': {},
+            'fromBlock': 'earliest'
+        }
+    )
+    entries = event_filter.get_all_entries()
+    logger.info(entries)
+
+    # 送金履歴リストを作成する
+    history = []
+    for entry in entries:
+        blocktime = datetime.fromtimestamp(web3.eth.getBlock(entry["blockNumber"])["timestamp"], JST)
+        logger.info(blocktime)
+        history.append(
+            {
+                'block_timestamp': str(blocktime),
+                'from_address': entry['args']['from'],
+                'to_address': entry['args']['to'],
+                'value': entry['args']['value']
+            }
+        )
+
+    return json.dumps(history)
