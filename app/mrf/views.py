@@ -416,9 +416,6 @@ def get_holders(token_address):
 @mrf.route('/get_token_name/<string:token_address>', methods=['GET'])
 @login_required
 def get_token_name(token_address):
-    logger.info('start')
-
-    logger.info('chk1')
     token = Token.query.filter(Token.token_address == token_address).first()
     token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
 
@@ -756,13 +753,11 @@ def get_transfer_history(token_address):
         }
     )
     entries = event_filter.get_all_entries()
-    logger.info(entries)
 
     # 送金履歴リストを作成する
     history = []
     for entry in entries:
         blocktime = datetime.fromtimestamp(web3.eth.getBlock(entry["blockNumber"])["timestamp"], JST)
-        logger.info(blocktime)
         history.append(
             {
                 'block_timestamp': str(blocktime),

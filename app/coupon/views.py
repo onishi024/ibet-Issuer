@@ -811,7 +811,6 @@ def bulk_transfer():
                 csv_input = csv.reader(stream)
                 for row in csv_input:
                     transfer_set.append(row)
-                logger.info(transfer_set)
 
             except Exception as e:
                 logger.error(e)
@@ -1135,7 +1134,6 @@ def used_csv_download():
             token_name + ',' + token_address + ',' + str(usage["block_timestamp"]) + ',' + usage["consumer"] + ',' \
             + str(usage["value"]) + '\n'
         f.write(data_row)
-        logger.info(usage)
 
     now = datetime.now()
     res = make_response()
@@ -1240,9 +1238,6 @@ def get_holders(token_address):
 @coupon.route('/get_token_name/<string:token_address>', methods=['GET'])
 @login_required
 def get_token_name(token_address):
-    logger.info('start')
-
-    logger.info('chk1')
     token = Token.query.filter(Token.token_address == token_address).first()
     token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
 
@@ -1264,9 +1259,6 @@ def holders_csv_download():
     token_address = request.form.get('token_address')
     holders, token_name = get_holders_coupon(token_address)
 
-    # for debug
-    logger.info(token_name)
-
     f = io.StringIO()
     for holder in holders:
         # データ行
@@ -1274,7 +1266,6 @@ def holders_csv_download():
             token_name + ',' + token_address + ',' + holder["account_address"] + ',' + str(holder["balance"]) + ',' + \
                 str(holder["balance"]) + ',' + str(holder["used"]) + '\n'
         f.write(data_row)
-        logger.info(holder)
 
     now = datetime.now()
     res = make_response()
