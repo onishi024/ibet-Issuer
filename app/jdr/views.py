@@ -427,9 +427,6 @@ def get_holders(token_address):
 @jdr.route('/get_token_name/<string:token_address>', methods=['GET'])
 @login_required
 def get_token_name(token_address):
-    logger.info('start')
-
-    logger.info('chk1')
     token = Token.query.filter(Token.token_address == token_address).first()
     token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
 

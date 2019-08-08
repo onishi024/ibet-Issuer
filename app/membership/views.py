@@ -283,8 +283,6 @@ def holders(token_address):
 @membership.route('/get_holders/<string:token_address>', methods=['GET'])
 @login_required
 def get_holders(token_address):
-    logger.info('start')
-    
     cipher = None
     try:
         key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
@@ -293,7 +291,6 @@ def get_holders(token_address):
         traceback.print_exc()
         pass
 
-    logger.info('chk1')
     token = Token.query.filter(Token.token_address == token_address).first()
     token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
 
@@ -302,7 +299,6 @@ def get_holders(token_address):
         abi=token_abi
     )
 
-    logger.info('chk2')
     # Exchange Contract
     token_exchange_address = Config.IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS
     ExchangeContract = Contract.get_contract(
@@ -313,7 +309,6 @@ def get_holders(token_address):
     PersonalInfoContract = Contract.get_contract(
         'PersonalInfo', personalinfo_address)
 
-    logger.info('chk3')
     # 残高を保有している可能性のあるアドレスを抽出する
     holders_temp = []
     holders_temp.append(TokenContract.functions.owner().call())
@@ -326,12 +321,9 @@ def get_holders(token_address):
     )
     entries = event_filter.get_all_entries()
 
-    logger.info('chk4')
-
     for entry in entries:
         holders_temp.append(entry['args']['to'])
 
-    logger.info('chk5')
     # 口座リストをユニークにする
     holders_uniq = []
     for x in holders_temp:
@@ -340,7 +332,6 @@ def get_holders(token_address):
 
     token_owner = TokenContract.functions.owner().call()
 
-    logger.info('chk6')
     # 残高（balance）、または注文中の残高（commitment）が存在する情報を抽出
     holders = []
     for account_address in holders_uniq:
@@ -369,15 +360,11 @@ def get_holders(token_address):
             }
             holders.append(holder)
 
-    logger.info('chk7')
     return json.dumps(holders)
 
 @membership.route('/get_token_name/<string:token_address>', methods=['GET'])
 @login_required
 def get_token_name(token_address):
-    logger.info('start')
-
-    logger.info('chk1')
     token = Token.query.filter(Token.token_address == token_address).first()
     token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
 
@@ -408,7 +395,6 @@ def holders_csv_download():
             + str(holder["commitment"])  \
             + '\n'
         f.write(data_row)
-        logger.info(holder)
 
     now = datetime.now()
     res = make_response()

@@ -142,7 +142,6 @@ def get_payment_account_encrypted_info(payment_gateway, account_address, agent_a
         to_checksum_address(account_address),
         to_checksum_address(agent_address)
     ).call()
-    logger.info(payment_account)
 
     # 復号化
     key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
