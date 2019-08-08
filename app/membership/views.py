@@ -384,12 +384,13 @@ def holders_csv_download():
     logger.info('membership/holders_csv_download')
 
     token_address = request.form.get('token_address')
-    holders, token_name = get_holders(token_address)
+    holders = json.loads(get_holders(token_address))
+    token_name = json.loads(get_token_name(token_address))
 
     f = io.StringIO()
     for holder in holders:
         # データ行
-
+        
         data_row = \
             token_name + ',' + token_address + ',' + holder["account_address"] + ',' + str(holder["balance"]) + ','\
             + str(holder["commitment"])  \

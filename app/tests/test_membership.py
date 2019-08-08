@@ -29,6 +29,7 @@ class TestMembership(TestBase):
     url_add_supply = 'membership/add_supply/' # 追加発行
     url_holders = 'membership/holders/' # 保有者一覧
     url_get_holders = 'membership/get_holders/' # 保有者一覧（API）
+    url_holders_csv_download = 'membership/holders_csv_download'  # 保有者一覧CSVダウンロード
     url_get_token_name = 'membership/get_token_name/' # トークン名取得（API）
     url_holder = 'membership/holder/' # 保有者詳細
     url_transfer_ownership = 'membership/transfer_ownership/' # 所有者移転
@@ -946,6 +947,19 @@ class TestMembership(TestBase):
         response_data = json.loads(response.data)
         assert response.status_code == 200
         assert 'テスト会員権' == response_data
+
+    # ＜正常系11＞
+    # ＜保有者一覧CSVダウンロード＞
+    #   保有者一覧CSVが取得できること
+    def test_normal_11(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
+        token = TestMembership.get_token(0)
+        token_address = str(token.token_address)
+
+        # csvダウンロード
+        url = self.url_holders_csv_download
+        response = client.post(url, data={'token_address': token_address})
+        assert response.status_code == 200
 
     #############################################################################
     # エラー系
