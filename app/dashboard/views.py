@@ -19,16 +19,14 @@ web3.middleware_stack.inject(geth_poa_middleware, layer=0)
 @login_required
 def main():
     logger.info('dashboard/main')
-    coupon_tokens = token_list_coupon(Config.TEMPLATE_ID_COUPON)
-    membership_tokens = token_list_membership(Config.TEMPLATE_ID_MEMBERSHIP)
 
     return render_template(
         'dashboard/main.html',
-        coupon_tokens=coupon_tokens,
-        membership_tokens=membership_tokens
+        Config=Config
     )
 
-
+@dashboard.route('/token_list_membership/<string:template_id>', methods=['GET'])
+@login_required
 def token_list_membership(template_id):
     tokens = Token.query.filter_by(template_id=template_id).all()
     token_list = []
@@ -70,10 +68,10 @@ def token_list_membership(template_id):
         except Exception as e:
             logger.error(e)
             pass
+    return json.dumps(token_list)
 
-    return token_list
-
-
+@dashboard.route('/token_list_coupon/<string:template_id>', methods=['GET'])
+@login_required
 def token_list_coupon(template_id):
     tokens = Token.query.filter_by(template_id=template_id).all()
     token_list = []
@@ -117,5 +115,4 @@ def token_list_coupon(template_id):
         except Exception as e:
             logger.error(e)
             pass
-
-    return token_list
+    return json.dumps(token_list)
