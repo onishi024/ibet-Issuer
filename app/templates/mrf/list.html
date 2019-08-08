@@ -31,6 +31,7 @@
                     <th style="width: 30px">受付ID</th>
                     <th style="width: 30px">取扱</th>
                     <th style="width: 50px"></th>
+                    <th style="width: 50px"></th>
     		    </tr>
                 </thead>
                 <tbody>
@@ -77,6 +78,17 @@
                         <td align="center"><span class="badge bg-red">停止中</span></td>
                         {% else %}
                         <td align="center">{{ token.status }}</td>
+                        {% endif %}
+
+                        <!--移動履歴リンク-->
+                        {% if token.token_address != None %}
+                        <td align="center">
+                            <a href="{{ url_for('mrf.transfer_history', token_address=token.token_address) }}">
+                                移動履歴
+                            </a>
+                        </td>
+                        {% else %}
+                        <td></td>
                         {% endif %}
 
                         <!--保有者一覧リンク-->
