@@ -18,6 +18,8 @@
   <link rel="stylesheet" href="/static/adminlte/dist/css/AdminLTE.min.css">
   <!-- iCheck -->
   <link rel="stylesheet" href="/static/adminlte/plugins/iCheck/square/blue.css">
+  <!-- pace.js -->
+  <link rel="stylesheet" href="/static/css/pace-bar.css">
 
   <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
   <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -78,7 +80,7 @@
   <br>
   <!-- /.login-logo -->
   <div class="login-box-body">
-    <form action="{{ url_for('auth.login', next=next_url) }}" method="post">
+    <form name="login-form" action="{{ url_for('auth.login', next=next_url) }}" method="post">
       <div class="form-group has-feedback">
         <label>ログインID</label>
         {{ form.login_id(class="form-control", placeholder="") }}
@@ -107,12 +109,23 @@
 <script src="/static/adminlte/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
 <!-- iCheck -->
 <script src="/static/adminlte/plugins/iCheck/icheck.min.js"></script>
+<!-- pace.js -->
+<script>
+  paceOptions = {
+    startOnPageLoad: false
+  };
+</script>
+<script src="/static/js/pace.min.js"></script>
 <script>
   $(function () {
     $('input').iCheck({
       checkboxClass: 'icheckbox_square-blue',
       radioClass: 'iradio_square-blue',
       increaseArea: '20%' // optional
+    });
+    $("#submit").on('click', function () {
+      Pace.restart();
+      $('#login-form').submit();
     });
   });
 </script>

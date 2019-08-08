@@ -24,21 +24,13 @@
                         <table id="data_table_membership" class="table table-bordered table-hover">
                             <thead>
                                 <tr>
-                                    <th style="width: 200px">名称</th>
-                                    <th style="width: 100px">略称</th>
-                                    <th style="width: 100px">価格</th>
-                                    <th style="width: 100px">発行量</th>
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for token in membership_tokens %}
-                                    <tr>
-                                        <td style="word-break : break-all; width: 250px;">{{ token.name }}</td>
-                                        <td>{{ token.symbol }}</td>
-                                        <td>{{ "{:,}".format(token.last_price) }}</td>
-                                        <td>{{ "{:,}".format(token.total_supply) }}</td>
-                                    </tr>
-                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
@@ -58,21 +50,13 @@
                         <table id="data_table_coupon" class="table table-bordered table-hover">
                             <thead>
                                 <tr>
-                                    <th style="width: 200px">名称</th>
-                                    <th style="width: 100px">略称</th>
-                                    <th style="width: 100px">価格</th>
-                                    <th style="width: 100px">発行量</th>
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for token in coupon_tokens %}
-                                    <tr>
-                                        <td style="word-break : break-all; width: 250px;">{{ token.name }}</td>
-                                        <td>{{ token.symbol }}</td>
-                                        <td>{{ "{:,}".format(token.last_price) }}</td>
-                                        <td>{{ "{:,}".format(token.total_supply) }}</td>
-                                    </tr>
-                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
@@ -94,9 +78,38 @@
 <script src="/static/adminlte/bower_components/fastclick/lib/fastclick.js"></script>
 <!-- AdminLTE for demo purposes -->
 <script src="/static/adminlte/dist/js/demo.js"></script>
+<!-- pace.js -->
+<script src="/static/js/pace.min.js"></script>
+<!-- pace.js -->
+<link rel="stylesheet" href="/static/css/pace-radar.css">
 <script>
+  token_list_membership_url = "{{ url_for('dashboard.token_list_membership', template_id=Config.TEMPLATE_ID_MEMBERSHIP) }}"
+  token_list_coupon_url = "{{ url_for('dashboard.token_list_coupon', template_id=Config.TEMPLATE_ID_COUPON) }}"
   $(function () {
     $('#data_table_membership').DataTable({
+        columns: [{
+        data: 'name',
+        title: '名称',
+        width: '200px'
+      }, {
+        data: "symbol",
+        title: "略称",
+        width: '100px'
+      }, {
+        data: "last_price",
+        title: "価格",
+        width: '100px'
+      }, {
+        data: "total_supply",
+        title: "発行量",
+        width: '100px'
+      }],
+      ajax: {
+        url: token_list_membership_url,
+        dataSrc : function (json) {
+          return json
+        }
+      },
       'paging'      : true,
       'displayLength': 5,
       'lengthChange': false,
@@ -122,6 +135,29 @@
   })
   $(function () {
     $('#data_table_coupon').DataTable({
+      columns: [{
+        data: 'name',
+        title: '名称',
+        width: '200px'
+      }, {
+        data: "symbol",
+        title: "略称",
+        width: '100px'
+      }, {
+        data: "last_price",
+        title: "価格",
+        width: '100px'
+      }, {
+        data: "total_supply",
+        title: "発行量",
+        width: '100px'
+      }],
+      ajax: {
+        url: token_list_coupon_url,
+        dataSrc : function (json) {
+          return json
+        }
+      },
       'paging'      : true,
       'displayLength': 5,
       'lengthChange': false,
