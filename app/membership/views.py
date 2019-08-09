@@ -403,7 +403,7 @@ def holders_csv_download():
     res.data = csvdata.encode('sjis')
     res.headers['Content-Type'] = 'text/plain'
     res.headers['Content-Disposition'] = 'attachment; filename=' + now.strftime("%Y%m%d%H%M%S") \
-        + 'bond_holders_list.csv'
+        + 'membership_holders_list.csv'
     return res
 
 
