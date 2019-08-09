@@ -1265,7 +1265,7 @@ def holders_csv_download():
         # データ行
         data_row = \
             token_name + ',' + token_address + ',' + holder["account_address"] + ',' + str(holder["balance"]) + ',' + \
-            + str(holder["used"]) + '\n'
+            str(holder["used"]) + '\n'
         f.write(data_row)
 
     now = datetime.now()
