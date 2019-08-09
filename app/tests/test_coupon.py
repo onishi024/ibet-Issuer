@@ -27,6 +27,7 @@ class TestCoupon(TestBase):
     url_transfer_ownership = 'coupon/transfer_ownership/'  # 所有者移転
     url_holders = 'coupon/holders/'  # 保有者一覧
     url_get_holders = 'coupon/get_holders/'  # 保有者一覧（API）
+    url_holders_csv_download = 'coupon/holders_csv_download'  # 保有者一覧CSVダウンロード
     url_get_token_name = 'coupon/get_token_name/' # トークン名取得（API）
     url_holder = 'coupon/holder/'  # 保有者詳細
     url_positions = 'coupon/positions'  # 売出管理
@@ -821,6 +822,19 @@ class TestCoupon(TestBase):
         assert response.status_code == 200
         assert 'テストクーポン' == response_data
 
+    # ＜正常系15＞
+    # ＜保有者一覧CSVダウンロード＞
+    #   保有者一覧CSVが取得できること
+    def test_normal_15(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        token = tokens[0]
+        token_address = str(token.token_address)
+
+        # csvダウンロード
+        url = self.url_holders_csv_download
+        response = client.post(url, data={'token_address': token_address})
+        assert response.status_code == 200
 
     #############################################################################
     # エラー系
