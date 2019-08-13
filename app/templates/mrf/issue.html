@@ -3,12 +3,12 @@
 <link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
 {% endblock %}
 {% set active_page = "mrf_issue" %}
-{% block title %}MRF新規発行 - {% endblock %}
-{% block page_header %}MRF新規発行 <span class="badge bg-secondary">MRF</span>{% endblock %}
+{% block title %}決済コイン新規発行 - {% endblock %}
+{% block page_header %}決済トークン新規発行 <span class="badge bg-secondary">SETTLEMENT</span>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
 <li><a href="{{ url_for('index.index') }}">トップ</a></li>
-<li class="active">MRF新規発行</li>
+<li class="active">決済トークン新規発行</li>
 {% endblock %} {% block page_content %}
 <section class="content">
     <div class="box box-default">
@@ -21,13 +21,13 @@
                 <div class="form-group">
                     {{ form.name.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
-                        {{ form.name(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：ibetMRF", title=form_description['name'] )}}
+                        {{ form.name(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：ibetSETTLEMENT", title=form_description['name'] )}}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.symbol.label(class="col-md-2 control-label") }}
                     <div class="col-md-4">
-                        {{ form.symbol(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：IMR", title=form_description['symbol'] )}}
+                        {{ form.symbol(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：ISETTLE", title=form_description['symbol'] )}}
                     </div>
                 </div>
                 <div class="form-group">
@@ -39,7 +39,7 @@
                 <div class="form-group">
                     {{ form.details.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
-                        {{ form.details(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：ibet証券のMRFです。", title=form_description['details'] )}}
+                        {{ form.details(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：ibetの決済トークンです。", title=form_description['details'] )}}
                     </div>
                 </div>
                 <div class="form-group">

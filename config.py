@@ -65,7 +65,7 @@ class Config:
             ('jdr_issue', 'fa fa-circle-o', '新規発行', 'jdr.issue'),
             ('jdr_list', 'fa fa-circle-o', '発行済一覧', 'jdr.list'),
         ]),
-        ('mrf', 'fa fa-flask', 'MRF (Beta)', [
+        ('mrf', 'fa fa-flask', '決済トークン (Beta)', [
             ('mrf_issue', 'fa fa-circle-o', '新規発行', 'mrf.issue'),
             ('mrf_list', 'fa fa-circle-o', '発行済一覧', 'mrf.list'),
         ]),

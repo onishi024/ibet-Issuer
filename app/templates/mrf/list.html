@@ -6,19 +6,19 @@
 {% endblock %}
 {% set active_page = "mrf_list" %}
 
-{% block title %}MRF一覧 - {% endblock %}
-{% block page_header %}MRF一覧 <span class="badge bg-secondary">MRF</span>{% endblock %}
+{% block title %}決済トークン一覧 - {% endblock %}
+{% block page_header %}決済トークン一覧 <span class="badge bg-secondary">SETTLEMENT</span>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
 <li><a href="{{ url_for('index.index') }}">トップ</a></li>
-<li class="active">MRF一覧</li>
+<li class="active">決済トークン一覧</li>
 {% endblock %}
 
 {% block page_content %}
 <section class="content">
     <div class="box box-default">
         <div class="box-header">
-            <h3 class="box-title">MRF一覧</h3>
+            <h3 class="box-title">決済トークン一覧</h3>
         </div>
         <div class="box-body">
             <table id="data_table" class="table table-bordered table-hover">

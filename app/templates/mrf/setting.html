@@ -6,13 +6,13 @@
 {% endblock %}
 {% set active_page = "mrf_list" %}
 
-{% block title %}MRF詳細設定 - {% endblock %}
-{% block page_header %}詳細設定 <span class="badge bg-secondary">MRF</span>{% endblock %}
+{% block title %}決済トークン詳細設定 - {% endblock %}
+{% block page_header %}詳細設定 <span class="badge bg-secondary">SETTLEMENT</span>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
 <li><a href="{{ url_for('index.index') }}">トップ</a></li>
-<li><a href="{{ url_for('mrf.list') }}">MRF一覧</a></li>
-<li class="active">MRF詳細設定</li>
+<li><a href="{{ url_for('mrf.list') }}">決済トークン一覧</a></li>
+<li class="active">決済トークン詳細設定</li>
 {% endblock %}
 
 {% block page_content %}

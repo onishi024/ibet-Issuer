@@ -7,11 +7,11 @@
 {% set active_page = "mrf_list" %}
 
 {% block title %}追加発行 - {% endblock %}
-{% block page_header %}追加発行 <span class="badge bg-secondary">MRF</span>{% endblock %}
+{% block page_header %}追加発行 <span class="badge bg-secondary">SETTLEMENT</span>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
     <li><a href="{{ url_for('index.index') }}">トップ</a></li>
-    <li><a href="{{ url_for('mrf.list') }}">MRF一覧</a></li>
+    <li><a href="{{ url_for('mrf.list') }}">決済トークン一覧</a></li>
     <li class="active">追加発行</li>
 {% endblock %}
 
