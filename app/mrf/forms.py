@@ -208,6 +208,39 @@ class TransferOwnershipForm(Form):
 
 
 # +++++++++++++++++++++++++++++++
+# 割当
+# +++++++++++++++++++++++++++++++
+class TransferForm(Form):
+    token_address = StringField(
+        "トークンアドレス",
+        validators=[
+            DataRequired('トークンアドレスは必須です。')
+        ]
+    )
+
+    to_address = StringField(
+        "割当先アドレス",
+        validators=[
+            DataRequired('割当先アドレスは必須です。')
+        ]
+    )
+
+    amount = IntegerField(
+        "割当数量",
+        validators=[
+            DataRequired('割当数量は必須です。'),
+            NumberRange(min=1, max=100000000, message='割当数量は100,000,000が上限です。'),
+        ]
+    )
+
+    submit = SubmitField('割当')
+
+    def __init__(self, transfer_coupon=None, *args, **kwargs):
+        super(TransferForm, self).__init__(*args, **kwargs)
+        self.transfer_coupon = transfer_coupon
+
+
+# +++++++++++++++++++++++++++++++
 # 償却
 # +++++++++++++++++++++++++++++++
 class BurnForm(Form):
