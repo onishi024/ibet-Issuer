@@ -768,3 +768,59 @@ def get_transfer_history(token_address):
         )
 
     return json.dumps(history)
+
+
+# +++++++++++++++++++++++++++++++
+# 割当（個別）
+# +++++++++++++++++++++++++++++++
+@mrf.route('/transfer', methods=['GET', 'POST'])
+@login_required
+def transfer():
+    logger.info('mrf/transfer')
+    form = TransferForm()
+
+    if request.method == 'POST':
+        if form.validate():
+            # Addressフォーマットチェック（token_address）
+            if not Web3.isAddress(form.token_address.data):
+                flash('クーポンアドレスは有効なアドレスではありません。', 'error')
+                return render_template('mrf/transfer.html', form=form)
+
+            # Addressフォーマットチェック（send_address）
+            if not Web3.isAddress(form.to_address.data):
+                flash('割当先アドレスは有効なアドレスではありません。', 'error')
+                return render_template('mrf/transfer.html', form=form)
+
+            # Tokenコントラクト接続
+            token = Token.query. \
+                filter(Token.token_address == form.token_address.data).first()
+            token_abi = json.loads(
+                token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+            TokenContract = web3.eth.contract(
+                address=token.token_address,
+                abi=token_abi
+            )
+
+            # 割当処理（発行体アドレス→指定アドレス）
+            from_address = Config.ETH_ACCOUNT
+            to_address = to_checksum_address(form.to_address.data)
+            amount = form.amount.data
+            transfer_token(TokenContract, from_address, to_address, amount)
+
+            flash('処理を受け付けました。割当完了までに数分程かかることがあります。', 'success')
+            return render_template('mrf/transfer.html', form=form)
+        else:
+            flash_errors(form)
+            return render_template('mrf/transfer.html', form=form)
+    else:  # GET
+        return render_template('mrf/transfer.html', form=form)
+
+
+def transfer_token(TokenContract, from_address, to_address, amount):
+    eth_unlock_account()
+    transfer_gas = TokenContract.estimateGas(). \
+        transferFrom(from_address, to_address, amount)
+    tx_hash = TokenContract.functions. \
+        transferFrom(from_address, to_address, amount). \
+        transact({'from': Config.ETH_ACCOUNT, 'gas': transfer_gas})
+    return tx_hash
