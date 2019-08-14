@@ -14,7 +14,7 @@ from . import coupon
 from .. import db
 from ..util import *
 from .forms import *
-from ..models import CSVTransfer
+from ..models import CouponCSVTransfer
 from config import Config
 from app.contracts import Contract
 
@@ -842,8 +842,8 @@ def bulk_transfer():
                     return render_template('coupon/bulk_transfer.html', form=form)
 
                 # DB登録処理
-                csvtransfer = CSVTransfer()
-                csvtransfer.coupon_address = transfer_row[0]
+                csvtransfer = CouponCSVTransfer()
+                csvtransfer.token_address = transfer_row[0]
                 csvtransfer.to_address = transfer_row[1]
                 csvtransfer.amount = transfer_row[2]
                 csvtransfer.transferred = False
@@ -867,7 +867,7 @@ def bulk_transfer():
 @coupon.route('/sample_csv_download', methods=['POST'])
 @login_required
 def sample_csv_download():
-    logger.info('coupon/transfer_csv_download')
+    logger.info('coupon/sample_csv_download')
 
     f = io.StringIO()
     # データ行
