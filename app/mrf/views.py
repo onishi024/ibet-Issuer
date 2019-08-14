@@ -1,5 +1,8 @@
 # -*- coding:utf-8 -*-
-from flask import request, redirect, url_for, flash
+import csv
+import io
+
+from flask import request, redirect, url_for, flash, make_response
 from flask import render_template
 from flask_login import login_required
 
@@ -7,7 +10,7 @@ from . import mrf
 from .forms import *
 from .. import db
 from ..util import *
-from ..models import Token
+from ..models import Token, MRFBulkTransfer
 from config import Config
 from app.contracts import Contract
 
@@ -413,6 +416,7 @@ def get_holders(token_address):
 
     return json.dumps(holders)
 
+
 @mrf.route('/get_token_name/<string:token_address>', methods=['GET'])
 @login_required
 def get_token_name(token_address):
@@ -427,7 +431,6 @@ def get_token_name(token_address):
     token_name = TokenContract.functions.name().call()
 
     return json.dumps(token_name)
-
 
 
 # +++++++++++++++++++++++++++++++
@@ -682,6 +685,7 @@ def valid():
     setStatus(token_address, True)
     return redirect(url_for('.setting', token_address=token_address))
 
+
 @mrf.route('/invalid', methods=['POST'])
 @login_required
 def invalid():
@@ -689,6 +693,7 @@ def invalid():
     token_address = request.form.get('token_address')
     setStatus(token_address, False)
     return redirect(url_for('.setting', token_address=token_address))
+
 
 def setStatus(token_address, isvalid):
     # アカウントアンロック
@@ -814,6 +819,98 @@ def transfer():
             return render_template('mrf/transfer.html', form=form)
     else:  # GET
         return render_template('mrf/transfer.html', form=form)
+
+
+# 割当（CSV一括）
+@mrf.route('/bulk_transfer', methods=['GET', 'POST'])
+@login_required
+def bulk_transfer():
+    logger.info('mrf/bulk_transfer')
+    form = BulkTransferForm()
+    transfer_set = []
+
+    if request.method == 'POST':
+        if form.validate():
+            send_data = request.files['transfer_csv']
+            transfer_set = []
+            try:
+                stream = io.StringIO(send_data.stream.read().decode("UTF8"), newline=None)
+                csv_input = csv.reader(stream)
+                for row in csv_input:
+                    transfer_set.append(row)
+
+            except Exception as e:
+                logger.error(e)
+                flash('CSVアップロードでエラーが発生しました。', 'error')
+                transfer_set = "error"
+                return render_template('mrf/bulk_transfer.html', form=form, transfer_set=transfer_set)
+
+            # transfer_rowの構成：[token_address, to_address, amount]
+            for transfer_row in transfer_set:
+                # Addressフォーマットチェック（token_address）
+                if not Web3.isAddress(transfer_row[0]):
+                    flash('無効なトークンアドレスが含まれています。', 'error')
+                    message = '無効なトークンアドレスが含まれています。' + transfer_row[0]
+                    logger.warning(message)
+                    return render_template('mrf/bulk_transfer.html', form=form)
+
+                # Addressフォーマットチェック（to_address）
+                if not Web3.isAddress(transfer_row[1]):
+                    flash('無効な割当先アドレスが含まれています。', 'error')
+                    message = '無効な割当先アドレスが含まれています' + transfer_row[1]
+                    logger.warning(message)
+                    return render_template('mrf/bulk_transfer.html', form=form)
+
+                # amountチェック
+                if 100000000 < int(transfer_row[2]):
+                    flash('割当量が適切ではありません。', 'error')
+                    message = '割当量が適切ではありません' + transfer_row[2]
+                    logger.warning(message)
+                    return render_template('mrf/bulk_transfer.html', form=form)
+
+                # DB登録処理
+                csvtransfer = MRFBulkTransfer()
+                csvtransfer.token_address = transfer_row[0]
+                csvtransfer.to_address = transfer_row[1]
+                csvtransfer.amount = transfer_row[2]
+                csvtransfer.transferred = False
+                db.session.add(csvtransfer)
+
+            # 全てのデータが正常処理されたらコミットを行う
+            db.session.commit()
+
+            flash('処理を受け付けました。割当完了までに数分程かかることがあります。', 'success')
+            return render_template('mrf/bulk_transfer.html', form=form, transfer_set=transfer_set)
+
+        else:
+            flash_errors(form)
+            return render_template('mrf/bulk_transfer.html', form=form, transfer_set=transfer_set)
+
+    else:  # GET
+        return render_template('mrf/bulk_transfer.html', form=form)
+
+
+# サンプルCSVダウンロード
+@mrf.route('/sample_csv_download', methods=['POST'])
+@login_required
+def sample_csv_download():
+    logger.info('mrf/sample_csv_download')
+
+    f = io.StringIO()
+    # データ行
+    data_row = \
+        '0x0b3c7F97383bCFf942E6b1038a47B9AA5377A252,0xF37aF18966609eCaDe3E4D1831996853c637cfF3,10' \
+        + '\n' \
+        + '0xC362102bC5bbA9fBd0F2f5d397f3644Aa32b3bA8,0xF37aF18966609eCaDe3E4D1831996853c637cfF3,20'
+
+    f.write(data_row)
+
+    res = make_response()
+    csvdata = f.getvalue()
+    res.data = csvdata.encode('sjis')
+    res.headers['Content-Type'] = 'text/plain'
+    res.headers['Content-Disposition'] = 'attachment; filename=' + 'transfer_list.csv'
+    return res
 
 
 def transfer_token(TokenContract, from_address, to_address, amount):
