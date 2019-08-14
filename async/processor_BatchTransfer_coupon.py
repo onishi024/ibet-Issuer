@@ -37,7 +37,6 @@ db_session = scoped_session(sessionmaker())
 db_session.configure(bind=engine)
 
 # Exchangeコントラクトへの接続
-
 exchange_contract = Contract.get_contract('IbetCouponExchange', exchange_address)
 
 # 常時起動（無限ループ）
