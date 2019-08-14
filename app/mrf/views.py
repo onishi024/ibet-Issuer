@@ -776,22 +776,44 @@ def get_transfer_history(token_address):
 
 
 # 利用履歴リストCSVダウンロード
-@mrf.route('/transferred_csv_download', methods=['POST'])
+@mrf.route('/transfer_history_csv_download', methods=['POST'])
 @login_required
-def transferred_csv_download():
-    logger.info('mrf/transferred_csv_download')
+def transfer_history_csv_download():
+    logger.info('mrf/transfer_history_csv_download')
 
     token_address = request.form.get('token_address')
-    token_address, token_name, transfer_list = get_transfer_history(token_address)
+
+    # ABI取得
+    token = Token.query.filter(Token.token_address == token_address).first()
+    token_abi = json.loads(
+        token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false')
+    )
+
+    # トークンコントラクト設定
+    TokenContract = web3.eth.contract(
+        address=token_address,
+        abi=token_abi
+    )
+
+    # MRFトークンから発生している"Transfer"のログ情報を検索
+    event_filter = TokenContract.eventFilter(
+        'Transfer', {
+            'filter': {},
+            'fromBlock': 'earliest'
+        }
+    )
+    entries = event_filter.get_all_entries()
 
     f = io.StringIO()
-    for transfer in transfer_list:
+    for entry in entries:
+        blocktime = datetime.fromtimestamp(web3.eth.getBlock(entry["blockNumber"])["timestamp"], JST)
+        from_address = entry['args']['from']
+        to_address = entry['args']['to']
+        value = entry['args']['value']
+
         # データ行
-        data_row = \
-            token_name + ',' + token_address + ',' + transfer["block_timestamp"] + ',' + transfer["from_address"] + \
-            ',' + str(transfer["to_address"]) + ',' + str(transfer["value"]) + '\n'
+        data_row = str(blocktime) + ',' + from_address + ',' + to_address + ','  + str(value) + '\n'
         f.write(data_row)
-        logger.info(transfer)
 
     now = datetime.now()
     res = make_response()
@@ -799,7 +821,8 @@ def transferred_csv_download():
     res.data = csvdata.encode('sjis')
     res.headers['Content-Type'] = 'text/plain'
     res.headers['Content-Disposition'] = 'attachment; filename=' + now.strftime("%Y%m%d%H%M%S") + \
-        'mrf_transfer_list.csv'
+        'mrf_transfer_history_list.csv'
+
     return res
 
 
