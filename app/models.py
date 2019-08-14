@@ -77,9 +77,7 @@ class Token(db.Model):
     modified = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
 
     def __repr__(self):
-        return "<Token(admin_address='%s',template_id='%i'," + \
-            "'tx_hash'='%s', 'token_address'='%s'," + \
-            "'abi'='%s', 'bytecode'='%s','bytecode_runtime'='%s')>" % \
+        return "<Token(admin_address='%s',template_id='%i','tx_hash'='%s','token_address'='%s','abi'='%s','bytecode'='%s','bytecode_runtime'='%s')>" % \
             (self.admin_address, self.template_id, self.tx_hash, self.token_address,
                 self.abi, self.bytecode, self.bytecode_runtime)
 
@@ -88,21 +86,40 @@ class Token(db.Model):
         return Token.id
 
 
-# 一括登録した割当情報
-class CSVTransfer(db.Model):
-    __tablename__ = 'csv_transfer'
+# 割当一括登録（クーポン）
+class CouponBulkTransfer(db.Model):
+    __tablename__ = 'coupon_bulk_transfer'
     id = db.Column(db.Integer, primary_key=True)
-    coupon_address = db.Column(db.String(42), nullable=False)
+    token_address = db.Column(db.String(42), nullable=False)
     to_address = db.Column(db.String(42), nullable=False)
     amount = db.Column(db.Integer, nullable=False)
     transferred = db.Column(db.Boolean, default=False)
 
     def __repr__(self):
-        return "<CSVTransfer('coupon_address'='%s', 'to_address'='%s', 'amount'='%s', 'transferred'='%s')>"
+        return "<CouponBulkTransfer('token_address'='%s', 'to_address'='%s', 'amount'='%s', 'transferred'='%s')>" % \
+               (self.token_address, self.to_address, self.amount, self.transferred)
 
     @classmethod
     def get_id(cls):
-        return CSVTransfer.id
+        return CouponBulkTransfer.id
+
+
+# 割当一括登録（MRF）
+class MRFBulkTransfer(db.Model):
+    __tablename__ = 'mrf_bulk_transfer'
+    id = db.Column(db.Integer, primary_key=True)
+    token_address = db.Column(db.String(42), nullable=False)
+    to_address = db.Column(db.String(42), nullable=False)
+    amount = db.Column(db.Integer, nullable=False)
+    transferred = db.Column(db.Boolean, default=False)
+
+    def __repr__(self):
+        return "<MRFBulkTransfer('token_address'='%s', 'to_address'='%s', 'amount'='%s', 'transferred'='%s')>" % \
+               (self.token_address, self.to_address, self.amount, self.transferred)
+
+    @classmethod
+    def get_id(cls):
+        return MRFBulkTransfer.id
 
 
 class Certification(db.Model):

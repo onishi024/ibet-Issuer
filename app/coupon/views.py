@@ -14,7 +14,7 @@ from . import coupon
 from .. import db
 from ..util import *
 from .forms import *
-from ..models import CouponCSVTransfer
+from ..models import CouponBulkTransfer
 from config import Config
 from app.contracts import Contract
 
@@ -842,7 +842,7 @@ def bulk_transfer():
                     return render_template('coupon/bulk_transfer.html', form=form)
 
                 # DB登録処理
-                csvtransfer = CouponCSVTransfer()
+                csvtransfer = CouponBulkTransfer()
                 csvtransfer.token_address = transfer_row[0]
                 csvtransfer.to_address = transfer_row[1]
                 csvtransfer.amount = transfer_row[2]

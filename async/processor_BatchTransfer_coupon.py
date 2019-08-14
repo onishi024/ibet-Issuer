@@ -16,7 +16,7 @@ sys.path.append(path)
 
 from app.util import eth_unlock_account
 from app.contracts import Contract
-from app.models import CouponCSVTransfer, Token
+from app.models import CouponBulkTransfer, Token
 from config import Config
 
 # NOTE:ログフォーマットはメッセージ監視が出来るように設定する必要がある。
@@ -65,8 +65,8 @@ while True:
     logging.info('start batch')
     # Issue済ではない割当一覧を抽出
     try:
-        untransferred_list = db_session.query(CouponCSVTransfer). \
-            filter(CouponCSVTransfer.transferred == False).all()
+        untransferred_list = db_session.query(CouponBulkTransfer). \
+            filter(CouponBulkTransfer.transferred == False).all()
     except Exception as err:
         logging.error("%s", err)
         break
