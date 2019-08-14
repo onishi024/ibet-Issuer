@@ -23,7 +23,13 @@
 <section class="content">
     <div class="box box-default">
         <div class="box-header">
-            <h3 class="box-title" id="token_name"></h3>
+            <form method="post" action="{{ url_for('mrf.transferred_csv_download') }}" enctype="multipart/form-data">
+                <h3 class="box-title">{{ token_name }}　<small>{{ token_address }}</small></h3>
+                <input type="text" name="token_address" style="display:none;" value="{{ token_address }}">
+                <div class="pull-right box-tools">
+                    <button type="submit" class="btn btn-default">CSVダウンロード</button>
+                </div>
+            </form>
         </div>
         <div class="box-body">
             <table id="data_table" class="table table-bordered table-hover">
@@ -41,6 +47,38 @@
         </div>
         <div class="box-footer">
             <button type="button" class="btn btn-default" onclick="location.href='{{ url_for("mrf.list") }}'">一覧に戻る</button>
+        </div>
+    </div>
+
+    <div class="box box-solid box-default">
+        <div class="box-header with-border">
+            <h3 class="box-title">CSVファイルサンプル</h3>
+        </div>
+        <div class="box-body">
+            <table class="table table-striped table-responsive">
+                <thead>
+                    <tr>
+                        <th>MRFトークン名称</th>
+                        <th>MRFトークンアドレス</th>
+                        <th>移動日時</th>
+                        <th>Fromアカウントアドレス</th>
+                        <th>Toアカウントアドレス</th>
+                        <th>移動数量</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="word-break : break-all;">ibetMRF</td>
+                        <td style="word-break : break-all;">0xF37aF18966609eCaDe3E4D1831996853c637cfF3</td>
+                        <td style="word-break : break-all;">2019/08/05 12:15:40</td>
+                        <td style="word-break : break-all;">0xe120401062419501b1a62243fca49aad5feb78cc</td>
+                        <td style="word-break : break-all;">0x0b3c7F97383bCFf942E6b1038a47B9AA5377A252</td>
+                        <td style="word-break : break-all;">2</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="box-footer">
         </div>
     </div>
 </section>

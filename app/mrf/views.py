@@ -775,6 +775,34 @@ def get_transfer_history(token_address):
     return json.dumps(history)
 
 
+# 利用履歴リストCSVダウンロード
+@mrf.route('/transferred_csv_download', methods=['POST'])
+@login_required
+def transferred_csv_download():
+    logger.info('mrf/transferred_csv_download')
+
+    token_address = request.form.get('token_address')
+    token_address, token_name, transfer_list = get_transfer_history(token_address)
+
+    f = io.StringIO()
+    for transfer in transfer_list:
+        # データ行
+        data_row = \
+            token_name + ',' + token_address + ',' + transfer["block_timestamp"] + ',' + transfer["from_address"] + \
+            ',' + str(transfer["to_address"]) + ',' + str(transfer["value"]) + '\n'
+        f.write(data_row)
+        logger.info(transfer)
+
+    now = datetime.now()
+    res = make_response()
+    csvdata = f.getvalue()
+    res.data = csvdata.encode('sjis')
+    res.headers['Content-Type'] = 'text/plain'
+    res.headers['Content-Disposition'] = 'attachment; filename=' + now.strftime("%Y%m%d%H%M%S") + \
+        'mrf_transfer_list.csv'
+    return res
+
+
 # +++++++++++++++++++++++++++++++
 # 割当（個別）
 # +++++++++++++++++++++++++++++++
