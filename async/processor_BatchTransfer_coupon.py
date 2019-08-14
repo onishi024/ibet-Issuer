@@ -45,14 +45,14 @@ while True:
 
     # 割当（Transfer）済ではないレコードを抽出
     try:
-        untransfered_list = db_session.query(CouponBulkTransfer). \
+        untransferred_list = db_session.query(CouponBulkTransfer). \
             filter(CouponBulkTransfer.transferred == False).all()
     except Exception as err:
         logging.error("%s", err)
         break
 
     # レコード単位で割当処理を実行
-    for item in untransfered_list:
+    for item in untransferred_list:
 
         # Tokenコントラクトへの接続
         token = db_session.query(Token).filter(Token.token_address == item.token_address).first()
