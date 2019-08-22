@@ -126,16 +126,9 @@ def withdraw(swap_address, token_address):
     web3.eth.waitForTransactionReceipt(tx_hash)
 
 
-if __name__ == "__main__":
-
+def main():
     """
-    Record Format
-        token_address: IbetStandardTokenアドレス
-        settlement_token_address: SettlementTokenアドレス
-        swap_address: SWAPコントラクトアドレス
-        amount: 注文数量
-        price: 注文単価
-        ordered: 発注済/未発注
+    Main処理
     """
 
     # 未発注レコードを抽出
@@ -157,7 +150,6 @@ if __name__ == "__main__":
     for order in order_list:
         start_time = time.time()
         token_address = to_checksum_address(order.token_address)
-        settlement_token_address = to_checksum_address(order.settlement_token_address)
         swap_address = to_checksum_address(order.swap_address)
 
         if init_flg is True:
@@ -178,3 +170,7 @@ if __name__ == "__main__":
         cancel_order(swap_address, order_id)
         withdraw(swap_address, token_address)
         logging.info('[SwapMarketMake_Sell] Order Canceled')
+
+
+if __name__ == "__main__":
+    main()

@@ -6,9 +6,11 @@ from flask_login import UserMixin
 from . import db, login_manager
 from datetime import datetime
 
+
 class AlembicVersion(db.Model):
     __tablename__ = 'alembic_version'
     id = db.Column(db.Integer, primary_key=True)
+
 
 class Role(db.Model):
     __tablename__ = 'roles'
@@ -36,7 +38,7 @@ class User(UserMixin, db.Model):
     def __repr__(self):
         return '<User login_id={login_id} role_id={role_id}>'.format(
             login_id=self.login_id, role_id=self.role_id
-            )
+        )
 
     @property
     def password(self):
@@ -78,7 +80,7 @@ class Token(db.Model):
 
     def __repr__(self):
         return "<Token(admin_address='%s',template_id='%i','tx_hash'='%s','token_address'='%s','abi'='%s','bytecode'='%s','bytecode_runtime'='%s')>" % \
-            (self.admin_address, self.template_id, self.tx_hash, self.token_address,
+               (self.admin_address, self.template_id, self.tx_hash, self.token_address,
                 self.abi, self.bytecode, self.bytecode_runtime)
 
     @classmethod
@@ -132,7 +134,7 @@ class Certification(db.Model):
 
     def __repr__(self):
         return "<Certification(token_address='%s',signer='%s')>" % \
-            (self.token_address, self.signer)
+               (self.token_address, self.signer)
 
     @classmethod
     def get_id(cls):
@@ -159,18 +161,19 @@ class Bank(db.Model):
 class SwapMarketMakeOrder(db.Model):
     __tablename__ = 'swap_market_make_order'
     id = db.Column(db.Integer, primary_key=True)
-    token_address = db.Column(db.String(42), nullable=False)
-    settlement_token_address = db.Column(db.String(42), nullable=False)
-    swap_address = db.Column(db.String(42), nullable=False)
-    is_buy = db.Column(db.Boolean, default=False)
-    amount = db.Column(db.Integer, nullable=False)
-    price = db.Column(db.Integer, nullable=False)
-    ordered = db.Column(db.Boolean, default=False)
+    token_address = db.Column(db.String(42), nullable=False)  # IbetStandardTokenアドレス
+    settlement_token_address = db.Column(db.String(42), nullable=False)  # SettlementTokenアドレス
+    swap_address = db.Column(db.String(42), nullable=False)  # SWAPコントラクトアドレス
+    is_buy = db.Column(db.Boolean, default=False)  # 売買区分（買/売）
+    amount = db.Column(db.Integer, nullable=False)  # 注文数量
+    price = db.Column(db.Integer, nullable=False)  # 注文単価
+    ordered = db.Column(db.Boolean, default=False)  # 発注ステータス（発注済/未発注）
 
     def __repr__(self):
         return "<SwapMarketMakeOrder('token_address'='%s', 'settlement_token_address'='%s', 'swap_address'='%s', " \
                "'is_buy'='%s', 'amount'='%i', 'price'='%i', ordered'='%s')>" % \
-               (self.token_address, self.settlement_token_address, self.swap_address, self.is_buy, self.amount, self.price, self.ordered)
+               (self.token_address, self.settlement_token_address, self.swap_address, self.is_buy, self.amount,
+                self.price, self.ordered)
 
     @classmethod
     def get_id(cls):
