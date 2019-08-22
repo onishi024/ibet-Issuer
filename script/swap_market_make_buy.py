@@ -50,7 +50,7 @@ def deposit(settlement_token_address, swap_address):
     TokenContract = Contract.get_contract('IbetMRF', settlement_token_address)
     balance = TokenContract.functions.balanceOf(ETH_ACCOUNT).call()
     gas = TokenContract.estimateGas().transfer(swap_address, balance)
-    tx_hash = TokenContract.functions.transfer(swap_address, balance).\
+    tx_hash = TokenContract.functions.transfer(swap_address, balance). \
         transact({'from': ETH_ACCOUNT, 'gas': gas})
     web3.eth.waitForTransactionReceipt(tx_hash)
 
@@ -64,7 +64,7 @@ def make_order(token_address, swap_address, amount, price):
 
     SwapContract = Contract.get_contract('IbetSwap', swap_address)
     gas = SwapContract.estimateGas().makeOrder(token_address, amount, price, True)
-    tx_hash = SwapContract.functions.makeOrder(token_address, amount, price, True).\
+    tx_hash = SwapContract.functions.makeOrder(token_address, amount, price, True). \
         transact({'from': ETH_ACCOUNT, 'gas': gas})
     web3.eth.waitForTransactionReceipt(tx_hash)
 
@@ -93,7 +93,7 @@ def change_order(swap_address, order_id, amount, price):
 
     SwapContract = Contract.get_contract('IbetSwap', swap_address)
     gas = SwapContract.estimateGas().changeOrder(order_id, amount, price)
-    tx_hash = SwapContract.functions.changeOrder(order_id, amount, price).\
+    tx_hash = SwapContract.functions.changeOrder(order_id, amount, price). \
         transact({'from': ETH_ACCOUNT, 'gas': gas})
     web3.eth.waitForTransactionReceipt(tx_hash)
 
@@ -107,7 +107,7 @@ def cancel_order(swap_address, order_id):
 
     SwapContract = Contract.get_contract('IbetSwap', swap_address)
     gas = SwapContract.estimateGas().cancelOrder(order_id)
-    tx_hash = SwapContract.functions.cancelOrder(order_id).\
+    tx_hash = SwapContract.functions.cancelOrder(order_id). \
         transact({'from': ETH_ACCOUNT, 'gas': gas})
     web3.eth.waitForTransactionReceipt(tx_hash)
 
@@ -121,21 +121,14 @@ def withdraw(swap_address, settlement_token_address):
 
     SwapContract = Contract.get_contract('IbetSwap', swap_address)
     gas = SwapContract.estimateGas().withdrawAll(settlement_token_address)
-    tx_hash = SwapContract.functions.withdrawAll(settlement_token_address).\
+    tx_hash = SwapContract.functions.withdrawAll(settlement_token_address). \
         transact({'from': ETH_ACCOUNT, 'gas': gas})
     web3.eth.waitForTransactionReceipt(tx_hash)
 
 
-if __name__ == "__main__":
-
+def main():
     """
-    Record Format
-        token_address: IbetStandardTokenアドレス
-        settlement_token_address: SettlementTokenアドレス
-        swap_address: SWAPコントラクトアドレス
-        amount: 注文数量
-        price: 注文単価
-        ordered: 発注済/未発注
+    Main処理
     """
 
     # 未発注レコードを抽出
@@ -179,3 +172,7 @@ if __name__ == "__main__":
         cancel_order(swap_address, order_id)
         withdraw(swap_address, settlement_token_address)
         logging.info('[SwapMarketMake_Buy] Order Canceled')
+
+
+if __name__ == "__main__":
+    main()
