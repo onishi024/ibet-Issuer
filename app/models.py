@@ -153,3 +153,25 @@ class Bank(db.Model):
 
     def __repr__(self):
         return '<Bank %r>' % self.name
+
+
+# マーケットメイク注文(SWAP)
+class SwapMarketMakeOrder(db.Model):
+    __tablename__ = 'swap_market_make_order'
+    id = db.Column(db.Integer, primary_key=True)
+    token_address = db.Column(db.String(42), nullable=False)
+    settlement_token_address = db.Column(db.String(42), nullable=False)
+    swap_address = db.Column(db.String(42), nullable=False)
+    is_buy = db.Column(db.Boolean, default=False)
+    amount = db.Column(db.Integer, nullable=False)
+    price = db.Column(db.Integer, nullable=False)
+    ordered = db.Column(db.Boolean, default=False)
+
+    def __repr__(self):
+        return "<SwapMarketMakeOrder('token_address'='%s', 'settlement_token_address'='%s', 'swap_address'='%s', " \
+               "'is_buy'='%s', 'amount'='%i', 'price'='%i', ordered'='%s')>" % \
+               (self.token_address, self.settlement_token_address, self.swap_address, self.is_buy, self.amount, self.price, self.ordered)
+
+    @classmethod
+    def get_id(cls):
+        return SwapMarketMakeOrder.id
