@@ -1235,6 +1235,7 @@ def get_holders(token_address):
 
     return json.dumps(holders)
 
+
 @coupon.route('/get_token_name/<string:token_address>', methods=['GET'])
 @login_required
 def get_token_name(token_address):
@@ -1249,6 +1250,7 @@ def get_token_name(token_address):
     token_name = TokenContract.functions.name().call()
 
     return json.dumps(token_name)
+
 
 # 保有者リストCSVダウンロード
 @coupon.route('/holders_csv_download', methods=['POST'])
