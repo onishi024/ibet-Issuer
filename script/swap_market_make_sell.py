@@ -21,8 +21,8 @@ from app.models import SwapMarketMakeOrder
 log_fmt = 'PROCESSOR [%(asctime)s] [%(process)d] [%(levelname)s] %(message)s'
 logging.basicConfig(level=logging.INFO, format=log_fmt)
 
-# Sleep間隔
-SLEEP_INTERVAL = int(60)
+# Sleep間隔（10分間隔）
+SLEEP_INTERVAL = int(600)
 
 # Web3設定
 WEB3_HTTP_PROVIDER = os.environ.get('WEB3_HTTP_PROVIDER') or 'http://localhost:8545'
