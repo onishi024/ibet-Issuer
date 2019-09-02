@@ -180,7 +180,7 @@ desired effect
       </ul>
       <!-- /.sidebar-menu -->
       <p class="text-center" style="margin-top: 50px;">
-          <img src="{{url_for('static', filename='eth_address.png')}}" width="50%" height="50%" alt=""/>
+          <input type="image" src="{{url_for('static', filename='eth_address.png')}}" width="50%" height="50%" alt="" onclick="viewAddress({{ session['eth_address'] }})"/>
       </p>
     </section>
     <!-- /.sidebar -->
@@ -263,6 +263,29 @@ desired effect
 <!-- REQUIRED JS SCRIPTS -->
 
 {% block required_js %}
+<div class="modal modal-default fade" id="modal-address" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title">アカウントアドレス</h4>
+            </div>
+            <div class="modal-body" >
+                <div align="center">
+                    <img src="{{url_for('static', filename='eth_address.png')}}" width="40%" height="40%" alt=""/>
+                </div>
+                <div align="center" id="modal-address-body">{{ session['eth_address'] }}</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">閉じる</button>
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+</div>
 <!-- jQuery 3 -->
 <script src="/static/adminlte/bower_components/jquery/dist/jquery.min.js"></script>
 <!-- Bootstrap 3.3.7 -->
@@ -306,6 +329,9 @@ desired effect
             {% endif %}
         {% endwith %}
     });
+    function viewAddress(eth_account) {
+        $('#modal-address').modal('show');
+    }
 </script>
 {% endblock %}
 
