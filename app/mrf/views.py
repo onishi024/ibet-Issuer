@@ -869,6 +869,7 @@ def transfer():
                 flash('割当数量が残高を超えています。', 'error')
                 return render_template('mrf/transfer.html', form=form)
 
+            # 割当処理
             transfer_token(TokenContract, from_address, to_address, amount)
 
             flash('処理を受け付けました。割当完了までに数分程かかることがあります。', 'success')
