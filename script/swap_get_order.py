@@ -21,33 +21,24 @@ ETH_ACCOUNT = to_checksum_address(ETH_ACCOUNT)
 ETH_ACCOUNT_PASSWORD = os.environ.get('ETH_ACCOUNT_PASSWORD')
 
 
-def cancel_order(swap_contract_address, order_id):
+def get_order(swap_contract_address, order_id):
     """
-    Cancel注文
+    注文情報参照
     """
     SwapContract = Contract.get_contract('IbetSwap', swap_contract_address)
-    gas = SwapContract.estimateGas().cancelOrder(order_id)
-    tx_hash = SwapContract.functions.cancelOrder(order_id). \
-        transact({'from': ETH_ACCOUNT, 'gas': gas})
-    web3.eth.waitForTransactionReceipt(tx_hash)
-    print('cancelOrder executed successfully')
-
+    order = SwapContract.functions.getOrder(order_id).call()
+    print(order)
 
 def main(swap_contract_address, order_id):
     """
     Main処理
     """
     swap_contract_address = to_checksum_address(swap_contract_address)
-
-    # アカウントアンロック
-    web3.personal.unlockAccount(ETH_ACCOUNT, ETH_ACCOUNT_PASSWORD, 1000)
-
-    # Cancel注文
-    cancel_order(swap_contract_address, order_id)
+    get_order(swap_contract_address, order_id)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="SWAPコントラクトへのCancel注文")
+    parser = argparse.ArgumentParser(description="SWAPコントラクトのMake注文情報の参照")
     parser.add_argument("swap_contract_address", type=str, help="SWAPコントラクトアドレス")
     parser.add_argument("order_id", type=int, help="注文ID")
     args = parser.parse_args()

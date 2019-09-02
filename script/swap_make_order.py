@@ -42,6 +42,7 @@ def deposit(dr_token_address, mrf_token_address, swap_contract_address, is_buy, 
             transact({'from': ETH_ACCOUNT, 'gas': gas})
 
     web3.eth.waitForTransactionReceipt(tx_hash)
+    print('transfer executed successfully')
 
 
 def make_order(dr_token_address, mrf_token_address, swap_contract_address, is_buy, amount, price):
@@ -55,6 +56,7 @@ def make_order(dr_token_address, mrf_token_address, swap_contract_address, is_bu
         makeOrder(dr_token_address, amount, price, is_buy). \
         transact({'from': ETH_ACCOUNT, 'gas': gas})
     web3.eth.waitForTransactionReceipt(tx_hash)
+    print('makeOrder executed successfully')
 
 
 def main(dr_token_address, mrf_token_address, swap_contract_address, is_buy, amount, price):

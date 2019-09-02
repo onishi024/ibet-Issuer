@@ -21,19 +21,28 @@ ETH_ACCOUNT = to_checksum_address(ETH_ACCOUNT)
 ETH_ACCOUNT_PASSWORD = os.environ.get('ETH_ACCOUNT_PASSWORD')
 
 
-def cancel_order(swap_contract_address, order_id):
+def withdraw(swap_contract_address, token_address):
     """
-    Cancel注文
+    引き出し
     """
     SwapContract = Contract.get_contract('IbetSwap', swap_contract_address)
-    gas = SwapContract.estimateGas().cancelOrder(order_id)
-    tx_hash = SwapContract.functions.cancelOrder(order_id). \
+    gas = SwapContract.estimateGas().withdrawAll(token_address)
+    tx_hash = SwapContract.functions.withdrawAll(token_address). \
         transact({'from': ETH_ACCOUNT, 'gas': gas})
     web3.eth.waitForTransactionReceipt(tx_hash)
-    print('cancelOrder executed successfully')
+    print('withdrawAll executed successfully')
 
 
-def main(swap_contract_address, order_id):
+def get_balance(swap_contract_address, token_address):
+    """
+    残高参照
+    """
+    SwapContract = Contract.get_contract('IbetSwap', swap_contract_address)
+    balance = SwapContract.functions.balanceOf(ETH_ACCOUNT, token_address).call()
+    print('balance -> ' + str(balance))
+
+
+def main(swap_contract_address, token_address):
     """
     Main処理
     """
@@ -42,14 +51,20 @@ def main(swap_contract_address, order_id):
     # アカウントアンロック
     web3.personal.unlockAccount(ETH_ACCOUNT, ETH_ACCOUNT_PASSWORD, 1000)
 
-    # Cancel注文
-    cancel_order(swap_contract_address, order_id)
+    # 残高参照
+    get_balance(swap_contract_address, token_address)
+
+    # 引き出し
+    withdraw(swap_contract_address, token_address)
+
+    # 残高参照
+    get_balance(swap_contract_address, token_address)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="SWAPコントラクトへのCancel注文")
     parser.add_argument("swap_contract_address", type=str, help="SWAPコントラクトアドレス")
-    parser.add_argument("order_id", type=int, help="注文ID")
+    parser.add_argument("token_address", type=str, help="トークンアドレス")
     args = parser.parse_args()
 
-    main(args.swap_contract_address, args.order_id)
+    main(args.swap_contract_address, args.token_address)
