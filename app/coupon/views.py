@@ -1105,7 +1105,7 @@ def get_usage_history_coupon(token_address):
                 web3.eth.getBlock(entry['blockNumber'])['timestamp'], JST). \
                 strftime("%Y/%m/%d %H:%M:%S"),
             'consumer': entry['args']['consumer'],
-            'value': entry['args']['value']
+            'value': int['args']['value']
         }
         usage_list.append(usage)
 

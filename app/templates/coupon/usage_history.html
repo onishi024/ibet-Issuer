@@ -125,7 +125,7 @@
             returnJsonRaw = {
               block_timestamp: json[index]['block_timestamp'] ? json[index]['block_timestamp'] : '--',
               consumer : json[index]['consumer'] ? json[index]['consumer'] : '--',
-              value: json[index]['value'] ? json[index]['value'] : '--',
+              value: json[index]['value'] ? json[index]['value'] : '',
             };
             returnJson.push(returnJsonRaw)
           }
