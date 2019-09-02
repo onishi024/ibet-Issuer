@@ -30,6 +30,7 @@ def cancel_order(swap_contract_address, order_id):
     tx_hash = SwapContract.functions.cancelOrder(order_id). \
         transact({'from': ETH_ACCOUNT, 'gas': gas})
     web3.eth.waitForTransactionReceipt(tx_hash)
+    print('cancelOrder executed successfully')
 
 
 def main(swap_contract_address, order_id):
