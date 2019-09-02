@@ -768,7 +768,7 @@ def get_transfer_history(token_address):
                 'block_timestamp': str(blocktime),
                 'from_address': entry['args']['from'],
                 'to_address': entry['args']['to'],
-                'value': entry['args']['value']
+                'value': int(entry['args']['value'])
             }
         )
 
