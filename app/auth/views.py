@@ -5,6 +5,7 @@ from flask_login import login_user, logout_user, login_required
 from . import auth
 from .forms import LoginForm
 from ..models import User
+from config import Config
 
 def flash_errors(form):
     for field, errors in form.errors.items():
@@ -19,6 +20,7 @@ def login():
         if user is not None and user.verify_password(form.password.data):
             login_user(user)
             session['login_id'] = user.login_id
+            session['eth_address'] = Config.ETH_ACCOUNT
             return redirect(request.args.get('next') or url_for('index.index'))
         else:
             flash('ログインID又はパスワードが正しくありません。', 'error')
