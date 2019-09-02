@@ -180,7 +180,7 @@ desired effect
       </ul>
       <!-- /.sidebar-menu -->
       <p class="text-center" style="margin-top: 50px;">
-          <input type="image" src="{{url_for('static', filename='eth_address.png')}}" width="50%" height="50%" alt="" onclick="viewAddress({{ session['eth_address'] }})"/>
+          <input type="image" src="{{url_for('static', filename='eth_address.png')}}" width="50%" height="50%" alt="" onclick="viewAddress()"/>
       </p>
     </section>
     <!-- /.sidebar -->
@@ -329,7 +329,7 @@ desired effect
             {% endif %}
         {% endwith %}
     });
-    function viewAddress(eth_account) {
+    function viewAddress() {
         $('#modal-address').modal('show');
     }
 </script>
