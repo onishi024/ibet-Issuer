@@ -857,10 +857,18 @@ def transfer():
                 abi=token_abi
             )
 
-            # 割当処理（発行体アドレス→指定アドレス）
+            # 残高参照
+            balance = TokenContract.functions.balanceOf(Config.ETH_ACCOUNT).call()
+
             from_address = Config.ETH_ACCOUNT
             to_address = to_checksum_address(form.to_address.data)
             amount = form.amount.data
+
+            # 残高超過チェック
+            if amount > balance:
+                flash('割当数量が残高を超えています。', 'error')
+                return render_template('mrf/transfer.html', form=form)
+
             transfer_token(TokenContract, from_address, to_address, amount)
 
             flash('処理を受け付けました。割当完了までに数分程かかることがあります。', 'success')
