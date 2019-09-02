@@ -3,6 +3,10 @@
   {{ super() }}
   <!-- DataTables -->
   <link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
+  <!-- pace.js -->
+  <link rel="stylesheet" href="/static/css/pace-radar.css">
+  <!-- common.css -->
+  <link rel="stylesheet" href="/static/css/common.css">
 {% endblock %}
 {% set active_page = "coupon_list" %}
 
@@ -20,7 +24,7 @@
   <div class="box box-default">
     <div class="box-header">
         <form method="post" action="{{ url_for('coupon.used_csv_download') }}" enctype="multipart/form-data">
-            <h3 class="box-title">{{ token_name }}　<small>{{ token_address }}</small></h3>
+            <h3 class="box-title" id="token_name"></h3>
             <input type="text" name="token_address" style="display:none;" value="{{ token_address }}">
             <div class="pull-right box-tools">
                 <button type="submit" class="btn btn-default">利用履歴リストダウンロード</button>
@@ -31,19 +35,12 @@
   	  <table id="data_table" class="table table-bordered table-hover">
     		<thead>
     		  <tr>
-      			<th align="center">利用日時</th>
-            <th>アドレス</th>
-            <th>利用数量</th>
+      			<th align="center"></th>
+                <th></th>
+                <th></th>
       		</tr>
     		</thead>
     		<tbody>
-    		{% for usage in usage_list %}
-          <tr>
-      			<td align="center">{{ usage.block_timestamp }}</td>
-            <td>{{ usage.consumer }}</td>
-            <td>{{ usage.value }}</td>
-          </tr>
-    		{% endfor %}
     		</tbody>
   	  </table>
   	</div>
@@ -94,9 +91,51 @@
 <script src="/static/adminlte/bower_components/jquery-slimscroll/jquery.slimscroll.min.js"></script>
 <!-- FastClick -->
 <script src="/static/adminlte/bower_components/fastclick/lib/fastclick.js"></script>
+<!-- pace.js -->
+<script src="/static/js/pace.min.js"></script>
 <script>
+  token_address = {{ token_address | tojson }};
+  token_name_url = '{{ url_for("coupon.get_token_name", token_address=token_address) }}';
+  usage_history_url = '{{ url_for("coupon.get_usage_history_coupon", token_address=token_address) }}';
   $(function () {
     $('#data_table').DataTable({
+      columns: [
+      {
+        data: "block_timestamp",
+        orderable: true,
+        title: "利用日時"
+      }, {
+        data: 'consumer',
+        title: 'アドレス',
+        className: 'tableAddress',
+        render: function (data) {
+          return '<small>' + data + '</small>'
+        }
+      }, {
+        data: "value",
+        orderable: true,
+        title: "利用数量"
+      },],
+
+      ajax: {
+        url: usage_history_url,
+        dataSrc : function (json) {
+          returnJson = [];
+          for(index in json){
+            returnJsonRaw = {
+              block_timestamp: json[index]['block_timestamp'] ? json[index]['block_timestamp'] : '--',
+              consumer : json[index]['consumer'] ? json[index]['consumer'] : '--',
+              value: json[index]['value'] ? json[index]['value'] : '--',
+            };
+            returnJson.push(returnJsonRaw)
+          }
+          if (json) {
+            $("#csv_download").prop("disabled", false);
+          }
+            return returnJson;
+        }
+    },
+
       'paging'      : true,
       'lengthChange': true,
       'searching'   : true,
@@ -120,5 +159,18 @@
       },
     })
   })
+    window.onload = function getTokenName() {
+      $.ajax({
+        type: 'GET',
+        url: token_name_url,
+        dataType: 'json',
+        contentType: 'application/json'
+      }).then(function (res) {
+        document.getElementById('token_name').innerHTML = res + '　<small>' + token_address + '</small>';
+      },
+        function () {
+          alert('データ取得に失敗しました');
+        });
+    };
 </script>
 {% endblock %}

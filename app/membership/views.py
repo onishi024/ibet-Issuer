@@ -97,6 +97,7 @@ def applications(token_address):
         token_address=token_address,
     )
 
+
 @membership.route('/get_applications/<string:token_address>', methods=['GET'])
 @login_required
 def get_applications(token_address):
