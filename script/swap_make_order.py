@@ -65,6 +65,11 @@ def main(dr_token_address, mrf_token_address, swap_contract_address, is_buy, amo
     mrf_token_address = to_checksum_address(mrf_token_address)
     swap_contract_address = to_checksum_address(swap_contract_address)
 
+    if is_buy == "True":
+        is_buy = True
+    else:
+        is_buy = False
+
     # アカウントアンロック
     web3.personal.unlockAccount(ETH_ACCOUNT, ETH_ACCOUNT_PASSWORD, 1000)
 
