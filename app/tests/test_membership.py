@@ -873,10 +873,12 @@ class TestMembership(TestBase):
         )
 
         # 募集申込一覧参照
-        response = client.get(self.url_get_applications + token_address)
+        response = client.get(self.url_applications + token_address)
         assert response.status_code == 200
         assert '<title>募集申込一覧'.encode('utf-8') in response.data
-        assert trader_address.encode('utf-8') in response.data
+
+        applications = client.get(self.url_get_applications + token_address)
+        assert trader_address.encode('utf-8') in applications.data
 
     # ＜正常系10_1＞
     # ＜割当（募集申込）＞

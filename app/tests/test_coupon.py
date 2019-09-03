@@ -22,6 +22,7 @@ class TestCoupon(TestBase):
     url_start_initial_offering = 'coupon/start_initial_offering'  # 募集申込開始
     url_stop_initial_offering = 'coupon/stop_initial_offering'  # 募集申込停止
     url_applications = 'coupon/applications/'  # 募集申込一覧
+    url_get_applications = 'coupon/get_applications/'  # 募集申込一覧
     url_allocate = 'coupon/allocate'  # 割当（募集申込）
     url_transfer = 'coupon/transfer'  # 割当
     url_transfer_ownership = 'coupon/transfer_ownership/'  # 所有者移転
@@ -751,7 +752,9 @@ class TestCoupon(TestBase):
         response = client.get(self.url_applications + token_address)
         assert response.status_code == 200
         assert '<title>募集申込一覧'.encode('utf-8') in response.data
-        assert trader_address.encode('utf-8') in response.data
+
+        applications = client.get(self.url_get_applications + token_address)
+        assert trader_address.encode('utf-8') in applications.data
 
     # ＜正常系14_1＞
     # ＜割当（募集申込）＞
