@@ -90,11 +90,11 @@ def list():
 @login_required
 def applications(token_address):
     logger.info('coupon/applications')
-    applications, token_name = get_applications(token_address)
-    return render_template('coupon/applications.html', \
-                           applications=applications, token_address=token_address, token_name=token_name)
+    return render_template('coupon/applications.html', token_address=token_address)
 
 
+@coupon.route('/get_applications/<string:token_address>', methods=['GET'])
+@login_required
 def get_applications(token_address):
     cipher = None
     try:
@@ -108,7 +108,7 @@ def get_applications(token_address):
     token_abi = json.loads(
         token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
 
-    # 会員権Token
+    # Tokenコントラクトに接続
     TokenContract = web3.eth.contract(
         address=token_address,
         abi=token_abi
@@ -140,7 +140,6 @@ def get_applications(token_address):
             account_list.append(item)
 
     token_owner = TokenContract.functions.owner().call()
-    token_name = TokenContract.functions.name().call()
 
     applications = []
     for account_address in account_list:
@@ -173,7 +172,7 @@ def get_applications(token_address):
         }
         applications.append(application)
 
-    return applications, token_name
+    return json.dumps(applications)
 
 
 ####################################################
@@ -1064,19 +1063,17 @@ def transfer_ownership(token_address, account_address):
 @login_required
 def usage_history(token_address):
     logger.info('coupon/usage_history')
-    token_address, token_name, usage_list = \
-        get_usege_history_coupon(token_address)
 
     return render_template(
         'coupon/usage_history.html',
-        token_address=token_address,
-        token_name=token_name,
-        usage_list=usage_list
+        token_address=token_address
     )
 
 
+@coupon.route('/get_usage_history_coupon/<string:token_address>', methods=['GET'])
+@login_required
 # クーポントークンの利用履歴を返す
-def get_usege_history_coupon(token_address):
+def get_usage_history(token_address):
     # Coupon Token Contract
     # Note: token_addressに対して、Couponトークンのものであるかはチェックしていない。
     token = Token.query.filter(Token.token_address == token_address).first()
@@ -1087,9 +1084,6 @@ def get_usege_history_coupon(token_address):
                            replace('True', 'true').replace('False', 'false'))
     CouponContract = web3.eth.contract(
         address=token_address, abi=token_abi)
-
-    # クーポン名を取得
-    token_name = CouponContract.functions.name().call()
 
     # クーポントークンの消費イベント（Consume）を検索
     try:
@@ -1111,11 +1105,11 @@ def get_usege_history_coupon(token_address):
                 web3.eth.getBlock(entry['blockNumber'])['timestamp'], JST). \
                 strftime("%Y/%m/%d %H:%M:%S"),
             'consumer': entry['args']['consumer'],
-            'value': entry['args']['value']
+            'value': int(entry['args']['value'])
         }
         usage_list.append(usage)
 
-    return token_address, token_name, usage_list
+    return json.dumps(usage_list)
 
 
 # 利用履歴リストCSVダウンロード
@@ -1125,15 +1119,52 @@ def used_csv_download():
     logger.info('coupon/used_csv_download')
 
     token_address = request.form.get('token_address')
-    token_address, token_name, usage_list = get_usege_history_coupon(token_address)
+    token_name = json.loads(get_token_name(token_address))
 
+    # ABI参照
+    token = Token.query.filter(Token.token_address == token_address).first()
+    if token is None:
+        abort(404)
+    token_abi = json.loads(token.abi.replace("'", '"'). \
+                           replace('True', 'true').replace('False', 'false'))
+
+    # トークンコントラクト接続
+    CouponContract = web3.eth.contract(address=token_address, abi=token_abi)
+
+    # クーポントークンの消費イベント（Consume）を検索
+    try:
+        event_filter = CouponContract.eventFilter(
+            'Consume', {
+                'filter': {},
+                'fromBlock': 'earliest'
+            }
+        )
+        entries = event_filter.get_all_entries()
+        web3.eth.uninstallFilter(event_filter.filter_id)
+    except:
+        entries = []
+
+    # リスト作成
+    usage_list = []
+    for entry in entries:
+        usage = {
+            'block_timestamp': datetime.fromtimestamp(
+                web3.eth.getBlock(entry['blockNumber'])['timestamp'], JST). \
+                strftime("%Y/%m/%d %H:%M:%S"),
+            'consumer': entry['args']['consumer'],
+            'value': int(entry['args']['value'])
+        }
+        usage_list.append(usage)
+
+    # ファイル作成
     f = io.StringIO()
-    for usage in usage_list:
-        # データ行
-        data_row = \
-            token_name + ',' + token_address + ',' + str(usage["block_timestamp"]) + ',' + usage["consumer"] + ',' \
-            + str(usage["value"]) + '\n'
-        f.write(data_row)
+    if usage_list[0] is not '[':
+        for usage in usage_list:
+            # データ行
+            data_row = \
+                token_name + ',' + token_address + ',' + str(usage["block_timestamp"]) + ',' + str(usage["consumer"]) + ',' \
+                + str(usage["value"]) + '\n'
+            f.write(data_row)
 
     now = datetime.now()
     res = make_response()
@@ -1156,6 +1187,7 @@ def holders(token_address):
         'coupon/holders.html',
         token_address=token_address
     )
+
 
 @coupon.route('/get_holders/<string:token_address>', methods=['GET'])
 @login_required
@@ -1235,6 +1267,7 @@ def get_holders(token_address):
 
     return json.dumps(holders)
 
+
 @coupon.route('/get_token_name/<string:token_address>', methods=['GET'])
 @login_required
 def get_token_name(token_address):
@@ -1249,6 +1282,7 @@ def get_token_name(token_address):
     token_name = TokenContract.functions.name().call()
 
     return json.dumps(token_name)
+
 
 # 保有者リストCSVダウンロード
 @coupon.route('/holders_csv_download', methods=['POST'])

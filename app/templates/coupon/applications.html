@@ -5,6 +5,10 @@
   <link
     rel="stylesheet"
     href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
+  <!-- pace.js -->
+  <link rel="stylesheet" href="/static/css/pace-radar.css">
+  <!-- common.css -->
+  <link rel="stylesheet" href="/static/css/common.css">
 {% endblock %}
 {% set active_page = "coupon_list" %}
 
@@ -21,40 +25,23 @@
 <section class="content">
   <div class="box box-default">
     <div class="box-header">
-      <h3 class="box-title">{{ token_name }}　<small>{{ token_address }}</small></h3>
+      <h3 class="box-title" id="token_name"></h3>
     </div>
     <div class="box-body">
-  	  <table id="data_table" class="table table-bordered table-hover">
-    		<thead>
-    		  <tr>
-            <th>アカウントアドレス</th>
-      			<th>氏名</th>
-            <th>Eメール</th>
-            <th>認可コード</th>
-            <th></th>
-      		</tr>
-    		</thead>
-    		<tbody>
-    		{% for application in applications %}
+      <table id="data_table" class="table table-bordered table-hover">
+        <thead>
           <tr>
-            <td style="word-break : break-all">
-              <small>{{ application.account_address }}</small>
-            </td>
-            <td>{{ application.account_name }}</td>
-            <td>{{ application.account_email_address }}</td>
-            <td>{{ application.data }}</td>
-            <td align="center">
-              <button
-                type="button" class="btn btn-success btn-sm"
-                onclick="location.href='{{ url_for("coupon.allocate", token_address=token_address, account_address=application.account_address) }}'">
-                割当
-              </button>
-            </td>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
           </tr>
-    		{% endfor %}
-    		</tbody>
-  	  </table>
-  	</div>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+    </div>
     <div class="box-footer">
         <button
           type="button" class="btn btn-default"
@@ -77,9 +64,60 @@
 <script src="/static/adminlte/bower_components/fastclick/lib/fastclick.js"></script>
 <!-- AdminLTE for demo purposes -->
 <script src="/static/adminlte/dist/js/demo.js"></script>
+<!-- pace.js -->
+<script src="/static/js/pace.min.js"></script>
 <script>
+  token_address = {{ token_address | tojson }};
+  token_name_url = '{{ url_for("coupon.get_token_name", token_address=token_address) }}';
+  applications_list_url = '{{ url_for("coupon.get_applications", token_address=token_address) }}';
+  applications_allocate_url_base = '{{ url_for("coupon.allocate", token_address=token_address, account_address="account_address") }}';
   $(function () {
     $('#data_table').DataTable({
+      columns: [{
+        data: "account_address",
+        title: 'アカウントアドレス',
+        className: 'tableAddress',
+        render: function (data) {
+          return '<small>' + data + '</small>'
+        }
+      }, {
+        data: "name",
+        orderable: true,
+        title: "氏名"
+      }, {
+        data: "account_email_address",
+        orderable: true,
+        title: "Eメール"
+      }, {
+        data: "data",
+        orderable: true,
+        title: "認可コード"
+      }, {
+        data: "token_transfer",
+        orderable: false,
+        className: "text-center",
+        render: function (data) {
+          return `<button type="button" class="btn btn-success btn-sm" onclick='location.href= "${data}"' />割当`;
+        }
+      }],
+      ajax: {
+        url: applications_list_url,
+        dataSrc : function (json) {
+          returnJson = [];
+          for(index in json){
+            returnJsonRaw = {
+              account_address : json[index]['account_address'] ? json[index]['account_address'] : '--',
+              name: json[index]['name'] ? json[index]['name'] : '--',
+              account_email_address: json[index]['account_email_address'] ? json[index]['account_email_address'] : '--',
+              data: json[index]['data'] ? json[index]['data'] : '--',
+              token_transfer: json[index]['account_address'] ? applications_allocate_url_base.replace('account_address', json[index]['account_address']) : '--'
+            };
+            returnJson.push(returnJsonRaw)
+          }
+          return returnJson;
+        }
+      },
+
       'paging'      : true,
       'lengthChange': true,
       'searching'   : true,
@@ -102,5 +140,18 @@
       },
     })
   })
+  window.onload = function getTokenName() {
+    $.ajax({
+      type: 'GET',
+      url: token_name_url,
+      dataType: 'json',
+        contentType: 'application/json'
+    }).then(function (res) {
+      document.getElementById('token_name').innerHTML = res + '　<small>' + token_address + '</small>';
+    },
+    function () {
+      alert('データ取得に失敗しました');
+    });
+  };
 </script>
 {% endblock %}

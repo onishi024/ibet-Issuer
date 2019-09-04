@@ -92,15 +92,14 @@ def list():
 @login_required
 def applications(token_address):
     logger.info('membership/applications')
-    applications, token_name = get_applications(token_address)
     return render_template(
         'membership/applications.html',
-        applications=applications,
         token_address=token_address,
-        token_name=token_name
     )
 
 
+@membership.route('/get_applications/<string:token_address>', methods=['GET'])
+@login_required
 def get_applications(token_address):
     cipher = None
     try:
@@ -146,7 +145,6 @@ def get_applications(token_address):
             account_list.append(item)
 
     token_owner = TokenContract.functions.owner().call()
-    token_name = TokenContract.functions.name().call()
 
     applications = []
     for account_address in account_list:
@@ -179,7 +177,7 @@ def get_applications(token_address):
         }
         applications.append(application)
 
-    return applications, token_name
+    return json.dumps(applications)
 
 
 ####################################################
@@ -362,6 +360,7 @@ def get_holders(token_address):
 
     return json.dumps(holders)
 
+
 @membership.route('/get_token_name/<string:token_address>', methods=['GET'])
 @login_required
 def get_token_name(token_address):
@@ -376,6 +375,7 @@ def get_token_name(token_address):
     token_name = TokenContract.functions.name().call()
 
     return json.dumps(token_name)
+
 
 # 保有者リストCSVダウンロード
 @membership.route('/holders_csv_download', methods=['POST'])
