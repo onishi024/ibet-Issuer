@@ -74,8 +74,7 @@
   $(function () {
     $('#data_table').DataTable({
       columns: [{
-
-        data: 'account_address',
+        data: "account_address",
         title: 'アカウントアドレス',
         className: 'tableAddress',
         render: function (data) {
@@ -118,9 +117,9 @@
           if (json) {
             $("#csv_download").prop("disabled", false);
           }
-            return returnJson;
+          return returnJson;
         }
-    },
+      },
 
       'paging'      : true,
       'lengthChange': true,
@@ -144,18 +143,18 @@
       },
     })
   })
-    window.onload = function getTokenName() {
-      $.ajax({
-        type: 'GET',
-        url: token_name_url,
-        dataType: 'json',
+  window.onload = function getTokenName() {
+    $.ajax({
+      type: 'GET',
+      url: token_name_url,
+      dataType: 'json',
         contentType: 'application/json'
-      }).then(function (res) {
-        document.getElementById('token_name').innerHTML = res + '　<small>' + token_address + '</small>';
-      },
-        function () {
-          alert('データ取得に失敗しました');
-        });
-    };
+    }).then(function (res) {
+      document.getElementById('token_name').innerHTML = res + '　<small>' + token_address + '</small>';
+    },
+    function () {
+      alert('データ取得に失敗しました');
+    });
+  };
 </script>
 {% endblock %}
