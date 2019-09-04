@@ -146,8 +146,8 @@
             returnJsonRaw = {
               account_address : json[index]['account_address'] ? json[index]['account_address'] : '--',
               name: json[index]['name'] ? json[index]['name'] : '--',
-              balance: json[index]['balance'] ? json[index]['balance'] : '',
-              commitment: json[index]['commitment'] ? json[index]['commitment'] : '',
+              balance: json[index]['balance'] ? json[index]['balance'] : 0,
+              commitment: json[index]['commitment'] ? json[index]['commitment'] : 0,
               holder_detail: json[index]['account_address'] ? holder_detail_url_base.replace('account_address', json[index]['account_address']) : '--',
               token_transfer: json[index]['account_address'] ? holder_transfer_url_base.replace('account_address', json[index]['account_address']) : '--'
             };
