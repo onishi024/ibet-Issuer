@@ -1073,7 +1073,7 @@ def usage_history(token_address):
 @coupon.route('/get_usage_history_coupon/<string:token_address>', methods=['GET'])
 @login_required
 # クーポントークンの利用履歴を返す
-def get_usage_history_coupon(token_address):
+def get_usage_history(token_address):
     # Coupon Token Contract
     # Note: token_addressに対して、Couponトークンのものであるかはチェックしていない。
     token = Token.query.filter(Token.token_address == token_address).first()
@@ -1105,7 +1105,7 @@ def get_usage_history_coupon(token_address):
                 web3.eth.getBlock(entry['blockNumber'])['timestamp'], JST). \
                 strftime("%Y/%m/%d %H:%M:%S"),
             'consumer': entry['args']['consumer'],
-            'value': int['args']['value']
+            'value': int(entry['args']['value'])
         }
         usage_list.append(usage)
 
@@ -1120,12 +1120,43 @@ def used_csv_download():
 
     token_address = request.form.get('token_address')
     token_name = json.loads(get_token_name(token_address))
-    usage_list = get_usage_history_coupon(token_address)
 
-    # for debug
-    usage_list = [{'block_timestamp': 2019, 'consumer': 'asd', 'value': 11}]
-    logger.info(usage_list)
+    # ABI参照
+    token = Token.query.filter(Token.token_address == token_address).first()
+    if token is None:
+        abort(404)
+    token_abi = json.loads(token.abi.replace("'", '"'). \
+                           replace('True', 'true').replace('False', 'false'))
 
+    # トークンコントラクト接続
+    CouponContract = web3.eth.contract(address=token_address, abi=token_abi)
+
+    # クーポントークンの消費イベント（Consume）を検索
+    try:
+        event_filter = CouponContract.eventFilter(
+            'Consume', {
+                'filter': {},
+                'fromBlock': 'earliest'
+            }
+        )
+        entries = event_filter.get_all_entries()
+        web3.eth.uninstallFilter(event_filter.filter_id)
+    except:
+        entries = []
+
+    # リスト作成
+    usage_list = []
+    for entry in entries:
+        usage = {
+            'block_timestamp': datetime.fromtimestamp(
+                web3.eth.getBlock(entry['blockNumber'])['timestamp'], JST). \
+                strftime("%Y/%m/%d %H:%M:%S"),
+            'consumer': entry['args']['consumer'],
+            'value': int(entry['args']['value'])
+        }
+        usage_list.append(usage)
+
+    # ファイル作成
     f = io.StringIO()
     if usage_list[0] is not '[':
         for usage in usage_list:

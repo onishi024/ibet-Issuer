@@ -27,7 +27,7 @@
             <h3 class="box-title" id="token_name"></h3>
             <input type="text" name="token_address" style="display:none;" value="{{ token_address }}">
             <div class="pull-right box-tools">
-                <button type="submit" class="btn btn-default">利用履歴リストダウンロード</button>
+                <button id="csv_download" type="submit" class="btn btn-default">利用履歴リストダウンロード</button>
             </div>
         </form>
     </div>
@@ -96,17 +96,17 @@
 <script>
   token_address = {{ token_address | tojson }};
   token_name_url = '{{ url_for("coupon.get_token_name", token_address=token_address) }}';
-  usage_history_url = '{{ url_for("coupon.get_usage_history_coupon", token_address=token_address) }}';
+  usage_history_url = '{{ url_for("coupon.get_usage_history", token_address=token_address) }}';
   $(function () {
     $('#data_table').DataTable({
-      columns: [
-      {
+      columns: [{
         data: "block_timestamp",
         orderable: true,
         title: "利用日時"
       }, {
-        data: 'consumer',
-        title: 'アドレス',
+        data: "consumer",
+        orderable: true,
+        title: "アドレス",
         className: 'tableAddress',
         render: function (data) {
           return '<small>' + data + '</small>'
@@ -115,8 +115,7 @@
         data: "value",
         orderable: true,
         title: "利用数量"
-      },],
-
+      }],
       ajax: {
         url: usage_history_url,
         dataSrc : function (json) {
@@ -132,9 +131,9 @@
           if (json) {
             $("#csv_download").prop("disabled", false);
           }
-            return returnJson;
+          return returnJson;
         }
-    },
+      },
 
       'paging'      : true,
       'lengthChange': true,
@@ -159,18 +158,18 @@
       },
     })
   })
-    window.onload = function getTokenName() {
-      $.ajax({
-        type: 'GET',
-        url: token_name_url,
-        dataType: 'json',
-        contentType: 'application/json'
-      }).then(function (res) {
-        document.getElementById('token_name').innerHTML = res + '　<small>' + token_address + '</small>';
-      },
-        function () {
-          alert('データ取得に失敗しました');
-        });
-    };
+  window.onload = function getTokenName() {
+    $.ajax({
+      type: 'GET',
+      url: token_name_url,
+      dataType: 'json',
+      contentType: 'application/json'
+    }).then(function (res) {
+      document.getElementById('token_name').innerHTML = res + '　<small>' + token_address + '</small>';
+    },
+    function () {
+      alert('データ取得に失敗しました');
+    });
+  };
 </script>
 {% endblock %}
