@@ -111,7 +111,7 @@
               name: json[index]['name'] ? json[index]['name'] : '--',
               account_email_address: json[index]['account_email_address'] ? json[index]['account_email_address'] : '--',
               data: json[index]['data'] ? json[index]['data'] : '--',
-              allocate: json[index]['account_address'] ? applications_allocate_url_base.replace('account_address', json[index]['account_address']) : '--'
+              token_transfer: json[index]['account_address'] ? applications_allocate_url_base.replace('account_address', json[index]['account_address']) : '--'
             };
             returnJson.push(returnJsonRaw)
           }
