@@ -108,7 +108,7 @@ def get_applications(token_address):
     token_abi = json.loads(
         token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
 
-    # 会員権Token
+    # Tokenコントラクトに接続
     TokenContract = web3.eth.contract(
         address=token_address,
         abi=token_abi
