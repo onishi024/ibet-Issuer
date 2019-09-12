@@ -3,6 +3,7 @@ import os
 import sys
 import time
 import logging
+import argparse
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
@@ -40,7 +41,7 @@ db_session = scoped_session(sessionmaker())
 db_session.configure(bind=engine)
 
 
-def deposit(token_address, swap_address):
+def deposit(token_address, swap_address, deposit_amount_dr):
     """
     SWAPコントラクトへのデポジット
     """
@@ -49,9 +50,15 @@ def deposit(token_address, swap_address):
 
     TokenContract = Contract.get_contract('IbetDepositaryReceipt', token_address)
     balance = TokenContract.functions.balanceOf(ETH_ACCOUNT).call()
-    gas = TokenContract.estimateGas().transfer(swap_address, balance)
-    tx_hash = TokenContract.functions.transfer(swap_address, balance).\
-        transact({'from': ETH_ACCOUNT, 'gas': gas})
+
+    if deposit_amount_dr > balance:
+        gas = TokenContract.estimateGas().transfer(swap_address, balance)
+        tx_hash = TokenContract.functions.transfer(swap_address, balance).\
+            transact({'from': ETH_ACCOUNT, 'gas': gas})
+    else:
+        gas = TokenContract.estimateGas().transfer(swap_address, deposit_amount_dr)
+        tx_hash = TokenContract.functions.transfer(swap_address, deposit_amount_dr). \
+            transact({'from': ETH_ACCOUNT, 'gas': gas})
     web3.eth.waitForTransactionReceipt(tx_hash)
 
 
@@ -72,12 +79,12 @@ def make_order(token_address, swap_address, amount, price):
     return order_id
 
 
-def init_order(token_address, swap_address, amount, price):
+def init_order(token_address, swap_address, amount, price, deposit_amount_dr):
     """
     新規注文
     """
     # SWAPコントラクトにTokenの残高をデポジット
-    deposit(token_address, swap_address)
+    deposit(token_address, swap_address, deposit_amount_dr)
     # Make注文
     order_id = make_order(token_address, swap_address, amount, price)
 
@@ -126,7 +133,7 @@ def withdraw(swap_address, token_address):
     web3.eth.waitForTransactionReceipt(tx_hash)
 
 
-def main():
+def main(deposit_amount_dr):
     """
     Main処理
     """
@@ -153,10 +160,14 @@ def main():
         swap_address = to_checksum_address(order.swap_address)
 
         if init_flg is True:
-            order_id = init_order(token_address, swap_address, order.amount, order.price)
+            order_id = init_order(token_address, swap_address, order.amount, order.price, deposit_amount_dr)
             logging.info("[SwapMarketMake_Sell] OrderID - {}".format(order_id))
         else:
             change_order(swap_address, order_id, order.amount, order.price)
+
+        # 注文済に更新
+        order.ordered = True
+        db_session.commit()
 
         elapsed_time = time.time() - start_time
         init_flg = False
@@ -173,4 +184,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="MarketMake用BOT（SELL）")
+    parser.add_argument("deposit_amount_dr", type=int, help="DRトークンのデポジット数量")
+    args = parser.parse_args()
+
+    main(args.deposit_amount_dr)
