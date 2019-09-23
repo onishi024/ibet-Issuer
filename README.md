@@ -1,13 +1,11 @@
-# ibet for issuer
-
 # 1. 環境構築
-### 1.1 事前準備
+## 1-1. 事前準備
 * Python3.6.4, Quorum, PostgreSQL 等の環境を整えるために、
  `tmr-sc` と `tmr-node` のReadmeの手順を全て実行しておく。
    1. https://github.com/N-Village/tmr-sc
    2. https://github.com/N-Village/tmr-node
 
-### 1.2. 必要なパッケージを取得
+## 1-2. 必要なパッケージを取得
 
 ```bash
 $ cd tmr-issuer
@@ -15,7 +13,7 @@ $ pip install -r requirements.txt
 ```
 - 必要に応じてプロキシオプションや証明書オプションを追加して実行
 
-### 1.3. DBテーブルの構築  
+## 1-3. DBテーブルの構築  
 * 事前にデータベースの作成が必要　（例：`issuerdb`）
 
 ```bash
@@ -34,7 +32,8 @@ $ python manage.py shell
 
 
 # 2. tmr-issuer の起動確認
-##2.1 初回準備
+
+## 2-1. 初回準備
 
 * キーペア生成 
 
@@ -44,7 +43,7 @@ $ python rsa/create_rsakey.py password
 
 
 * 環境変数追加
-* `1.1　「事前準備」`のtmr-scで定義したコントラクトをQuorumにデプロイした時に得られる、コントラクトアドレスを環境変数に定義しておく
+* `1-1.「事前準備」`のtmr-scで定義したコントラクトをQuorumにデプロイした時に得られる、コントラクトアドレスを環境変数に定義しておく
 
 例）
 
@@ -88,8 +87,8 @@ http://XXX.XXX.XXX.XXX:5000/ で接続して起動していることを確認。
 * 例） localhost:5000
 * ログイン画面で、DBに格納されているログインID,パスワードを入力すると、TOP画面が表示される
 
-## 3. テスト実行について
-### pytest
+# 3. テスト実行について
+## pytest
 
 * manage.py で定義してあるコマンドオプションにしたがって、テストを実行する
 
@@ -100,8 +99,8 @@ $ python manage.py test
 
 testのオプションについては`python manage.py test --help`で確認してください。
 
-## 4. データ増幅スクリプト
-### １．トークン登録
+# 4. データ増幅スクリプト
+## 4-1. トークン登録
 引数
 - 登録件数(int)
 - トークン種別(string):IbetStraightBond, IbetMembership, IbetCoupon
@@ -115,7 +114,7 @@ python script/INSERT_token.py 3 "IbetMembership"
 python script/INSERT_token.py 3 "IbetCoupon"
 ```
 
-### ２．トークン保有者登録
+## 4-2. トークン保有者登録
 引数
 - 登録件数(int)
 - トークン種別(string): IbetStraightBond, IbetMembership, IbetCoupon
@@ -128,7 +127,7 @@ python script/INSERT_token_holders.py 3 "IbetMembership" "1"
 python script/INSERT_token_holders.py 3 "IbetCoupon" "1"
 ```
 
-### ３．クーポン利用履歴登録
+## 4-3. クーポン利用履歴登録
 引数
 - 登録件数(int)
 
@@ -138,7 +137,7 @@ issuerのノードに接続して実行
 python script/INSERT_coupon_consume.py 3
 ```
 
-### ４. processor稼働
+### 4-4. processor稼働
 
 ```
 python async/processor_IssueEvent.py
