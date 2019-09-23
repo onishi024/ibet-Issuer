@@ -6,7 +6,7 @@ import argparse
 import time
 import sys
 
-path = os.path.join(os.path.dirname(__file__), "../")
+path = os.path.join(os.path.dirname(__file__), "../../..")
 sys.path.append(path)
 
 from web3 import Web3
@@ -36,7 +36,7 @@ IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS = \
     to_checksum_address(os.environ.get('IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS'))
 
 # DB
-URI = os.environ.get("DATABASE_URL")
+URI = os.environ.get("DATABASE_URL") or 'postgresql://issueruser:issuerpass@localhost:5432/issuerdb'
 engine = create_engine(URI, echo=False)
 db_session = scoped_session(sessionmaker())
 db_session.configure(bind=engine)
@@ -52,7 +52,6 @@ def issue_token(exchange_address, data_count, token_type):
     attribute['details'] = 'details'
     attribute['expirationDate'] = '20181010'
     attribute['transferable'] = True
-    attribute['status'] = True
     attribute['contactInformation'] = '08012345678'
     attribute['privacyPolicy'] = 'プライバシーポリシーの内容'
 
@@ -75,7 +74,7 @@ def issue_token(exchange_address, data_count, token_type):
             attribute['redemptionDate'], attribute['redemptionAmount'],
             attribute['returnDate'], attribute['returnAmount'],
             attribute['purpose'], attribute['memo'],
-            attribute['status'], attribute['contactInformation'], attribute['privacyPolicy']
+            attribute['contactInformation'], attribute['privacyPolicy']
         ]
         template_id = Config.TEMPLATE_ID_SB
     elif token_type == 'IbetMembership':
@@ -86,16 +85,18 @@ def issue_token(exchange_address, data_count, token_type):
             attribute['details'], attribute['returnDetails'],
             attribute['expirationDate'], attribute['memo'],
             attribute['transferable'],
-            attribute['status'], attribute['contactInformation'], attribute['privacyPolicy']
+            attribute['contactInformation'], attribute['privacyPolicy']
         ]
         template_id = Config.TEMPLATE_ID_MEMBERSHIP
     elif token_type == 'IbetCoupon':
+        attribute['returnDetails'] = 'returnDetails'
         arguments = [
             attribute['name'], attribute['symbol'], attribute['totalSupply'],
             attribute['tradableExchange'],
-            attribute['details'],  attribute['memo'], attribute['expirationDate'],
+            attribute['details'], attribute['returnDetails'],
+            attribute['memo'], attribute['expirationDate'],
             attribute['transferable'],
-            attribute['status'], attribute['contactInformation'], attribute['privacyPolicy']
+            attribute['contactInformation'], attribute['privacyPolicy']
         ]
         template_id = Config.TEMPLATE_ID_COUPON
 
