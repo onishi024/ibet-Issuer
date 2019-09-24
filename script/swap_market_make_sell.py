@@ -184,6 +184,9 @@ def main(deposit_amount_dr):
 
 
 if __name__ == "__main__":
+    if sys.argv:
+        del sys.argv[1:]
+
     parser = argparse.ArgumentParser(description="MarketMake用BOT（SELL）")
     parser.add_argument("deposit_amount_dr", type=int, help="DRトークンのデポジット数量")
     args = parser.parse_args()

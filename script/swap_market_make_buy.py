@@ -186,6 +186,9 @@ def main(deposit_amount_mrf):
 
 
 if __name__ == "__main__":
+    if sys.argv:
+        del sys.argv[1:]
+
     parser = argparse.ArgumentParser(description="MarketMake用BOT（BUY）")
     parser.add_argument("deposit_amount_mrf", type=int, help="MRFトークンのデポジット数量")
     args = parser.parse_args()
