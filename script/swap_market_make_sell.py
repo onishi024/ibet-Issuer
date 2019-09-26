@@ -5,7 +5,7 @@ import time
 import logging
 import argparse
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, asc
 from sqlalchemy.orm import sessionmaker, scoped_session
 
 from web3 import Web3
@@ -141,9 +141,10 @@ def main(deposit_amount_dr):
     # 未発注レコードを抽出
     order_list = []
     try:
-        order_list = db_session.query(SwapMarketMakeOrder). \
-            filter(SwapMarketMakeOrder.ordered == False). \
-            filter(SwapMarketMakeOrder.is_buy == False). \
+        order_list = db_session.query(SwapMarketMakeOrder).\
+            filter(SwapMarketMakeOrder.ordered == False).\
+            filter(SwapMarketMakeOrder.is_buy == False).\
+            order_by(asc(SwapMarketMakeOrder.id)).\
             all()
     except Exception as err:
         logging.error("%s", err)
