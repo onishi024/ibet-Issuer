@@ -77,7 +77,7 @@ class TestAuth(TestBase):
         assert response.status_code == 200
         assert 'ログインID又はパスワードが正しくありません。'.encode('utf-8') in response.data
 
-    # ＜エラー系1_＞
+    # ＜エラー系1_3＞
     #   ログイン：認証失敗（ログインIDが空のため form.validate() == False）
     def test_error_1_3(self, app):
         client = app.test_client()
@@ -90,4 +90,4 @@ class TestAuth(TestBase):
         )
 
         assert response.status_code == 200
-        assert 'ログインIDを入力してください。。'.encode('utf-8') in response.data
+        assert 'ログインIDを入力してください。'.encode('utf-8') in response.data

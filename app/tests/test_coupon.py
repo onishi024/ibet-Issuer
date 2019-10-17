@@ -236,6 +236,18 @@ class TestCoupon(TestBase):
         assert 'https://test.com/image_3.jpg'.encode('utf-8') in response.data
         assert shared_contract['IbetCouponExchange']['address'].encode('utf-8') in response.data
 
+    # ＜正常系2_5＞
+    # ＜発行画面表示＞
+    def test_normal_2_5(self, app, db, shared_contract):
+        client = self.client_with_admin_login(app)
+
+        # 新規発行画面の表示
+        response = client.get(self.url_issue,)
+        assert response.status_code == 200
+
+        assert '<title>クーポン発行'.encode('utf-8') in response.data
+        assert 'クーポン名'.encode('utf-8') in response.data
+
     # ＜正常系3_1＞
     # ＜1件確認＞
     #   発行済一覧画面の参照(1件)
@@ -407,10 +419,10 @@ class TestCoupon(TestBase):
         assert 'テストクーポン'.encode('utf-8') in response.data
         assert '2000100'.encode('utf-8') in response.data
 
-    # ＜正常系7＞
+    # ＜正常系7_1＞
     # ＜割当＞
     #   クーポン割当　→　保有者一覧で確認
-    def test_normal_7(self, app, shared_contract):
+    def test_normal_7_1(self, app, shared_contract):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
         client = self.client_with_admin_login(app)
 
@@ -453,6 +465,21 @@ class TestCoupon(TestBase):
         response_data = json.loads(response.data)
         assert response.status_code == 200
         assert 'テストクーポン' == response_data
+
+    # ＜正常系7_2＞
+    # ＜割当＞
+    #   クーポン割当画面表示
+    def test_normal_7_2(self, app, shared_contract):
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        client = self.client_with_admin_login(app)
+
+        # 割当処理
+        response = client.get(self.url_transfer)
+        response_data = json.loads(response.data)
+        assert response.status_code == 200
+
+        assert '<title>クーポン割当'.encode('utf-8') in response.data
+        assert 'クーポンアドレス' == response_data
 
     # ＜正常系8＞
     # ＜保有者詳細＞
@@ -547,6 +574,20 @@ class TestCoupon(TestBase):
         assert '売出開始'.encode('utf-8') in response.data
         # 売出中の数量が0
         assert '<td>2000100</td>\n            <td>2000000</td>\n            <td>0</td>'.encode('utf-8') in response.data
+
+    # ＜正常系9_4＞
+    # ＜売出停止画面の表示＞
+    def test_normal_9_4(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        token = tokens[0]
+
+        # 売出停止処理
+        response = client.get(self.url_cancel_order)
+        assert response.status_code == 200
+
+        assert '<title>売出停止'.encode('utf-8') in response.data
+        assert '売出情報'.encode('utf-8') in response.data
 
     # ＜正常系10_1＞
     # ＜所有者移転＞
