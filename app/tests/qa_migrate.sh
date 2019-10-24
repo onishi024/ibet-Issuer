@@ -2,7 +2,7 @@
 set -Ceu
 
 source ~/.bash_profile
-cd /app/tmr-issuer
+cd /app/ibet-Issuer
 
 python manage.py db init
 python manage.py db migrate

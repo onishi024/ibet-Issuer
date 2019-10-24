@@ -1,7 +1,7 @@
 #!/bin/bash
 source ~/.bash_profile
 
-cd /app/tmr-issuer
+cd /app/ibet-Issuer
 
 #run server
 python rsa/create_rsakey.py $1

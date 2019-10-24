@@ -62,9 +62,9 @@ RUN . ~/.bash_profile \
 
 # app
 USER root
-COPY . /app/tmr-issuer
-RUN chown -R apl:apl /app/tmr-issuer && \
-    chmod 755 /app/tmr-issuer
+COPY . /app/ibet-Issuer
+RUN chown -R apl:apl /app/ibet-Issuer && \
+    chmod 755 /app/ibet-Issuer
 USER apl
 COPY run.sh /app/
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 source ~/.bash_profile
 
-cd /app/tmr-issuer
+cd /app/ibet-Issuer
 
 # async
 nohup python async/processor_IssueEvent.py < /dev/null 2>&1 /dev/null &
