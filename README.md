@@ -8,7 +8,7 @@
 ## 1-2. 必要なパッケージを取得
 
 ```bash
-$ cd tmr-issuer
+$ cd ibet-Issuer
 $ pip install -r requirements.txt
 ```
 - 必要に応じてプロキシオプションや証明書オプションを追加して実行
@@ -17,7 +17,7 @@ $ pip install -r requirements.txt
 * 事前にデータベースの作成が必要　（例：`issuerdb`）
 
 ```bash
-$ cd tmr-issuer
+$ cd ibet-Issuer
 $ python manage.py db init
 $ python manage.py db migrate
 $ python manage.py db upgrade
@@ -27,11 +27,11 @@ $ python manage.py db upgrade
 
 ```
 $ python manage.py shell
->> （tmr-issuer/app/tests/testdata.txt にあるコマンドをコピー＆ペースト）
+>> （ibet-Issuer/app/tests/testdata.txt にあるコマンドをコピー＆ペースト）
 ```
 
 
-# 2. tmr-issuer の起動確認
+# 2. ibet-Issuer の起動確認
 
 ## 2-1. 初回準備
 
@@ -79,7 +79,7 @@ export RSA_PASSWORD=password
 - 起動
 
 ```
-$ cd tmr-issuer
+$ cd ibet-Issuer
 $ python manage.py runserver [ -h 0.0.0.0 ]
 ```
 - 接続確認  
@@ -93,7 +93,7 @@ http://XXX.XXX.XXX.XXX:5000/ で接続して起動していることを確認。
 * manage.py で定義してあるコマンドオプションにしたがって、テストを実行する
 
 ```bash:
-$ cd tmr-issuer
+$ cd ibet-Issuer
 $ python manage.py test
 ```
 
