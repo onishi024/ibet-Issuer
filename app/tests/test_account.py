@@ -250,6 +250,22 @@ class TestAccountEdit(TestBase):
         )
         assert response.status_code == 302
 
+    # ＜正常系3＞
+    # 登録：POST iconclear
+    def test_normal_3(self, app):
+        client = self.client_with_admin_login(app)
+        response = client.post(
+            self.target_url + '1',
+            data={
+                'login_id': 'admin',
+                'user_name': '管理者',
+                'icon': 'xxxx',
+                'iconclear': True,
+                'role': 1,
+            }
+        )
+        assert response.status_code == 302
+
     # ＜エラー系1＞
     #   登録：POST
     #   入力エラー
@@ -288,6 +304,21 @@ class TestAccountEditCurrent(TestBase):
                 'login_id': 'user',
                 'user_name': 'ユーザ',
                 'icon': 'xxxx'
+            }
+        )
+        assert response.status_code == 302
+
+    # ＜正常系3＞
+    # 登録：POST iconclear
+    def test_normal_3(self, app):
+        client = self.client_with_user_login(app)
+        response = client.post(
+            self.target_url,
+            data={
+                'login_id': 'user',
+                'user_name': 'ユーザ',
+                'icon': 'xxxx',
+                'iconclear': True
             }
         )
         assert response.status_code == 302
