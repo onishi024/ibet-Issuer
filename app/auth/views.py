@@ -7,15 +7,17 @@ from .forms import LoginForm
 from ..models import User
 from config import Config
 
+
 def flash_errors(form):
     for field, errors in form.errors.items():
         for error in errors:
             flash(error, 'error')
 
+
 @auth.route('/login', methods=['GET','POST'])
 def login():
     form = LoginForm()
-    if request.method == 'POST' and form.validate() == True:
+    if request.method == 'POST' and form.validate() is True:
         user = User.query.filter_by(login_id=form.login_id.data).first()
         if user is not None and user.verify_password(form.password.data):
             login_user(user)
@@ -24,13 +26,14 @@ def login():
             return redirect(request.args.get('next') or url_for('index.index'))
         else:
             flash('ログインID又はパスワードが正しくありません。', 'error')
-    elif request.method == 'POST' and form.validate() == False:
+    elif request.method == 'POST' and form.validate() is False:
         flash_errors(form)
         return redirect(url_for('.login'))
 
     return render_template('login.html', form=form, next_url=request.args.get('next'))
 
-@auth.route('/logout', methods=['GET','POST'])
+
+@auth.route('/logout', methods=['GET', 'POST'])
 @login_required
 def logout():
     logout_user()

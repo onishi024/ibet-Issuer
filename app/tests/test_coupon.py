@@ -25,16 +25,21 @@ class TestCoupon(TestBase):
     url_get_applications = 'coupon/get_applications/'  # 募集申込一覧
     url_allocate = 'coupon/allocate'  # 割当（募集申込）
     url_transfer = 'coupon/transfer'  # 割当
+    url_bulk_transfer = 'coupon/bulk_transfer' # 一括割当
     url_transfer_ownership = 'coupon/transfer_ownership/'  # 所有者移転
     url_holders = 'coupon/holders/'  # 保有者一覧
     url_get_holders = 'coupon/get_holders/'  # 保有者一覧（API）
     url_holders_csv_download = 'coupon/holders_csv_download'  # 保有者一覧CSVダウンロード
-    url_get_token_name = 'coupon/get_token_name/' # トークン名取得（API）
+    url_get_token_name = 'coupon/get_token_name/'  # トークン名取得（API）
     url_holder = 'coupon/holder/'  # 保有者詳細
     url_positions = 'coupon/positions'  # 売出管理
     url_sell = 'coupon/sell/'  # 新規売出
     url_cancel_order = 'coupon/cancel_order/'  # 売出中止
     url_release = 'coupon/release'  # 公開
+    url_bulk_transfer = 'coupon/bulk_transfer' # 一括割当
+    url_usage_history = 'coupon/usage_history/' # 利用履歴
+    url_get_usage_history_coupon = 'coupon/get_usage_history_coupon/' # 利用履歴
+    url_used_csv_download = 'coupon/used_csv_download'  # 利用履歴CSVダウンロード
 
     ##################
     # PersonalInfo情報の暗号化
@@ -236,6 +241,18 @@ class TestCoupon(TestBase):
         assert 'https://test.com/image_3.jpg'.encode('utf-8') in response.data
         assert shared_contract['IbetCouponExchange']['address'].encode('utf-8') in response.data
 
+    # ＜正常系2_5＞
+    # ＜発行画面表示＞
+    def test_normal_2_5(self, app, db, shared_contract):
+        client = self.client_with_admin_login(app)
+
+        # 新規発行画面の表示
+        response = client.get(self.url_issue, )
+        assert response.status_code == 200
+
+        assert '<title>クーポン発行'.encode('utf-8') in response.data
+        assert 'クーポン名'.encode('utf-8') in response.data
+
     # ＜正常系3_1＞
     # ＜1件確認＞
     #   発行済一覧画面の参照(1件)
@@ -407,10 +424,10 @@ class TestCoupon(TestBase):
         assert 'テストクーポン'.encode('utf-8') in response.data
         assert '2000100'.encode('utf-8') in response.data
 
-    # ＜正常系7＞
+    # ＜正常系7_1＞
     # ＜割当＞
     #   クーポン割当　→　保有者一覧で確認
-    def test_normal_7(self, app, shared_contract):
+    def test_normal_7_1(self, app, shared_contract):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
         client = self.client_with_admin_login(app)
 
@@ -453,6 +470,34 @@ class TestCoupon(TestBase):
         response_data = json.loads(response.data)
         assert response.status_code == 200
         assert 'テストクーポン' == response_data
+
+    # ＜正常系7_2＞
+    # ＜割当＞
+    #   クーポン割当画面表示
+    def test_normal_7_2(self, app, shared_contract):
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        client = self.client_with_admin_login(app)
+
+        # 割当処理
+        response = client.get(self.url_transfer)
+        assert response.status_code == 200
+        assert '<title>クーポン割当'.encode('utf-8') in response.data
+
+    # ＜正常系7_3＞
+    # ＜一括割当画面表示＞
+    #   クーポン一括割当
+    def test_normal_7_3(self, app, shared_contract):
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        client = self.client_with_admin_login(app)
+
+        # 一括割当処理(GET)
+        response = client.get(self.url_bulk_transfer)
+        assert response.status_code == 200
+        assert '<title>クーポン一括割当'.encode('utf-8') in response.data
+
+        # CSV一括割当処理(POST)
+        response = client.post(self.url_bulk_transfer)
+        assert response.status_code == 200
 
     # ＜正常系8＞
     # ＜保有者詳細＞
@@ -525,9 +570,23 @@ class TestCoupon(TestBase):
         assert '<td>2000100</td>\n            <td>0</td>\n            <td>2000000</td>'.encode('utf-8') in response.data
 
     # ＜正常系9_3＞
+    # ＜売出停止画面の表示＞
+    def test_normal_9_3(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        token = tokens[0]
+
+        # 売出停止処理
+        response = client.get(self.url_cancel_order + token.token_address)
+        assert response.status_code == 200
+
+        assert '<title>売出停止'.encode('utf-8') in response.data
+        assert '売出情報'.encode('utf-8') in response.data
+
+    # ＜正常系9_4＞
     # ＜売出＞
     #   売出停止 → 売出管理画面で確認
-    def test_normal_9_3(self, app, shared_contract):
+    def test_normal_9_4(self, app, shared_contract):
         client = self.client_with_admin_login(app)
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
         token = tokens[0]
@@ -839,6 +898,35 @@ class TestCoupon(TestBase):
         response = client.post(url, data={'token_address': token_address})
         assert response.status_code == 200
 
+    # ＜正常系16_1＞
+    # ＜クーポン利用履歴画面＞
+    #   クーポン利用履歴画面が表示できること
+    def test_normal_16_1(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        token = tokens[0]
+
+        token_address = str(token.token_address)
+
+        url = self.url_usage_history + token_address
+        response = client.get(url)
+        assert response.status_code == 200
+
+    # ＜正常系16_2＞
+    # ＜クーポン利用履歴＞
+    #   クーポン利用履歴が取得できること
+    def test_normal_16_2(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        token = tokens[0]
+
+        token_address = str(token.token_address)
+
+        url = self.url_get_usage_history_coupon + token_address
+        # response = client.get(url, data={'token_address': token_address})
+        response = client.get(url)
+        assert response.status_code == 200
+
     #############################################################################
     # エラー系
     #############################################################################
@@ -1123,3 +1211,76 @@ class TestCoupon(TestBase):
         )
         assert response.status_code == 200
         assert '移転数量が残高を超えています。'.encode('utf-8') in response.data
+
+    # ＜エラー系4_1＞
+    # ＜追加発行＞
+    #   追加発行 →　何らかの影響で指定したトークンが存在しない
+    def test_error_4_1(self, app, shared_contract):
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        url_add_supply = self.url_add_supply + "0x1111"  # 不正なアドレス
+        client = self.client_with_admin_login(app)
+
+        # 追加発行画面（GET）
+        response = client.get(url_add_supply)
+        assert response.status_code == 404 # abortされる
+
+    # ＜エラー系4_2＞
+    # ＜追加発行＞
+    #   詳細設定 →　何らかの影響で指定したトークンが存在しない
+    def test_error_4_2(self, app, shared_contract):
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        url_setting = self.url_setting + "0x2222"  # 不正なアドレス
+        client = self.client_with_admin_login(app)
+
+        # 詳細設定画面（GET）
+        response = client.get(url_setting)
+        assert response.status_code == 404  # abortされる
+
+    # ＜エラー系4_3＞
+    # ＜売出＞
+    #   新規売出　→　何らかの影響で指定したトークンが存在しない
+    def test_error4_3(self, app, shared_contract):
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+
+        # 売出画面の参照
+        client = self.client_with_admin_login(app)
+        response = client.get(self.url_sell + "0x3333")  # 不正なアドレス
+        assert response.status_code == 404  # abortされる
+
+    # ＜エラー系4-4＞
+    # ＜売出停止画面の表示＞
+    def test_error_4_4(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+
+        # 売出停止処理
+        response = client.get(self.url_cancel_order + "0x4444")  # 不正なアドレス
+        assert response.status_code == 404  # abortされる
+
+    # ＜エラー系4_5＞
+    # ＜所有者移転＞
+    #   所有者移転画面の参照：GET　→　何らかの影響で指定したトークンが存在しない
+    def test_error_4_5(self, app):
+        client = self.client_with_admin_login(app)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        issuer_address = \
+            to_checksum_address(eth_account['issuer']['account_address'])
+
+        # 所有者移転画面の参照
+        response = client.get(
+            self.url_transfer_ownership + "0x5555" + '/' + issuer_address)  # 不正なアドレス
+        assert response.status_code == 404  # abortされる
+
+    # ＜エラー系4-6＞
+    # ＜割当（募集申込）＞
+    #   割当（募集申込）画面参照：GET　→　何らかの影響で指定したトークンが存在しない
+    def test_error_4_6(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+
+        trader_address = eth_account['trader']['account_address']
+
+        # 割当（募集申込）
+        url = self.url_allocate + '/' + "0x6666" + '/' + trader_address  # 不正なアドレス
+        response = client.get(url)
+        assert response.status_code == 404  # abortされる
