@@ -934,22 +934,6 @@ class TestCoupon(TestBase):
         response = client.get(url, data={'token_address': token_address})
         assert response.status_code == 200
 
-    # # ＜正常系16_3＞
-    # # ＜クーポン利用履歴CSVダウンロード＞
-    # #   利用履歴一覧CSVが取得できること
-    # def test_normal_16_3(self, app, shared_contract):
-    #     client = self.client_with_admin_login(app)
-    #     tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
-    #     token = tokens[0]
-
-    #     token_address = str(token.token_address)
-
-    #     # csvダウンロード
-    #     url = self.url_used_csv_download
-    #     response = client.post(url, data={'token_address': token_address})
-    #     assert response.status_code == 200
-    #     time.sleep(10)
-
     #############################################################################
     # エラー系
     #############################################################################
