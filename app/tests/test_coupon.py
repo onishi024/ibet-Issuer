@@ -1213,7 +1213,7 @@ class TestCoupon(TestBase):
         assert '移転数量が残高を超えています。'.encode('utf-8') in response.data
 
     # ＜エラー系4_1＞
-    # ＜追加発行＞ normal_6
+    # ＜追加発行＞
     #   追加発行 →　何らかの影響で指定したトークンが存在しない
     def test_error_4_1(self, app, shared_contract):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
@@ -1225,7 +1225,7 @@ class TestCoupon(TestBase):
         assert response.status_code == 404 # abortされる
 
     # ＜エラー系4_2＞
-    # ＜追加発行＞ normal_6
+    # ＜追加発行＞
     #   詳細設定 →　何らかの影響で指定したトークンが存在しない
     def test_error_4_2(self, app, shared_contract):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
@@ -1237,18 +1237,18 @@ class TestCoupon(TestBase):
         assert response.status_code == 404  # abortされる
 
     # ＜エラー系4_3＞
-    # ＜売出＞ normal9_1
-    #   新規売出　 →　何らかの影響で指定したトークンが存在しない
+    # ＜売出＞
+    #   新規売出　→　何らかの影響で指定したトークンが存在しない
     def test_error4_3(self, app, shared_contract):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
 
         # 売出画面の参照
         client = self.client_with_admin_login(app)
         response = client.get(self.url_sell + "0x3333")  # 不正なアドレス
-        assert response.status_code == 404 # abortされる
+        assert response.status_code == 404  # abortされる
 
     # ＜エラー系4-4＞
-    # ＜売出停止画面の表示＞ normal9_3
+    # ＜売出停止画面の表示＞
     def test_error_4_4(self, app, shared_contract):
         client = self.client_with_admin_login(app)
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
@@ -1258,9 +1258,8 @@ class TestCoupon(TestBase):
         assert response.status_code == 404  # abortされる
 
     # ＜エラー系4_5＞
-    # ＜所有者移転＞ normal10_1
-    #   所有者移転画面の参照：GET
-    # 不正なアドレスが指定された場合、エラー
+    # ＜所有者移転＞
+    #   所有者移転画面の参照：GET　→　何らかの影響で指定したトークンが存在しない
     def test_error_4_5(self, app):
         client = self.client_with_admin_login(app)
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
@@ -1273,9 +1272,8 @@ class TestCoupon(TestBase):
         assert response.status_code == 404  # abortされる
 
     # ＜エラー系4-6＞
-    # ＜割当（募集申込）＞ normal14_1
-    #   割当（募集申込）画面参照：GET
-    # 不正なアドレスが指定された場合、エラー
+    # ＜割当（募集申込）＞
+    #   割当（募集申込）画面参照：GET　→　何らかの影響で指定したトークンが存在しない
     def test_error_4_6(self, app, shared_contract):
         client = self.client_with_admin_login(app)
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
