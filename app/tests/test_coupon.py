@@ -490,19 +490,12 @@ class TestCoupon(TestBase):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
         client = self.client_with_admin_login(app)
 
-        # 一括割当処理
+        # 一括割当処理(GET)
         response = client.get(self.url_bulk_transfer)
         assert response.status_code == 200
         assert '<title>クーポン一括割当'.encode('utf-8') in response.data
 
-    # ＜正常系7_4＞
-    # ＜一括割当＞
-    #   クーポン一括割当
-    def test_normal_7_4(self, app, shared_contract):
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
-        client = self.client_with_admin_login(app)
-
-        # CSV一括割当処理
+        # CSV一括割当処理(POST)
         response = client.post(self.url_bulk_transfer)
         assert response.status_code == 200
 
@@ -919,7 +912,6 @@ class TestCoupon(TestBase):
         response = client.get(url)
         assert response.status_code == 200
 
-
     # ＜正常系16_2＞
     # ＜クーポン利用履歴＞
     #   クーポン利用履歴が取得できること
@@ -931,7 +923,8 @@ class TestCoupon(TestBase):
         token_address = str(token.token_address)
 
         url = self.url_get_usage_history_coupon + token_address
-        response = client.get(url, data={'token_address': token_address})
+        # response = client.get(url, data={'token_address': token_address})
+        response = client.get(url)
         assert response.status_code == 200
 
     #############################################################################
@@ -1224,8 +1217,7 @@ class TestCoupon(TestBase):
     #   追加発行 →　何らかの影響で指定したトークンが存在しない
     def test_error_4_1(self, app, shared_contract):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
-        url_add_supply = self.url_add_supply + "0x1111" # 不正なアドレス
-        url_setting = self.url_setting + tokens[0].token_address
+        url_add_supply = self.url_add_supply + "0x1111"  # 不正なアドレス
         client = self.client_with_admin_login(app)
 
         # 追加発行画面（GET）
@@ -1237,24 +1229,22 @@ class TestCoupon(TestBase):
     #   詳細設定 →　何らかの影響で指定したトークンが存在しない
     def test_error_4_2(self, app, shared_contract):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
-        url_add_supply = self.url_add_supply + tokens[0].token_address
-        url_setting = self.url_setting + "0x2222" # 不正なアドレス
+        url_setting = self.url_setting + "0x2222"  # 不正なアドレス
         client = self.client_with_admin_login(app)
 
         # 詳細設定画面（GET）
         response = client.get(url_setting)
-        assert response.status_code == 404 # abortされる
+        assert response.status_code == 404  # abortされる
 
     # ＜エラー系4_3＞
     # ＜売出＞ normal9_1
     #   新規売出　 →　何らかの影響で指定したトークンが存在しない
     def test_error4_3(self, app, shared_contract):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
-        token = tokens[0]
 
         # 売出画面の参照
         client = self.client_with_admin_login(app)
-        response = client.get(self.url_sell + "0x3333") # 不正なアドレス
+        response = client.get(self.url_sell + "0x3333")  # 不正なアドレス
         assert response.status_code == 404 # abortされる
 
     # ＜エラー系4-4＞
@@ -1262,40 +1252,37 @@ class TestCoupon(TestBase):
     def test_error_4_4(self, app, shared_contract):
         client = self.client_with_admin_login(app)
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
-        token = tokens[0]
 
         # 売出停止処理
-        response = client.get(self.url_cancel_order + "0x4444") # 不正なアドレス
-        assert response.status_code == 404 # abortされる
+        response = client.get(self.url_cancel_order + "0x4444")  # 不正なアドレス
+        assert response.status_code == 404  # abortされる
 
     # ＜エラー系4_5＞
     # ＜所有者移転＞ normal10_1
-    #   所有者移転画面の参照
+    #   所有者移転画面の参照：GET
+    # 不正なアドレスが指定された場合、エラー
     def test_error_4_5(self, app):
         client = self.client_with_admin_login(app)
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
-        token = tokens[0]
         issuer_address = \
             to_checksum_address(eth_account['issuer']['account_address'])
 
         # 所有者移転画面の参照
         response = client.get(
-            self.url_transfer_ownership + "0x5555" + '/' + issuer_address) # 不正なアドレス
-        assert response.status_code == 404
+            self.url_transfer_ownership + "0x5555" + '/' + issuer_address)  # 不正なアドレス
+        assert response.status_code == 404  # abortされる
 
     # ＜エラー系4-6＞
     # ＜割当（募集申込）＞ normal14_1
     #   割当（募集申込）画面参照：GET
-    #   ※Token_1が対象
+    # 不正なアドレスが指定された場合、エラー
     def test_error_4_6(self, app, shared_contract):
         client = self.client_with_admin_login(app)
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
-        token = tokens[0]
 
-        token_address = str(token.token_address)
         trader_address = eth_account['trader']['account_address']
 
         # 割当（募集申込）
-        url = self.url_allocate + '/' + "0x6666" + '/' + trader_address # 不正なアドレス
+        url = self.url_allocate + '/' + "0x6666" + '/' + trader_address  # 不正なアドレス
         response = client.get(url)
-        assert response.status_code == 404 # abortされる
+        assert response.status_code == 404  # abortされる

@@ -26,7 +26,7 @@ def login():
             return redirect(request.args.get('next') or url_for('index.index'))
         else:
             flash('ログインID又はパスワードが正しくありません。', 'error')
-    elif request.method is 'POST' and form.validate() is False:
+    elif request.method == 'POST' and form.validate() is False:
         flash_errors(form)
         return redirect(url_for('.login'))
 
