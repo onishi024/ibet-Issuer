@@ -49,7 +49,8 @@ while True:
             filter(CouponBulkTransfer.transferred == False).all()
     except Exception as err:
         logging.error("%s", err)
-        break
+        time.sleep(10)
+        continue
 
     # レコード単位で割当処理を実行
     for item in untransferred_list:
