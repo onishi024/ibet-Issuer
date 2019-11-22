@@ -24,7 +24,8 @@ while True:
         )
     except Exception as err:
         logging.error("%s", err)
-        break
+        time.sleep(10)
+        continue
 
     for row in token_unprocessed:
         tx_hash = row['tx_hash']
