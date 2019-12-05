@@ -1,9 +1,9 @@
 # 1. 環境構築
 ## 1-1. 事前準備
 * Python3.6.4, Quorum, PostgreSQL 等の環境を整えるために、
- `tmr-sc` と `tmr-node` のReadmeの手順を全て実行しておく。
-   1. https://github.com/N-Village/tmr-sc
-   2. https://github.com/N-Village/tmr-node
+ `ibet-SmartContract` と `ibet-Wallet-API` のReadmeの手順を全て実行しておく。
+   1. https://github.com/BoostryJP/ibet-SmartContract
+   2. https://github.com/BoostryJP/ibet-Wallet-API
 
 ## 1-2. 必要なパッケージを取得
 
@@ -43,17 +43,17 @@ $ python rsa/create_rsakey.py password
 
 
 * 環境変数追加
-* `1-1.「事前準備」`のtmr-scで定義したコントラクトをQuorumにデプロイした時に得られる、コントラクトアドレスを環境変数に定義しておく
+* `1-1.「事前準備」`のibet-SmartContractで定義したコントラクトをQuorumにデプロイした時に得られる、コントラクトアドレスを環境変数に定義しておく
 
 例）
 
 ```
-export TOKEN_LIST_CONTRACT_ADDRESS=0x4e01488325aa068bb66f76003a52f325ef1fdbf7
-export PERSONAL_INFO_CONTRACT_ADDRESS=0xc4b4b034133d766e9326d8438656dce16ecd0d23
-export PAYMENT_GATEWAY_CONTRACT_ADDRESS=0x2d25d36233c240d067dc19ce9fa782895514d360
-export IBET_SB_EXCHANGE_CONTRACT_ADDRESS=0x68888454bfb9355045dd4966434892ea33a971f5
-export IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS=0x0be90a91f22e6db59e6c337fc2749ec2f830cac3
-export IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS=0x88137aaf6203414d76b0253efb0a168faa0e08ea
+export TOKEN_LIST_CONTRACT_ADDRESS=0x5bd79b2f9c28597a89b029d555bbc4d3a7c8af1f
+export PERSONAL_INFO_CONTRACT_ADDRESS=0x7d4d6d3771de98b4b1975e94faadd5ec13df71f4
+export PAYMENT_GATEWAY_CONTRACT_ADDRESS=0x3af11058f0ef4196dae74b55f386405b18545311
+export IBET_SB_EXCHANGE_CONTRACT_ADDRESS=0x8dbbdff8640a1c1f64ed185e42433dced09766fd
+export IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS=0xc8b3b2e05bcdc10f8fbb17a4f3168f69b32ff85d
+export IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS=0x624310d40ee99d93d2b94431e09751e62c04923c
 export ETH_ACCOUNT_PASSWORD=password
 export AGENT_ACCOUNT_PASSWORD=password
 export DATABASE_URL=postgresql://issueruser:issueruserpass@localhost:5432/issuerdb
@@ -63,12 +63,12 @@ export RSA_PASSWORD=password
 ```
 | 環境変数| 意味 | データ取得方法 |
 |:----------:|:-----------:|:------------:|
-| TOKEN_LIST_CONTRACT_ADDRESS | TokenListコントラクトのアドレス | tmr-sc/deploy/deploy.shの結果 |
-| PERSONAL_INFO_CONTRACT_ADDRESS | PersonalInfoコントラクトのアドレス | tmr-sc/deploy/deploy.shの結果 |
-| PAYMENT_GATEWAY_CONTRACT_ADDRESS | PaymentGatewayコントラクトのアドレス | tmr-sc/deploy/deploy.shの結果 |
-| IBET_SB_EXCHANGE_CONTRACT_ADDRESS | IbetStraightBondExchangeコントラクトのアドレス | tmr-sc/deploy/deploy.shの結果 |
-| IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS | IbetCouponExchangeコントラクトのアドレス | tmr-sc/deploy/deploy.shの結果 |
-| IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS | IbetMembershipExchangeコントラクトのアドレス | tmr-sc/deploy/deploy.shの結果 |
+| TOKEN_LIST_CONTRACT_ADDRESS | TokenListコントラクトのアドレス | ibet-SmartContract/scripts/deploy.shの結果 |
+| PERSONAL_INFO_CONTRACT_ADDRESS | PersonalInfoコントラクトのアドレス | ibet-SmartContract/scripts/deploy.shの結果 |
+| PAYMENT_GATEWAY_CONTRACT_ADDRESS | PaymentGatewayコントラクトのアドレス | ibet-SmartContract/scripts/deploy.shの結果 |
+| IBET_SB_EXCHANGE_CONTRACT_ADDRESS | IbetStraightBondExchangeコントラクトのアドレス | ibet-SmartContract/scripts/deploy.shの結果 |
+| IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS | IbetCouponExchangeコントラクトのアドレス | ibet-SmartContract/scripts/deploy.shの結果 |
+| IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS | IbetMembershipExchangeコントラクトのアドレス | ibet-SmartContract/scripts/deploy.shの結果 |
 | ETH_ACCOUNT_PASSWORD | eth.account([0])のパスワード | 初期データ登録時に取得 |
 | AGENT_ACCOUNT_PASSWORD | eth.account([0])のパスワード | 初期データ登録時に取得 |
 | DATABASE_URL | postgresqlのissuerdbのURL | postgresqlの設定時に取得 |
