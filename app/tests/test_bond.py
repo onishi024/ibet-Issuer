@@ -546,9 +546,9 @@ class TestBond(TestBase):
         # 投資家
         assert trader_address == response_data[1]['account_address']
         assert 'ﾀﾝﾀｲﾃｽﾄ' == response_data[1]['name']
-        assert '1040053' == response_data[1]]['postal_code']
-        assert '東京都中央区勝どき6丁目３－２ＴＴＴ６０１２' == response_data[1]]['address']
-        assert 'abcd1234@aaa.bbb.cc' == response_data[1]]['email']
+        assert '1040053' == response_data[1]['postal_code']
+        assert '東京都中央区勝どき6丁目３－２ＴＴＴ６０１２' == response_data[1]['address']
+        assert 'abcd1234@aaa.bbb.cc' == response_data[1]['email']
         assert 10 == response_data[1]['balance']
         assert 0 == response_data[1]['commitment']
 
