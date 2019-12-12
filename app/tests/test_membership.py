@@ -1,39 +1,39 @@
 # -*- coding:utf-8 -*-
 import time
-import json
 from .conftest import TestBase
 from .contract_modules import *
 from ..models import Token
 from eth_utils import to_checksum_address
 from logging import getLogger
+
 logger = getLogger('api')
 
-class TestMembership(TestBase):
 
+class TestMembership(TestBase):
     ##################
     # URL
     ##################
-    url_list = 'membership/list' # 発行済一覧
-    url_positions = 'membership/positions' # 売出管理
-    url_issue = 'membership/issue' # 新規発行
-    url_setting = 'membership/setting/' # 詳細設定
-    url_sell = 'membership/sell/' # 新規売出
-    url_cancel_order = 'membership/cancel_order/' # 売出中止
-    url_release = 'membership/release' # 公開
-    url_invalid = 'membership/invalid' # 無効化（取扱中止）
-    url_valid = 'membership/valid' # 有効化（取扱開始）
-    url_start_initial_offering = 'membership/start_initial_offering' # 募集申込開始
-    url_stop_initial_offering = 'membership/stop_initial_offering' # 募集申込停止
-    url_applications = 'membership/applications/' # 募集申込一覧
-    url_get_applications = 'membership/get_applications/' # 募集申込一覧
-    url_allocate = 'membership/allocate' # 割当（募集申込）
-    url_add_supply = 'membership/add_supply/' # 追加発行
-    url_holders = 'membership/holders/' # 保有者一覧
-    url_get_holders = 'membership/get_holders/' # 保有者一覧（API）
+    url_list = 'membership/list'  # 発行済一覧
+    url_positions = 'membership/positions'  # 売出管理
+    url_issue = 'membership/issue'  # 新規発行
+    url_setting = 'membership/setting/'  # 詳細設定
+    url_sell = 'membership/sell/'  # 新規売出
+    url_cancel_order = 'membership/cancel_order/'  # 売出中止
+    url_release = 'membership/release'  # 公開
+    url_invalid = 'membership/invalid'  # 無効化（取扱中止）
+    url_valid = 'membership/valid'  # 有効化（取扱開始）
+    url_start_initial_offering = 'membership/start_initial_offering'  # 募集申込開始
+    url_stop_initial_offering = 'membership/stop_initial_offering'  # 募集申込停止
+    url_applications = 'membership/applications/'  # 募集申込一覧
+    url_get_applications = 'membership/get_applications/'  # 募集申込一覧
+    url_allocate = 'membership/allocate'  # 割当（募集申込）
+    url_add_supply = 'membership/add_supply/'  # 追加発行
+    url_holders = 'membership/holders/'  # 保有者一覧
+    url_get_holders = 'membership/get_holders/'  # 保有者一覧（API）
     url_holders_csv_download = 'membership/holders_csv_download'  # 保有者一覧CSVダウンロード
-    url_get_token_name = 'membership/get_token_name/' # トークン名取得（API）
-    url_holder = 'membership/holder/' # 保有者詳細
-    url_transfer_ownership = 'membership/transfer_ownership/' # 所有者移転
+    url_get_token_name = 'membership/get_token_name/'  # トークン名取得（API）
+    url_holder = 'membership/holder/'  # 保有者詳細
+    url_transfer_ownership = 'membership/transfer_ownership/'  # 所有者移転
 
     ##################
     # テスト用会員権トークン情報
@@ -92,42 +92,42 @@ class TestMembership(TestBase):
     # PersonalInfo情報の暗号化
     ##################
     issuer_personal_info_json = {
-        "name":"株式会社１",
-        "address":{
-            "postal_code":"1234567",
-            "prefecture":"東京都",
-            "city":"中央区",
-            "address1":"日本橋11-1",
-            "address2":"東京マンション１０１"
+        "name": "株式会社１",
+        "address": {
+            "postal_code": "1234567",
+            "prefecture": "東京都",
+            "city": "中央区",
+            "address1": "日本橋11-1",
+            "address2": "東京マンション１０１"
         },
-        "email":"abcd1234@aaa.bbb.cc"
+        "email": "abcd1234@aaa.bbb.cc"
     }
 
     trader_personal_info_json = {
-        "name":"ﾀﾝﾀｲﾃｽﾄ",
-        "address":{
-            "postal_code":"1040053",
-            "prefecture":"東京都",
-            "city":"中央区",
-            "address1":"勝どき6丁目３－２",
-            "address2":"ＴＴＴ６０１２"
+        "name": "ﾀﾝﾀｲﾃｽﾄ",
+        "address": {
+            "postal_code": "1040053",
+            "prefecture": "東京都",
+            "city": "中央区",
+            "address1": "勝どき6丁目３－２",
+            "address2": "ＴＴＴ６０１２"
         },
-        "email":"abcd1234@aaa.bbb.cc"
+        "email": "abcd1234@aaa.bbb.cc"
     }
 
     key = RSA.importKey(open('data/rsa/public.pem').read())
     cipher = PKCS1_OAEP.new(key)
 
     issuer_encrypted_info = \
-        base64.encodestring(
+        base64.encodebytes(
             cipher.encrypt(json.dumps(issuer_personal_info_json).encode('utf-8')))
 
     trader_encrypted_info = \
-        base64.encodestring(
+        base64.encodebytes(
             cipher.encrypt(json.dumps(trader_personal_info_json).encode('utf-8')))
 
     # ＜前処理＞
-    def test_normal_0(self, app, shared_contract):
+    def test_normal_0(self, shared_contract):
         # Config設定
         Config.ETH_ACCOUNT = eth_account['issuer']['account_address']
         Config.ETH_ACCOUNT_PASSWORD = eth_account['issuer']['password']
@@ -147,7 +147,7 @@ class TestMembership(TestBase):
     # ＜正常系1_1＞
     # ＜会員権の0件確認＞
     #   発行済一覧画面の参照(0件)
-    def test_normal_1_1(self, app, shared_contract):
+    def test_normal_1_1(self, app):
         # 発行済一覧の参照
         client = self.client_with_admin_login(app)
         response = client.get(self.url_list)
@@ -158,7 +158,7 @@ class TestMembership(TestBase):
     # ＜正常系1_2＞
     # ＜会員権の0件確認＞
     #   売出管理画面の参照(0件)
-    def test_normal_1_2(self, app, shared_contract):
+    def test_normal_1_2(self, app):
         client = self.client_with_admin_login(app)
         response = client.get(self.url_positions)
         assert response.status_code == 200
@@ -168,7 +168,7 @@ class TestMembership(TestBase):
     # ＜正常系2_1＞
     # ＜会員権の1件確認＞
     #   新規発行　→　詳細設定画面の参照
-    def test_normal_2_1(self, app, db, shared_contract):
+    def test_normal_2_1(self, app, db):
         client = self.client_with_admin_login(app)
         # 新規発行
         response = client.post(
@@ -203,7 +203,7 @@ class TestMembership(TestBase):
     # ＜正常系2_2＞
     # ＜会員権の1件確認＞
     #   発行済一覧画面の参照(1件)
-    def test_normal_2_2(self, app, shared_contract):
+    def test_normal_2_2(self, app):
         token = TestMembership.get_token(0)
 
         # 発行済一覧画面の参照
@@ -219,7 +219,7 @@ class TestMembership(TestBase):
     # ＜正常系2_3＞
     # ＜会員権の1件確認＞
     #   売出管理画面の参照(1件)
-    def test_normal_2_3(self, app, shared_contract):
+    def test_normal_2_3(self, app):
         token = TestMembership.get_token(0)
 
         # 売出管理画面の参照
@@ -235,7 +235,7 @@ class TestMembership(TestBase):
     # ＜正常系3_1＞
     # ＜会員権一覧（複数件）＞
     #   新規発行（画像URLなし）　→　詳細設定画面の参照
-    def test_normal_3_1(self, app, db, shared_contract):
+    def test_normal_3_1(self, app, db):
         client = self.client_with_admin_login(app)
 
         # 新規発行（Token_2）
@@ -270,7 +270,7 @@ class TestMembership(TestBase):
     # ＜正常系3_2＞
     # ＜会員権一覧（複数件）＞
     #   発行済一覧画面の参照（複数件）
-    def test_normal_3_2(self, app, shared_contract):
+    def test_normal_3_2(self, app):
         token1 = TestMembership.get_token(0)
         token2 = TestMembership.get_token(1)
 
@@ -294,7 +294,7 @@ class TestMembership(TestBase):
     # ＜正常系3_3＞
     # ＜会員権一覧（複数件）＞
     #   売出管理画面の参照（複数件）
-    def test_normal_3_3(self, app, shared_contract):
+    def test_normal_3_3(self, app):
         token1 = TestMembership.get_token(0)
         token2 = TestMembership.get_token(1)
 
@@ -308,21 +308,21 @@ class TestMembership(TestBase):
         assert self.token_data1['name'].encode('utf-8') in response.data
         assert self.token_data1['symbol'].encode('utf-8') in response.data
         assert token1.token_address.encode('utf-8') in response.data
-        assert '<td>1000000</td>\n            <td>1000000</td>\n            <td>0</td>'.\
-            encode('utf-8') in response.data
+        assert '<td>1000000</td>\n            <td>1000000</td>\n            <td>0</td>'. \
+                   encode('utf-8') in response.data
 
         # Token_2
         assert self.token_data2['name'].encode('utf-8') in response.data
         assert self.token_data2['symbol'].encode('utf-8') in response.data
         assert token2.token_address.encode('utf-8') in response.data
-        assert '<td>2000000</td>\n            <td>2000000</td>\n            <td>0</td>'.\
-            encode('utf-8') in response.data
+        assert '<td>2000000</td>\n            <td>2000000</td>\n            <td>0</td>'. \
+                   encode('utf-8') in response.data
 
     # ＜正常系4_1＞
     # ＜売出画面＞
     #   新規売出画面の参照
     #   ※Token_1が対象
-    def test_normal_4_1(self, app, shared_contract):
+    def test_normal_4_1(self, app):
         client = self.client_with_admin_login(app)
         token = TestMembership.get_token(0)
 
@@ -342,7 +342,7 @@ class TestMembership(TestBase):
     # ＜売出画面＞
     #   売出処理 → 売出管理画面の参照
     #   ※Token_1が対象
-    def test_normal_4_2(self, app, shared_contract):
+    def test_normal_4_2(self, app):
         client = self.client_with_admin_login(app)
         token = TestMembership.get_token(0)
         url_sell = self.url_sell + token.token_address
@@ -372,7 +372,7 @@ class TestMembership(TestBase):
     # ＜売出画面＞
     #   売出停止処理 → 売出管理で確認
     #   ※Token_1が対象
-    def test_normal_4_3(self, app, shared_contract):
+    def test_normal_4_3(self, app):
         client = self.client_with_admin_login(app)
         token = TestMembership.get_token(0)
 
@@ -396,7 +396,7 @@ class TestMembership(TestBase):
     # ＜詳細設定＞
     #   売出　→　詳細設定（設定変更）　→　詳細設定画面参照
     #   ※Token_1が対象、Token_3の状態に変更
-    def test_normal_5_1(self, app, shared_contract):
+    def test_normal_5_1(self, app):
         client = self.client_with_admin_login(app)
         token = TestMembership.get_token(0)
 
@@ -449,7 +449,7 @@ class TestMembership(TestBase):
     # ＜正常系5_2＞
     # ＜詳細設定＞
     #   同じ値で更新処理　→　各値に変更がないこと
-    def test_normal_5_2(self, app, shared_contract):
+    def test_normal_5_2(self, app):
         client = self.client_with_admin_login(app)
         token = TestMembership.get_token(0)
         url_setting = self.url_setting + token.token_address
@@ -485,7 +485,7 @@ class TestMembership(TestBase):
     # ＜設定画面＞
     #   公開処理　→　公開済状態になること
     #   ※Token_1が対象
-    def test_normal_5_3(self, app, shared_contract):
+    def test_normal_5_3(self, app):
         client = self.client_with_admin_login(app)
         token = TestMembership.get_token(0)
 
@@ -509,7 +509,7 @@ class TestMembership(TestBase):
     # ＜設定画面＞
     #   取扱停止処理　→　一覧画面、詳細設定画面で確認
     #   ※Token_1が対象
-    def test_normal_5_4(self, app, shared_contract):
+    def test_normal_5_4(self, app):
         client = self.client_with_admin_login(app)
         token = TestMembership.get_token(0)
 
@@ -539,7 +539,7 @@ class TestMembership(TestBase):
     # ＜設定画面＞
     #   取扱開始　→　一覧画面、詳細設定画面で確認
     #   ※Token_1が対象
-    def test_normal_5_5(self, app, shared_contract):
+    def test_normal_5_5(self, app):
         client = self.client_with_admin_login(app)
         token = TestMembership.get_token(0)
 
@@ -568,7 +568,7 @@ class TestMembership(TestBase):
     # ＜設定画面＞
     #   追加発行画面参照　→　追加発行処理　→　詳細設定画面で確認
     #   ※Token_1が対象
-    def test_normal_5_6(self, app, shared_contract):
+    def test_normal_5_6(self, app):
         client = self.client_with_admin_login(app)
         token = TestMembership.get_token(0)
         url_add_supply = self.url_add_supply + token.token_address
@@ -660,7 +660,7 @@ class TestMembership(TestBase):
         response = client.get(self.url_holders + token.token_address)
         assert response.status_code == 200
         assert '<title>保有者一覧'.encode('utf-8') in response.data
-        
+
         # 保有者一覧APIの参照
         response = client.get(self.url_get_holders + token.token_address)
         response_data = json.loads(response.data)
@@ -693,14 +693,12 @@ class TestMembership(TestBase):
     # ＜保有者一覧＞
     #   保有者詳細
     #   ※Token_1が対象
-    def test_normal_6_3(self, app, shared_contract):
+    def test_normal_6_3(self, app):
         client = self.client_with_admin_login(app)
         token = TestMembership.get_token(0)
 
         # 保有者詳細画面の参照
-        response = client.get(
-            self.url_holder + token.token_address + '/' + \
-            eth_account['issuer']['account_address'])
+        response = client.get(self.url_holder + token.token_address + '/' + eth_account['issuer']['account_address'])
         assert response.status_code == 200
         assert '<title>保有者詳細'.encode('utf-8') in response.data
         assert eth_account['issuer']['account_address'].encode('utf-8') in response.data
@@ -742,7 +740,7 @@ class TestMembership(TestBase):
 
         # 所有者移転
         response = client.post(
-            self.url_transfer_ownership + token.token_address + '/' + issuer_address ,
+            self.url_transfer_ownership + token.token_address + '/' + issuer_address,
             data={
                 'to_address': trader_address,
                 'amount': 10
@@ -788,7 +786,7 @@ class TestMembership(TestBase):
     # ＜募集申込開始・停止＞
     #   初期状態：募集申込停止中（詳細設定画面で確認）
     #   ※Token_1が対象
-    def test_normal_8_1(self, app, shared_contract):
+    def test_normal_8_1(self, app):
         client = self.client_with_admin_login(app)
         token = TestMembership.get_token(0)
 
@@ -803,7 +801,7 @@ class TestMembership(TestBase):
     # ＜募集申込開始・停止＞
     #   募集申込開始　→　詳細設定画面で確認
     #   ※Token_1が対象
-    def test_normal_8_2(self, app, shared_contract):
+    def test_normal_8_2(self, app):
         client = self.client_with_admin_login(app)
         token = TestMembership.get_token(0)
 
@@ -828,7 +826,7 @@ class TestMembership(TestBase):
     #   ※8_2の続き
     #   募集申込停止　→　詳細設定画面で確認
     #   ※Token_1が対象
-    def test_normal_8_3(self, app, shared_contract):
+    def test_normal_8_3(self, app):
         client = self.client_with_admin_login(app)
         token = TestMembership.get_token(0)
 
@@ -861,7 +859,7 @@ class TestMembership(TestBase):
     # ＜募集申込一覧参照＞
     #   0件：募集申込一覧
     #   ※Token_1が対象
-    def test_normal_9_1(self, app, shared_contract):
+    def test_normal_9_1(self, app):
         client = self.client_with_admin_login(app)
         token = TestMembership.get_token(0)
 
@@ -875,7 +873,7 @@ class TestMembership(TestBase):
     # ＜募集申込一覧参照＞
     #   1件：募集申込一覧
     #   ※Token_1が対象
-    def test_normal_9_2(self, app, shared_contract):
+    def test_normal_9_2(self, app):
         client = self.client_with_admin_login(app)
         token = TestMembership.get_token(0)
         token_address = str(token.token_address)
@@ -900,7 +898,7 @@ class TestMembership(TestBase):
     #   ※9_2の続き
     #   割当（募集申込）画面参照：GET
     #   ※Token_1が対象
-    def test_normal_10_1(self, app, shared_contract):
+    def test_normal_10_1(self, app):
         client = self.client_with_admin_login(app)
         token = TestMembership.get_token(0)
         token_address = str(token.token_address)
@@ -919,7 +917,7 @@ class TestMembership(TestBase):
     #   ※7_2, 9_2の後に実施
     #   割当（募集申込）処理　→　保有者一覧参照
     #   ※Token_1が対象
-    def test_normal_10_2(self, app, shared_contract):
+    def test_normal_10_2(self, app):
         client = self.client_with_admin_login(app)
         token = TestMembership.get_token(0)
         token_address = str(token.token_address)
@@ -934,7 +932,7 @@ class TestMembership(TestBase):
 
         # 割当（募集申込）
         url = self.url_allocate + '/' + token_address + '/' + trader_address
-        response = client.post(url, data = {'amount': 10})
+        response = client.post(url, data={'amount': 10})
         assert response.status_code == 302
         time.sleep(10)
 
@@ -975,7 +973,7 @@ class TestMembership(TestBase):
     # ＜正常系11＞
     # ＜保有者一覧CSVダウンロード＞
     #   保有者一覧CSVが取得できること
-    def test_normal_11(self, app, shared_contract):
+    def test_normal_11(self, app):
         client = self.client_with_admin_login(app)
         token = TestMembership.get_token(0)
         token_address = str(token.token_address)
@@ -991,7 +989,7 @@ class TestMembership(TestBase):
     # ＜エラー系1_1＞
     # ＜入力値チェック＞
     #   新規発行（必須エラー）
-    def test_error_1_1(self, app, shared_contract):
+    def test_error_1_1(self, app):
         client = self.client_with_admin_login(app)
         # 新規発行
         response = client.post(
@@ -1009,7 +1007,7 @@ class TestMembership(TestBase):
     # ＜エラー系1_2＞
     # ＜入力値チェック＞
     #   売出（必須エラー）
-    def test_error_1_2(self, app, shared_contract):
+    def test_error_1_2(self, app):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
         token = tokens[0]
         # 売出
@@ -1026,11 +1024,10 @@ class TestMembership(TestBase):
         assert '<title>新規売出'.encode('utf-8') in response.data
         assert '売出価格は必須です。'.encode('utf-8') in response.data
 
-
     # ＜エラー系2_1＞
     # ＜入力値チェック＞
     #   新規発行（DEXアドレス形式エラー）
-    def test_error_2_1(self, app, shared_contract):
+    def test_error_2_1(self, app):
         dex_address_error = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
         client = self.client_with_admin_login(app)
         # 新規発行
@@ -1055,11 +1052,10 @@ class TestMembership(TestBase):
         assert '<title>会員権新規発行'.encode('utf-8') in response.data
         assert 'DEXアドレスは有効なアドレスではありません。'.encode('utf-8') in response.data
 
-
     # ＜エラー系2_2＞
     # ＜入力値チェック＞
     #   設定画面（DEXアドレス形式エラー）
-    def test_error_2_2(self, app, shared_contract):
+    def test_error_2_2(self, app):
         dex_address_error = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
         client = self.client_with_admin_login(app)
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
@@ -1088,7 +1084,7 @@ class TestMembership(TestBase):
 
         # 所有者移転
         response = client.post(
-            self.url_transfer_ownership + error_address + '/' + issuer_address ,
+            self.url_transfer_ownership + error_address + '/' + issuer_address,
             data={
                 'to_address': trader_address,
                 'amount': 10
@@ -1109,7 +1105,7 @@ class TestMembership(TestBase):
 
         # 所有者移転
         response = client.post(
-            self.url_transfer_ownership + token.token_address + '/' + error_address ,
+            self.url_transfer_ownership + token.token_address + '/' + error_address,
             data={
                 'to_address': trader_address,
                 'amount': 10
@@ -1125,12 +1121,10 @@ class TestMembership(TestBase):
         token = TestMembership.get_token(0)
         issuer_address = \
             to_checksum_address(eth_account['issuer']['account_address'])
-        trader_address = \
-            to_checksum_address(eth_account['trader']['account_address'])
 
         # 所有者移転
         response = client.post(
-            self.url_transfer_ownership + token.token_address + '/' + issuer_address ,
+            self.url_transfer_ownership + token.token_address + '/' + issuer_address,
             data={
             }
         )
@@ -1150,7 +1144,7 @@ class TestMembership(TestBase):
 
         # 所有者移転
         response = client.post(
-            self.url_transfer_ownership + token.token_address + '/' + issuer_address ,
+            self.url_transfer_ownership + token.token_address + '/' + issuer_address,
             data={
                 'to_address': error_address,
                 'amount': 10
@@ -1172,7 +1166,7 @@ class TestMembership(TestBase):
 
         # 所有者移転
         response = client.post(
-            self.url_transfer_ownership + token.token_address + '/' + issuer_address ,
+            self.url_transfer_ownership + token.token_address + '/' + issuer_address,
             data={
                 'to_address': trader_address,
                 'amount': 100000001
@@ -1194,7 +1188,7 @@ class TestMembership(TestBase):
 
         # 所有者移転
         response = client.post(
-            self.url_transfer_ownership + token.token_address + '/' + issuer_address ,
+            self.url_transfer_ownership + token.token_address + '/' + issuer_address,
             data={
                 'to_address': trader_address,
                 'amount': 999971

@@ -1,6 +1,5 @@
 # -*- coding:utf-8 -*-
 import time
-import json
 from .conftest import TestBase
 from .contract_modules import *
 from ..models import Token
@@ -22,7 +21,7 @@ class TestBond(TestBase):
     url_release = 'bond/release'  # 公開
     url_holders = 'bond/holders/'  # 保有者一覧
     url_get_holders = 'bond/get_holders/'  # 保有者一覧(API)
-    url_get_token_name = 'bond/get_token_name/' # トークン名取得（API）
+    url_get_token_name = 'bond/get_token_name/'  # トークン名取得（API）
     url_holder = 'bond/holder/'  # 保有者詳細
     url_signature = 'bond/request_signature/'  # 認定依頼
     url_redeem = 'bond/redeem'  # 償還
@@ -59,15 +58,15 @@ class TestBond(TestBase):
     cipher = PKCS1_OAEP.new(key)
 
     issuer_encrypted_info = \
-        base64.encodestring(
+        base64.encodebytes(
             cipher.encrypt(json.dumps(issuer_personal_info_json).encode('utf-8')))
 
     trader_encrypted_info = \
-        base64.encodestring(
+        base64.encodebytes(
             cipher.encrypt(json.dumps(trader_personal_info_json).encode('utf-8')))
 
     # ＜前処理＞
-    def test_normal_0(self, app, shared_contract):
+    def test_normal_0(self, shared_contract):
         Config.ETH_ACCOUNT = eth_account['issuer']['account_address']
         Config.ETH_ACCOUNT_PASSWORD = eth_account['issuer']['password']
         Config.AGENT_ADDRESS = eth_account['agent']['account_address']
@@ -105,7 +104,7 @@ class TestBond(TestBase):
 
     # ＜正常系1＞
     #   債券一覧の参照(0件)
-    def test_normal_1(self, app, shared_contract):
+    def test_normal_1(self, app):
         # 債券一覧
         client = self.client_with_admin_login(app)
         response = client.get(self.url_list)
@@ -115,7 +114,7 @@ class TestBond(TestBase):
 
     # ＜正常系2＞
     #   債券売出管理(0件)
-    def test_normal_2(self, app, shared_contract):
+    def test_normal_2(self, app):
         client = self.client_with_admin_login(app)
         response = client.get(self.url_positions)
         assert response.status_code == 200
@@ -194,7 +193,7 @@ class TestBond(TestBase):
 
     # ＜正常系4＞
     #   債券一覧の参照(1件)
-    def test_normal_4(self, app, shared_contract):
+    def test_normal_4(self, app):
         client = self.client_with_admin_login(app)
         response = client.get(self.url_list)
         assert response.status_code == 200
@@ -204,7 +203,7 @@ class TestBond(TestBase):
 
     # ＜正常系5＞
     #   売出管理画面の参照(1件)
-    def test_normal_5(self, app, shared_contract):
+    def test_normal_5(self, app):
         client = self.client_with_admin_login(app)
         response = client.get(self.url_positions)
         assert response.status_code == 200
@@ -246,7 +245,7 @@ class TestBond(TestBase):
 
     # ＜正常系7＞
     #   売出 → 債券売出管理で確認
-    def test_normal_7(self, app, shared_contract):
+    def test_normal_7(self, app):
         client = self.client_with_admin_login(app)
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
         token = tokens[0]
@@ -272,7 +271,7 @@ class TestBond(TestBase):
 
     # ＜正常系8＞
     #   売出停止 → 債券売出管理で確認
-    def test_normal_8(self, app, shared_contract):
+    def test_normal_8(self, app):
         client = self.client_with_admin_login(app)
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
         token = tokens[0]
@@ -337,7 +336,7 @@ class TestBond(TestBase):
 
     # ＜正常系10＞
     #   公開 →　詳細設定画面で確認
-    def test_normal_10(self, app, shared_contract):
+    def test_normal_10(self, app):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
         token = tokens[0]
         client = self.client_with_admin_login(app)
@@ -361,7 +360,7 @@ class TestBond(TestBase):
 
     # ＜正常系11-1＞
     #   債券保有者一覧
-    def test_normal_11_1(self, app, shared_contract):
+    def test_normal_11_1(self, app):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
         token = tokens[0]
         client = self.client_with_admin_login(app)
@@ -374,7 +373,7 @@ class TestBond(TestBase):
 
     # ＜正常系11-2＞
     #   債券保有者一覧(API)
-    def test_normal_11_2(self, app, shared_contract):
+    def test_normal_11_2(self, app):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
         token = tokens[0]
         client = self.client_with_admin_login(app)
@@ -400,7 +399,7 @@ class TestBond(TestBase):
 
     # ＜正常系12＞
     #   債券保有者詳細
-    def test_normal_12(self, app, shared_contract):
+    def test_normal_12(self, app):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
         token = tokens[0]
         client = self.client_with_admin_login(app)
@@ -418,7 +417,7 @@ class TestBond(TestBase):
 
     # ＜正常系13＞
     #   認定依頼
-    def test_normal_13(self, app, shared_contract):
+    def test_normal_13(self, app):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
         token = tokens[0]
         url_signature = self.url_signature + token.token_address
@@ -448,7 +447,7 @@ class TestBond(TestBase):
 
     # ＜正常系14＞
     #   認定実施　→　債券詳細で確認
-    def test_normal_14(self, app, shared_contract):
+    def test_normal_14(self, app):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
         token = tokens[0]
 
@@ -467,7 +466,7 @@ class TestBond(TestBase):
 
     # ＜正常系15＞
     #   償還実施　→　債券一覧で確認
-    def test_normal_15(self, app, shared_contract):
+    def test_normal_15(self, app):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
         token = tokens[0]
         client = self.client_with_admin_login(app)
@@ -531,7 +530,7 @@ class TestBond(TestBase):
         # 保有者一覧の参照
         response = client.get(self.url_get_holders + token.token_address)
         response_data = json.loads(response.data)
-        
+
         assert response.status_code == 200
         # 発行体
         assert issuer_address == response_data[0]['account_address']
@@ -541,7 +540,6 @@ class TestBond(TestBase):
         assert 'abcd1234@aaa.bbb.cc' == response_data[0]['email']
         assert 999990 == response_data[0]['balance']
         assert 0 == response_data[0]['commitment']
-       
 
         # 投資家
         assert trader_address == response_data[1]['account_address']
@@ -563,7 +561,7 @@ class TestBond(TestBase):
     #############################################################################
     # ＜エラー系1＞
     #   債券新規発行（必須エラー）
-    def test_error_1(self, app, shared_contract):
+    def test_error_1(self, app):
         client = self.client_with_admin_login(app)
         # 新規発行
         response = client.post(
@@ -581,7 +579,7 @@ class TestBond(TestBase):
 
     # ＜エラー系1＞
     #   債券新規発行（DEXアドレスのフォーマットエラー）
-    def test_error_1_2(self, app, shared_contract):
+    def test_error_1_2(self, app):
         error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
 
         client = self.client_with_admin_login(app)
@@ -621,7 +619,7 @@ class TestBond(TestBase):
 
     # ＜エラー系1＞
     #   設定画面（DEXアドレスのフォーマットエラー）
-    def test_error_1_3(self, app, shared_contract):
+    def test_error_1_3(self, app):
         error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
 
         client = self.client_with_admin_login(app)
@@ -640,7 +638,7 @@ class TestBond(TestBase):
 
     # ＜エラー系2＞
     #   売出（必須エラー）
-    def test_error_2(self, app, shared_contract):
+    def test_error_2(self, app):
         token = Token.query.get(1)
         # 売出
         client = self.client_with_admin_login(app)
@@ -658,7 +656,7 @@ class TestBond(TestBase):
 
     # ＜エラー系3＞
     #   認定（必須エラー）
-    def test_error_3(self, app, shared_contract):
+    def test_error_3(self, app):
         token = Token.query.get(1)
         url_signature = self.url_signature + token.token_address
         client = self.client_with_admin_login(app)
@@ -675,7 +673,7 @@ class TestBond(TestBase):
 
     # ＜エラー系4＞
     #   認定（認定依頼先アドレスのフォーマットエラー）
-    def test_error_4(self, app, shared_contract):
+    def test_error_4(self, app):
         token = Token.query.get(1)
         url_signature = self.url_signature + token.token_address
         client = self.client_with_admin_login(app)
@@ -692,7 +690,7 @@ class TestBond(TestBase):
 
     # ＜エラー系5＞
     #   認定（認定依頼がすでに登録されている）
-    def test_error_5(self, app, shared_contract):
+    def test_error_5(self, app):
         token = Token.query.get(1)
         url_signature = self.url_signature + token.token_address
         client = self.client_with_admin_login(app)
