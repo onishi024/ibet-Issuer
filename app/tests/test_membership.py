@@ -621,6 +621,9 @@ class TestMembership(TestBase):
         assert response.status_code == 200
         assert eth_account['issuer']['account_address'] == response_data[0]['account_address']
         assert '株式会社１' == response_data[0]['name']
+        assert '1234567' == response_data[0]['postal_code']
+        assert '東京都中央区日本橋11-1東京マンション１０１' == response_data[0]['address']
+        assert 'abcd1234@aaa.bbb.cc' == response_data[0]['email']
         assert 10 == response_data[0]['balance']
         assert 1000000 == response_data[0]['commitment']
 
@@ -665,12 +668,18 @@ class TestMembership(TestBase):
         # issuer
         assert eth_account['issuer']['account_address'] == response_data[0]['account_address']
         assert '株式会社１' == response_data[0]['name']
+        assert '1234567' == response_data[0]['postal_code']
+        assert '東京都中央区日本橋11-1東京マンション１０１' == response_data[0]['address']
+        assert 'abcd1234@aaa.bbb.cc' == response_data[0]['email']
         assert 10 == response_data[0]['balance']
         assert 999980 == response_data[0]['commitment']
 
         # trader
         assert eth_account['trader']['account_address'] == response_data[1]['account_address']
         assert 'ﾀﾝﾀｲﾃｽﾄ' == response_data[1]['name']
+        assert '1040053' == response_data[1]]['postal_code']
+        assert '東京都中央区勝どき6丁目３－２ＴＴＴ６０１２' == response_data[1]]['address']
+        assert 'abcd1234@aaa.bbb.cc' == response_data[1]]['email']
         assert 20 == response_data[1]['balance']
         assert 0 == response_data[1]['commitment']
 
@@ -754,12 +763,18 @@ class TestMembership(TestBase):
         # issuer
         assert issuer_address == response_data[0]['account_address']
         assert '株式会社１' == response_data[0]['name']
+        assert '1234567' == response_data[0]['postal_code']
+        assert '東京都中央区日本橋11-1東京マンション１０１' == response_data[0]['address']
+        assert 'abcd1234@aaa.bbb.cc' == response_data[0]['email']
         assert 0 == response_data[0]['balance']
         assert 999980 == response_data[0]['commitment']
 
         # trader
         assert trader_address == response_data[1]['account_address']
         assert 'ﾀﾝﾀｲﾃｽﾄ' == response_data[1]['name']
+        assert '1040053' == response_data[1]]['postal_code']
+        assert '東京都中央区勝どき6丁目３－２ＴＴＴ６０１２' == response_data[1]]['address']
+        assert 'abcd1234@aaa.bbb.cc' == response_data[1]]['email']
         assert 30 == response_data[1]['balance']
         assert 0 == response_data[1]['commitment']
 
@@ -936,12 +951,18 @@ class TestMembership(TestBase):
         # issuer
         assert issuer_address == response_data[0]['account_address']
         assert '株式会社１' == response_data[0]['name']
+        assert '1234567' == response_data[0]['postal_code']
+        assert '東京都中央区日本橋11-1東京マンション１０１' == response_data[0]['address']
+        assert 'abcd1234@aaa.bbb.cc' == response_data[0]['email']
         assert 999970 == response_data[0]['balance']
         assert 0 == response_data[0]['commitment']
 
         # trader
         assert trader_address == response_data[1]['account_address']
         assert 'ﾀﾝﾀｲﾃｽﾄ' == response_data[1]['name']
+        assert '1040053' == response_data[1]]['postal_code']
+        assert '東京都中央区勝どき6丁目３－２ＴＴＴ６０１２' == response_data[1]]['address']
+        assert 'abcd1234@aaa.bbb.cc' == response_data[1]]['email']
         assert 40 == response_data[1]['balance']
         assert 0 == response_data[1]['commitment']
 

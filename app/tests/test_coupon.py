@@ -456,12 +456,17 @@ class TestCoupon(TestBase):
         # issuer
         assert eth_account['issuer']['account_address'] == response_data[0]['account_address']
         assert '株式会社１' == response_data[0]['name']
+        assert '1234567' == response_data[0]['postal_code']
+        assert '東京都中央区日本橋11-1東京マンション１０１' == response_data[0]['address']
+        assert 'abcd1234@aaa.bbb.cc' == response_data[0]['email']
         assert 2000000 == response_data[0]['balance']
         assert 0 == response_data[0]['used']
 
         # trader
         assert eth_account['trader']['account_address'] == response_data[1]['account_address']
         assert 'ﾀﾝﾀｲﾃｽﾄ' == response_data[1]['name']
+        assert '1040053' == response_data[1]]['postal_code']
+        assert '東京都中央区勝どき6丁目３－２ＴＴＴ６０１２' == response_data
         assert 100 == response_data[1]['balance']
         assert 0 == response_data[1]['used']
 
@@ -659,12 +664,18 @@ class TestCoupon(TestBase):
         # issuer
         assert issuer_address == response_data[0]['account_address']
         assert '株式会社１' == response_data[0]['name']
+        assert '1234567' == response_data[0]['postal_code']
+        assert '東京都中央区日本橋11-1東京マンション１０１' == response_data[0]['address']
+        assert 'abcd1234@aaa.bbb.cc' == response_data[0]['email']
         assert 1999990 == response_data[0]['balance']
         assert 0 == response_data[0]['used']
 
         # trader
         assert trader_address == response_data[1]['account_address']
         assert 'ﾀﾝﾀｲﾃｽﾄ' == response_data[1]['name']
+        assert '1040053' == response_data[1]]['postal_code']
+        assert '東京都中央区勝どき6丁目３－２ＴＴＴ６０１２' == response_data[1]]['address']
+        assert 'abcd1234@aaa.bbb.cc' == response_data[1]]['email']
         assert 110 == response_data[1]['balance']
         assert 0 == response_data[1]['used']
 
@@ -869,12 +880,18 @@ class TestCoupon(TestBase):
         # issuer
         assert issuer_address == response_data[0]['account_address']
         assert '株式会社１' == response_data[0]['name']
+        assert '1234567' == response_data[0]['postal_code']
+        assert '東京都中央区日本橋11-1東京マンション１０１' == response_data[0]['address']
+        assert 'abcd1234@aaa.bbb.cc' == response_data[0]['email']
         assert 1999980 == response_data[0]['balance']
         assert 0 == response_data[0]['used']
 
         # trader
         assert trader_address == response_data[1]['account_address']
         assert 'ﾀﾝﾀｲﾃｽﾄ' == response_data[1]['name']
+        assert '1040053' == response_data[1]]['postal_code']
+        assert '東京都中央区勝どき6丁目３－２ＴＴＴ６０１２' == response_data[1]]['address']
+        assert 'abcd1234@aaa.bbb.cc' == response_data[1]]['email']
         assert 120 == response_data[1]['balance']
         assert 0 == response_data[1]['used']
 
