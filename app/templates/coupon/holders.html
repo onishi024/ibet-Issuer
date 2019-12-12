@@ -21,39 +21,44 @@
 
 {% block page_content %}
 <section class="content">
-  <div class="box box-default">
-      <div class="box-header">
-          <form method="post" action="{{ url_for('coupon.holders_csv_download') }}" enctype="multipart/form-data">
+    <div class="box box-default">
+        <div class="box-header">
+            <form method="post" action="{{ url_for('coupon.holders_csv_download') }}" enctype="multipart/form-data">
               <h3 class="box-title" id="token_name"></h3>
               <input type="text" name="token_address" style="display:none;" value="{{ token_address }}">
               <div class="pull-right box-tools">
                   <button id="csv_download" type="submit" class="btn btn-default" disabled>保有者リストダウンロード</button>
               </div>
-          </form>
-      </div>
-      <div class="box-body">
-          <table id="data_table" class="table table-bordered table-hover">
-              <thead>
-              <tr>
-                  <th></th>
-                  <th></th>
-                  <th></th>
-                  <th></th>
-                  <th></th>
-                  <th></th>
-              </tr>
-              </thead>
-              <tbody>
-              </tbody>
-          </table>
-      </div>
-      <div class="box-footer">
-          <button type="button" class="btn btn-default" onclick="location.href='{{ url_for("coupon.list") }}'">一覧に戻る</button>
-      </div>
-  </div>
-    <div class="box box-solid box-default">
+            </form>
+        </div>
+        <div class="box-body">
+            <table id="data_table" class="table table-bordered table-hover">
+                <thead>
+                <tr>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+        <div class="box-footer">
+            <button type="button" class="btn btn-default" onclick="location.href='{{ url_for("coupon.list") }}'">一覧に戻る</button>
+        </div>
+    </div>
+    <div class="box box-widget collapsed-box">
         <div class="box-header with-border">
-            <h3 class="box-title">CSVファイルサンプル</h3>
+            <h3 class="box-title">ファイルレイアウト</h3>
+            <div class="box-tools pull-right">
+                <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                    <i class="fa fa-plus"></i>
+                </button>
+            </div>
         </div>
         <div class="box-body">
             <table class="table table-striped table-responsive">
