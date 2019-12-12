@@ -109,9 +109,9 @@ testのオプションについては`python manage.py test --help`で確認し�
 issuerのノードに接続して実行
 
 ```
-python script/INSERT_token.py 3 "IbetStraightBond"
-python script/INSERT_token.py 3 "IbetMembership"
-python script/INSERT_token.py 3 "IbetCoupon"
+python ./app/tests/script/INSERT_token.py 3 "IbetStraightBond"  
+python ./app/tests/script/INSERT_token.py 3 "IbetMembership"
+python ./app/tests/script/INSERT_token.py 3 "IbetCoupon"
 ```
 
 ## 4-2. トークン保有者登録
@@ -122,9 +122,9 @@ python script/INSERT_token.py 3 "IbetCoupon"
 issuerノード・agentノードに接続して実行
 
 ```
-python script/INSERT_token_holders.py 3 "IbetStraightBond" "0"
-python script/INSERT_token_holders.py 3 "IbetMembership" "1"
-python script/INSERT_token_holders.py 3 "IbetCoupon" "1"
+python ./app/tests/script/INSERT_token_holders.py 3 "IbetStraightBond" "0"
+python ./app/tests/script/INSERT_token_holders.py 3 "IbetMembership" "1"
+python ./app/tests/script/INSERT_token_holders.py 3 "IbetCoupon" "1"
 ```
 
 ## 4-3. クーポン利用履歴登録
@@ -134,7 +134,7 @@ python script/INSERT_token_holders.py 3 "IbetCoupon" "1"
 issuerのノードに接続して実行
 
 ```
-python script/INSERT_coupon_consume.py 3
+python ./app/tests/script/INSERT_coupon_consume.py 3
 ```
 
 ## 4-4. processor稼働

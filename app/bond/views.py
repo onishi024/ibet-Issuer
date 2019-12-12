@@ -1,9 +1,10 @@
 # -*- coding:utf-8 -*-
 import datetime
 import traceback
+import io
 from base64 import b64encode
 
-from flask import request, redirect, url_for, flash
+from flask import request, redirect, url_for, flash, make_response
 from flask import render_template
 from flask_login import login_required
 
@@ -162,20 +163,34 @@ def get_holders(token_address):
             encrypted_info = PersonalInfoContract.functions. \
                 personal_info(account_address, token_owner).call()[2]
             if encrypted_info == '' or cipher == None:
-                name = ''
+                name = '--'
+                address = '--'
+                postal_code = '--'
+                email = '--'
             else:
                 ciphertext = base64.decodestring(encrypted_info.encode('utf-8'))
                 try:
                     message = cipher.decrypt(ciphertext)
                     personal_info_json = json.loads(message)
-                    name = personal_info_json['name']
+                    name = personal_info_json['name'] if personal_info_json['name'] else "--"
+                    # 住所は連結して表示
+                    address = personal_info_json['address']['prefecture'] + personal_info_json['address']['city'] + \
+                        personal_info_json['address']['address1'] + personal_info_json['address']['address2'] if personal_info_json['address']['prefecture'] and personal_info_json['address']['city'] and personal_info_json['address']['address1'] else "--"
+                    postal_code = personal_info_json['address']['postal_code'] if personal_info_json['address']['postal_code'] else "--"
+                    email = personal_info_json['email'] if personal_info_json['email'] else "--"
                 except Exception as e:
                     logger.error(e)
-                    name = ''
+                    name = '--'
+                    address = '--'
+                    postal_code = '--'
+                    email = '--'
 
             holder = {
                 'account_address': account_address,
                 'name': name,
+                'postal_code': postal_code,
+                'email': email,
+                'address': address,
                 'balance': balance,
                 'commitment': commitment
             }
@@ -197,6 +212,34 @@ def get_token_name(token_address):
     token_name = TokenContract.functions.name().call()
 
     return json.dumps(token_name)
+
+# 保有者リストCSVダウンロード
+@bond.route('/holders_csv_download', methods=['POST'])
+@login_required
+def holders_csv_download():
+    logger.info('bond/holders_csv_download')
+
+    token_address = request.form.get('token_address')
+    holders = json.loads(get_holders(token_address))
+    token_name = json.loads(get_token_name(token_address))
+
+    f = io.StringIO()
+    for holder in holders:
+        # データ行
+        data_row = \
+            token_name + ',' + token_address + ',' + holder["account_address"] + ',' + str(holder["balance"]) + ','\
+            + str(holder["commitment"]) + ',' + holder["name"] + ',' + holder["postal_code"] + ',' + holder["address"] + ','\
+            + holder["email"] + '\n'
+        f.write(data_row)
+
+    now = datetime.now()
+    res = make_response()
+    csvdata = f.getvalue()
+    res.data = csvdata.encode('sjis', 'ignore')
+    res.headers['Content-Type'] = 'text/plain'
+    res.headers['Content-Disposition'] = 'attachment; filename=' + now.strftime("%Y%m%d%H%M%S") \
+        + 'bond_holders_list.csv'
+    return res
 
 ####################################################
 # [債券]保有者移転
