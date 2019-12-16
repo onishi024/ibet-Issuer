@@ -1,5 +1,8 @@
 # -*- coding:utf-8 -*-
 import time
+
+import pytest
+
 from .conftest import TestBase
 from .contract_modules import *
 from ..models import Token
@@ -89,12 +92,6 @@ class TestBond(TestBase):
             self.trader_encrypted_info
         )
 
-        # PaymentGateway：収納代行利用規約登録
-        register_terms(
-            eth_account['agent'],
-            shared_contract['PaymentGateway']
-        )
-
         # PaymentGateway：銀行口座情報登録
         register_payment_account(
             eth_account['issuer'],
@@ -147,7 +144,7 @@ class TestBond(TestBase):
                 'interestPaymentDate11': '1101',
                 'interestPaymentDate12': '1201',
                 'redemptionDate': '20191231',
-                'redemptionAmount': 10000,
+                'redemptionValue': 10000,
                 'returnDate': '20191231',
                 'returnAmount': '商品券をプレゼント',
                 'purpose': '新商品の開発資金として利用。',
@@ -529,26 +526,26 @@ class TestBond(TestBase):
 
         # 保有者一覧の参照
         response = client.get(self.url_get_holders + token.token_address)
-        response_data = json.loads(response.data)
+        response_data_list = json.loads(response.data)
 
         assert response.status_code == 200
-        # 発行体
-        assert issuer_address == response_data[0]['account_address']
-        assert '株式会社１' == response_data[0]['name']
-        assert '1234567' == response_data[0]['postal_code']
-        assert '東京都中央区日本橋11-1東京マンション１０１' == response_data[0]['address']
-        assert 'abcd1234@aaa.bbb.cc' == response_data[0]['email']
-        assert 999990 == response_data[0]['balance']
-        assert 0 == response_data[0]['commitment']
-
-        # 投資家
-        assert trader_address == response_data[1]['account_address']
-        assert 'ﾀﾝﾀｲﾃｽﾄ' == response_data[1]['name']
-        assert '1040053' == response_data[1]['postal_code']
-        assert '東京都中央区勝どき6丁目３－２ＴＴＴ６０１２' == response_data[1]['address']
-        assert 'abcd1234@aaa.bbb.cc' == response_data[1]['email']
-        assert 10 == response_data[1]['balance']
-        assert 0 == response_data[1]['commitment']
+        for response_data in response_data_list:
+            if eth_account['issuer']['account_address'] == response_data['account_address']:  # issuer
+                assert '株式会社１' == response_data['name']
+                assert '1234567' == response_data['postal_code']
+                assert '東京都中央区日本橋11-1東京マンション１０１' == response_data['address']
+                assert 'abcd1234@aaa.bbb.cc' == response_data['email']
+                assert 0 == response_data['balance']
+                assert 999990 == response_data['commitment']
+            elif eth_account['trader']['account_address'] == response_data['account_address']:  # trader
+                assert 'ﾀﾝﾀｲﾃｽﾄ' == response_data['name']
+                assert '1040053' == response_data['postal_code']
+                assert '東京都中央区勝どき6丁目３－２ＴＴＴ６０１２' == response_data['address']
+                assert 'abcd1234@aaa.bbb.cc' == response_data['email']
+                assert 10 == response_data['balance']
+                assert 0 == response_data['commitment']
+            else:
+                pytest.raises(AssertionError)
 
         # トークン名APIの参照
         response = client.get(self.url_get_token_name + token.token_address)
@@ -605,7 +602,7 @@ class TestBond(TestBase):
                 'interestPaymentDate11': '1101',
                 'interestPaymentDate12': '1201',
                 'redemptionDate': '20191231',
-                'redemptionAmount': 10000,
+                'redemptionValue': 10000,
                 'returnDate': '20191231',
                 'returnAmount': '商品券をプレゼント',
                 'purpose': '新商品の開発資金として利用。',

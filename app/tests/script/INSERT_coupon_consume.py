@@ -190,26 +190,12 @@ def register_payment_account(invoker_address, invoker_password, encrypted_info, 
     print("register PaymentGatewayContract:" + \
           str(PaymentGatewayContract.functions.accountApproved(invoker_address, agent_address).call()))
 
-# 収納代行業者の規約登録
-def register_terms(agent_address):
-    PaymentGatewayContract = Contract.get_contract('PaymentGateway', PAYMENT_GATEWAY_CONTRACT_ADDRESS)
-    web3.eth.defaultAccount = agent_address
-    web3.personal.unlockAccount(agent_address, 'password', 10000)
-    gas = PaymentGatewayContract.estimateGas().addTerms("kiyaku")
-    tx_hash = PaymentGatewayContract.functions.addTerms("kiyaku").transact(
-        {'from':agent_address, 'gas':gas}
-    )
-    tx = web3.eth.waitForTransactionReceipt(tx_hash)
-    print("register_terms:" + \
-          str(PaymentGatewayContract.functions.latest_terms_version(agent_address).call()))
-
 def main(data_count):
     token_type = 'IbetCoupon'
     web3.personal.unlockAccount(ETH_ACCOUNT, ETH_ACCOUNT_PASSWORD, 10000)
 
     # 収納代行業者（Agent）のアドレス作成 -> PaymentAccountの登録
     agent_address = web3.personal.newAccount('password')
-    register_terms(agent_address)
     register_payment_account(ETH_ACCOUNT, ETH_ACCOUNT_PASSWORD, issuer_encrypted_info, agent_address)
     print("agent_address: " + agent_address)
 

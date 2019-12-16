@@ -161,7 +161,7 @@ class IssueForm(Form):
         ]
     )
 
-    redemptionAmount = IntegerField(
+    redemptionValue = IntegerField(
         "償還金額（額面当り）",
         validators=[
             NumberRange(min=0, max=5000000000, message='償還金額は5,000,000,000円が上限です。')
@@ -233,7 +233,7 @@ class IssueForm(Form):
             'interestRate': '税引前金利を入力してください。',
             'interestPaymentDate': '',
             'redemptionDate': '',
-            'redemptionAmount': '額面当りの償還金額を入力してください。',
+            'redemptionValue': '額面当りの償還金額を入力してください。',
             'returnDate': 'リターンを実施する日付を入力してください。',
             'returnAmount': '商品を購入することで得られるリターン（特典）の内容を入力してください。',
             'purpose': '商品の発行目的を入力してください。',
@@ -264,7 +264,7 @@ class SettingForm(Form):
     interestPaymentDate11 = StringField("利払日１１", validators=[])
     interestPaymentDate12 = StringField("利払日１２", validators=[])
     redemptionDate = StringField("償還日", validators=[])
-    redemptionAmount = IntegerField("償還金額（額面当り）", validators=[])
+    redemptionValue = IntegerField("償還金額（額面当り）", validators=[])
     returnDate = StringField("リターン実施日", validators=[])
     returnAmount = TextAreaField("リターン内容", validators=[])
     purpose = TextAreaField("発行目的", validators=[])
@@ -341,7 +341,7 @@ class SellTokenForm(Form):
     interestPaymentDate11 = StringField("利払日１１", validators=[])
     interestPaymentDate12 = StringField("利払日１２", validators=[])
     redemptionDate = StringField("償還日", validators=[])
-    redemptionAmount = IntegerField("償還金額（額面当り）", validators=[])
+    redemptionValue = IntegerField("償還金額（額面当り）", validators=[])
     returnDate = StringField("リターン実施日", validators=[])
     returnAmount = TextAreaField("リターン内容", validators=[])
     purpose = TextAreaField("発行目的", validators=[])

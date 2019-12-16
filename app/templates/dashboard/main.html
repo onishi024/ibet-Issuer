@@ -35,6 +35,9 @@
                             </tbody>
                         </table>
                     </div>
+                    <div class="overlay">
+                        <i class="fa fa-refresh fa-spin"></i>
+                    </div>
                 </div>
             </div>
         </div>
@@ -63,6 +66,9 @@
                             </tbody>
                         </table>
                     </div>
+                    <div class="overlay">
+                        <i class="fa fa-refresh fa-spin"></i>
+                    </div>
                 </div>
             </div>
             <div class="col-lg-6 col-md-6 col-sm-12">
@@ -89,6 +95,9 @@
                             </tbody>
                         </table>
                     </div>
+                    <div class="overlay">
+                        <i class="fa fa-refresh fa-spin"></i>
+                    </div>
                 </div>
             </div>
         </div>
@@ -105,131 +114,13 @@
 <script src="/static/adminlte/bower_components/jquery-slimscroll/jquery.slimscroll.min.js"></script>
 <!-- FastClick -->
 <script src="/static/adminlte/bower_components/fastclick/lib/fastclick.js"></script>
-<!-- AdminLTE for demo purposes -->
-<script src="/static/adminlte/dist/js/demo.js"></script>
-<!-- pace.js -->
-<script src="/static/js/pace.min.js"></script>
-<!-- pace.js -->
-<link rel="stylesheet" href="/static/css/pace-radar.css">
 <script>
-    token_list_bond_url = "{{ url_for('dashboard.token_list_bond') }}"
-    token_list_membership_url = "{{ url_for('dashboard.token_list_membership') }}"
-    token_list_coupon_url = "{{ url_for('dashboard.token_list_coupon') }}"
-        $(function () {
-            $('#data_table_bond').DataTable(
-                {
-                    columns: [
-                        {
-                            data: 'name',
-                            title: '名称',
-                            width: '200px'
-                        },
-                        {
-                            data: "symbol",
-                            title: "略称",
-                            width: '100px'
-                        },
-                        {
-                            data: "redemption_date",
-                            title: "償還日",
-                            width: '100px'
-                        },
-                        {
-                            data: "last_price",
-                            title: "直近価格",
-                            width: '100px'
-                        },
-                        {
-                            data: "total_supply",
-                            title: "発行量",
-                            width: '100px'
-                        }
-                    ],
-                    ajax: {
-                        url: token_list_bond_url,
-                        dataSrc : function (json) {
-                            return json
-                        }
-                    },
-                    'paging'      : true,
-                    'displayLength': 5,
-                    'lengthChange': false,
-                    'searching'   : false,
-                    'ordering'    : true,
-                    'info'        : true,
-                    'autoWidth'   : true,
-                    'pagingType': "simple_numbers",
-                    'language': {
-                        'info': "_TOTAL_ 件中 _START_ 〜 _END_ 件目",
-                        'lengthMenu': "表示件数 _MENU_ 件",
-                        'search': "検索:",
-                        'paginate': {
-                            'first': "最初へ",
-                            'previous': "前へ",
-                            'next': "次へ",
-                            'last': "最後へ",
-                        },
-                        "emptyTable": "データが存在しません",
-                        "sInfoEmpty":	" 0 件中 0 から 0 まで表示"
-                    },
-                }
-            )
-        })
-        $(function () {
-            $('#data_table_membership').DataTable({
-                columns: [
-                    {
-                        data: 'name',
-                        title: '名称',
-                        width: '200px'
-                    },
-                    {
-                        data: "symbol",
-                        title: "略称",
-                        width: '100px'
-                    },
-                    {
-                        data: "last_price",
-                        title: "直近価格",
-                        width: '100px'
-                    },
-                    {
-                        data: "total_supply",
-                        title: "発行量",
-                        width: '100px'
-                    }
-                ],
-                ajax: {
-                    url: token_list_membership_url,
-                    dataSrc : function (json) {
-                        return json
-                    }
-                },
-                'paging'      : true,
-                'displayLength': 5,
-                'lengthChange': false,
-                'searching'   : false,
-                'ordering'    : true,
-                'info'        : true,
-                'autoWidth'   : true,
-                'pagingType': "simple_numbers",
-                'language': {
-                    'info': "_TOTAL_ 件中 _START_ 〜 _END_ 件目",
-                    'lengthMenu': "表示件数 _MENU_ 件",
-                    'search': "検索:",
-                    'paginate': {
-                        'first': "最初へ",
-                        'previous': "前へ",
-                        'next': "次へ",
-                        'last': "最後へ",
-                    },
-                    "emptyTable": "データが存在しません",
-                    "sInfoEmpty":	" 0 件中 0 から 0 まで表示"
-                },
-            })
-        })
-        $(function () {
-            $('#data_table_coupon').DataTable({
+token_list_bond_url = "{{ url_for('dashboard.token_list_bond') }}"
+token_list_membership_url = "{{ url_for('dashboard.token_list_membership') }}"
+token_list_coupon_url = "{{ url_for('dashboard.token_list_coupon') }}"
+$(function () {
+    $('#data_table_bond').DataTable(
+        {
             columns: [
                 {
                     data: 'name',
@@ -239,6 +130,11 @@
                 {
                     data: "symbol",
                     title: "略称",
+                    width: '100px'
+                },
+                {
+                    data: "redemption_date",
+                    title: "償還日",
                     width: '100px'
                 },
                 {
@@ -253,18 +149,18 @@
                 }
             ],
             ajax: {
-                url: token_list_coupon_url,
-                dataSrc : function (json) {
+                url: token_list_bond_url,
+                dataSrc: function (json) {
                     return json
                 }
             },
-            'paging'      : true,
+            'paging': true,
             'displayLength': 5,
             'lengthChange': false,
-            'searching'   : false,
-            'ordering'    : true,
-            'info'        : true,
-            'autoWidth'   : true,
+            'searching': false,
+            'ordering': true,
+            'info': true,
+            'autoWidth': true,
             'pagingType': "simple_numbers",
             'language': {
                 'info': "_TOTAL_ 件中 _START_ 〜 _END_ 件目",
@@ -277,10 +173,116 @@
                     'last': "最後へ",
                 },
                 "emptyTable": "データが存在しません",
-                "sInfoEmpty":	" 0 件中 0 から 0 まで表示"
+                "sInfoEmpty": " 0 件中 0 から 0 まで表示"
             },
-        })
+        }
+    )
+    $('#data_table_membership').DataTable({
+        columns: [
+            {
+                data: 'name',
+                title: '名称',
+                width: '200px'
+            },
+            {
+                data: "symbol",
+                title: "略称",
+                width: '100px'
+            },
+            {
+                data: "last_price",
+                title: "直近価格",
+                width: '100px'
+            },
+            {
+                data: "total_supply",
+                title: "発行量",
+                width: '100px'
+            }
+        ],
+        ajax: {
+            url: token_list_membership_url,
+            dataSrc: function (json) {
+                return json
+            }
+        },
+        'paging': true,
+        'displayLength': 5,
+        'lengthChange': false,
+        'searching': false,
+        'ordering': true,
+        'info': true,
+        'autoWidth': true,
+        'pagingType': "simple_numbers",
+        'language': {
+            'info': "_TOTAL_ 件中 _START_ 〜 _END_ 件目",
+            'lengthMenu': "表示件数 _MENU_ 件",
+            'search': "検索:",
+            'paginate': {
+                'first': "最初へ",
+                'previous': "前へ",
+                'next': "次へ",
+                'last': "最後へ",
+            },
+            "emptyTable": "データが存在しません",
+            "sInfoEmpty": " 0 件中 0 から 0 まで表示"
+        },
     })
+    $('#data_table_coupon').DataTable({
+        columns: [
+            {
+                data: 'name',
+                title: '名称',
+                width: '200px'
+            },
+            {
+                data: "symbol",
+                title: "略称",
+                width: '100px'
+            },
+            {
+                data: "last_price",
+                title: "直近価格",
+                width: '100px'
+            },
+            {
+                data: "total_supply",
+                title: "発行量",
+                width: '100px'
+            }
+        ],
+        ajax: {
+            url: token_list_coupon_url,
+            dataSrc: function (json) {
+                return json
+            }
+        },
+        'paging': true,
+        'displayLength': 5,
+        'lengthChange': false,
+        'searching': false,
+        'ordering': true,
+        'info': true,
+        'autoWidth': true,
+        'pagingType': "simple_numbers",
+        'language': {
+            'info': "_TOTAL_ 件中 _START_ 〜 _END_ 件目",
+            'lengthMenu': "表示件数 _MENU_ 件",
+            'search': "検索:",
+            'paginate': {
+                'first': "最初へ",
+                'previous': "前へ",
+                'next': "次へ",
+                'last': "最後へ",
+            },
+            "emptyTable": "データが存在しません",
+            "sInfoEmpty": " 0 件中 0 から 0 まで表示"
+        },
+    })
+})
+setTimeout(function(){
+    $('div.overlay').remove();
+},1000);
 </script>
 
 {% endblock %}

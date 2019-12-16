@@ -376,7 +376,7 @@ def setting(token_address):
         interestPaymentDate_string.replace("'", '"'). \
             replace('True', 'true').replace('False', 'false'))
     redemptionDate = TokenContract.functions.redemptionDate().call()
-    redemptionAmount = TokenContract.functions.redemptionAmount().call()
+    redemptionValue = TokenContract.functions.redemptionValue().call()
     returnDate = TokenContract.functions.returnDate().call()
     returnAmount = TokenContract.functions.returnAmount().call()
     purpose = TokenContract.functions.purpose().call()
@@ -428,7 +428,7 @@ def setting(token_address):
                 form.interestRate.data = interestRate
                 set_interestPaymentDate(form, interestPaymentDate)
                 form.redemptionDate.data = redemptionDate
-                form.redemptionAmount.data = redemptionAmount
+                form.redemptionValue.data = redemptionValue
                 form.returnDate.data = returnDate
                 form.returnAmount.data = returnAmount
                 form.purpose.data = purpose
@@ -491,7 +491,7 @@ def setting(token_address):
             form.interestRate.data = interestRate
             set_interestPaymentDate(form, interestPaymentDate)
             form.redemptionDate.data = redemptionDate
-            form.redemptionAmount.data = redemptionAmount
+            form.redemptionValue.data = redemptionValue
             form.returnDate.data = returnDate
             form.returnAmount.data = returnAmount
             form.purpose.data = purpose
@@ -513,7 +513,7 @@ def setting(token_address):
         form.interestRate.data = interestRate
         set_interestPaymentDate(form, interestPaymentDate)
         form.redemptionDate.data = redemptionDate
-        form.redemptionAmount.data = redemptionAmount
+        form.redemptionValue.data = redemptionValue
         form.returnDate.data = returnDate
         form.returnAmount.data = returnAmount
         form.purpose.data = purpose
@@ -708,7 +708,7 @@ def issue():
                 int(form.interestRate.data * 1000),
                 interestPaymentDate_string,
                 form.redemptionDate.data,
-                form.redemptionAmount.data,
+                form.redemptionValue.data,
                 form.returnDate.data,
                 form.returnAmount.data,
                 form.purpose.data,
@@ -829,7 +829,7 @@ def sell(token_address):
         interestPaymentDate_string.replace("'", '"'). \
             replace('True', 'true').replace('False', 'false'))
     redemptionDate = TokenContract.functions.redemptionDate().call()
-    redemptionAmount = TokenContract.functions.redemptionAmount().call()
+    redemptionValue = TokenContract.functions.redemptionValue().call()
     returnDate = TokenContract.functions.returnDate().call()
     returnAmount = TokenContract.functions.returnAmount().call()
     purpose = TokenContract.functions.purpose().call()
@@ -891,7 +891,7 @@ def sell(token_address):
         form.interestRate.data = interestRate
         set_interestPaymentDate(form, interestPaymentDate)
         form.redemptionDate.data = redemptionDate
-        form.redemptionAmount.data = redemptionAmount
+        form.redemptionValue.data = redemptionValue
         form.returnDate.data = returnDate
         form.returnAmount.data = returnAmount
         form.purpose.data = purpose

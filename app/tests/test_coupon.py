@@ -1,5 +1,8 @@
 # -*- coding:utf-8 -*-
 import time
+
+import pytest
+
 from .conftest import TestBase
 from .contract_modules import *
 from ..models import Token
@@ -9,7 +12,6 @@ logger = getLogger('api')
 
 
 class TestCoupon(TestBase):
-
     ##################
     # URL
     ##################
@@ -449,25 +451,25 @@ class TestCoupon(TestBase):
 
         # 保有者一覧APIの参照
         response = client.get(self.url_get_holders + tokens[0].token_address)
-        response_data = json.loads(response.data)
+        response_data_list = json.loads(response.data)
+
         assert response.status_code == 200
-
-        # issuer
-        assert eth_account['issuer']['account_address'] == response_data[0]['account_address']
-        assert '株式会社１' == response_data[0]['name']
-        assert '1234567' == response_data[0]['postal_code']
-        assert '東京都中央区日本橋11-1東京マンション１０１' == response_data[0]['address']
-        assert 'abcd1234@aaa.bbb.cc' == response_data[0]['email']
-        assert 2000000 == response_data[0]['balance']
-        assert 0 == response_data[0]['used']
-
-        # trader
-        assert eth_account['trader']['account_address'] == response_data[1]['account_address']
-        assert 'ﾀﾝﾀｲﾃｽﾄ' == response_data[1]['name']
-        assert '1040053' == response_data[1]['postal_code']
-        assert '東京都中央区勝どき6丁目３－２ＴＴＴ６０１２' == response_data[1]['address']
-        assert 100 == response_data[1]['balance']
-        assert 0 == response_data[1]['used']
+        for response_data in response_data_list:
+            if eth_account['issuer']['account_address'] == response_data['account_address']:  # issuer
+                assert '株式会社１' == response_data['name']
+                assert '1234567' == response_data['postal_code']
+                assert '東京都中央区日本橋11-1東京マンション１０１' == response_data['address']
+                assert 'abcd1234@aaa.bbb.cc' == response_data['email']
+                assert 2000000 == response_data['balance']
+                assert 0 == response_data['used']
+            elif eth_account['trader']['account_address'] == response_data['account_address']:  # trader
+                assert 'ﾀﾝﾀｲﾃｽﾄ' == response_data['name']
+                assert '1040053' == response_data['postal_code']
+                assert '東京都中央区勝どき6丁目３－２ＴＴＴ６０１２' == response_data['address']
+                assert 100 == response_data['balance']
+                assert 0 == response_data['used']
+            else:
+                pytest.raises(AssertionError)
 
         # トークン名APIの参照
         response = client.get(self.url_get_token_name + tokens[0].token_address)
@@ -655,26 +657,27 @@ class TestCoupon(TestBase):
 
         # 保有者一覧APIの参照
         response = client.get(self.url_get_holders + token.token_address)
-        response_data = json.loads(response.data)
+        response_data_list = json.loads(response.data)
+
         assert response.status_code == 200
 
-        # issuer
-        assert issuer_address == response_data[0]['account_address']
-        assert '株式会社１' == response_data[0]['name']
-        assert '1234567' == response_data[0]['postal_code']
-        assert '東京都中央区日本橋11-1東京マンション１０１' == response_data[0]['address']
-        assert 'abcd1234@aaa.bbb.cc' == response_data[0]['email']
-        assert 1999990 == response_data[0]['balance']
-        assert 0 == response_data[0]['used']
-
-        # trader
-        assert trader_address == response_data[1]['account_address']
-        assert 'ﾀﾝﾀｲﾃｽﾄ' == response_data[1]['name']
-        assert '1040053' == response_data[1]['postal_code']
-        assert '東京都中央区勝どき6丁目３－２ＴＴＴ６０１２' == response_data[1]['address']
-        assert 'abcd1234@aaa.bbb.cc' == response_data[1]['email']
-        assert 110 == response_data[1]['balance']
-        assert 0 == response_data[1]['used']
+        for response_data in response_data_list:
+            if eth_account['issuer']['account_address'] == response_data['account_address']:  # issuer
+                assert '株式会社１' == response_data['name']
+                assert '1234567' == response_data['postal_code']
+                assert '東京都中央区日本橋11-1東京マンション１０１' == response_data['address']
+                assert 'abcd1234@aaa.bbb.cc' == response_data['email']
+                assert 1999990 == response_data['balance']
+                assert 0 == response_data['used']
+            elif eth_account['trader']['account_address'] == response_data['account_address']:  # trader
+                assert 'ﾀﾝﾀｲﾃｽﾄ' == response_data['name']
+                assert '1040053' == response_data['postal_code']
+                assert '東京都中央区勝どき6丁目３－２ＴＴＴ６０１２' == response_data['address']
+                assert 'abcd1234@aaa.bbb.cc' == response_data['email']
+                assert 110 == response_data['balance']
+                assert 0 == response_data['used']
+            else:
+                pytest.raises(AssertionError)
 
         # トークン名APIの参照
         response = client.get(self.url_get_token_name + token.token_address)

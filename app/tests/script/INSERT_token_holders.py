@@ -103,7 +103,7 @@ def issue_token(exchange_address, data_count, token_type):
         attribute['interestRate'] = 1
         attribute['interestPaymentDate1'] = '20181010'
         attribute['redemptionDate'] = '20181010'
-        attribute['redemptionAmount'] = 100
+        attribute['redemptionValue'] = 100
         attribute['returnDate'] = '20181010'
         attribute['returnAmount'] = 'returnAmount'
         attribute['purpose'] = 'purpose'
@@ -114,7 +114,7 @@ def issue_token(exchange_address, data_count, token_type):
             attribute['name'], attribute['symbol'], attribute['totalSupply'],
             attribute['tradableExchange'],
             attribute['faceValue'], attribute['interestRate'], interestPaymentDate,
-            attribute['redemptionDate'], attribute['redemptionAmount'],
+            attribute['redemptionDate'], attribute['redemptionValue'],
             attribute['returnDate'], attribute['returnAmount'],
             attribute['purpose'], attribute['memo'],
             attribute['contactInformation'], attribute['privacyPolicy']
