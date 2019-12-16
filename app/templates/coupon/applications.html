@@ -5,8 +5,6 @@
   <link
     rel="stylesheet"
     href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
-  <!-- pace.js -->
-  <link rel="stylesheet" href="/static/css/pace-radar.css">
   <!-- common.css -->
   <link rel="stylesheet" href="/static/css/common.css">
 {% endblock %}
@@ -49,6 +47,9 @@
           一覧に戻る
         </button>
     </div>
+    <div class="overlay">
+      <i class="fa fa-refresh fa-spin"></i>
+    </div>
   </div>
 </section>
 {% endblock %}
@@ -62,10 +63,6 @@
 <script src="/static/adminlte/bower_components/jquery-slimscroll/jquery.slimscroll.min.js"></script>
 <!-- FastClick -->
 <script src="/static/adminlte/bower_components/fastclick/lib/fastclick.js"></script>
-<!-- AdminLTE for demo purposes -->
-<script src="/static/adminlte/dist/js/demo.js"></script>
-<!-- pace.js -->
-<script src="/static/js/pace.min.js"></script>
 <script>
   token_address = {{ token_address | tojson }};
   token_name_url = '{{ url_for("coupon.get_token_name", token_address=token_address) }}';
@@ -153,5 +150,8 @@
       alert('データ取得に失敗しました');
     });
   };
+  setTimeout(function(){
+    $('div.overlay').remove();
+  },1000);
 </script>
 {% endblock %}
