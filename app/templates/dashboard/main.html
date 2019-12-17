@@ -35,7 +35,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="overlay">
+                    <div class="overlay" id="bond">
                         <i class="fa fa-refresh fa-spin"></i>
                     </div>
                 </div>
@@ -66,7 +66,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="overlay">
+                    <div class="overlay" id="membership">
                         <i class="fa fa-refresh fa-spin"></i>
                     </div>
                 </div>
@@ -95,7 +95,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="overlay">
+                    <div class="overlay" id="coupon">
                         <i class="fa fa-refresh fa-spin"></i>
                     </div>
                 </div>
@@ -152,7 +152,7 @@ $(function () {
                 url: token_list_bond_url,
                 dataSrc: function (json) {
                     if (json) {
-                        $("div.overlay").remove();
+                        $("div#bond.overlay").remove();
                     }
                     return json
                 }
@@ -207,7 +207,7 @@ $(function () {
             url: token_list_membership_url,
             dataSrc: function (json) {
                 if (json) {
-                    $("div.overlay").remove();
+                    $("div#membership.overlay").remove();
                 }
                 return json
             }
@@ -261,7 +261,7 @@ $(function () {
             url: token_list_coupon_url,
             dataSrc: function (json) {
                 if (json) {
-                    $("div.overlay").remove();
+                    $("div#coupon.overlay").remove();
                 }
                 return json
             }
