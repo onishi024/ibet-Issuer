@@ -277,7 +277,6 @@ def transfer_ownership(token_address, account_address):
             from_address = to_checksum_address(account_address)
             to_address = to_checksum_address(form.to_address.data)
             amount = int(form.amount.data)
-
             if amount > balance:
                 flash('移転数量が残高を超えています。', 'error')
                 form.from_address.data = from_address
@@ -287,25 +286,11 @@ def transfer_ownership(token_address, account_address):
                     account_address=account_address,
                     form=form
                 )
-
             eth_unlock_account()
-            token_exchange_address = Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS
-            ExchangeContract = Contract.get_contract(
-                'IbetStraightBondExchange', token_exchange_address)
-
-            deposit_gas = TokenContract.estimateGas(). \
-                transferFrom(from_address, token_exchange_address, amount)
-            TokenContract.functions. \
-                transferFrom(from_address, token_exchange_address, amount). \
-                transact({'from': Config.ETH_ACCOUNT, 'gas': deposit_gas})
-
-            transfer_gas = ExchangeContract.estimateGas(). \
-                transfer(to_checksum_address(token_address), to_address, amount)
-            txid = ExchangeContract.functions. \
-                transfer(to_checksum_address(token_address), to_address, amount). \
-                transact({'from': Config.ETH_ACCOUNT, 'gas': transfer_gas})
-
-            tx = web3.eth.waitForTransactionReceipt(txid)
+            gas = TokenContract.estimateGas().transfer(to_address, amount)
+            txid = TokenContract.functions.transfer(to_address, amount). \
+                transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
+            web3.eth.waitForTransactionReceipt(txid)
             return redirect(url_for('.holders', token_address=token_address))
         else:
             flash_errors(form)
@@ -376,7 +361,7 @@ def setting(token_address):
         interestPaymentDate_string.replace("'", '"'). \
             replace('True', 'true').replace('False', 'false'))
     redemptionDate = TokenContract.functions.redemptionDate().call()
-    redemptionAmount = TokenContract.functions.redemptionAmount().call()
+    redemptionValue = TokenContract.functions.redemptionValue().call()
     returnDate = TokenContract.functions.returnDate().call()
     returnAmount = TokenContract.functions.returnAmount().call()
     purpose = TokenContract.functions.purpose().call()
@@ -428,7 +413,7 @@ def setting(token_address):
                 form.interestRate.data = interestRate
                 set_interestPaymentDate(form, interestPaymentDate)
                 form.redemptionDate.data = redemptionDate
-                form.redemptionAmount.data = redemptionAmount
+                form.redemptionValue.data = redemptionValue
                 form.returnDate.data = returnDate
                 form.returnAmount.data = returnAmount
                 form.purpose.data = purpose
@@ -491,7 +476,7 @@ def setting(token_address):
             form.interestRate.data = interestRate
             set_interestPaymentDate(form, interestPaymentDate)
             form.redemptionDate.data = redemptionDate
-            form.redemptionAmount.data = redemptionAmount
+            form.redemptionValue.data = redemptionValue
             form.returnDate.data = returnDate
             form.returnAmount.data = returnAmount
             form.purpose.data = purpose
@@ -513,7 +498,7 @@ def setting(token_address):
         form.interestRate.data = interestRate
         set_interestPaymentDate(form, interestPaymentDate)
         form.redemptionDate.data = redemptionDate
-        form.redemptionAmount.data = redemptionAmount
+        form.redemptionValue.data = redemptionValue
         form.returnDate.data = returnDate
         form.returnAmount.data = returnAmount
         form.purpose.data = purpose
@@ -708,7 +693,7 @@ def issue():
                 int(form.interestRate.data * 1000),
                 interestPaymentDate_string,
                 form.redemptionDate.data,
-                form.redemptionAmount.data,
+                form.redemptionValue.data,
                 form.returnDate.data,
                 form.returnAmount.data,
                 form.purpose.data,
@@ -829,7 +814,7 @@ def sell(token_address):
         interestPaymentDate_string.replace("'", '"'). \
             replace('True', 'true').replace('False', 'false'))
     redemptionDate = TokenContract.functions.redemptionDate().call()
-    redemptionAmount = TokenContract.functions.redemptionAmount().call()
+    redemptionValue = TokenContract.functions.redemptionValue().call()
     returnDate = TokenContract.functions.returnDate().call()
     returnAmount = TokenContract.functions.returnAmount().call()
     purpose = TokenContract.functions.purpose().call()
@@ -891,7 +876,7 @@ def sell(token_address):
         form.interestRate.data = interestRate
         set_interestPaymentDate(form, interestPaymentDate)
         form.redemptionDate.data = redemptionDate
-        form.redemptionAmount.data = redemptionAmount
+        form.redemptionValue.data = redemptionValue
         form.returnDate.data = returnDate
         form.returnAmount.data = returnAmount
         form.purpose.data = purpose

@@ -63,22 +63,6 @@ def get_personal_encrypted_info(personal_info, account_address, token_owner):
 PaymentGateway情報登録
 '''
 
-
-# 収納代行利用規約登録
-def register_terms(invoker, payment_gateway):
-    PaymentGatewayContract = Contract.get_contract(
-        'PaymentGateway', payment_gateway['address'])
-
-    # 1) 登録 from Invoker
-    web3.eth.defaultAccount = invoker['account_address']
-    web3.personal.unlockAccount(invoker['account_address'],
-                                invoker['password'])
-
-    tx_hash = PaymentGatewayContract.functions.addTerms('test terms'). \
-        transact({'from': invoker['account_address'], 'gas': 4000000})
-    tx = web3.eth.waitForTransactionReceipt(tx_hash)
-
-
 # 決済用銀行口座情報登録
 def register_only_payment_account(invoker, payment_gateway, encrypted_info):
     PaymentGatewayContract = Contract.get_contract(
@@ -180,7 +164,7 @@ def issue_bond_token(invoker, attribute):
     arguments = [
         attribute['name'], attribute['symbol'], attribute['totalSupply'],
         attribute['faceValue'], attribute['interestRate'], interestPaymentDate,
-        attribute['redemptionDate'], attribute['redemptionAmount'],
+        attribute['redemptionDate'], attribute['redemptionValue'],
         attribute['returnDate'], attribute['returnAmount'],
         attribute['purpose'], attribute['memo']
     ]

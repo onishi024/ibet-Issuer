@@ -486,8 +486,6 @@ class TestBankInfo(TestBase):
     # ＜正常系2＞
     # 登録　→　正常参照
     def test_normal_2(self, app, shared_contract):
-        register_terms(eth_account['agent'], shared_contract['PaymentGateway'])
-
         client = self.client_with_admin_login(app)
         response = client.post(
             self.url_bankinfo,
