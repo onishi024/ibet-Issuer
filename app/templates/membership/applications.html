@@ -107,6 +107,9 @@ $(function () {
             };
             returnJson.push(returnJsonRaw)
             }
+            if (json) {
+                $("div.overlay").remove();
+            }
             return returnJson;
         }
         },

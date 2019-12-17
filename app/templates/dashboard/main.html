@@ -151,6 +151,9 @@ $(function () {
             ajax: {
                 url: token_list_bond_url,
                 dataSrc: function (json) {
+                    if (json) {
+                        $("div.overlay").remove();
+                    }
                     return json
                 }
             },
@@ -176,7 +179,7 @@ $(function () {
                 "sInfoEmpty": " 0 件中 0 から 0 まで表示"
             },
         }
-    )
+    ),
     $('#data_table_membership').DataTable({
         columns: [
             {
@@ -203,6 +206,9 @@ $(function () {
         ajax: {
             url: token_list_membership_url,
             dataSrc: function (json) {
+                if (json) {
+                    $("div.overlay").remove();
+                }
                 return json
             }
         },
@@ -227,7 +233,7 @@ $(function () {
             "emptyTable": "データが存在しません",
             "sInfoEmpty": " 0 件中 0 から 0 まで表示"
         },
-    })
+    }),
     $('#data_table_coupon').DataTable({
         columns: [
             {
@@ -254,6 +260,9 @@ $(function () {
         ajax: {
             url: token_list_coupon_url,
             dataSrc: function (json) {
+                if (json) {
+                    $("div.overlay").remove();
+                }
                 return json
             }
         },
@@ -280,9 +289,6 @@ $(function () {
         },
     })
 })
-setTimeout(function(){
-    $('div.overlay').remove();
-},1000);
 </script>
 
 {% endblock %}

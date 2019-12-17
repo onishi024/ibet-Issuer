@@ -114,97 +114,95 @@ holder_detail_url_base = '{{ url_for("bond.holder", token_address=token_address,
 holder_transfer_url_base = '{{ url_for("bond.transfer_ownership", token_address=token_address, account_address="account_address") }}';
 $(function () {
     $('#data_table').DataTable({
-    columns: [{
-        data: 'account_address',
-        title: 'アカウントアドレス',
-        className: 'tableAddress',
-        render: function (data) {
-        return '<small>' + data + '</small>'
-        }
-    }, {
-        data: "name",
-        orderable: true,
-        title: "氏名"
-    }, {
-        data: "balance",
-        orderable: true,
-        title: "保有数量"
-    }, {
-        data: "commitment",
-        orderable: true,
-        title: "注文中数量"
-    }, {
-        data: "holder_detail",
-        orderable: false,
-        className: "text-center",
-        render: function (data) {
-        return `<a href="${data}" />詳細`;
-        }
-    }, {
-        data: "token_transfer",
-        orderable: false,
-        className: "text-center",
-        render: function (data) {
-        return `<button type="button" class="btn btn-success btn-sm" onclick='location.href= "${data}"' />移転`;
-        }
-    }],
-    ajax: {
-        url: holders_list_url,
-        dataSrc : function (json) {
-        returnJson = [];
-        for(index in json){
-            returnJsonRaw = {
-            account_address : json[index]['account_address'] ? json[index]['account_address'] : '--',
-            name: json[index]['name'] ? json[index]['name'] : '--',
-            balance: json[index]['balance'] ? json[index]['balance'] : 0,
-            commitment: json[index]['commitment'] ? json[index]['commitment'] : 0,
-            holder_detail: json[index]['account_address'] ? holder_detail_url_base.replace('account_address', json[index]['account_address']) : '--',
-            token_transfer: json[index]['account_address'] ? holder_transfer_url_base.replace('account_address', json[index]['account_address']) : '--'
-            };
-            returnJson.push(returnJsonRaw)
-        }
-        if (json) {
-            $("#csv_download").prop("disabled", false);
-        }
-            return returnJson;
-        }
-    },
-    'paging': true,
-    'lengthChange': true,
-    'searching': true,
-    'info': true,
-    'autoWidth': true,
-    'pagingType': "full_numbers",
-    'language': {
-        'info': "_TOTAL_ 件中 _START_ 〜 _END_ 件目",
-        'lengthMenu': "表示件数 _MENU_ 件",
-        'search': "検索:",
-        'paginate': {
-        'first': "最初へ",
-        'previous': "前へ",
-        'next': "次へ",
-        'last': "最後へ"
+        columns: [{
+            data: 'account_address',
+            title: 'アカウントアドレス',
+            className: 'tableAddress',
+            render: function (data) {
+            return '<small>' + data + '</small>'
+            }
+        }, {
+            data: "name",
+            orderable: true,
+            title: "氏名"
+        }, {
+            data: "balance",
+            orderable: true,
+            title: "保有数量"
+        }, {
+            data: "commitment",
+            orderable: true,
+            title: "注文中数量"
+        }, {
+            data: "holder_detail",
+            orderable: false,
+            className: "text-center",
+            render: function (data) {
+            return `<a href="${data}" />詳細`;
+            }
+        }, {
+            data: "token_transfer",
+            orderable: false,
+            className: "text-center",
+            render: function (data) {
+            return `<button type="button" class="btn btn-success btn-sm" onclick='location.href= "${data}"' />移転`;
+            }
+        }],
+        ajax: {
+            url: holders_list_url,
+            dataSrc : function (json) {
+            returnJson = [];
+            for(index in json){
+                returnJsonRaw = {
+                account_address : json[index]['account_address'] ? json[index]['account_address'] : '--',
+                name: json[index]['name'] ? json[index]['name'] : '--',
+                balance: json[index]['balance'] ? json[index]['balance'] : 0,
+                commitment: json[index]['commitment'] ? json[index]['commitment'] : 0,
+                holder_detail: json[index]['account_address'] ? holder_detail_url_base.replace('account_address', json[index]['account_address']) : '--',
+                token_transfer: json[index]['account_address'] ? holder_transfer_url_base.replace('account_address', json[index]['account_address']) : '--'
+                };
+                returnJson.push(returnJsonRaw)
+            }
+            if (json) {
+                $("#csv_download").prop("disabled", false);
+                $("div.overlay").remove();
+            }
+                return returnJson;
+            }
         },
-        "emptyTable": "データが存在しません",
-        "sInfoEmpty": " 0 件中 0 から 0 まで表示"
+        'paging': true,
+        'lengthChange': true,
+        'searching': true,
+        'info': true,
+        'autoWidth': true,
+        'pagingType': "full_numbers",
+        'language': {
+            'info': "_TOTAL_ 件中 _START_ 〜 _END_ 件目",
+            'lengthMenu': "表示件数 _MENU_ 件",
+            'search': "検索:",
+            'paginate': {
+            'first': "最初へ",
+            'previous': "前へ",
+            'next': "次へ",
+            'last': "最後へ"
+            },
+            "emptyTable": "データが存在しません",
+            "sInfoEmpty": " 0 件中 0 から 0 まで表示"
+        }
+    }),
+    window.onload = function getTokenName() {
+        $.ajax({
+            type: 'GET',
+            url: token_name_url,
+            dataType: 'json',
+            contentType: 'application/json'
+        }).then(function (res) {
+            document.getElementById('token_name').innerHTML = res + '　<small>' + token_address + '</small>';
+        },
+        function () {
+            alert('データ取得に失敗しました');
+        });
     }
-    })
 })
-window.onload = function getTokenName() {
-    $.ajax({
-        type: 'GET',
-        url: token_name_url,
-        dataType: 'json',
-        contentType: 'application/json'
-    }).then(function (res) {
-        document.getElementById('token_name').innerHTML = res + '　<small>' + token_address + '</small>';
-    },
-    function () {
-        alert('データ取得に失敗しました');
-    });
-};
-setTimeout(function(){
-    $('div.overlay').remove();
-},1000);
 </script>
 {% endblock %}

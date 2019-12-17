@@ -100,7 +100,10 @@
             };
             returnJson.push(returnJsonRaw)
           }
-            return returnJson;
+          if (json) {
+            $("div.overlay").remove();
+          }
+          return returnJson;
         }
       },
       'paging': true,
