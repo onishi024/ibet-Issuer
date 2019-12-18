@@ -287,8 +287,8 @@ def transfer_ownership(token_address, account_address):
                     form=form
                 )
             eth_unlock_account()
-            gas = TokenContract.estimateGas().transfer(to_address, amount)
-            txid = TokenContract.functions.transfer(to_address, amount). \
+            gas = TokenContract.estimateGas().transferFrom(from_address, to_address, amount)
+            txid = TokenContract.functions.transferFrom(from_address, to_address, amount). \
                 transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
             web3.eth.waitForTransactionReceipt(txid)
             return redirect(url_for('.holders', token_address=token_address))
