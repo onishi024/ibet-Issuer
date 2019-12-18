@@ -19,6 +19,9 @@ class Config:
     TEMPLATE_ID_MRF = 4
     TEMPLATE_ID_JDR = 5
 
+    # gunicornのworker数
+    WORKER_COUNT = int(os.environ.get("WORKER_COUNT")) if os.environ.get("WORKER_COUNT") else 4
+
     # Payment Agent List
     APP_ENV = os.getenv('FLASK_CONFIG') or 'default'
     if APP_ENV == 'production':
