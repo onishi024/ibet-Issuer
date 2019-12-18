@@ -173,6 +173,12 @@
                     </div>
                 </div>
                 <div class="form-group">
+                    {{ form.personalInfoAddress.label(class="col-md-2 control-label") }}
+                    <div class="col-md-8">
+                            {{ form.personalInfoAddress(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：0x123456789A123456789B123456789C123456789D", title=form_description['personalInfoAddress'] )}}
+                    </div>
+                </div>
+                <div class="form-group">
                     {{ form.contact_information.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
                             {{ form.contact_information(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right", title=form_description['contact_information'] )}}
