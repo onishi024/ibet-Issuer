@@ -149,6 +149,7 @@ class TestBond(TestBase):
                 'returnAmount': '商品券をプレゼント',
                 'purpose': '新商品の開発資金として利用。',
                 'tradableExchange': shared_contract['IbetStraightBondExchange']['address'],
+                'personalInfoAddress': shared_contract['PersonalInfo']['address'],
                 'memo': 'メモ'
             }
         )
@@ -186,6 +187,7 @@ class TestBond(TestBase):
         assert '商品券をプレゼント'.encode('utf-8') in response.data
         assert '新商品の開発資金として利用。'.encode('utf-8') in response.data
         assert shared_contract['IbetStraightBondExchange']['address'].encode('utf-8') in response.data
+        assert shared_contract['PersonalInfo']['address'].encode('utf-8') in response.data
         assert 'メモ'.encode('utf-8') in response.data
 
     # ＜正常系4＞
@@ -302,7 +304,8 @@ class TestBond(TestBase):
                 'image_1': 'https://test.com/image_1.jpg',
                 'image_2': 'https://test.com/image_2.jpg',
                 'image_3': 'https://test.com/image_3.jpg',
-                'tradableExchange': shared_contract['PaymentGateway']['address']
+                'tradableExchange': shared_contract['PaymentGateway']['address'],  # 初期データから変更登録
+                'personalInfoAddress': shared_contract['PaymentGateway']['address']  # 初期データから変更登録
             }
         )
         assert response.status_code == 302
@@ -325,7 +328,8 @@ class TestBond(TestBase):
                 'image_1': 'https://test.com/image_1.jpg',
                 'image_2': 'https://test.com/image_2.jpg',
                 'image_3': 'https://test.com/image_3.jpg',
-                'tradableExchange': shared_contract['IbetStraightBondExchange']['address']
+                'tradableExchange': shared_contract['IbetStraightBondExchange']['address'],
+                'personalInfoAddress': shared_contract['PersonalInfo']['address']
             }
         )
         assert response.status_code == 302
@@ -535,8 +539,8 @@ class TestBond(TestBase):
                 assert '1234567' == response_data['postal_code']
                 assert '東京都中央区日本橋11-1東京マンション１０１' == response_data['address']
                 assert 'abcd1234@aaa.bbb.cc' == response_data['email']
-                assert 0 == response_data['balance']
-                assert 999990 == response_data['commitment']
+                assert 999990 == response_data['balance']
+                assert 0 == response_data['commitment']
             elif eth_account['trader']['account_address'] == response_data['account_address']:  # trader
                 assert 'ﾀﾝﾀｲﾃｽﾄ' == response_data['name']
                 assert '1040053' == response_data['postal_code']
@@ -607,6 +611,7 @@ class TestBond(TestBase):
                 'returnAmount': '商品券をプレゼント',
                 'purpose': '新商品の開発資金として利用。',
                 'tradableExchange': error_address,
+                'personalInfoAddress': error_address,
                 'memo': 'メモ'
             }
         )
