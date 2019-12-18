@@ -80,7 +80,7 @@ export RSA_PASSWORD=password
 
 ```
 $ cd ibet-Issuer
-$ python manage.py runserver [ -h 0.0.0.0 ]
+$ gunicorn -b localhost:5000 --reload manage:app --config guniconf.py
 ```
 - 接続確認  
 http://XXX.XXX.XXX.XXX:5000/ で接続して起動していることを確認。
