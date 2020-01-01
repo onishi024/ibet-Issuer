@@ -10,7 +10,7 @@
 </p>
 
 
-## Starting and Stopping the Server
+## Starting the Server
 Install packages
 ```bash
 $ cd ibet-Issuer
