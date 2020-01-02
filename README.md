@@ -1,6 +1,8 @@
-# ibet for Issuer
+<p align='center'>
+  <img alt="ibet" src="https://user-images.githubusercontent.com/963333/71643901-ef86e100-2d02-11ea-9185-47c06e529910.png" width="300"/>
+</p>
 
-<img alt="ibet" src="https://user-images.githubusercontent.com/963333/71643901-ef86e100-2d02-11ea-9185-47c06e529910.png" width="200"/>
+# ibet for Issuer
 
 <p>
   <img alt="Version" src="https://img.shields.io/badge/version-0.7-blue.svg?cacheSeconds=2592000" />
