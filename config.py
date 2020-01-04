@@ -16,8 +16,6 @@ class Config:
     TEMPLATE_ID_SB = 1
     TEMPLATE_ID_COUPON = 2
     TEMPLATE_ID_MEMBERSHIP = 3
-    TEMPLATE_ID_MRF = 4
-    TEMPLATE_ID_JDR = 5
 
     # gunicornのworker数
     WORKER_COUNT = int(os.environ.get("WORKER_COUNT")) if os.environ.get("WORKER_COUNT") else 4

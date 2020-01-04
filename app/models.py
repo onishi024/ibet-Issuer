@@ -106,24 +106,6 @@ class CouponBulkTransfer(db.Model):
         return CouponBulkTransfer.id
 
 
-# 割当一括登録（MRF）
-class MRFBulkTransfer(db.Model):
-    __tablename__ = 'mrf_bulk_transfer'
-    id = db.Column(db.Integer, primary_key=True)
-    token_address = db.Column(db.String(42), nullable=False)
-    to_address = db.Column(db.String(42), nullable=False)
-    amount = db.Column(db.Integer, nullable=False)
-    transferred = db.Column(db.Boolean, default=False)
-
-    def __repr__(self):
-        return "<MRFBulkTransfer('token_address'='%s', 'to_address'='%s', 'amount'='%s', 'transferred'='%s')>" % \
-               (self.token_address, self.to_address, self.amount, self.transferred)
-
-    @classmethod
-    def get_id(cls):
-        return MRFBulkTransfer.id
-
-
 class Certification(db.Model):
     __tablename__ = 'certification'
     id = db.Column(db.Integer, primary_key=True)

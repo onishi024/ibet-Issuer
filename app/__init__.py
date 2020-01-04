@@ -14,6 +14,7 @@ login_manager.login_view = 'auth.login'
 login_manager.login_message = u"ログインが必要です。"
 login_manager.login_message_category = "info"
 
+
 def create_app(config_name):
     from .app import app
     app.config.from_object(config[config_name])
@@ -28,7 +29,6 @@ def create_app(config_name):
     from logging.config import dictConfig
     werkzeug_logger = getLogger('werkzeug')
     werkzeug_logger.disabled = True
-    #app.logger.disabled = True
     app.logger.handlers.clear()
     dictConfig(app.config['LOG_CONFIG'])
 
@@ -40,12 +40,6 @@ def create_app(config_name):
 
     from .bond import bond as token_blueprint
     app.register_blueprint(token_blueprint)
-
-    from .mrf import mrf as mrf_blueprint
-    app.register_blueprint(mrf_blueprint)
-
-    from .jdr import jdr as jdr_blueprint
-    app.register_blueprint(jdr_blueprint)
 
     from .coupon import coupon as coupon_blueprint
     app.register_blueprint(coupon_blueprint)
