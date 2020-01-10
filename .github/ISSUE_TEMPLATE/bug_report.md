@@ -7,6 +7,12 @@ assignees: kyken, YoshihitoAso
 
 ---
 
+## 対象
+:sob: 債券
+:sob: 会員権
+:sob: クーポン
+:sob: その他
+
 ## バグの説明
 バグに関する簡潔で明瞭な説明を記載してください。
 

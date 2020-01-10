@@ -11,6 +11,7 @@ assignees: kyken, YoshihitoAso
 :sob: 債券
 :sob: 会員権
 :sob: クーポン
+:sob: その他
 
 ## 現状の課題
 あなたが感じている現状のプロダクトの課題について、簡潔明瞭に記載してください。
