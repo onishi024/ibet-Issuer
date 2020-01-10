@@ -21,7 +21,7 @@ from app.models import CouponBulkTransfer, Token
 from config import Config
 
 # NOTE:ログフォーマットはメッセージ監視が出来るように設定する必要がある。
-log_fmt = 'PROCESSOR [%(asctime)s] [%(process)d] [%(levelname)s] %(message)s'
+log_fmt = 'PROCESSOR-BatchTransferCoupon [%(asctime)s] [%(process)d] [%(levelname)s] %(message)s'
 logging.basicConfig(level=logging.INFO, format=log_fmt)
 
 # 設定情報の取得

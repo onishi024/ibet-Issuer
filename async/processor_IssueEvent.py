@@ -13,7 +13,7 @@ engine = sa.create_engine(URI, echo=False)
 
 import logging
 # NOTE:ログフォーマットはメッセージ監視が出来るように設定する必要がある。
-log_fmt = 'PROCESSOR [%(asctime)s] [%(process)d] [%(levelname)s] %(message)s'
+log_fmt = 'PROCESSOR-IssueEvent [%(asctime)s] [%(process)d] [%(levelname)s] %(message)s'
 logging.basicConfig(level=logging.INFO, format=log_fmt)
 
 while True:
