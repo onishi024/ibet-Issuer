@@ -158,21 +158,21 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = os.environ.get(
-        'DEV_DATABASE_URL') or 'postgresql://issueruser:issuerpass@localhost:5432/issuerdb'
+    SQLALCHEMY_DATABASE_URI = \
+        os.environ.get('DATABASE_URL') or 'postgresql://issueruser:issuerpass@localhost:5432/issuerdb'
 
 
 class TestingConfig(Config):
     TESTING = True
     LOGIN_DISABLED = True
-    SQLALCHEMY_DATABASE_URI = os.environ.get(
-        'TEST_DATABASE_URL') or 'postgresql://issueruser:issuerpass@localhost:5432/issuerdb_test'
+    SQLALCHEMY_DATABASE_URI = \
+        os.environ.get('TEST_DATABASE_URL') or 'postgresql://issueruser:issuerpass@localhost:5432/issuerdb_test'
     WTF_CSRF_ENABLED = False
 
 
 class ProductionConfig(Config):
-    SQLALCHEMY_DATABASE_URI = os.environ.get(
-        'DATABASE_URL') or 'postgresql://issueruser:issuerpass@localhost:5432/issuerdb'
+    SQLALCHEMY_DATABASE_URI = \
+        os.environ.get('DATABASE_URL') or 'postgresql://issueruser:issuerpass@localhost:5432/issuerdb'
 
     LOG_CONFIG = ({
         'version': 1,
