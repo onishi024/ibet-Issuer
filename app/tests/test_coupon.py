@@ -569,35 +569,20 @@ class TestCoupon(TestBase):
         assert '新規売出を受け付けました。売出開始までに数分程かかることがあります。'.encode('utf-8') in response.data
         assert 'テストクーポン'.encode('utf-8') in response.data
         assert 'COUPON'.encode('utf-8') in response.data
-        assert '売出停止'.encode('utf-8') in response.data
         # 売出中の数量が存在する
         assert '<td>2000100</td>\n            <td>0</td>\n            <td>2000000</td>'.encode('utf-8') in response.data
 
     # ＜正常系9_3＞
-    # ＜売出停止画面の表示＞
+    # ＜売出＞
+    #   売出停止 → 売出管理画面で確認
     def test_normal_9_3(self, app):
         client = self.client_with_admin_login(app)
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
         token = tokens[0]
 
         # 売出停止処理
-        response = client.get(self.url_cancel_order + token.token_address)
-        assert response.status_code == 200
-
-        assert '<title>売出停止'.encode('utf-8') in response.data
-        assert '売出情報'.encode('utf-8') in response.data
-
-    # ＜正常系9_4＞
-    # ＜売出＞
-    #   売出停止 → 売出管理画面で確認
-    def test_normal_9_4(self, app):
-        client = self.client_with_admin_login(app)
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
-        token = tokens[0]
-
-        # 売出停止処理
         response = client.post(
-            self.url_cancel_order + token.token_address,
+            self.url_cancel_order + token.token_address + "/1",
         )
         assert response.status_code == 302
 
@@ -607,7 +592,6 @@ class TestCoupon(TestBase):
         assert '<title>売出管理'.encode('utf-8') in response.data
         assert 'テストクーポン'.encode('utf-8') in response.data
         assert 'COUPON'.encode('utf-8') in response.data
-        assert '売出開始'.encode('utf-8') in response.data
         # 売出中の数量が0
         assert '<td>2000100</td>\n            <td>2000000</td>\n            <td>0</td>'.encode('utf-8') in response.data
 

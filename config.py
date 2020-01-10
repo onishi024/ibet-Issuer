@@ -13,9 +13,9 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 class Config:
     # Tokenテーブルのtemplate_id
-    TEMPLATE_ID_SB = 1
-    TEMPLATE_ID_COUPON = 2
-    TEMPLATE_ID_MEMBERSHIP = 3
+    TEMPLATE_ID_SB = 1 # 債券
+    TEMPLATE_ID_COUPON = 2 # クーポン
+    TEMPLATE_ID_MEMBERSHIP = 3 # 会員権
 
     # gunicornのworker数
     WORKER_COUNT = int(os.environ.get("WORKER_COUNT")) if os.environ.get("WORKER_COUNT") else 4
@@ -31,6 +31,8 @@ class Config:
     SSL_DISABLE = False
     PERMANENT_SESSION_LIFETIME = timedelta(minutes=30)
 
+    SQLALCHEMY_DATABASE_URI = \
+        os.environ.get('DATABASE_URL') or 'postgresql://issueruser:issuerpass@localhost:5432/issuerdb'
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
     SQLALCHEMY_RECORD_QUERIES = True
     SQLALCHEMY_TRACK_MODIFICATIONS = True
@@ -158,9 +160,6 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = \
-        os.environ.get('DATABASE_URL') or 'postgresql://issueruser:issuerpass@localhost:5432/issuerdb'
-
 
 class TestingConfig(Config):
     TESTING = True
@@ -171,9 +170,6 @@ class TestingConfig(Config):
 
 
 class ProductionConfig(Config):
-    SQLALCHEMY_DATABASE_URI = \
-        os.environ.get('DATABASE_URL') or 'postgresql://issueruser:issuerpass@localhost:5432/issuerdb'
-
     LOG_CONFIG = ({
         'version': 1,
         'formatters': {'default': {
