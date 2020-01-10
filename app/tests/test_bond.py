@@ -266,7 +266,6 @@ class TestBond(TestBase):
         assert '新規売出を受け付けました。売出開始までに数分程かかることがあります。'.encode('utf-8') in response.data
         assert 'テスト債券'.encode('utf-8') in response.data
         assert 'BOND'.encode('utf-8') in response.data
-        assert '売出停止'.encode('utf-8') in response.data
 
     # ＜正常系8＞
     #   売出停止 → 債券売出管理で確認
@@ -277,7 +276,7 @@ class TestBond(TestBase):
 
         # 売出停止
         response = client.post(
-            self.url_cancel_order + token.token_address,
+            self.url_cancel_order + token.token_address + "/1",
         )
         assert response.status_code == 302
 
@@ -287,7 +286,6 @@ class TestBond(TestBase):
         assert '<title>債券売出管理'.encode('utf-8') in response.data
         assert 'テスト債券'.encode('utf-8') in response.data
         assert 'BOND'.encode('utf-8') in response.data
-        assert '売出開始'.encode('utf-8') in response.data
 
     # ＜正常系9＞
     #   詳細設定 → 詳細設定画面で確認

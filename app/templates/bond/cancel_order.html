@@ -20,7 +20,7 @@
         <div class="box-header with-border">
             <h3 class="box-title">売出情報　<small>{{ form.token_address.data }}</small></h3>
         </div>
-        <form class="form-horizontal" method="POST" role="form" action="{{ url_for('bond.cancel_order', token_address=form.token_address.data) }}">
+        <form class="form-horizontal" method="POST" role="form" action="{{ url_for('bond.cancel_order', token_address=form.token_address.data, order_id=form.order_id.data) }}">
               {{ form.csrf_token }}
               <div class="box-body">
                 <div class="form-group">

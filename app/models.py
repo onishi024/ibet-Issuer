@@ -106,6 +106,7 @@ class CouponBulkTransfer(db.Model):
         return CouponBulkTransfer.id
 
 
+# トークン認定依頼
 class Certification(db.Model):
     __tablename__ = 'certification'
     id = db.Column(db.Integer, primary_key=True)
@@ -123,6 +124,7 @@ class Certification(db.Model):
         return Certification.id
 
 
+# 銀行口座情報
 class Bank(db.Model):
     __tablename__ = 'bank'
     id = db.Column(db.Integer, primary_key=True)
@@ -136,27 +138,28 @@ class Bank(db.Model):
     account_holder = db.Column(db.String(40), nullable=False)
 
     def __repr__(self):
-        return '<Bank %r>' % self.name
+        return '<Bank %s>' % self.eth_account
 
 
-# マーケットメイク注文(SWAP)
-class SwapMarketMakeOrder(db.Model):
-    __tablename__ = 'swap_market_make_order'
-    id = db.Column(db.Integer, primary_key=True)
-    token_address = db.Column(db.String(42), nullable=False)  # IbetStandardTokenアドレス
-    settlement_token_address = db.Column(db.String(42), nullable=False)  # SettlementTokenアドレス
-    swap_address = db.Column(db.String(42), nullable=False)  # SWAPコントラクトアドレス
-    is_buy = db.Column(db.Boolean, default=False)  # 売買区分（買/売）
-    amount = db.Column(db.Integer, nullable=False)  # 注文数量
-    price = db.Column(db.Integer, nullable=False)  # 注文単価
-    ordered = db.Column(db.Boolean, default=False)  # 発注ステータス（発注済/未発注）
+# 注文
+class Order(db.Model):
+    __tablename__ = 'order'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    token_address = db.Column(db.String(256), index=True)
+    exchange_address = db.Column(db.String(256), index=True)
+    order_id = db.Column(db.Integer, index=True)
+    unique_order_id = db.Column(db.String(256), index=True)
+    account_address = db.Column(db.String(256))
+    is_buy = db.Column(db.Boolean)
+    price = db.Column(db.Integer)
+    amount = db.Column(db.Integer)
+    agent_address = db.Column(db.String(256))
+    is_cancelled = db.Column(db.Boolean)
 
     def __repr__(self):
-        return "<SwapMarketMakeOrder('token_address'='%s', 'settlement_token_address'='%s', 'swap_address'='%s', " \
-               "'is_buy'='%s', 'amount'='%i', 'price'='%i', ordered'='%s')>" % \
-               (self.token_address, self.settlement_token_address, self.swap_address, self.is_buy, self.amount,
-                self.price, self.ordered)
+        return "<Order('token_address'='%s', 'exchange_address'='%s', 'order_id'='%i', 'unique_order_id'='%s')>" % \
+               (self.token_address, self.exchange_address, self.order_id, self.unique_order_id)
 
     @classmethod
     def get_id(cls):
-        return SwapMarketMakeOrder.id
+        return Order.id
