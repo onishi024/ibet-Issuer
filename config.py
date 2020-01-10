@@ -148,8 +148,8 @@ class Config:
     # RSA鍵ファイルのパスワード
     RSA_PASSWORD = os.environ.get('RSA_PASSWORD')
 
-    # Stripeの上限・下限額
-    STRIPE_MAXIMUM_VALUE = os.environ.get('STRIPE_MAXIMUM_VALUE') or 500000
+    # 売出価格（単価）の上限値（円）
+    MAX_SELL_PRICE = os.environ.get('MAX_SELL_PRICE') or 100000000
 
     @staticmethod
     def init_app(app):

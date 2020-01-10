@@ -363,12 +363,12 @@ class SellTokenForm(Form):
     abi = TextAreaField("インターフェース", validators=[])
     bytecode = TextAreaField("バイトコード", validators=[])
 
-    message = '売出価格は' + str(Config.STRIPE_MAXIMUM_VALUE) + '円が上限です。'
+    message = '売出価格は' + str(Config.MAX_SELL_PRICE) + '円が上限です。'
     sellPrice = IntegerField(
         "売出価格（額面当り）",
         validators=[
             DataRequired('売出価格は必須です。'),
-            NumberRange(min=1, max=int(Config.STRIPE_MAXIMUM_VALUE), message=message),
+            NumberRange(min=1, max=int(Config.MAX_SELL_PRICE), message=message),
         ]
     )
 
