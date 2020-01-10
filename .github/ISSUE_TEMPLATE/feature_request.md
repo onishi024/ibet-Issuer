@@ -7,9 +7,9 @@ assignees: kyken, YoshihitoAso
 
 ---
 
-- [ ] 債券
-- [ ] 会員権
-- [ ] クーポン
+:smile: | :sob: 債券
+:smile: | :sob: 会員権
+:smile: | :sob: クーポン
 
 ## 現状の課題
 あなたが感じている現状のプロダクトの課題について、簡潔明瞭に記載してください。
