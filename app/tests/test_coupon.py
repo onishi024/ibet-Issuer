@@ -280,9 +280,9 @@ class TestCoupon(TestBase):
         assert response.status_code == 200
         assert '<title>売出管理'.encode('utf-8') in response.data
         assert 'テストクーポン'.encode('utf-8') in response.data
-        assert 'COUPON'.encode('utf-8') in response.data
         assert token.token_address.encode('utf-8') in response.data
-        assert '<td>2000000</td>\n            <td>2000000</td>\n            <td>0</td>'.encode('utf-8') in response.data
+        assert '<td>2000000</td>\n                <td>2000000</td>\n                <td>0</td>'.\
+                   encode('utf-8') in response.data
 
     # ＜正常系4＞
     # ＜設定変更＞
@@ -537,7 +537,6 @@ class TestCoupon(TestBase):
         assert response.status_code == 200
         assert '<title>新規売出'.encode('utf-8') in response.data
         assert 'テストクーポン'.encode('utf-8') in response.data
-        assert 'COUPON'.encode('utf-8') in response.data
         assert '2000100'.encode('utf-8') in response.data
         assert 'details詳細'.encode('utf-8') in response.data
         assert '20191231'.encode('utf-8') in response.data
@@ -568,9 +567,9 @@ class TestCoupon(TestBase):
         assert '<title>売出管理'.encode('utf-8') in response.data
         assert '新規売出を受け付けました。売出開始までに数分程かかることがあります。'.encode('utf-8') in response.data
         assert 'テストクーポン'.encode('utf-8') in response.data
-        assert 'COUPON'.encode('utf-8') in response.data
         # 売出中の数量が存在する
-        assert '<td>2000100</td>\n            <td>0</td>\n            <td>2000000</td>'.encode('utf-8') in response.data
+        assert '<td>2000100</td>\n                <td>0</td>\n                <td>2000000</td>'.\
+                   encode('utf-8') in response.data
 
     # ＜正常系9_3＞
     # ＜売出＞
@@ -591,9 +590,9 @@ class TestCoupon(TestBase):
         assert response.status_code == 200
         assert '<title>売出管理'.encode('utf-8') in response.data
         assert 'テストクーポン'.encode('utf-8') in response.data
-        assert 'COUPON'.encode('utf-8') in response.data
         # 売出中の数量が0
-        assert '<td>2000100</td>\n            <td>2000000</td>\n            <td>0</td>'.encode('utf-8') in response.data
+        assert '<td>2000100</td>\n                <td>2000000</td>\n                <td>0</td>'.\
+                   encode('utf-8') in response.data
 
     # ＜正常系10_1＞
     # ＜所有者移転＞

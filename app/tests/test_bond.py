@@ -208,7 +208,6 @@ class TestBond(TestBase):
         assert response.status_code == 200
         assert '<title>債券売出管理'.encode('utf-8') in response.data
         assert 'テスト債券'.encode('utf-8') in response.data
-        assert 'BOND'.encode('utf-8') in response.data
 
     # ＜正常系6＞
     #   新規売出画面の参照
@@ -265,7 +264,6 @@ class TestBond(TestBase):
         assert '<title>債券売出管理'.encode('utf-8') in response.data
         assert '新規売出を受け付けました。売出開始までに数分程かかることがあります。'.encode('utf-8') in response.data
         assert 'テスト債券'.encode('utf-8') in response.data
-        assert 'BOND'.encode('utf-8') in response.data
 
     # ＜正常系8＞
     #   売出停止 → 債券売出管理で確認
@@ -285,7 +283,6 @@ class TestBond(TestBase):
         assert response.status_code == 200
         assert '<title>債券売出管理'.encode('utf-8') in response.data
         assert 'テスト債券'.encode('utf-8') in response.data
-        assert 'BOND'.encode('utf-8') in response.data
 
     # ＜正常系9＞
     #   詳細設定 → 詳細設定画面で確認
