@@ -873,7 +873,8 @@ def positions():
                 # 売出状態、注文ID
                 order = Order.query.\
                     filter(Order.token_address == row.token_address).\
-                    filter(Order.exchange_address == token_exchange_address).\
+                    filter(Order.exchange_address == token_exchange_address). \
+                    filter(Order.account_address == owner). \
                     filter(Order.is_buy == False).\
                     filter(Order.is_cancelled == False).\
                     first()
