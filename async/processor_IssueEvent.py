@@ -11,10 +11,18 @@ web3 = Web3(Web3.HTTPProvider(WEB3_HTTP_PROVIDER))
 URI = os.environ.get('DATABASE_URL') or 'postgresql://issueruser:issuerpass@localhost:5432/issuerdb'
 engine = sa.create_engine(URI, echo=False)
 
+path = os.path.join(os.path.dirname(__file__), '../')
+sys.path.append(path)
+
+from config import Config
+
 import logging
+from logging.config import dictConfig
+
 # NOTE:ログフォーマットはメッセージ監視が出来るように設定する必要がある。
+dictConfig(Config.LOG_CONFIG)
 log_fmt = 'PROCESSOR-IssueEvent [%(asctime)s] [%(process)d] [%(levelname)s] %(message)s'
-logging.basicConfig(level=logging.INFO, format=log_fmt)
+logging.basicConfig(format=log_fmt)
 
 while True:
     # コントラクトアドレスが登録されていないTokenの一覧を抽出

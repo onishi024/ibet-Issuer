@@ -4,6 +4,7 @@ import os
 import json
 import time
 import logging
+from logging.config import dictConfig
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
@@ -21,8 +22,9 @@ from app.models import CouponBulkTransfer, Token
 from config import Config
 
 # NOTE:ログフォーマットはメッセージ監視が出来るように設定する必要がある。
+dictConfig(Config.LOG_CONFIG)
 log_fmt = 'PROCESSOR-BatchTransferCoupon [%(asctime)s] [%(process)d] [%(levelname)s] %(message)s'
-logging.basicConfig(level=logging.INFO, format=log_fmt)
+logging.basicConfig(format=log_fmt)
 
 # 設定情報の取得
 WEB3_HTTP_PROVIDER = os.environ.get('WEB3_HTTP_PROVIDER') or 'http://localhost:8545'

@@ -3,6 +3,7 @@ import os
 import sys
 import time
 import logging
+from logging.config import dictConfig
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
@@ -17,8 +18,9 @@ from config import Config
 from web3.middleware import geth_poa_middleware
 
 # NOTE:ログフォーマットはメッセージ監視が出来るように設定する必要がある。
+dictConfig(Config.LOG_CONFIG)
 log_fmt = 'PROCESSOR-Order [%(asctime)s] [%(process)d] [%(levelname)s] %(message)s'
-logging.basicConfig(level=logging.INFO, format=log_fmt)
+logging.basicConfig(format=log_fmt)
 
 # 設定の取得
 WEB3_HTTP_PROVIDER = Config.WEB3_HTTP_PROVIDER
