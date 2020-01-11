@@ -16,43 +16,49 @@
 
 {% block page_content %}
 <section class="content">
-  <div class="box box-default">
-    <div class="box-header">
-      <h3 class="box-title">債券一覧</h3>
+    <div class="box box-default">
+        <div class="box-header">
+            <h3 class="box-title">債券一覧</h3>
+        </div>
+        <div class="box-body">
+            <table id="data_table" class="table table-bordered table-hover">
+                <thead>
+                <tr>
+                    <th>名称</th>
+                    <th>総発行量</th>
+                    <th>未売出</th>
+                    <th>売出中</th>
+                    <th>売出価格</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for position in position_list %}
+                <tr>
+                    <td style="word-break : break-all;">
+                        {{ position.name }}
+                        <br>
+                        <small style="color: #999999;">{{ position.token_address }}</small>
+                    </td>
+                    <td>{{ position.total_supply }}</td>
+                    <td>{{ position.balance }}</td>
+                    <td>{{ position.commitment }}</td>
+                    {% if position.order_price == None %}
+                    <td>--</td>
+                    {% else %}
+                    <td>{{ position.order_price }} 円</td>
+                    {% endif %}
+                    {% if position.on_sale != True %}
+                    <td align="center"><button type="button" class="btn btn-success btn-sm" onclick="location.href= '{{ url_for("bond.sell", token_address=position.token_address) }}'">売出開始</button></td>
+                    {% else %}
+                    <td align="center"><button type="button" class="btn btn-danger btn-sm" onclick="location.href= '{{ url_for("bond.cancel_order", token_address=position.token_address, order_id=position.order_id) }}'">売出停止</button></td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
-    <div class="box-body">
-  	  <table id="data_table" class="table table-bordered table-hover">
-    		<thead>
-    		  <tr>
-            <th>名称</th>
-      			<th style="width: 50px">略称</th>
-            <th>アドレス</th>
-      			<th style="width: 70px">総発行量</th>
-            <th style="width: 70px">未売出</th>
-            <th style="width: 70px">売出中</th>
-            <th></th>
-      		</tr>
-    		</thead>
-    		<tbody>
-    		{% for position in position_list %}
-          <tr>
-            <td style="word-break : break-all; width: 250px;">{{ position.name }}</td>
-            <td>{{ position.symbol }}</td>
-            <td style="word-break : break-all"><small>{{ position.token_address }}</small></td>
-            <td>{{ position.total_supply }}</td>
-            <td>{{ position.balance }}</td>
-            <td>{{ position.commitment }}</td>
-            {% if position.on_sale != True %}
-              <td align="center"><button type="button" class="btn btn-success btn-sm" onclick="location.href= '{{ url_for("bond.sell", token_address=position.token_address) }}'">売出開始</button></td>
-            {% else %}
-              <td align="center"><button type="button" class="btn btn-danger btn-sm" onclick="location.href= '{{ url_for("bond.cancel_order", token_address=position.token_address, order_id=position.order_id) }}'">売出停止</button></td>
-            {% endif %}
-          </tr>
-    		{% endfor %}
-    		</tbody>
-  	  </table>
-  	</div>
-  </div>
 </section>
 {% endblock %}
 

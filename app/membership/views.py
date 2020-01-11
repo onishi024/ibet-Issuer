@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 import traceback
 import io
+import time
 
 from flask import request, redirect, url_for, flash, make_response
 from flask import render_template
@@ -879,18 +880,21 @@ def positions():
                 if order is not None and order.amount != 0:
                     on_sale = True
                     order_id = order.order_id
-                else:
+                    order_price = order.price
+                else: # 未発注の場合
                     on_sale = False
                     order_id = None
+                    order_price = None
 
                 position_list.append({
+                    'created': row.created,
                     'token_address': row.token_address,
                     'name': name,
                     'symbol': symbol,
                     'total_supply': total_supply,
                     'balance': balance,
-                    'created': row.created,
                     'commitment': commitment,
+                    'order_price': order_price,
                     'on_sale': on_sale,
                     'order_id': order_id
                 })
@@ -953,7 +957,8 @@ def sell(token_address):
             txid = ExchangeContract.functions. \
                 createOrder(token_address, balance, form.sellPrice.data, False, agent_address). \
                 transact({'from': Config.ETH_ACCOUNT, 'gas': sell_gas})
-            tx = web3.eth.waitForTransactionReceipt(txid)
+            web3.eth.waitForTransactionReceipt(txid)
+            time.sleep(3) # NOTE: バックプロセスによるDB反映までにタイムラグがあるため3秒待つ
             flash('新規売出を受け付けました。売出開始までに数分程かかることがあります。', 'success')
             return redirect(url_for('.positions'))
         else:
@@ -1025,6 +1030,7 @@ def cancel_order(token_address, order_id):
             txid = ExchangeContract.functions.cancelOrder(order_id). \
                 transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
             web3.eth.waitForTransactionReceipt(txid)
+            time.sleep(3) # NOTE: バックプロセスによるDB反映までにタイムラグがあるため3秒待つ
             flash('売出停止処理を受け付けました。停止されるまでに数分程かかることがあります。', 'success')
             return redirect(url_for('.positions'))
         else:

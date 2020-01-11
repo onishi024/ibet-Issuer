@@ -2,6 +2,7 @@
 import datetime
 import traceback
 import io
+import time
 from base64 import b64encode
 
 from flask import request, redirect, url_for, flash, make_response
@@ -754,11 +755,6 @@ def positions():
     # 自社が発行したトークンの一覧を取得
     tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
 
-    # Exchangeコントラクトに接続
-    token_exchange_address = Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS
-    ExchangeContract = Contract.get_contract(
-        'IbetStraightBondExchange', token_exchange_address)
-
     position_list = []
     for row in tokens:
         owner = to_checksum_address(row.admin_address)
@@ -801,18 +797,21 @@ def positions():
                 if order is not None and order.amount != 0:
                     on_sale = True
                     order_id = order.order_id
+                    order_price = order.price
                 else:
                     on_sale = False
                     order_id = None
+                    order_price = None
 
                 position_list.append({
+                    'created': row.created,
                     'token_address': row.token_address,
                     'name': name,
                     'symbol': symbol,
                     'total_supply': total_supply,
                     'balance': balance,
-                    'created': row.created,
                     'commitment': commitment,
+                    'order_price': order_price,
                     'on_sale': on_sale,
                     'order_id': order_id
                 })
@@ -899,6 +898,7 @@ def sell(token_address):
                     createOrder(token_address, balance, form.sellPrice.data, False, agent_address). \
                     transact({'from': eth_account, 'gas': sell_gas})
                 web3.eth.waitForTransactionReceipt(txid)
+                time.sleep(3)  # NOTE: バックプロセスによるDB反映までにタイムラグがあるため3秒待つ
                 flash('新規売出を受け付けました。売出開始までに数分程かかることがあります。', 'success')
                 return redirect(url_for('.positions'))
         else:
@@ -958,6 +958,7 @@ def cancel_order(token_address, order_id):
             txid = ExchangeContract.functions.cancelOrder(order_id). \
                 transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
             web3.eth.waitForTransactionReceipt(txid)
+            time.sleep(3) # NOTE: バックプロセスによるDB反映までにタイムラグがあるため3秒待つ
             flash('売出停止処理を受け付けました。停止されるまでに数分程かかることがあります。', 'success')
             return redirect(url_for('.positions'))
         else:
