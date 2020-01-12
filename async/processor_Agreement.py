@@ -179,6 +179,8 @@ class Processor:
     def __sync_all(self, block_from, block_to):
         logging.debug("syncing from={}, to={}".format(block_from, block_to))
         self.__sync_agree(block_from, block_to)
+        self.__sync_settlement_ok(block_from, block_to)
+        self.__sync_settlement_ng(block_from, block_to)
         self.sink.flush()
 
     # Agree Event
