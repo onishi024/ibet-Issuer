@@ -107,7 +107,7 @@ class DBSink:
             agreement.price = price
             agreement.amount = amount
             agreement.agent_address = agent_address
-            agreement.paid = AgreementStatus.PENDING.value
+            agreement.status = AgreementStatus.PENDING.value
             self.db.merge(agreement)
 
     def on_settlement_ok(self, exchange_address, order_id, agreement_id):
