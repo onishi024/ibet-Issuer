@@ -12,7 +12,7 @@ path = os.path.join(os.path.dirname(__file__), '../')
 sys.path.append(path)
 
 from web3 import Web3
-from app.models import Token, Order
+from app.models import Token, Agreement, AgreementStatus
 from app.contracts import Contract
 from config import Config
 from web3.middleware import geth_poa_middleware
@@ -41,17 +41,17 @@ class Sinks:
     def register(self, sink):
         self.sinks.append(sink)
 
-    def on_new_order(self, *args, **kwargs):
-        for sink in self.sinks:
-            sink.on_new_order(*args, **kwargs)
-
-    def on_cancel_order(self, *args, **kwargs):
-        for sink in self.sinks:
-            sink.on_cancel_order(*args, **kwargs)
-
     def on_agree(self, *args, **kwargs):
         for sink in self.sinks:
             sink.on_agree(*args, **kwargs)
+
+    def on_settlement_ok(self, *args, **kwargs):
+        for sink in self.sinks:
+            sink.on_settlement_ok(*args, **kwargs)
+
+    def on_settlement_ng(self, *args, **kwargs):
+        for sink in self.sinks:
+            sink.on_settlement_ng(*args, **kwargs)
 
     def flush(self, *args, **kwargs):
         for sink in self.sinks:
@@ -60,27 +60,27 @@ class Sinks:
 
 class ConsoleSink:
     @staticmethod
-    def on_new_order(token_address, exchange_address,
-                     order_id, account_address, is_buy, price, amount, agent_address):
+    def on_agree(token_address, exchange_address, order_id, agreement_id,
+                 buyer_address, seller_address, price, amount, agent_address):
         logging.info(
-            "NewOrder: exchange_address={}, order_id={}".format(
-                exchange_address, order_id
+            "Agree: exchange_address={}, order_id={}, agreement_id={}".format(
+                exchange_address, order_id, agreement_id
             )
         )
 
     @staticmethod
-    def on_cancel_order(exchange_address, order_id):
+    def on_settlement_ok(exchange_address, order_id, agreement_id):
         logging.info(
-            "CancelOrder: exchange_address={}, order_id={}".format(
-                exchange_address, order_id
+            "SettlementOK: exchange_address={}, orderId={}, agreementId={}".format(
+                exchange_address, order_id, agreement_id
             )
         )
 
     @staticmethod
-    def on_agree(exchange_address, order_id, order_amount):
+    def on_settlement_ng(exchange_address, order_id, agreement_id):
         logging.info(
-            "Agree: exchange_address={}, order_id={}".format(
-                exchange_address, order_id
+            "SettlementNG: exchange_address={}, orderId={}, agreementId={}".format(
+                exchange_address, order_id, agreement_id
             )
         )
 
@@ -92,40 +92,42 @@ class DBSink:
     def __init__(self, db):
         self.db = db
 
-    def on_new_order(self, token_address, exchange_address, order_id, account_address,
-                     is_buy, price, amount, agent_address):
-        order = self.__get_order(exchange_address, order_id)
-        if order is None:
-            order = Order()
-            order.token_address = token_address
-            order.exchange_address = exchange_address
-            order.order_id = order_id
-            order.unique_order_id = exchange_address + '_' + str(order_id)
-            order.account_address = account_address
-            order.is_buy = is_buy
-            order.price = price
-            order.amount = amount
-            order.agent_address = agent_address
-            order.is_cancelled = False
-            self.db.merge(order)
+    def on_agree(self, token_address, exchange_address, order_id, agreement_id,
+                 buyer_address, seller_address, price, amount, agent_address):
+        agreement = self.__get_agreement(exchange_address, order_id, agreement_id)
+        if agreement is None:
+            agreement = Agreement()
+            agreement.token_address = token_address
+            agreement.exchange_address = exchange_address
+            agreement.order_id = order_id
+            agreement.agreement_id = agreement_id
+            agreement.unique_order_id = exchange_address + '_' + str(order_id)
+            agreement.buyer_address = buyer_address
+            agreement.seller_address = seller_address
+            agreement.price = price
+            agreement.amount = amount
+            agreement.agent_address = agent_address
+            agreement.paid = AgreementStatus.PENDING.value
+            self.db.merge(agreement)
 
-    def on_cancel_order(self, exchange_address, order_id):
-        order = self.__get_order(exchange_address, order_id)
-        if order is not None:
-            order.is_cancelled = True
+    def on_settlement_ok(self, exchange_address, order_id, agreement_id):
+        agreement = self.__get_agreement(exchange_address, order_id, agreement_id)
+        if agreement is not None:
+            agreement.status = AgreementStatus.DONE.value
 
-    def on_agree(self, exchange_address, order_id, order_amount):
-        order = self.__get_order(exchange_address, order_id)
-        if order is not None:
-            order.amount = order_amount
+    def on_settlement_ng(self, exchange_address, order_id, agreement_id):
+        agreement = self.__get_agreement(exchange_address, order_id, agreement_id)
+        if agreement is not None:
+            agreement.status = AgreementStatus.CANCELED.value
 
     def flush(self):
         self.db.commit()
 
-    def __get_order(self, exchange_address, order_id):
-        return self.db.query(Order). \
-            filter(Order.exchange_address == exchange_address). \
-            filter(Order.order_id == order_id). \
+    def __get_agreement(self, exchange_address, order_id, agreement_id):
+        return self.db.query(Agreement). \
+            filter(Agreement.exchange_address == exchange_address). \
+            filter(Agreement.order_id == order_id). \
+            filter(Agreement.agreement_id == agreement_id). \
             first()
 
 
@@ -176,62 +178,8 @@ class Processor:
 
     def __sync_all(self, block_from, block_to):
         logging.debug("syncing from={}, to={}".format(block_from, block_to))
-        self.__sync_new_order(block_from, block_to)
-        self.__sync_cancel_order(block_from, block_to)
         self.__sync_agree(block_from, block_to)
         self.sink.flush()
-
-    # Order Event
-    def __sync_new_order(self, block_from, block_to):
-        for exchange_contract in self.exchange_list:
-            try:
-                event_filter = exchange_contract.eventFilter(
-                    'NewOrder', {
-                        'fromBlock': block_from,
-                        'toBlock': block_to,
-                    }
-                )
-                for event in event_filter.get_all_entries():
-                    args = event['args']
-                    if args['price'] > sys.maxsize or args['amount'] > sys.maxsize:
-                        pass
-                    else:
-                        self.sink.on_new_order(
-                            token_address=args['tokenAddress'],
-                            exchange_address=exchange_contract.address,
-                            order_id=args['orderId'],
-                            account_address=args['accountAddress'],
-                            is_buy=args['isBuy'],
-                            price=args['price'],
-                            amount=args['amount'],
-                            agent_address=args['agentAddress'],
-                        )
-                self.web3.eth.uninstallFilter(event_filter.filter_id)
-
-            except Exception as e:
-                logging.error(e)
-                pass
-
-    # CancelOrder Event
-    def __sync_cancel_order(self, block_from, block_to):
-        for exchange_contract in self.exchange_list:
-            try:
-                event_filter = exchange_contract.eventFilter(
-                    'CancelOrder', {
-                        'fromBlock': block_from,
-                        'toBlock': block_to,
-                    }
-                )
-                for event in event_filter.get_all_entries():
-                    self.sink.on_cancel_order(
-                        exchange_address=exchange_contract.address,
-                        order_id=event['args']['orderId']
-                    )
-                self.web3.eth.uninstallFilter(event_filter.filter_id)
-
-            except Exception as e:
-                logging.error(e)
-                pass
 
     # Agree Event
     def __sync_agree(self, block_from, block_to):
@@ -248,20 +196,66 @@ class Processor:
                     if args['amount'] > sys.maxsize:
                         pass
                     else:
-                        order_id = args['orderId']
-                        order = exchange_contract.functions.getOrder(order_id).call()
-                        order_amount = order[2]
                         self.sink.on_agree(
+                            token_address = args['tokenAddress'],
                             exchange_address=exchange_contract.address,
-                            order_id=event['args']['orderId'],
-                            order_amount=order_amount
+                            order_id=args['orderId'],
+                            agreement_id=args['agreementId'],
+                            buyer_address=args['buyAddress'],
+                            seller_address=args['sellAddress'],
+                            price=args['price'],
+                            amount=args['amount'],
+                            agent_address=args['agentAddress']
                         )
-
                 self.web3.eth.uninstallFilter(event_filter.filter_id)
-
             except Exception as e:
                 logging.error(e)
                 pass
+
+    # SettlementOK Event
+    def __sync_settlement_ok(self, block_from, block_to):
+        for exchange_contract in self.exchange_list:
+            try:
+                event_filter = exchange_contract.eventFilter(
+                    'SettlementOK', {
+                        'fromBlock': block_from,
+                        'toBlock': block_to,
+                    }
+                )
+                for event in event_filter.get_all_entries():
+                    args = event['args']
+                    self.sink.on_settlement_ok(
+                        exchange_address=exchange_contract.address,
+                        order_id=args['orderId'],
+                        agreement_id=args['agreementId']
+                    )
+                self.web3.eth.uninstallFilter(event_filter.filter_id)
+            except Exception as e:
+                logging.error(e)
+                pass
+
+    # SettlementNG Event
+    def __sync_settlement_ng(self, block_from, block_to):
+        for exchange_contract in self.exchange_list:
+            try:
+                event_filter = exchange_contract.eventFilter(
+                    'SettlementNG', {
+                        'fromBlock': block_from,
+                        'toBlock': block_to,
+                    }
+                )
+                for event in event_filter.get_all_entries():
+                    args = event['args']
+                    self.sink.on_settlement_ng(
+                        exchange_address=exchange_contract.address,
+                        order_id=args['orderId'],
+                        agreement_id=args['agreementId']
+                    )
+                self.web3.eth.uninstallFilter(event_filter.filter_id)
+            except Exception as e:
+                logging.error(e)
+                pass
+
 
 sink = Sinks()
 sink.register(ConsoleSink())
