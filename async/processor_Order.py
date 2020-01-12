@@ -140,27 +140,27 @@ class Processor:
         tokens = self.db.query(Token). \
             filter(Token.token_address != None). \
             all()
-
         self.exchange_list = []
+        exchange_address_list = []
         for token in tokens:
-            if token.template_id == 1:  # 債券トークン
-                exchange_contract = Contract.get_contract(
-                    'IbetStraightBondExchange',
-                    Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS
-                )
-            elif token.template_id == 2:  # クーポントークン
-                exchange_contract = Contract.get_contract(
-                    'IbetCouponExchange',
-                    Config.IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS
-                )
-            elif token.template_id == 3:  # 会員権トークン
-                exchange_contract = Contract.get_contract(
-                    'IbetMembershipExchange',
-                    Config.IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS
-                )
-            else:
-                continue
-            self.exchange_list.append(exchange_contract)
+            token_contract = Contract.get_contract('IbetStandardTokenInterface', token.token_address)
+            exchange_address = token_contract.functions.tradableExchange().call()
+            if exchange_address not in exchange_address_list:
+                exchange_address_list.append(exchange_address)
+                if token.template_id == 1:  # 債券トークン
+                    self.exchange_list.append(
+                        Contract.get_contract('IbetStraightBondExchange', exchange_address)
+                    )
+                elif token.template_id == 2:  # クーポントークン
+                    self.exchange_list.append(
+                        Contract.get_contract('IbetCouponExchange', exchange_address)
+                    )
+                elif token.template_id == 3:  # 会員権トークン
+                    self.exchange_list.append(
+                        Contract.get_contract('IbetMembershipExchange', exchange_address)
+                    )
+                else:
+                    continue
 
     def initial_sync(self):
         self.get_exchange_list()
