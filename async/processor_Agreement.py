@@ -19,7 +19,7 @@ from web3.middleware import geth_poa_middleware
 
 # NOTE:ログフォーマットはメッセージ監視が出来るように設定する必要がある。
 dictConfig(Config.LOG_CONFIG)
-log_fmt = 'PROCESSOR-Order [%(asctime)s] [%(process)d] [%(levelname)s] %(message)s'
+log_fmt = 'PROCESSOR-Agreement [%(asctime)s] [%(process)d] [%(levelname)s] %(message)s'
 logging.basicConfig(format=log_fmt)
 
 # 設定の取得
