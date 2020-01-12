@@ -43,7 +43,7 @@ exchange_contract = Contract.get_contract('IbetCouponExchange', exchange_address
 
 # 常時起動（無限ループ）
 while True:
-    logging.info('[CouponBatchTransfer] Loop Start')
+    logging.debug('[CouponBatchTransfer] Loop Start')
 
     # 割当（Transfer）済ではないレコードを抽出
     try:
@@ -99,5 +99,5 @@ while True:
 
         db_session.commit()
 
-    logging.info('[CouponBatchTransfer] Loop Finished')
-    time.sleep(3)
+    logging.debug('[CouponBatchTransfer] Loop Finished')
+    time.sleep(10)
