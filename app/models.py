@@ -5,6 +5,7 @@ from flask import url_for, redirect
 from flask_login import UserMixin
 from . import db, login_manager
 from datetime import datetime
+from enum import Enum
 
 
 class AlembicVersion(db.Model):
@@ -145,21 +146,51 @@ class Bank(db.Model):
 class Order(db.Model):
     __tablename__ = 'order'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    token_address = db.Column(db.String(256), index=True)
-    exchange_address = db.Column(db.String(256), index=True)
+    token_address = db.Column(db.String(42), index=True)
+    exchange_address = db.Column(db.String(42), index=True)
     order_id = db.Column(db.Integer, index=True)
-    unique_order_id = db.Column(db.String(256), index=True)
-    account_address = db.Column(db.String(256))
+    unique_order_id = db.Column(db.String(62), index=True)
+    account_address = db.Column(db.String(42))
     is_buy = db.Column(db.Boolean)
     price = db.Column(db.Integer)
     amount = db.Column(db.Integer)
-    agent_address = db.Column(db.String(256))
+    agent_address = db.Column(db.String(42))
     is_cancelled = db.Column(db.Boolean)
 
     def __repr__(self):
-        return "<Order('token_address'='%s', 'exchange_address'='%s', 'order_id'='%i', 'unique_order_id'='%s')>" % \
-               (self.token_address, self.exchange_address, self.order_id, self.unique_order_id)
+        return "<Order('token_address'='%s', 'exchange_address'='%s', 'order_id'='%i')>" % \
+               (self.token_address, self.exchange_address, self.order_id)
 
     @classmethod
     def get_id(cls):
         return Order.id
+
+# 約定
+class Agreement(db.Model):
+    __tablename__ = 'agreement'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    token_address = db.Column(db.String(42), index=True)
+    exchange_address = db.Column(db.String(42), index=True)
+    order_id = db.Column(db.Integer, index=True)
+    agreement_id = db.Column(db.Integer, index=True)
+    unique_order_id = db.Column(db.String(62), index=True)
+    buyer_address = db.Column(db.String(42), index=True)
+    seller_address = db.Column(db.String(42), index=True)
+    price = db.Column(db.Integer)
+    amount = db.Column(db.Integer)
+    agent_address = db.Column(db.String(42))
+    status = db.Column(db.Integer)
+
+    def __repr__(self):
+        return "<Agreement('token_address'='%s', 'exchange_address'='%s', 'order_id'='%i', 'agreement_id'='%i')>" % \
+               (self.token_address, self.exchange_address, self.order_id, self.agreement_id)
+
+    @classmethod
+    def get_id(cls):
+        return Agreement.id
+
+# 約定ステータス
+class AgreementStatus(Enum):
+    PENDING = 0
+    DONE = 1
+    CANCELED = 2
