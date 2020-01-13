@@ -8,11 +8,12 @@ from base64 import b64encode
 from flask import request, redirect, url_for, flash, make_response
 from flask import render_template
 from flask_login import login_required
+from sqlalchemy import func
 
 from . import bond
 from .. import db
 from ..util import *
-from ..models import Token, Certification, Order
+from ..models import Token, Certification, Order, Agreement, AgreementStatus
 from .forms import *
 from config import Config
 from app.contracts import Contract
@@ -787,7 +788,7 @@ def positions():
                 # 拘束中数量
                 commitment = ExchangeContract.functions.commitmentOf(owner, row.token_address).call()
 
-                # 売出状態、注文ID
+                # 売出状態、注文ID、売出価格
                 order = Order.query. \
                     filter(Order.token_address == row.token_address). \
                     filter(Order.exchange_address == token_exchange_address). \
@@ -804,6 +805,19 @@ def positions():
                     order_id = None
                     order_price = None
 
+                # 調達額
+                agreement_sum = db.session.query(func.sum(Agreement.price * Agreement.amount)). \
+                    filter(Agreement.token_address == row.token_address). \
+                    filter(Agreement.exchange_address == token_exchange_address). \
+                    filter(Agreement.seller_address == owner). \
+                    filter(Agreement.status == AgreementStatus.DONE.value). \
+                    group_by(Agreement.token_address). \
+                    first()
+                if agreement_sum is not None:
+                    fundraise = agreement_sum[0]
+                else:
+                    fundraise = 0
+
                 position_list.append({
                     'created': row.created,
                     'token_address': row.token_address,
@@ -813,6 +827,7 @@ def positions():
                     'balance': balance,
                     'commitment': commitment,
                     'order_price': order_price,
+                    'fundraise': fundraise,
                     'on_sale': on_sale,
                     'order_id': order_id
                 })

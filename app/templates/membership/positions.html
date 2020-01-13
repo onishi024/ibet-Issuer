@@ -29,6 +29,7 @@
                     <th>未売出</th>
                     <th>売出中</th>
                     <th>売出価格</th>
+                    <th>調達額</th>
                     <th></th>
                 </tr>
                 </thead>
@@ -48,6 +49,7 @@
                     {% else %}
                     <td>{{ position.order_price }} 円</td>
                     {% endif %}
+                    <td>{{ position.fundraise }} 円</td>
                     {% if position.on_sale != True %}
                     <td align="center"><button type="button" class="btn btn-success btn-sm" onclick="location.href= '{{ url_for("membership.sell", token_address=position.token_address) }}'">売出開始</button></td>
                     {% else %}
