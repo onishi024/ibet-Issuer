@@ -59,7 +59,7 @@
                         <td colspan="2">{{ form.symbol.data }}</td>
                         <!-- 総発行量 -->
                         <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.totalSupply.label }}</td>
-                        <td colspan="2">{{ form.totalSupply.data }}</td>
+                        <td colspan="2">{{ "{:,}".format(form.totalSupply.data) }}</td>
                     </tr>
                     <tr>
                         <!-- 詳細 -->

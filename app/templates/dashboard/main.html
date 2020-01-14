@@ -151,10 +151,21 @@ $(function () {
             ajax: {
                 url: token_list_bond_url,
                 dataSrc: function (json) {
+                    returnJson = [];
+                    for(index in json){
+                        returnJsonRaw = {
+                            name: json[index]['name'] ? json[index]['name'] : '--',
+                            symbol: json[index]['symbol'] ? json[index]['symbol'] : '--',
+                            redemption_date: json[index]['redemption_date'] ? json[index]['redemption_date'] : '--',
+                            last_price: json[index]['last_price'] ? json[index]['last_price'].toLocaleString() : '--',
+                            total_supply: json[index]['total_supply'] ? json[index]['total_supply'].toLocaleString() : '--'
+                        };
+                        returnJson.push(returnJsonRaw)
+                    }
                     if (json) {
                         $("div#bond.overlay").remove();
                     }
-                    return json
+                    return returnJson
                 }
             },
             'paging': true,
@@ -206,10 +217,20 @@ $(function () {
         ajax: {
             url: token_list_membership_url,
             dataSrc: function (json) {
+                returnJson = [];
+                for(index in json){
+                    returnJsonRaw = {
+                        name: json[index]['name'] ? json[index]['name'] : '--',
+                        symbol: json[index]['symbol'] ? json[index]['symbol'] : '--',
+                        last_price: json[index]['last_price'] ? json[index]['last_price'].toLocaleString() : '--',
+                        total_supply: json[index]['total_supply'] ? json[index]['total_supply'].toLocaleString() : '--'
+                    };
+                    returnJson.push(returnJsonRaw)
+                }
                 if (json) {
                     $("div#membership.overlay").remove();
                 }
-                return json
+                return returnJson
             }
         },
         'paging': true,
@@ -260,10 +281,20 @@ $(function () {
         ajax: {
             url: token_list_coupon_url,
             dataSrc: function (json) {
+                returnJson = [];
+                for(index in json){
+                    returnJsonRaw = {
+                        name: json[index]['name'] ? json[index]['name'] : '--',
+                        symbol: json[index]['symbol'] ? json[index]['symbol'] : '--',
+                        last_price: json[index]['last_price'] ? json[index]['last_price'].toLocaleString() : '--',
+                        total_supply: json[index]['total_supply'] ? json[index]['total_supply'].toLocaleString() : '--'
+                    };
+                    returnJson.push(returnJsonRaw)
+                }
                 if (json) {
                     $("div#coupon.overlay").remove();
                 }
-                return json
+                return returnJson
             }
         },
         'paging': true,
