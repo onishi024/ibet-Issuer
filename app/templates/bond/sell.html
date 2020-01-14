@@ -59,12 +59,12 @@
                         <td colspan="2" >{{ form.symbol.data }}</td>
                         <!-- 総発行量 -->
                         <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.totalSupply.label }}</td>
-                        <td colspan="2" >{{ form.totalSupply.data }}</td>
+                        <td colspan="2" >{{ "{:,}".format(form.totalSupply.data) }}</td>
                     </tr>
                     <tr>
                         <!-- 額面 -->
                         <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.faceValue.label }}</td>
-                        <td colspan="2">{{ form.faceValue.data }}</td>
+                        <td colspan="2">{{ "{:,}".format(form.faceValue.data) }}</td>
                         <!-- 金利 -->
                         <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.interestRate.label }}</td>
                         <td colspan="2">{{ form.interestRate.data }}</td>
@@ -75,7 +75,7 @@
                         <td colspan="2">{{ form.redemptionDate.data }}</td>
                         <!-- 償還金額 -->
                         <td class="col-md-2" style="background-color:#f7f7f7;">{{ form.redemptionValue.label }}</td>
-                        <td colspan="2">{{ form.redemptionValue.data }}</td>
+                        <td colspan="2">{{ "{:,}".format(form.redemptionValue.data) }}</td>
                     </tr>
                     <!-- 利払日 -->
                     <tr>

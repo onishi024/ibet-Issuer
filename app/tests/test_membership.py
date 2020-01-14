@@ -230,7 +230,7 @@ class TestMembership(TestBase):
         assert '<title>売出管理'.encode('utf-8') in response.data
         assert self.token_data1['name'].encode('utf-8') in response.data
         assert token.token_address.encode('utf-8') in response.data
-        assert '<td>1000000</td>\n                    <td>1000000</td>\n                    <td>0</td>'.\
+        assert '<td>1,000,000</td>\n                    <td>1,000,000</td>\n                    <td>0</td>'.\
                    encode('utf-8') in response.data
 
     # ＜正常系3_1＞
@@ -308,13 +308,13 @@ class TestMembership(TestBase):
         # Token_1
         assert self.token_data1['name'].encode('utf-8') in response.data
         assert token1.token_address.encode('utf-8') in response.data
-        assert '<td>1000000</td>\n                    <td>1000000</td>\n                    <td>0</td>'. \
+        assert '<td>1,000,000</td>\n                    <td>1,000,000</td>\n                    <td>0</td>'. \
                    encode('utf-8') in response.data
 
         # Token_2
         assert self.token_data2['name'].encode('utf-8') in response.data
         assert token2.token_address.encode('utf-8') in response.data
-        assert '<td>2000000</td>\n                    <td>2000000</td>\n                    <td>0</td>'. \
+        assert '<td>2,000,000</td>\n                    <td>2,000,000</td>\n                    <td>0</td>'. \
                    encode('utf-8') in response.data
 
     # ＜正常系4_1＞
@@ -330,7 +330,7 @@ class TestMembership(TestBase):
         assert response.status_code == 200
         assert '<title>新規売出'.encode('utf-8') in response.data
         assert self.token_data1['name'].encode('utf-8') in response.data
-        assert str(self.token_data1['totalSupply']).encode('utf-8') in response.data
+        assert "{:,}".format(self.token_data1['totalSupply']).encode('utf-8') in response.data
         assert self.token_data1['details'].encode('utf-8') in response.data
         assert self.token_data1['expirationDate'].encode('utf-8') in response.data
         assert 'なし'.encode('utf-8') in response.data
@@ -362,7 +362,7 @@ class TestMembership(TestBase):
         assert '新規売出を受け付けました。売出開始までに数分程かかることがあります。'.encode('utf-8') in response.data
         assert self.token_data1['name'].encode('utf-8') in response.data
         # 売出中の数量が存在する
-        assert '<td>1000000</td>\n                    <td>0</td>\n                    <td>1000000</td>'.\
+        assert '<td>1,000,000</td>\n                    <td>0</td>\n                    <td>1,000,000</td>'.\
                    encode('utf-8') in response.data
 
     # ＜正常系4_3＞
@@ -385,7 +385,7 @@ class TestMembership(TestBase):
         assert '<title>売出管理'.encode('utf-8') in response.data
         assert 'テスト会員権'.encode('utf-8') in response.data
         # 売出中の数量が0
-        assert '<td>1000000</td>\n                    <td>1000000</td>\n                    <td>0</td>'.\
+        assert '<td>1,000,000</td>\n                    <td>1,000,000</td>\n                    <td>0</td>'.\
                    encode('utf-8') in response.data
 
     # ＜正常系5_1＞

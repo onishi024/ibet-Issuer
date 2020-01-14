@@ -24,45 +24,45 @@
               {{ form.csrf_token }}
               <div class="box-body">
                 <div class="form-group">
-                    {{ form.order_id.label(class="col-md-3") }}
+                    {{ form.order_id.label(class="col-md-4") }}
                     <div class="col-md-4">
                         {{ form.order_id.data }}
                     </div>
                 </div>
                 <div class="form-group">
-                    {{ form.name.label(class="col-md-3") }}
+                    {{ form.name.label(class="col-md-4") }}
                     <div class="col-md-4">
                         {{ form.name.data }}
                     </div>
                 </div>
                 <div class="form-group">
-                    {{ form.symbol.label(class="col-md-3") }}
+                    {{ form.symbol.label(class="col-md-4") }}
                     <div class="col-md-4">
                         {{ form.symbol.data }}
                     </div>
                 </div>
                 <div class="form-group">
-                    {{ form.totalSupply.label(class="col-md-3") }}
+                    {{ form.totalSupply.label(class="col-md-4") }}
                     <div class="col-md-4">
-                        {{ form.totalSupply.data }}
+                        {{ "{:,}".format(form.totalSupply.data) }}
                     </div>
                 </div>
                 <div class="form-group">
-                    {{ form.amount.label(class="col-md-3") }}
+                    {{ form.amount.label(class="col-md-4") }}
                     <div class="col-md-4">
-                        {{ form.amount.data }}
+                        {{ "{:,}".format(form.amount.data) }}
                     </div>
                 </div>
                 <div class="form-group">
-                    {{ form.faceValue.label(class="col-md-3") }}
+                    {{ form.faceValue.label(class="col-md-4") }}
                     <div class="col-md-4">
-                        {{ form.faceValue.data }} 円
+                        {{ "{:,}".format(form.faceValue.data) }} 円
                     </div>
                 </div>
                 <div class="form-group">
-                    {{ form.price.label(class="col-md-3") }}
+                    {{ form.price.label(class="col-md-4") }}
                     <div class="col-md-4">
-                        {{ form.price.data }} 円
+                        {{ "{:,}".format(form.price.data) }} 円
                     </div>
                 </div>
               </div>

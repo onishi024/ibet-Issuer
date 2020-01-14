@@ -220,8 +220,8 @@ class TestBond(TestBase):
         assert '<title>債券新規売出'.encode('utf-8') in response.data
         assert 'テスト債券'.encode('utf-8') in response.data
         assert 'BOND'.encode('utf-8') in response.data
-        assert '1000000'.encode('utf-8') in response.data
-        assert '1000'.encode('utf-8') in response.data
+        assert "{:,}".format(1000000).encode('utf-8') in response.data
+        assert "{:,}".format(1000).encode('utf-8') in response.data
         assert '0101'.encode('utf-8') in response.data
         assert '0201'.encode('utf-8') in response.data
         assert '0301'.encode('utf-8') in response.data
@@ -235,7 +235,7 @@ class TestBond(TestBase):
         assert '1101'.encode('utf-8') in response.data
         assert '1201'.encode('utf-8') in response.data
         assert '20191231'.encode('utf-8') in response.data
-        assert '10000'.encode('utf-8') in response.data
+        assert "{:,}".format(10000).encode('utf-8') in response.data
         assert '20191231'.encode('utf-8') in response.data
         assert '商品券をプレゼント'.encode('utf-8') in response.data
         assert '新商品の開発資金として利用。'.encode('utf-8') in response.data

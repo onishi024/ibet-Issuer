@@ -157,8 +157,8 @@ $(function () {
                 returnJsonRaw = {
                 account_address : json[index]['account_address'] ? json[index]['account_address'] : '--',
                 name: json[index]['name'] ? json[index]['name'] : '--',
-                balance: json[index]['balance'] ? json[index]['balance'] : 0,
-                used: json[index]['used'] ? json[index]['used'] : 0,
+                balance: json[index]['balance'] ? json[index]['balance'].toLocaleString() : 0,
+                used: json[index]['used'] ? json[index]['used'].toLocaleString() : 0,
                 holder_detail: json[index]['account_address'] ? holder_detail_url_base.replace('account_address', json[index]['account_address']) : '--',
                 token_transfer: json[index]['account_address'] ? holder_transfer_url_base.replace('account_address', json[index]['account_address']) : '--'
                 };
