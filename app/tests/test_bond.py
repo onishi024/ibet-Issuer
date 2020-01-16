@@ -296,6 +296,7 @@ class TestBond(TestBase):
         response = client.post(
             url_setting,
             data={
+                'transferable': 'False',  # 初期データから変更登録
                 'image_1': 'https://test.com/image_1.jpg',
                 'image_2': 'https://test.com/image_2.jpg',
                 'image_3': 'https://test.com/image_3.jpg',
@@ -311,6 +312,7 @@ class TestBond(TestBase):
         assert response.status_code == 200
         assert '<title>債券詳細設定'.encode('utf-8') in response.data
         assert 'テスト債券'.encode('utf-8') in response.data
+        assert '<option selected value="False">あり</option>'.encode('utf-8') in response.data
         assert 'https://test.com/image_1.jpg'.encode('utf-8') in response.data
         assert 'https://test.com/image_2.jpg'.encode('utf-8') in response.data
         assert 'https://test.com/image_3.jpg'.encode('utf-8') in response.data
@@ -320,6 +322,7 @@ class TestBond(TestBase):
         response = client.post(
             url_setting,
             data={
+                'transferable': 'True',
                 'image_1': 'https://test.com/image_1.jpg',
                 'image_2': 'https://test.com/image_2.jpg',
                 'image_3': 'https://test.com/image_3.jpg',
@@ -442,27 +445,8 @@ class TestBond(TestBase):
         assert '認定依頼を受け付けました。'.encode('utf-8') in response.data
 
     # ＜正常系14＞
-    #   認定実施　→　債券詳細で確認
-    def test_normal_14(self, app):
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
-        token = tokens[0]
-
-        # 認定処理
-        exec_sign(token.token_address, eth_account['agent'])
-
-        # 債券一覧
-        url_setting = self.url_setting + token.token_address
-        client = self.client_with_admin_login(app)
-        response = client.get(url_setting)
-        assert response.status_code == 200
-        assert '<title>債券詳細設定'.encode('utf-8') in response.data
-        assert 'テスト債券'.encode('utf-8') in response.data
-        assert '認定済みアドレス'.encode('utf-8') in response.data
-        assert eth_account['agent']['account_address'].encode('utf-8') in response.data
-
-    # ＜正常系15＞
     #   償還実施　→　債券一覧で確認
-    def test_normal_15(self, app):
+    def test_normal_14(self, app):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
         token = tokens[0]
         client = self.client_with_admin_login(app)
@@ -484,10 +468,10 @@ class TestBond(TestBase):
         assert 'BOND'.encode('utf-8') in response.data
         assert '償還済'.encode('utf-8') in response.data
 
-    # ＜正常系16_1＞
+    # ＜正常系15_1＞
     # ＜所有者移転＞
     #   所有者移転画面の参照
-    def test_normal_16_1(self, app):
+    def test_normal_15_1(self, app):
         client = self.client_with_admin_login(app)
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
         token = tokens[0]
@@ -501,10 +485,10 @@ class TestBond(TestBase):
         assert '<title>所有者移転'.encode('utf-8') in response.data
         assert ('value="' + str(issuer_address)).encode('utf-8') in response.data
 
-    # ＜正常系16_2＞
+    # ＜正常系15_2＞
     # ＜所有者移転＞
     #   所有者移転処理　→　保有者一覧の参照
-    def test_normal_16_2(self, app):
+    def test_normal_15_2(self, app):
         client = self.client_with_admin_login(app)
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
         token = tokens[0]

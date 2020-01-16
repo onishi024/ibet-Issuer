@@ -2,7 +2,7 @@
 from flask_wtf import FlaskForm as Form
 
 from wtforms import IntegerField, StringField, TextAreaField, \
-    SubmitField, HiddenField, DecimalField
+    SubmitField, HiddenField, DecimalField, SelectField
 from wtforms.validators import DataRequired, URL, Optional, Length, Regexp, \
     NumberRange
 from wtforms import ValidationError
@@ -278,6 +278,12 @@ class SettingForm(Form):
     purpose = TextAreaField("発行目的", validators=[])
     memo = TextAreaField("メモ", validators=[])
 
+    transferable = SelectField(
+        '譲渡制限',
+        choices=[(True, 'True'), (False, 'False')],
+        default='True'
+    )
+
     image_1 = StringField(
         "画像（１）URL",
         validators=[
@@ -332,6 +338,7 @@ class SettingForm(Form):
     def __init__(self, token_setting=None, *args, **kwargs):
         super(SettingForm, self).__init__(*args, **kwargs)
         self.token_setting = token_setting
+        self.transferable.choices = [('True', 'なし'), ('False', 'あり')]
 
 
 class SellTokenForm(Form):

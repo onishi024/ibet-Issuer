@@ -376,11 +376,7 @@ def setting(token_address):
     tradableExchange = TokenContract.functions.tradableExchange().call()
     contact_information = TokenContract.functions.contactInformation().call()
     privacy_policy = TokenContract.functions.privacyPolicy().call()
-
-    try:
-        initial_offering_status = TokenContract.functions.initialOfferingStatus().call()
-    except:
-        initial_offering_status = False
+    initial_offering_status = TokenContract.functions.initialOfferingStatus().call()
 
     # TokenListへの登録有無
     list_contract_address = Config.TOKEN_LIST_CONTRACT_ADDRESS

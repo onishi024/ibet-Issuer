@@ -22,7 +22,7 @@
             <h3 class="box-title"><small>{{ token_address }}</small></h3>
             <div class="pull-right box-tools">
               <button type="button" class="btn btn-success btn-sm" style="width: 100px" onclick="location.href='{{ url_for("bond.request_signature", token_address=token_address)}}'">認定依頼 <i class="fa fa-arrow-circle-right"></i></button>
-                {% if isRelease %}
+                {% if is_released %}
                     <button
                       class="btn btn-gray btn-sm" type="button"
                       style="width: 100px" disabled>
@@ -197,6 +197,12 @@
                     </div>
                 </div>
                 <div class="form-group">
+                    {{ form.transferable.label(class="col-md-2 control-label") }}
+                    <div class="col-md-4">
+                        {{ form.transferable(class="form-control") }}
+                    </div>
+                </div>
+                <div class="form-group">
                     {{ form.tradableExchange.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
                         {{ form.tradableExchange(class="form-control") }}
@@ -238,14 +244,6 @@
                         {{ form.privacy_policy(class="form-control", autocomplete="off") }}
                     </div>
                 </div>
-                {% for signature in signatures %}
-                    <div class="form-group">
-                        <label class="col-md-2 control-label">認定済みアドレス</label>
-                        <div class="col-md-8">
-                            <input class="form-control" disabled="" id="redemptionValue" name="redemptionValue" type="text" value="{{ signature }}">
-                        </div>
-                    </div>
-                {% endfor %}
                 <div class="form-group">
                     {{ form.abi.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
