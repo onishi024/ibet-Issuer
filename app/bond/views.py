@@ -383,26 +383,9 @@ def setting(token_address):
     ListContract = Contract.get_contract(
         'TokenList', list_contract_address)
     token_struct = ListContract.functions.getTokenByAddress(token_address).call()
-    isRelease = False
+    is_release = False
     if token_struct[0] == token_address:
-        isRelease = True
-
-    # 第三者認定（Sign）のイベント情報を検索する
-    signatures = []
-    event_filter_sign = TokenContract.eventFilter(
-        'Sign', {
-            'filter': {},
-            'fromBlock': 'earliest'
-        }
-    )
-    try:
-        entries_sign = event_filter_sign.get_all_entries()
-    except:
-        entries_sign = []
-    for entry in entries_sign:
-        if TokenContract.functions. \
-                signatures(to_checksum_address(entry['args']['signer'])).call() == 2:
-            signatures.append(entry['args']['signer'])
+        is_release = True
 
     form = SettingForm()
     if request.method == 'POST':
@@ -428,8 +411,7 @@ def setting(token_address):
                 return render_template(
                     'bond/setting.html',
                     form=form, token_address=token_address,
-                    token_name=name, isRelease=isRelease,
-                    signatures=signatures
+                    token_name=name, is_release=is_release
                 )
 
             # EOAアンロック
@@ -499,8 +481,7 @@ def setting(token_address):
             return render_template(
                 'bond/setting.html',
                 form=form, token_address=token_address,
-                token_name=name, isRelease=isRelease,
-                signatures=signatures
+                token_name=name, is_release=is_release
             )
     else:  # GET
         form.token_address.data = token.token_address
@@ -530,8 +511,7 @@ def setting(token_address):
             form=form,
             token_address=token_address,
             token_name=name,
-            isRelease=isRelease,
-            signatures=signatures
+            is_release=is_release
         )
 
 
