@@ -296,6 +296,7 @@ class TestBond(TestBase):
         response = client.post(
             url_setting,
             data={
+                'transferable': 'False',  # 初期データから変更登録
                 'image_1': 'https://test.com/image_1.jpg',
                 'image_2': 'https://test.com/image_2.jpg',
                 'image_3': 'https://test.com/image_3.jpg',
@@ -311,6 +312,7 @@ class TestBond(TestBase):
         assert response.status_code == 200
         assert '<title>債券詳細設定'.encode('utf-8') in response.data
         assert 'テスト債券'.encode('utf-8') in response.data
+        assert '<option selected value="False">あり</option>'.encode('utf-8') in response.data
         assert 'https://test.com/image_1.jpg'.encode('utf-8') in response.data
         assert 'https://test.com/image_2.jpg'.encode('utf-8') in response.data
         assert 'https://test.com/image_3.jpg'.encode('utf-8') in response.data
@@ -320,6 +322,7 @@ class TestBond(TestBase):
         response = client.post(
             url_setting,
             data={
+                'transferable': 'True',
                 'image_1': 'https://test.com/image_1.jpg',
                 'image_2': 'https://test.com/image_2.jpg',
                 'image_3': 'https://test.com/image_3.jpg',

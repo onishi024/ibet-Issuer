@@ -376,6 +376,7 @@ def setting(token_address):
     image_3 = TokenContract.functions.getImageURL(2).call()
     contact_information = TokenContract.functions.contactInformation().call()
     privacy_policy = TokenContract.functions.privacyPolicy().call()
+    transferable = str(TokenContract.functions.transferable().call())
     personalInfoAddress = TokenContract.functions.personalInfoAddress().call()
 
     # TokenList登録状態取得
@@ -383,9 +384,9 @@ def setting(token_address):
     ListContract = Contract.get_contract(
         'TokenList', list_contract_address)
     token_struct = ListContract.functions.getTokenByAddress(token_address).call()
-    is_release = False
+    is_released = False
     if token_struct[0] == token_address:
-        is_release = True
+        is_released = True
 
     form = SettingForm()
     if request.method == 'POST':
@@ -411,11 +412,20 @@ def setting(token_address):
                 return render_template(
                     'bond/setting.html',
                     form=form, token_address=token_address,
-                    token_name=name, is_release=is_release
+                    token_name=name, is_released=is_released
                 )
 
             # EOAアンロック
             eth_unlock_account()
+
+            # 譲渡制限変更
+            if form.transferable.data != transferable:
+                transferable_bool = True
+                if form.transferable.data == 'False':
+                    transferable_bool = False
+                gas = TokenContract.estimateGas().setTransferable(transferable_bool)
+                TokenContract.functions.setTransferable(transferable_bool).\
+                    transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
 
             # 画像変更
             if form.image_1.data != image_1:
@@ -481,7 +491,7 @@ def setting(token_address):
             return render_template(
                 'bond/setting.html',
                 form=form, token_address=token_address,
-                token_name=name, is_release=is_release
+                token_name=name, is_released=is_released
             )
     else:  # GET
         form.token_address.data = token.token_address
@@ -497,6 +507,7 @@ def setting(token_address):
         form.returnAmount.data = returnAmount
         form.purpose.data = purpose
         form.memo.data = memo
+        form.transferable.data = transferable
         form.image_1.data = image_1
         form.image_2.data = image_2
         form.image_3.data = image_3
@@ -511,7 +522,7 @@ def setting(token_address):
             form=form,
             token_address=token_address,
             token_name=name,
-            is_release=is_release
+            is_released=is_released
         )
 
 
