@@ -61,13 +61,13 @@
                 <div class="form-group">
                     {{ form.totalSupply.label(class="col-md-2 control-label") }}
                     <div class="col-md-4">
-                        {{ form.totalSupply(class="form-control", disabled=True) }}
+                        {{ form.totalSupply(class="form-control comma-separate", disabled=True) }}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.faceValue.label(class="col-md-2 control-label") }}
                     <div class="col-md-4">
-                        {{ form.faceValue(class="form-control", disabled=True) }}
+                        {{ form.faceValue(class="form-control comma-separate", disabled=True) }}
                     </div>
                 </div>
                 <div class="form-group">
@@ -164,7 +164,7 @@
                 <div class="form-group">
                     {{ form.redemptionValue.label(class="col-md-2 control-label") }}
                     <div class="col-md-4">
-                        {{ form.redemptionValue(class="form-control", disabled=True) }}
+                        {{ form.redemptionValue(class="form-control comma-separate", disabled=True) }}
                     </div>
                 </div>
                 <div class="form-group">
@@ -309,6 +309,33 @@
         $('#modal-confirm').modal();
       });
   });
+  $(function () {
+        // 数値項目3桁区切り考慮
+        $('.comma-separate').each(function (index, element) {
+            var num = $(element).val();
+                num = num.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
+                $(element).val(num);
+            // フォーカスアウト
+            $(element).on('blur', function () {
+                var num = $(this).val();
+                num = num.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
+                $(this).val(num);
+            });
+            // フォーカス
+            $(element).on('focus', function () {
+                var num = $(this).val();
+                num = num.replace(/,/g, '');
+                $(this).val(num);
+            });
+        });
+        $('form').submit(function () {
+            $('.comma-separate').each(function (index, element) {
+                var num = $(element).val();
+                num = num.replace(/,/g, '');
+                $(element).val(num);
+            });
+        })
+    });
 </script>
 <script type="text/javascript">
   $('#load.btn').on('click', function() {

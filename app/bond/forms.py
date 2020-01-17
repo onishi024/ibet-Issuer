@@ -44,8 +44,7 @@ class IssueForm(Form):
         "額面（円）",
         validators=[
             NumberRange(min=0, max=5000000000, message='額面は5,000,000,000円が上限です。')
-        ],
-        default=0
+        ]
     )
 
     interestRate = DecimalField(
@@ -53,8 +52,7 @@ class IssueForm(Form):
         places=3,
         validators=[
             NumberRange(min=0.000, max=100.000, message='金利は100％が上限です。')
-        ],
-        default=0
+        ]
     )
 
     interestPaymentDate1 = StringField(
@@ -165,8 +163,7 @@ class IssueForm(Form):
         "償還金額（額面当り）",
         validators=[
             NumberRange(min=0, max=5000000000, message='償還金額は5,000,000,000円が上限です。')
-        ],
-        default=0
+        ]
     )
 
     returnDate = StringField(
