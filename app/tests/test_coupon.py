@@ -1,16 +1,27 @@
 # -*- coding:utf-8 -*-
 import time
 import pytest
+import json
+import base64
+from Crypto.PublicKey import RSA
+from Crypto.Cipher import PKCS1_OAEP
 
+from eth_utils import to_checksum_address
+
+from config import Config
 from .conftest import TestBase
-from .contract_modules import *
+from .utils.account_config import eth_account
+from .utils.contract_utils_common import processor_issue_event
+from .utils.contract_utils_coupon import apply_for_offering
+from .utils.contract_utils_personal_info import register_personal_info
 from ..models import Token
 
 
 class TestCoupon(TestBase):
-    ##################
-    # URL
-    ##################
+
+    #############################################################################
+    # テスト対象URL
+    #############################################################################
     url_list = 'coupon/list'  # 発行済一覧
     url_issue = 'coupon/issue'  # 新規発行
     url_setting = 'coupon/setting/'  # 詳細設定
@@ -38,9 +49,9 @@ class TestCoupon(TestBase):
     url_get_usage_history_coupon = 'coupon/get_usage_history_coupon/'  # 利用履歴
     url_used_csv_download = 'coupon/used_csv_download'  # 利用履歴CSVダウンロード
 
-    ##################
+    #############################################################################
     # PersonalInfo情報の暗号化
-    ##################
+    #############################################################################
     issuer_personal_info_json = {
         "name": "株式会社１",
         "address": {
@@ -76,6 +87,10 @@ class TestCoupon(TestBase):
         base64.encodebytes(
             cipher.encrypt(json.dumps(trader_personal_info_json).encode('utf-8')))
 
+    #############################################################################
+    # テスト（正常系）
+    #############################################################################
+
     # ＜前処理＞
     def test_normal_0(self, shared_contract):
         Config.ETH_ACCOUNT = eth_account['issuer']['account_address']
@@ -89,13 +104,13 @@ class TestCoupon(TestBase):
             shared_contract['IbetCouponExchange']['address']
 
         # personalinfo登録
-        register_personalinfo(
+        register_personal_info(
             eth_account['issuer'],
             shared_contract['PersonalInfo'],
             self.issuer_encrypted_info
         )
 
-        register_personalinfo(
+        register_personal_info(
             eth_account['trader'],
             shared_contract['PersonalInfo'],
             self.trader_encrypted_info
@@ -153,9 +168,6 @@ class TestCoupon(TestBase):
     # ＜新規発行＞
     #   DB取込前確認
     def test_normal_2_2(self, app):
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
-        token = tokens[0]
-
         # 発行済一覧画面の参照
         client = self.client_with_admin_login(app)
         response = client.get(self.url_list)
@@ -169,7 +181,7 @@ class TestCoupon(TestBase):
         client = self.client_with_admin_login(app)
 
         # DB登録処理
-        processorIssueEvent(db)
+        processor_issue_event(db)
 
         # 詳細設定画面の参照
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
@@ -217,7 +229,7 @@ class TestCoupon(TestBase):
         time.sleep(10)
 
         # DB登録処理
-        processorIssueEvent(db)
+        processor_issue_event(db)
 
         # 詳細設定画面の参照
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
@@ -791,7 +803,7 @@ class TestCoupon(TestBase):
         trader_address = eth_account['trader']['account_address']
 
         # 募集申込データの作成：投資家
-        coupon_apply_for_offering(
+        apply_for_offering(
             eth_account['trader'],
             token_address
         )
@@ -922,8 +934,9 @@ class TestCoupon(TestBase):
         assert response.status_code == 200
 
     #############################################################################
-    # エラー系
+    # テスト（エラー系）
     #############################################################################
+
     # ＜エラー系1＞
     #   新規発行（必須エラー）
     def test_error_1_1(self, app):

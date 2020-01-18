@@ -9,7 +9,7 @@ from app import create_app
 from app import db as _db
 from app.models import *
 from config import Config
-from .account_config import eth_account
+from app.tests.utils.account_config import eth_account
 from app.contracts import Contract
 
 

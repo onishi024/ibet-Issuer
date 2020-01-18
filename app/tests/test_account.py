@@ -1,13 +1,11 @@
 # -*- coding:utf-8 -*-
 import time
 
+from config import Config
 from .conftest import TestBase
-from .contract_modules import *
+from .utils.account_config import eth_account
+from .utils.contract_utils_personal_info import get_personal_encrypted_info
 from ..models import User
-
-from logging import getLogger
-
-logger = getLogger('api')
 
 
 # 初期設定ユーザ
@@ -439,7 +437,7 @@ class TestAccountDelete(TestBase):
 
     # ＜エラー系1＞
     # 権限エラー
-    def test_error_1(self, db, app):
+    def test_error_1(self, app):
         client = self.client_with_user_login(app)
         response = client.post(
             self.target_url,
@@ -531,16 +529,9 @@ class TestBankInfo(TestBase):
         assert personal_info_json['address']['address2'] == ''
         assert personal_info_json['email'] == ''
 
-        # PaymentAccountの確認
-        payment_account_json = get_payment_account_encrypted_info(
-            shared_contract['PaymentGateway'],
-            eth_account['issuer']['account_address'],
-            eth_account['agent']['account_address']
-        )
-
     # ＜正常系3＞
     # 通常参照（登録済）
-    def test_normal_3(self, app, shared_contract):
+    def test_normal_3(self, app):
         client = self.client_with_admin_login(app)
         response = client.get(self.url_bankinfo)
         assert response.status_code == 200
@@ -594,13 +585,6 @@ class TestBankInfo(TestBase):
         assert personal_info_json['address']['city'] == ''
         assert personal_info_json['address']['address1'] == ''
         assert personal_info_json['address']['address2'] == ''
-
-        # PaymentAccountの確認
-        payment_account_json = get_payment_account_encrypted_info(
-            shared_contract['PaymentGateway'],
-            eth_account['issuer']['account_address'],
-            eth_account['agent']['account_address']
-        )
 
     # ＜エラー系1-1＞
     # 必須系
