@@ -553,7 +553,7 @@ class TestBond(TestBase):
         url_setting = self.url_setting + token.token_address
         response = client.get(url_setting)
         assert response.status_code == 200
-        assert '<title>詳細設定'.encode('utf-8') in response.data
+        assert '<title>債券詳細設定'.encode('utf-8') in response.data
         assert '募集申込開始'.encode('utf-8') in response.data
 
     # ＜正常系16_2＞
@@ -577,10 +577,10 @@ class TestBond(TestBase):
         url_setting = self.url_setting + token.token_address
         response = client.get(url_setting)
         assert response.status_code == 200
-        assert '<title>詳細設定'.encode('utf-8') in response.data
+        assert '<title>債券詳細設定'.encode('utf-8') in response.data
         assert '募集申込停止'.encode('utf-8') in response.data
 
-    # ＜正常系8_3＞
+    # ＜正常系16_3＞
     # ＜募集申込開始・停止＞
     #   募集申込停止　→　詳細設定画面で確認
     def test_normal_16_3(self, app):
@@ -601,7 +601,7 @@ class TestBond(TestBase):
         url_setting = self.url_setting + token.token_address
         response = client.get(url_setting)
         assert response.status_code == 200
-        assert '<title>詳細設定'.encode('utf-8') in response.data
+        assert '<title>債券詳細設定'.encode('utf-8') in response.data
         assert '募集申込開始'.encode('utf-8') in response.data
 
         # 募集申込状態に戻す
