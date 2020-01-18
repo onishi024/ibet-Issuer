@@ -54,7 +54,7 @@ def get_personal_encrypted_info(personal_info, account_address, token_owner):
     # 復号化
     key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
     cipher = PKCS1_OAEP.new(key)
-    ciphertext = base64.decodestring(encrypted_info.encode('utf-8'))
+    ciphertext = base64.decodebytes(encrypted_info.encode('utf-8'))
     message = cipher.decrypt(ciphertext)
     return json.loads(message)
 
@@ -130,7 +130,7 @@ def get_payment_account_encrypted_info(payment_gateway, account_address, agent_a
     # 復号化
     key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
     cipher = PKCS1_OAEP.new(key)
-    ciphertext = base64.decodestring(payment_account[2].encode('utf-8'))
+    ciphertext = base64.decodebytes(payment_account[2].encode('utf-8'))
     message = cipher.decrypt(ciphertext)
     return json.loads(message)
 
@@ -292,6 +292,17 @@ def get_signature(token_address, signer_address):
     TokenContract = Contract.get_contract(
         'IbetStraightBond', token_address)
     return TokenContract.functions.signatures(signer_address).call()
+
+
+# 募集申込
+def bond_apply_for_offering(invoker, token_address):
+    web3.eth.defaultAccount = invoker['account_address']
+    web3.personal.unlockAccount(invoker['account_address'], invoker['password'])
+    TokenContract = Contract.get_contract('IbetStraightBond', token_address)
+    tx_hash = TokenContract.functions. \
+        applyForOffering('abcdefgh'). \
+        transact({'from': invoker['account_address'], 'gas': 4000000})
+    web3.eth.waitForTransactionReceipt(tx_hash)
 
 
 '''

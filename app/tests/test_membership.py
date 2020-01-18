@@ -5,9 +5,6 @@ from .conftest import TestBase
 from .contract_modules import *
 from ..models import Token
 from eth_utils import to_checksum_address
-from logging import getLogger
-
-logger = getLogger('api')
 
 
 class TestMembership(TestBase):

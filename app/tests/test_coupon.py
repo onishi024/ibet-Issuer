@@ -1,14 +1,10 @@
 # -*- coding:utf-8 -*-
 import time
-
 import pytest
 
 from .conftest import TestBase
 from .contract_modules import *
 from ..models import Token
-from logging import getLogger
-
-logger = getLogger('api')
 
 
 class TestCoupon(TestBase):
@@ -165,7 +161,6 @@ class TestCoupon(TestBase):
         response = client.get(self.url_list)
         assert response.status_code == 200
         assert '<title>クーポン一覧'.encode('utf-8') in response.data
-        assert token.tx_hash.encode('utf-8') in response.data
 
     # ＜正常系2_3＞
     # ＜新規発行＞
@@ -266,7 +261,7 @@ class TestCoupon(TestBase):
         assert '<title>クーポン一覧'.encode('utf-8') in response.data
         assert 'テストクーポン'.encode('utf-8') in response.data
         assert 'COUPON'.encode('utf-8') in response.data
-        assert '有効'.encode('utf-8') in response.data
+        assert '取扱中'.encode('utf-8') in response.data
         assert token.token_address.encode('utf-8') in response.data
 
     # ＜正常系3_2＞
@@ -366,7 +361,7 @@ class TestCoupon(TestBase):
         assert '<title>クーポン一覧'.encode('utf-8') in response.data
         assert 'テストクーポン'.encode('utf-8') in response.data
         assert 'COUPON'.encode('utf-8') in response.data
-        assert '無効'.encode('utf-8') in response.data
+        assert '停止中'.encode('utf-8') in response.data
 
     # ＜正常系5_2＞
     # ＜有効化・無効化＞
@@ -390,7 +385,7 @@ class TestCoupon(TestBase):
         assert '<title>クーポン一覧'.encode('utf-8') in response.data
         assert 'テストクーポン'.encode('utf-8') in response.data
         assert 'COUPON'.encode('utf-8') in response.data
-        assert '有効'.encode('utf-8') in response.data
+        assert '取扱中'.encode('utf-8') in response.data
 
     # ＜正常系6＞
     # ＜追加発行＞

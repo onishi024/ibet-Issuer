@@ -152,8 +152,8 @@ def get_applications(token_address):
         if encrypted_info == '' or cipher == None:
             pass
         else:
-            ciphertext = base64.decodestring(encrypted_info.encode('utf-8'))
             try:
+                ciphertext = base64.decodestring(encrypted_info.encode('utf-8'))
                 message = cipher.decrypt(ciphertext)
                 personal_info_json = json.loads(message)
                 if 'name' in personal_info_json:
@@ -1266,8 +1266,8 @@ def get_holders(token_address):
                 postal_code = '--'
                 email = '--'
             else:
-                ciphertext = base64.decodestring(encrypted_info.encode('utf-8'))
                 try:
+                    ciphertext = base64.decodebytes(encrypted_info.encode('utf-8'))
                     message = cipher.decrypt(ciphertext)
                     personal_info_json = json.loads(message)
                     name = personal_info_json['name'] if personal_info_json['name'] else "--"
