@@ -45,7 +45,7 @@ def flash_errors(form):
 @bond.route('/list', methods=['GET'])
 @login_required
 def list():
-    logger.info('list')
+    logger.info('bond/list')
 
     # 発行済トークンの情報をDBから取得する
     tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
@@ -93,21 +93,50 @@ def list():
 @bond.route('/holders/<string:token_address>', methods=['GET'])
 @login_required
 def holders(token_address):
-    logger.info('holders')
+    logger.info('bond/holders')
     return render_template('bond/holders.html',
                            token_address=token_address)
+
+# 保有者リストCSVダウンロード
+@bond.route('/holders_csv_download', methods=['POST'])
+@login_required
+def holders_csv_download():
+    logger.info('bond/holders_csv_download')
+
+    token_address = request.form.get('token_address')
+    holders = json.loads(get_holders(token_address))
+    token_name = json.loads(get_token_name(token_address))
+
+    f = io.StringIO()
+    for holder in holders:
+        # データ行
+        data_row = \
+            token_name + ',' + token_address + ',' + holder["account_address"] + ',' + str(holder["balance"]) + ',' \
+            + str(holder["commitment"]) + ',' + holder["name"] + ',' + holder["postal_code"] + ',' + holder[
+                "address"] + ',' \
+            + holder["email"] + '\n'
+        f.write(data_row)
+
+    now = datetime.now()
+    res = make_response()
+    csvdata = f.getvalue()
+    res.data = csvdata.encode('sjis', 'ignore')
+    res.headers['Content-Type'] = 'text/plain'
+    res.headers['Content-Disposition'] = 'attachment; filename=' + now.strftime("%Y%m%d%H%M%S") \
+                                         + 'bond_holders_list.csv'
+    return res
 
 # 債券トークンの保有者一覧、token_nameを返す
 @bond.route('/get_holders/<string:token_address>', methods=['GET'])
 @login_required
 def get_holders(token_address):
+    logger.info('bond/get_holders')
     cipher = None
     try:
         key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
         cipher = PKCS1_OAEP.new(key)
     except Exception as e:
         logger.error(e)
-        traceback.print_exc()
         pass
 
     # Bond Token Contract
@@ -136,8 +165,7 @@ def get_holders(token_address):
         Contract.get_contract('PersonalInfo', personalinfo_address)
 
     # 残高を保有している可能性のあるアドレスを抽出する
-    holders_temp = [TokenContract.functions.owner().call()]
-
+    holders_temp = [TokenContract.functions.owner().call()]  # 発行体アドレスをリストに追加
     event_filter = TokenContract.eventFilter(
         'Transfer', {
             'filter': {},
@@ -146,7 +174,7 @@ def get_holders(token_address):
     )
     entries = event_filter.get_all_entries()
     for entry in entries:
-        holders_temp.append(entry['args']['to'])
+        holders_temp.append(entry['args']['to'])  # 宛先アドレスを収集する
 
     # 口座リストをユニークにする
     holders_uniq = []
@@ -154,10 +182,8 @@ def get_holders(token_address):
         if x not in holders_uniq:
             holders_uniq.append(x)
 
-    token_owner = TokenContract.functions.owner().call()
-    token_name = TokenContract.functions.name().call()
-
     # 残高（balance）、または注文中の残高（commitment）が存在する情報を抽出
+    token_owner = TokenContract.functions.owner().call()
     holders = []
     for account_address in holders_uniq:
         balance = TokenContract.functions.balanceOf(account_address).call()
@@ -172,15 +198,18 @@ def get_holders(token_address):
                 postal_code = '--'
                 email = '--'
             else:
-                ciphertext = base64.decodestring(encrypted_info.encode('utf-8'))
                 try:
+                    ciphertext = base64.decodebytes(encrypted_info.encode('utf-8'))
                     message = cipher.decrypt(ciphertext)
                     personal_info_json = json.loads(message)
                     name = personal_info_json['name'] if personal_info_json['name'] else "--"
                     # 住所は連結して表示
                     address = personal_info_json['address']['prefecture'] + personal_info_json['address']['city'] + \
-                        personal_info_json['address']['address1'] + personal_info_json['address']['address2'] if personal_info_json['address']['prefecture'] and personal_info_json['address']['city'] and personal_info_json['address']['address1'] else "--"
-                    postal_code = personal_info_json['address']['postal_code'] if personal_info_json['address']['postal_code'] else "--"
+                              personal_info_json['address']['address1'] + personal_info_json['address']['address2'] if \
+                        personal_info_json['address']['prefecture'] and personal_info_json['address']['city'] and \
+                        personal_info_json['address']['address1'] else "--"
+                    postal_code = personal_info_json['address']['postal_code'] if personal_info_json['address'][
+                        'postal_code'] else "--"
                     email = personal_info_json['email'] if personal_info_json['email'] else "--"
                 except Exception as e:
                     logger.error(e)
@@ -205,6 +234,7 @@ def get_holders(token_address):
 @bond.route('/get_token_name/<string:token_address>', methods=['GET'])
 @login_required
 def get_token_name(token_address):
+    logger.info('bond/get_token_name')
     token = Token.query.filter(Token.token_address == token_address).first()
     token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
 
@@ -217,40 +247,10 @@ def get_token_name(token_address):
 
     return json.dumps(token_name)
 
-# 保有者リストCSVダウンロード
-@bond.route('/holders_csv_download', methods=['POST'])
-@login_required
-def holders_csv_download():
-    logger.info('bond/holders_csv_download')
-
-    token_address = request.form.get('token_address')
-    holders = json.loads(get_holders(token_address))
-    token_name = json.loads(get_token_name(token_address))
-
-    f = io.StringIO()
-    for holder in holders:
-        # データ行
-        data_row = \
-            token_name + ',' + token_address + ',' + holder["account_address"] + ',' + str(holder["balance"]) + ','\
-            + str(holder["commitment"]) + ',' + holder["name"] + ',' + holder["postal_code"] + ',' + holder["address"] + ','\
-            + holder["email"] + '\n'
-        f.write(data_row)
-
-    now = datetime.now()
-    res = make_response()
-    csvdata = f.getvalue()
-    res.data = csvdata.encode('sjis', 'ignore')
-    res.headers['Content-Type'] = 'text/plain'
-    res.headers['Content-Disposition'] = 'attachment; filename=' + now.strftime("%Y%m%d%H%M%S") \
-        + 'bond_holders_list.csv'
-    return res
-
 ####################################################
 # [債券]保有者移転
 ####################################################
-@bond.route(
-    '/transfer_ownership/<string:token_address>/<string:account_address>',
-    methods=['GET', 'POST'])
+@bond.route('/transfer_ownership/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
 @login_required
 def transfer_ownership(token_address, account_address):
     logger.info('bond/transfer_ownership')
@@ -316,14 +316,13 @@ def transfer_ownership(token_address, account_address):
             form=form
         )
 
-
 ####################################################
 # [債券]保有者詳細
 ####################################################
 @bond.route('/holder/<string:token_address>/<string:account_address>', methods=['GET'])
 @login_required
 def holder(token_address, account_address):
-    logger.info('holder')
+    logger.info('bond/holder')
     personal_info = get_holder(token_address, account_address)
     return render_template(
         'bond/holder.html',
@@ -331,14 +330,13 @@ def holder(token_address, account_address):
         token_address=token_address
     )
 
-
 ####################################################
 # [債券]設定内容修正
 ####################################################
 @bond.route('/setting/<string:token_address>', methods=['GET', 'POST'])
 @login_required
 def setting(token_address):
-    logger.info('bond.setting')
+    logger.info('bond/setting')
 
     # 指定したトークンが存在しない場合、エラーを返す
     token = Token.query.filter(Token.token_address == token_address).first()
@@ -378,6 +376,7 @@ def setting(token_address):
     privacy_policy = TokenContract.functions.privacyPolicy().call()
     transferable = str(TokenContract.functions.transferable().call())
     personalInfoAddress = TokenContract.functions.personalInfoAddress().call()
+    initial_offering_status = TokenContract.functions.initialOfferingStatus().call()
 
     # TokenList登録状態取得
     list_contract_address = Config.TOKEN_LIST_CONTRACT_ADDRESS
@@ -424,7 +423,7 @@ def setting(token_address):
                 if form.transferable.data == 'False':
                     transferable_bool = False
                 gas = TokenContract.estimateGas().setTransferable(transferable_bool)
-                TokenContract.functions.setTransferable(transferable_bool).\
+                TokenContract.functions.setTransferable(transferable_bool). \
                     transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
 
             # 画像変更
@@ -522,9 +521,9 @@ def setting(token_address):
             form=form,
             token_address=token_address,
             token_name=name,
-            is_released=is_released
+            is_released=is_released,
+            initial_offering_status=initial_offering_status
         )
-
 
 ####################################################
 # [債券]第三者認定申請
@@ -532,7 +531,7 @@ def setting(token_address):
 @bond.route('/request_signature/<string:token_address>', methods=['GET', 'POST'])
 @login_required
 def request_signature(token_address):
-    logger.info('bond.request_signature')
+    logger.info('bond/request_signature')
 
     token = Token.query.filter(Token.token_address == token_address).first()
     if token is None:
@@ -593,14 +592,13 @@ def request_signature(token_address):
         form.signer.data = ''
         return render_template('bond/request_signature.html', form=form)
 
-
 ####################################################
 # [債券]公開
 ####################################################
 @bond.route('/release', methods=['POST'])
 @login_required
 def release():
-    logger.info('bond.release')
+    logger.info('bond/release')
     token_address = request.form.get('token_address')
 
     list_contract_address = Config.TOKEN_LIST_CONTRACT_ADDRESS
@@ -622,14 +620,13 @@ def release():
     flash('公開中です。公開開始までに数分程かかることがあります。', 'success')
     return redirect(url_for('.list'))
 
-
 ####################################################
 # [債券]償還
 ####################################################
 @bond.route('/redeem', methods=['POST'])
 @login_required
 def redeem():
-    logger.info('bond.redeem')
+    logger.info('bond/redeem')
 
     token_address = request.form.get('token_address')
     token = Token.query.filter(Token.token_address == token_address).first()
@@ -652,14 +649,13 @@ def redeem():
     flash('償還処理中です。完了までに数分程かかることがあります。', 'success')
     return redirect(url_for('.setting', token_address=token_address))
 
-
 ####################################################
 # [債券]新規発行
 ####################################################
 @bond.route('/issue', methods=['GET', 'POST'])
 @login_required
 def issue():
-    logger.info('bond.issue')
+    logger.info('bond/issue')
     form = IssueForm()
 
     if request.method == 'POST':
@@ -735,14 +731,13 @@ def issue():
     else:  # GET
         return render_template('bond/issue.html', form=form, form_description=form.description)
 
-
 ####################################################
 # [債券]保有一覧
 ####################################################
 @bond.route('/positions', methods=['GET'])
 @login_required
 def positions():
-    logger.info('bond.positions')
+    logger.info('bond/positions')
 
     # 自社が発行したトークンの一覧を取得
     tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
@@ -762,7 +757,7 @@ def positions():
                 # Exchange
                 token_exchange_address = TokenContract.functions.tradableExchange().call()
                 ExchangeContract = \
-                    Contract.get_contract('IbetMembershipExchange', token_exchange_address)
+                    Contract.get_contract('IbetStraightBondExchange', token_exchange_address)
 
                 # トークン名称
                 name = TokenContract.functions.name().call()
@@ -828,14 +823,13 @@ def positions():
 
     return render_template('bond/positions.html', position_list=position_list)
 
-
 ####################################################
 # [債券]売出
 ####################################################
 @bond.route('/sell/<string:token_address>', methods=['GET', 'POST'])
 @login_required
 def sell(token_address):
-    logger.info('bond.sell')
+    logger.info('bond/sell')
     form = SellTokenForm()
 
     token = Token.query.filter(Token.token_address == token_address).first()
@@ -854,9 +848,8 @@ def sell(token_address):
     faceValue = TokenContract.functions.faceValue().call()
     interestRate = TokenContract.functions.interestRate().call() * 0.001
     interestPaymentDate_string = TokenContract.functions.interestPaymentDate().call()
-    interestPaymentDate = json.loads(
-        interestPaymentDate_string.replace("'", '"'). \
-            replace('True', 'true').replace('False', 'false'))
+    interestPaymentDate = \
+        json.loads(interestPaymentDate_string.replace("'", '"').replace('True', 'true').replace('False', 'false'))
     redemptionDate = TokenContract.functions.redemptionDate().call()
     redemptionValue = TokenContract.functions.redemptionValue().call()
     returnDate = TokenContract.functions.returnDate().call()
@@ -937,14 +930,13 @@ def sell(token_address):
             form=form
         )
 
-
 ####################################################
 # [債券]売出停止
 ####################################################
 @bond.route('/cancel_order/<string:token_address>/<int:order_id>', methods=['GET', 'POST'])
 @login_required
 def cancel_order(token_address, order_id):
-    logger.info('bond.cancel_order')
+    logger.info('bond/cancel_order')
     form = CancelOrderForm()
 
     # トークンのABIを取得する
@@ -965,7 +957,7 @@ def cancel_order(token_address, order_id):
             txid = ExchangeContract.functions.cancelOrder(order_id). \
                 transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
             web3.eth.waitForTransactionReceipt(txid)
-            time.sleep(3) # NOTE: バックプロセスによるDB反映までにタイムラグがあるため3秒待つ
+            time.sleep(3)  # NOTE: バックプロセスによるDB反映までにタイムラグがあるため3秒待つ
             flash('売出停止処理を受け付けました。停止されるまでに数分程かかることがあります。', 'success')
             return redirect(url_for('.positions'))
         else:
@@ -998,6 +990,200 @@ def cancel_order(token_address, order_id):
         form.price.data = price
         return render_template('bond/cancel_order.html', form=form)
 
+####################################################
+# [債券]募集申込開始/停止
+####################################################
+@bond.route('/start_initial_offering', methods=['POST'])
+@login_required
+def start_initial_offering():
+    logger.info('bond/start_initial_offering')
+    token_address = request.form.get('token_address')
+    set_initial_offering_status(token_address, True)
+    return redirect(url_for('.setting', token_address=token_address))
+
+@bond.route('/stop_initial_offering', methods=['POST'])
+@login_required
+def stop_initial_offering():
+    logger.info('bond/stop_initial_offering')
+    token_address = request.form.get('token_address')
+    set_initial_offering_status(token_address, False)
+    return redirect(url_for('.setting', token_address=token_address))
+
+def set_initial_offering_status(token_address, status):
+    logger.info('bond/set_initial_offering_status')
+
+    eth_unlock_account()
+    token = Token.query.filter(Token.token_address == token_address).first()
+    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+    TokenContract = web3.eth.contract(
+        address=token.token_address,
+        abi=token_abi
+    )
+    try:
+        gas = TokenContract.estimateGas().setInitialOfferingStatus(status)
+        tx = TokenContract.functions.setInitialOfferingStatus(status). \
+            transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
+        web3.eth.waitForTransactionReceipt(tx)
+        flash('処理を受け付けました。', 'success')
+    except Exception as e:
+        logger.error(e)
+        flash('更新処理でエラーが発生しました。', 'error')
+
+####################################################
+# [債券]募集申込一覧
+####################################################
+@bond.route('/applications/<string:token_address>', methods=['GET'])
+@login_required
+def applications(token_address):
+    logger.info('bond/applications')
+    return render_template(
+        'bond/applications.html',
+        token_address=token_address,
+    )
+
+@bond.route('/get_applications/<string:token_address>', methods=['GET'])
+@login_required
+def get_applications(token_address):
+    logger.info('bond/applications')
+
+    # RSA秘密鍵取得
+    cipher = None
+    try:
+        key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
+        cipher = PKCS1_OAEP.new(key)
+    except Exception as e:
+        logger.error(e)
+        pass
+
+    # Tokenコントラクト接続
+    token = Token.query.filter(Token.token_address == token_address).first()
+    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+    TokenContract = web3.eth.contract(address=token_address, abi=token_abi)
+
+    # PersonalInfoコントラクト接続
+    PersonalInfoContract = Contract.get_contract('PersonalInfo', Config.PERSONAL_INFO_CONTRACT_ADDRESS)
+
+    # 申込（ApplyFor）イベントを検索
+    try:
+        event_filter = TokenContract.eventFilter(
+            'ApplyFor', {
+                'filter': {},
+                'fromBlock': 'earliest'
+            }
+        )
+        entries = event_filter.get_all_entries()
+        list_temp = []
+        for entry in entries:
+            list_temp.append(entry['args']['accountAddress'])
+    except Exception as e:
+        logger.error(e)
+        list_temp = []
+
+    # アカウントのリストをユニークにする
+    account_list = []
+    for item in list_temp:
+        if item not in account_list:
+            account_list.append(item)
+
+    token_owner = TokenContract.functions.owner().call()
+    applications = []
+    for account_address in account_list:
+        # 個人情報参照
+        encrypted_info = PersonalInfoContract.functions. \
+            personal_info(account_address, token_owner).call()[2]
+        account_name = ''
+        account_email_address = ''
+        if encrypted_info == '' or cipher == None:
+            pass
+        else:
+            try:
+                # 個人情報を復号
+                ciphertext = base64.decodebytes(encrypted_info.encode('utf-8'))
+                message = cipher.decrypt(ciphertext)
+                personal_info_json = json.loads(message)
+                if 'name' in personal_info_json:
+                    account_name = personal_info_json['name']
+                if 'email' in personal_info_json:
+                    account_email_address = personal_info_json['email']
+            except:
+                pass
+        data = TokenContract.functions.applications(account_address).call()
+        application = {
+            'account_address': account_address,
+            'account_name': account_name,
+            'account_email_address': account_email_address,
+            'data': data
+        }
+        applications.append(application)
+
+    return json.dumps(applications)
+
+####################################################
+# [会員権]割当（募集申込）
+####################################################
+@bond.route('/allocate/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
+@login_required
+def allocate(token_address, account_address):
+    logger.info('bond/allocate')
+
+    # アドレスのフォーマットチェック
+    if not Web3.isAddress(account_address) or not Web3.isAddress(token_address):
+        abort(404)
+
+    # Tokenコントラクト接続
+    token = Token.query.filter(Token.token_address == token_address).first()
+    if token is None:
+        abort(404)
+    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+    TokenContract = web3.eth.contract(address=token.token_address, abi=token_abi)
+
+    form = TransferForm()
+    form.token_address.data = token_address
+    form.to_address.data = account_address
+    if request.method == 'POST':
+        if form.validate():
+            # 残高チェック
+            amount = int(form.amount.data)
+            balance = TokenContract.functions. \
+                balanceOf(to_checksum_address(Config.ETH_ACCOUNT)).call()
+            if amount > balance:
+                flash('移転数量が残高を超えています。', 'error')
+                return render_template(
+                    'bond/allocate.html',
+                    token_address=token_address,
+                    account_address=account_address,
+                    form=form
+                )
+            # 割当処理（発行体アドレス→指定アドレス）
+            from_address = Config.ETH_ACCOUNT
+            to_address = to_checksum_address(account_address)
+            transfer_token(TokenContract, from_address, to_address, amount)
+            flash('処理を受け付けました。割当完了までに数分程かかることがあります。', 'success')
+            return redirect(url_for('.applications', token_address=token_address))
+        else:
+            flash_errors(form)
+            return render_template(
+                'bond/allocate.html',
+                token_address=token_address,
+                account_address=account_address,
+                form=form
+            )
+    else:  # GET
+        return render_template(
+            'bond/allocate.html',
+            token_address=token_address,
+            account_address=account_address,
+            form=form
+        )
+
+def transfer_token(TokenContract, from_address, to_address, amount):
+    eth_unlock_account()
+    deposit_gas = TokenContract.estimateGas(). \
+        transferFrom(from_address, to_address, amount)
+    tx_hash = TokenContract.functions. \
+        transferFrom(from_address, to_address, amount). \
+        transact({'from': Config.ETH_ACCOUNT, 'gas': deposit_gas})
+    return tx_hash
 
 ####################################################
 # 権限エラー
@@ -1006,7 +1192,6 @@ def cancel_order(token_address, order_id):
 @login_required
 def permissionDenied():
     return render_template('permissiondenied.html')
-
 
 # +++++++++++++++++++++++++++++++
 # Custom Filter
@@ -1020,14 +1205,12 @@ def format_date(date):  # date = datetime object.
             return date.strftime('%Y/%m/%d')
     return ''
 
-
 @bond.app_template_filter()
 def img_convert(icon):
     if icon:
         img = b64encode(icon)
         return img.decode('utf8')
     return None
-
 
 # 利払日をformにセットする
 def set_interestPaymentDate(form, interestPaymentDate):

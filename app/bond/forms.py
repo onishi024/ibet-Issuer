@@ -412,6 +412,36 @@ class RequestSignatureForm(Form):
         self.request_signature = request_signature
 
 
+class TransferForm(Form):
+    token_address = StringField(
+        "債券アドレス",
+        validators=[
+            DataRequired('債券アドレスは必須です。')
+        ]
+    )
+
+    to_address = StringField(
+        "割当先アドレス",
+        validators=[
+            DataRequired('割当先アドレスは必須です。')
+        ]
+    )
+
+    amount = IntegerField(
+        "割当数量",
+        validators=[
+            DataRequired('割当数量は必須です。'),
+            NumberRange(min=1, max=100000000, message='割当数量は100,000,000が上限です。'),
+        ]
+    )
+
+    submit = SubmitField('割当')
+
+    def __init__(self, transfer_bond=None, *args, **kwargs):
+        super(TransferForm, self).__init__(*args, **kwargs)
+        self.transfer_membership = transfer_bond
+
+
 class TransferOwnershipForm(Form):
     from_address = StringField("現在の所有者", validators=[])
     to_address = StringField(

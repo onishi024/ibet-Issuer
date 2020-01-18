@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block head %}
+  {{ super() }}
+  <!-- DataTables -->
+  <link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
+{% endblock %}
+{% set active_page = "bond_list" %}
+
+{% block title %}募集申込一覧 - {% endblock %}
+{% block page_header %}募集申込一覧 <span class="badge bg-secondary">債券</span>{% endblock %}
+{% block page_description %}{% endblock %}
+{% block breadcrumb %}
+    <li><a href="{{ url_for('index.index') }}">トップ</a></li>
+    <li><a href="{{ url_for('bond.list') }}">債券一覧</a></li>
+    <li class="active">募集申込一覧</li>
+{% endblock %}
+
+{% block page_content %}
+<section class="content">
+  <div class="box box-default">
+    <div class="box-header">
+      <h3 class="box-title" id="token_name"></h3>
+    </div>
+    <div class="box-body">
+  	  <table id="data_table" class="table table-bordered table-hover">
+    		<thead>
+    		  <tr>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+              </tr>
+    		</thead>
+    		<tbody>
+    		</tbody>
+  	  </table>
+  	</div>
+    <div class="box-footer">
+        <button
+          type="button" class="btn btn-default"
+          onclick="location.href='{{ url_for("bond.list") }}'">
+          一覧に戻る
+        </button>
+    </div>
+    <div class="overlay">
+      <i class="fa fa-refresh fa-spin"></i>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block required_js %}
+{{ super() }}
+<!-- DataTables -->
+<script src="/static/adminlte/bower_components/datatables.net/js/jquery.dataTables.min.js"></script>
+<script src="/static/adminlte/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+<!-- SlimScroll -->
+<script src="/static/adminlte/bower_components/jquery-slimscroll/jquery.slimscroll.min.js"></script>
+<!-- FastClick -->
+<script src="/static/adminlte/bower_components/fastclick/lib/fastclick.js"></script>
+<script>
+token_address = {{ token_address | tojson }};
+token_name_url = '{{ url_for("bond.get_token_name", token_address=token_address) }}';
+applications_list_url = '{{ url_for("bond.get_applications", token_address=token_address) }}';
+applications_allocate_url_base = '{{ url_for("bond.allocate", token_address=token_address, account_address="account_address") }}';
+$(function () {
+  $ ('#data_table').DataTable({
+        columns: [{
+        data: 'account_address',
+        title: 'アカウントアドレス',
+        className: 'tableAddress',
+        render: function (data) {
+            return '<small>' + data + '</small>'
+        }
+        }, {
+        data: "name",
+        orderable: true,
+        title: "氏名"
+        }, {
+        data: "account_email_address",
+        orderable: true,
+        title: "Eメール"
+        }, {
+        data: "data",
+        orderable: true,
+        title: "認可コード"
+        }, {
+        data: "token_transfer",
+        orderable: false,
+        className: "text-center",
+        render: function (data) {
+            return `<button type="button" class="btn btn-success btn-sm" onclick='location.href= "${data}"' />割当`;
+        }
+        }],
+        ajax: {
+        url: applications_list_url,
+        dataSrc : function (json) {
+            returnJson = [];
+            for(index in json){
+            returnJsonRaw = {
+                account_address : json[index]['account_address'] ? json[index]['account_address'] : '--',
+                name: json[index]['name'] ? json[index]['name'] : '--',
+                account_email_address: json[index]['account_email_address'] ? json[index]['account_email_address'] : '--',
+                data: json[index]['data'] ? json[index]['data'] : '--',
+                token_transfer: json[index]['account_address'] ? applications_allocate_url_base.replace('account_address', json[index]['account_address']) : '--'
+            };
+            returnJson.push(returnJsonRaw)
+            }
+            if (json) {
+                $("div.overlay").remove();
+            }
+            return returnJson;
+        }
+        },
+        'paging'      : true,
+        'lengthChange': true,
+        'searching'   : true,
+        'ordering'    : true,
+        'info'        : true,
+        'autoWidth'   : true,
+        'pagingType': "full_numbers",
+        'language': {
+            'info': "_TOTAL_ 件中 _START_ 〜 _END_ 件目",
+            'lengthMenu': "表示件数 _MENU_ 件",
+            'search': "検索:",
+            'paginate': {
+                'first': "最初へ",
+                'previous': "前へ",
+                'next': "次へ",
+                'last': "最後へ",
+            },
+            "emptyTable": "データが存在しません",
+            "sInfoEmpty":	" 0 件中 0 から 0 まで表示"
+        },
+    })
+})
+window.onload = function getTokenName() {
+    $.ajax({
+      type: 'GET',
+      url: token_name_url,
+      dataType: 'json',
+      contentType: 'application/json'
+    }).then(function (res) {
+      document.getElementById('token_name').innerHTML = res + '　<small>' + token_address + '</small>';
+    },
+    function () {
+        alert('データ取得に失敗しました');
+    });
+};
+</script>
+{% endblock %}

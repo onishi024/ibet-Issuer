@@ -74,8 +74,8 @@ def get_holder(token_address, account_address):
     if encrypted_info == '' or cipher == None:
         pass
     else:
-        ciphertext = base64.decodestring(encrypted_info.encode('utf-8'))
         try:
+            ciphertext = base64.decodebytes(encrypted_info.encode('utf-8'))
             message = cipher.decrypt(ciphertext)
             personal_info = validateDictStruct(personal_info, json.loads(message))
         except:

@@ -85,7 +85,6 @@ def list():
 
     return render_template('membership/list.html', tokens=token_list)
 
-
 ####################################################
 # [会員権]募集申込一覧
 ####################################################
@@ -97,7 +96,6 @@ def applications(token_address):
         'membership/applications.html',
         token_address=token_address,
     )
-
 
 @membership.route('/get_applications/<string:token_address>', methods=['GET'])
 @login_required
@@ -157,8 +155,8 @@ def get_applications(token_address):
         if encrypted_info == '' or cipher == None:
             pass
         else:
-            ciphertext = base64.decodestring(encrypted_info.encode('utf-8'))
             try:
+                ciphertext = base64.decodebytes(encrypted_info.encode('utf-8'))
                 message = cipher.decrypt(ciphertext)
                 personal_info_json = json.loads(message)
                 if 'name' in personal_info_json:
@@ -179,7 +177,6 @@ def get_applications(token_address):
         applications.append(application)
 
     return json.dumps(applications)
-
 
 ####################################################
 # [会員権]割当（募集申込）
@@ -244,7 +241,6 @@ def allocate(token_address, account_address):
             form=form
         )
 
-
 def transfer_token(TokenContract, from_address, to_address, amount):
     eth_unlock_account()
     token_exchange_address = Config.IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS
@@ -265,7 +261,6 @@ def transfer_token(TokenContract, from_address, to_address, amount):
         transfer(to_checksum_address(TokenContract.address), to_address, amount). \
         transact({'from': Config.ETH_ACCOUNT, 'gas': transfer_gas})
     return tx_hash
-
 
 ####################################################
 # [会員権]保有者一覧
@@ -346,8 +341,8 @@ def get_holders(token_address):
                 postal_code = '--'
                 email = '--'
             else:
-                ciphertext = base64.decodestring(encrypted_info.encode('utf-8'))
                 try:
+                    ciphertext = base64.decodebytes(encrypted_info.encode('utf-8'))
                     message = cipher.decrypt(ciphertext)
                     personal_info_json = json.loads(message)
                     name = personal_info_json['name'] if personal_info_json['name'] else "--"

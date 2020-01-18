@@ -241,9 +241,7 @@ def personalinfo_regist(form):
     }
 
     # 銀行口座情報の暗号化
-    personal_info_ciphertext = \
-        base64.encodestring(
-            cipher.encrypt(json.dumps(personal_info_json).encode('utf-8')))
+    personal_info_ciphertext = base64.encodebytes(cipher.encrypt(json.dumps(personal_info_json).encode('utf-8')))
 
     # PersonalInfo登録
     PersonalInfoContract = Contract.get_contract(
