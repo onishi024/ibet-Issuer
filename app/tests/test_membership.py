@@ -1,16 +1,28 @@
 # -*- coding:utf-8 -*-
-import pytest
 import time
-from .conftest import TestBase
-from .contract_modules import *
-from ..models import Token
+import pytest
+import json
+import base64
+from Crypto.PublicKey import RSA
+from Crypto.Cipher import PKCS1_OAEP
+
 from eth_utils import to_checksum_address
+
+from config import Config
+from .conftest import TestBase
+from .utils.account_config import eth_account
+from .utils.contract_utils_common import processor_issue_event
+from .utils.contract_utils_membership import \
+    get_latest_orderid, get_latest_agreementid, take_buy, confirm_agreement, apply_for_offering
+from .utils.contract_utils_personal_info import register_personal_info
+from ..models import Token
 
 
 class TestMembership(TestBase):
-    ##################
-    # URL
-    ##################
+
+    #############################################################################
+    # テスト対象URL
+    #############################################################################
     url_list = 'membership/list'  # 発行済一覧
     url_positions = 'membership/positions'  # 売出管理
     url_issue = 'membership/issue'  # 新規発行
@@ -33,9 +45,9 @@ class TestMembership(TestBase):
     url_holder = 'membership/holder/'  # 保有者詳細
     url_transfer_ownership = 'membership/transfer_ownership/'  # 所有者移転
 
-    ##################
+    #############################################################################
     # テスト用会員権トークン情報
-    ##################
+    #############################################################################
     # Token_1：最初に新規発行されるトークン。
     token_data1 = {
         'name': 'テスト会員権',
@@ -50,7 +62,6 @@ class TestMembership(TestBase):
         'image_2': 'http://hoge.co.jp',
         'image_3': 'http://hoge.co.jp',
     }
-
     # Token_2：2番目に発行されるトークン。imageなし, transferable:False
     token_data2 = {
         'name': '2件目会員権',
@@ -65,7 +76,6 @@ class TestMembership(TestBase):
         'image_2': '',
         'image_3': ''
     }
-
     # Token_3：設定変更用情報
     token_data3 = {
         'name': 'テスト会員権',
@@ -86,9 +96,9 @@ class TestMembership(TestBase):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
         return tokens[num]
 
-    ##################
+    #############################################################################
     # PersonalInfo情報の暗号化
-    ##################
+    #############################################################################
     issuer_personal_info_json = {
         "name": "株式会社１",
         "address": {
@@ -123,6 +133,10 @@ class TestMembership(TestBase):
     trader_encrypted_info = \
         base64.encodebytes(
             cipher.encrypt(json.dumps(trader_personal_info_json).encode('utf-8')))
+
+    #############################################################################
+    # テスト（正常系）
+    #############################################################################
 
     # ＜前処理＞
     def test_normal_0(self, shared_contract):
@@ -178,7 +192,7 @@ class TestMembership(TestBase):
         time.sleep(10)
 
         # DB登録処理
-        processorIssueEvent(db)
+        processor_issue_event(db)
 
         # 詳細設定画面の参照
         token = TestMembership.get_token(0)
@@ -246,7 +260,7 @@ class TestMembership(TestBase):
         time.sleep(10)
 
         # DB登録処理
-        processorIssueEvent(db)
+        processor_issue_event(db)
 
         # 詳細設定画面の参照
         token = TestMembership.get_token(1)
@@ -596,7 +610,7 @@ class TestMembership(TestBase):
         token = TestMembership.get_token(0)
 
         # 発行体のpersonalInfo登録
-        register_personalinfo(
+        register_personal_info(
             eth_account['issuer'],
             shared_contract['PersonalInfo'],
             self.issuer_encrypted_info
@@ -635,7 +649,7 @@ class TestMembership(TestBase):
         token = TestMembership.get_token(0)
 
         # 投資家のpersonalInfo登録
-        register_personalinfo(
+        register_personal_info(
             eth_account['trader'],
             shared_contract['PersonalInfo'],
             self.trader_encrypted_info
@@ -644,10 +658,10 @@ class TestMembership(TestBase):
         # 約定データの作成
         amount = 20
         exchange = shared_contract['IbetMembershipExchange']
-        orderid = get_latest_orderid_membership(exchange)
-        take_buy_membership_token(eth_account['trader'], exchange, orderid, amount)
-        agreementid = get_latest_agreementid_membership(exchange, orderid)
-        membership_confirm_agreement(eth_account['agent'], exchange, orderid, agreementid)
+        orderid = get_latest_orderid(exchange)
+        take_buy(eth_account['trader'], exchange, orderid, amount)
+        agreementid = get_latest_agreementid(exchange, orderid)
+        confirm_agreement(eth_account['agent'], exchange, orderid, agreementid)
 
         # 保有者一覧の参照
         response = client.get(self.url_holders + token.token_address)
@@ -873,7 +887,7 @@ class TestMembership(TestBase):
         trader_address = eth_account['trader']['account_address']
 
         # 募集申込データの作成：投資家
-        membership_apply_for_offering(
+        apply_for_offering(
             eth_account['trader'],
             token_address
         )
@@ -977,8 +991,9 @@ class TestMembership(TestBase):
         assert response.status_code == 200
 
     #############################################################################
-    # エラー系
+    # テスト（エラー系）
     #############################################################################
+
     # ＜エラー系1_1＞
     # ＜入力値チェック＞
     #   新規発行（必須エラー）

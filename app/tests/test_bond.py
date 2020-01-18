@@ -1,13 +1,26 @@
 # -*- coding:utf-8 -*-
 import time
 import pytest
+import json
+import base64
+from Crypto.PublicKey import RSA
+from Crypto.Cipher import PKCS1_OAEP
 
+from eth_utils import to_checksum_address
+
+from config import Config
 from .conftest import TestBase
-from .contract_modules import *
+from .utils.account_config import eth_account
+from .utils.contract_utils_common import processor_issue_event
+from .utils.contract_utils_bond import bond_apply_for_offering
+from .utils.contract_utils_payment_gateway import register_payment_account
+from .utils.contract_utils_personal_info import register_personal_info
+
 from ..models import Token
 
 
 class TestBond(TestBase):
+
     #############################################################################
     # テスト対象URL
     #############################################################################
@@ -84,14 +97,15 @@ class TestBond(TestBase):
         Config.TOKEN_LIST_CONTRACT_ADDRESS = shared_contract['TokenList']['address']
         Config.PERSONAL_INFO_CONTRACT_ADDRESS = shared_contract['PersonalInfo']['address']
 
-        # PersonalInfo登録
-        register_personalinfo(
+        # PersonalInfo登録（発行体：Issuer）
+        register_personal_info(
             eth_account['issuer'],
             shared_contract['PersonalInfo'],
             self.issuer_encrypted_info
         )
 
-        register_personalinfo(
+        # PersonalInfo登録（投資家：Trader）
+        register_personal_info(
             eth_account['trader'],
             shared_contract['PersonalInfo'],
             self.trader_encrypted_info
@@ -162,7 +176,7 @@ class TestBond(TestBase):
         time.sleep(10)
 
         # DB登録処理
-        processorIssueEvent(db)
+        processor_issue_event(db)
 
         # 詳細設定画面の参照
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
@@ -654,6 +668,7 @@ class TestBond(TestBase):
     #############################################################################
     # テスト（エラー系）
     #############################################################################
+
     # ＜エラー系1＞
     #   債券新規発行（必須エラー）
     def test_error_1(self, app):
