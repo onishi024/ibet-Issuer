@@ -1,22 +1,24 @@
 # -*- coding:utf-8 -*-
-import traceback
+import json
+import base64
 import io
 import time
+from datetime import datetime
 
-from flask import request, redirect, url_for, flash, make_response
-from flask import render_template
+from Crypto.PublicKey import RSA
+from Crypto.Cipher import PKCS1_OAEP
+
+from flask import request, redirect, url_for, flash, make_response, render_template, abort
 from flask_login import login_required
 from sqlalchemy import func
 
-from . import membership
-from .. import db
-from ..util import *
-from ..models import Token, Order, Agreement, AgreementStatus
-from .forms import *
-from config import Config
+from app import db
+from app.util import eth_unlock_account, get_holder
+from app.models import Token, Order, Agreement, AgreementStatus
 from app.contracts import Contract
-
-from logging import getLogger
+from config import Config
+from . import membership
+from .forms import TransferForm, TransferOwnershipForm, SettingForm, SellForm, IssueForm, CancelOrderForm, AddSupplyForm
 
 from web3 import Web3
 from eth_utils import to_checksum_address
@@ -25,7 +27,10 @@ from web3.middleware import geth_poa_middleware
 web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
 web3.middleware_stack.inject(geth_poa_middleware, layer=0)
 
+from logging import getLogger
+
 logger = getLogger('api')
+
 
 # +++++++++++++++++++++++++++++++
 # Utils
@@ -51,7 +56,7 @@ def list():
     for row in tokens:
         try:
             # トークンがデプロイ済みの場合、トークン情報を取得する
-            if row.token_address == None:
+            if row.token_address is None:
                 name = '--'
                 symbol = '--'
                 status = '--'
@@ -85,6 +90,7 @@ def list():
 
     return render_template('membership/list.html', tokens=token_list)
 
+
 ####################################################
 # [会員権]募集申込一覧
 ####################################################
@@ -97,6 +103,7 @@ def applications(token_address):
         token_address=token_address,
     )
 
+
 @membership.route('/get_applications/<string:token_address>', methods=['GET'])
 @login_required
 def get_applications(token_address):
@@ -104,9 +111,8 @@ def get_applications(token_address):
     try:
         key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
         cipher = PKCS1_OAEP.new(key)
-    except:
-        traceback.print_exc()
-        pass
+    except Exception as e:
+        logger.error(e)
 
     token = Token.query.filter(Token.token_address == token_address).first()
     token_abi = json.loads(
@@ -134,8 +140,10 @@ def get_applications(token_address):
         list_temp = []
         for entry in entries:
             list_temp.append(entry['args']['accountAddress'])
-    except:
+    except Exception as e:
+        logger.error(e)
         list_temp = []
+        pass
 
     # 口座リストをユニークにする
     account_list = []
@@ -152,7 +160,7 @@ def get_applications(token_address):
 
         account_name = ''
         account_email_address = ''
-        if encrypted_info == '' or cipher == None:
+        if encrypted_info == '' or cipher is None:
             pass
         else:
             try:
@@ -163,7 +171,8 @@ def get_applications(token_address):
                     account_name = personal_info_json['name']
                 if 'email' in personal_info_json:
                     account_email_address = personal_info_json['email']
-            except:
+            except Exception as e:
+                logger.warning(e)
                 pass
 
         data = TokenContract.functions.applications(account_address).call()
@@ -178,12 +187,11 @@ def get_applications(token_address):
 
     return json.dumps(applications)
 
+
 ####################################################
 # [会員権]割当（募集申込）
 ####################################################
-@membership.route(
-    '/allocate/<string:token_address>/<string:account_address>',
-    methods=['GET', 'POST'])
+@membership.route('/allocate/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
 @login_required
 def allocate(token_address, account_address):
     logger.info('membership/allocate')
@@ -221,8 +229,7 @@ def allocate(token_address, account_address):
             # 割当処理（発行体アドレス→指定アドレス）
             from_address = Config.ETH_ACCOUNT
             to_address = to_checksum_address(account_address)
-            tx_hash = transfer_token(TokenContract, from_address, to_address, amount)
-
+            transfer_token(TokenContract, from_address, to_address, amount)
             flash('処理を受け付けました。割当完了までに数分程かかることがあります。', 'success')
             return redirect(url_for('.applications', token_address=token_address))
         else:
@@ -240,6 +247,7 @@ def allocate(token_address, account_address):
             account_address=account_address,
             form=form
         )
+
 
 def transfer_token(TokenContract, from_address, to_address, amount):
     eth_unlock_account()
@@ -262,6 +270,7 @@ def transfer_token(TokenContract, from_address, to_address, amount):
         transact({'from': Config.ETH_ACCOUNT, 'gas': transfer_gas})
     return tx_hash
 
+
 ####################################################
 # [会員権]保有者一覧
 ####################################################
@@ -274,16 +283,51 @@ def holders(token_address):
         token_address=token_address
     )
 
+
+# 保有者リストCSVダウンロード
+@membership.route('/holders_csv_download', methods=['POST'])
+@login_required
+def holders_csv_download():
+    logger.info('membership/holders_csv_download')
+
+    token_address = request.form.get('token_address')
+    holders = json.loads(get_holders(token_address))
+    token_name = json.loads(get_token_name(token_address))
+
+    f = io.StringIO()
+    for holder in holders:
+        # データ行
+        data_row = \
+            token_name + ',' + token_address + ',' + holder["account_address"] + ',' + str(holder["balance"]) + ',' \
+            + str(holder["commitment"]) + ',' + holder["name"] + ',' + holder["postal_code"] + ',' + holder[
+                "address"] + ',' \
+            + holder["email"] + '\n'
+        f.write(data_row)
+
+    now = datetime.now()
+    res = make_response()
+    csvdata = f.getvalue()
+    res.data = csvdata.encode('sjis', 'ignore')
+    res.headers['Content-Type'] = 'text/plain'
+    res.headers['Content-Disposition'] = 'attachment; filename=' + now.strftime("%Y%m%d%H%M%S") \
+                                         + 'membership_holders_list.csv'
+    return res
+
+
 @membership.route('/get_holders/<string:token_address>', methods=['GET'])
 @login_required
 def get_holders(token_address):
+    """
+    保有者一覧取得
+    :param token_address:
+    :return: トークンの保有者一覧
+    """
     cipher = None
     try:
         key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
         cipher = PKCS1_OAEP.new(key)
-    except:
-        traceback.print_exc()
-        pass
+    except Exception as e:
+        logger.error(e)
 
     token = Token.query.filter(Token.token_address == token_address).first()
     token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
@@ -333,9 +377,8 @@ def get_holders(token_address):
         commitment = ExchangeContract.functions. \
             commitmentOf(account_address, token_address).call()
         if balance > 0 or commitment > 0:
-            encrypted_info = PersonalInfoContract.functions. \
-                personal_info(account_address, token_owner).call()[2]
-            if encrypted_info == '' or cipher == None:
+            encrypted_info = PersonalInfoContract.functions.personal_info(account_address, token_owner).call()[2]
+            if encrypted_info == '' or cipher is None:
                 name = '--'
                 address = '--'
                 postal_code = '--'
@@ -346,18 +389,17 @@ def get_holders(token_address):
                     message = cipher.decrypt(ciphertext)
                     personal_info_json = json.loads(message)
                     name = personal_info_json['name'] if personal_info_json['name'] else "--"
-                    # 住所は連結して表示
-                    address = personal_info_json['address']['prefecture'] + personal_info_json['address']['city'] + \
-                        personal_info_json['address']['address1'] + personal_info_json['address']['address2'] if personal_info_json['address']['prefecture'] and personal_info_json['address']['city'] and personal_info_json['address']['address1'] else "--"
+                    address = personal_info_json['address']['prefecture'] + personal_info_json['address']['city'] + personal_info_json['address']['address1'] + personal_info_json['address']['address2'] if personal_info_json['address']['prefecture'] and personal_info_json['address']['city'] and personal_info_json['address']['address1'] else "--"
                     postal_code = personal_info_json['address']['postal_code'] if personal_info_json['address']['postal_code'] else "--"
                     email = personal_info_json['email'] if personal_info_json['email'] else "--"
-                except:
+                except Exception as e:
+                    logger.warning(e)
                     name = '--'
                     address = '--'
                     postal_code = '--'
                     email = '--'
-
-            holder = {
+                    pass
+            holders.append({
                 'account_address': account_address,
                 'name': name,
                 'postal_code': postal_code,
@@ -365,8 +407,7 @@ def get_holders(token_address):
                 'address': address,
                 'balance': balance,
                 'commitment': commitment
-            }
-            holders.append(holder)
+            })
 
     return json.dumps(holders)
 
@@ -387,41 +428,10 @@ def get_token_name(token_address):
     return json.dumps(token_name)
 
 
-# 保有者リストCSVダウンロード
-@membership.route('/holders_csv_download', methods=['POST'])
-@login_required
-def holders_csv_download():
-    logger.info('membership/holders_csv_download')
-
-    token_address = request.form.get('token_address')
-    holders = json.loads(get_holders(token_address))
-    token_name = json.loads(get_token_name(token_address))
-
-    f = io.StringIO()
-    for holder in holders:
-        # データ行
-        data_row = \
-            token_name + ',' + token_address + ',' + holder["account_address"] + ',' + str(holder["balance"]) + ','\
-            + str(holder["commitment"]) + ',' + holder["name"] + ',' + holder["postal_code"] + ',' + holder["address"] + ','\
-            + holder["email"] + '\n'
-        f.write(data_row)
-
-    now = datetime.now()
-    res = make_response()
-    csvdata = f.getvalue()
-    res.data = csvdata.encode('sjis', 'ignore')
-    res.headers['Content-Type'] = 'text/plain'
-    res.headers['Content-Disposition'] = 'attachment; filename=' + now.strftime("%Y%m%d%H%M%S") \
-        + 'membership_holders_list.csv'
-    return res
-
-
 ####################################################
 # [会員権]保有者移転
 ####################################################
-@membership.route(
-    '/transfer_ownership/<string:token_address>/<string:account_address>',
-    methods=['GET', 'POST'])
+@membership.route('/transfer_ownership/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
 @login_required
 def transfer_ownership(token_address, account_address):
     logger.info('membership/transfer_ownership')
@@ -465,8 +475,7 @@ def transfer_ownership(token_address, account_address):
 
             eth_unlock_account()
             token_exchange_address = Config.IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS
-            ExchangeContract = Contract.get_contract(
-                'IbetMembershipExchange', token_exchange_address)
+            ExchangeContract = Contract.get_contract('IbetMembershipExchange', token_exchange_address)
 
             deposit_gas = TokenContract.estimateGas(). \
                 transferFrom(from_address, token_exchange_address, amount)
@@ -479,8 +488,7 @@ def transfer_ownership(token_address, account_address):
             txid = ExchangeContract.functions. \
                 transfer(to_checksum_address(token_address), to_address, amount). \
                 transact({'from': Config.ETH_ACCOUNT, 'gas': transfer_gas})
-
-            tx = web3.eth.waitForTransactionReceipt(txid)
+            web3.eth.waitForTransactionReceipt(txid)
             return redirect(url_for('.holders', token_address=token_address))
         else:
             flash_errors(form)
@@ -512,8 +520,8 @@ def holder(token_address, account_address):
     logger.info('membership/holder')
     personal_info = get_holder(token_address, account_address)
     return render_template(
-        'membership/holder.html', 
-        personal_info=personal_info, 
+        'membership/holder.html',
+        personal_info=personal_info,
         token_address=token_address
     )
 
@@ -558,8 +566,7 @@ def setting(token_address):
 
     # TokenList登録状態取得
     list_contract_address = Config.TOKEN_LIST_CONTRACT_ADDRESS
-    ListContract = Contract.get_contract(
-        'TokenList', list_contract_address)
+    ListContract = Contract.get_contract('TokenList', list_contract_address)
     token_struct = ListContract.functions.getTokenByAddress(token_address).call()
     isRelease = False
     if token_struct[0] == token_address:
@@ -831,7 +838,7 @@ def positions():
 
     position_list = []
     for row in tokens:
-        if row.token_address != None:
+        if row.token_address is not None:
             owner = to_checksum_address(row.admin_address)
             try:
                 # Tokenコントラクトに接続
@@ -859,22 +866,26 @@ def positions():
                 balance = TokenContract.functions.balanceOf(owner).call()
 
                 # 拘束中数量
-                commitment = ExchangeContract.functions. \
-                    commitmentOf(owner, row.token_address).call()
+                try:
+                    commitment = ExchangeContract.functions.commitmentOf(owner, row.token_address).call()
+                except Exception as e:
+                    logger.warning(e)
+                    commitment = 0
+                    pass
 
                 # 売出状態、注文ID、売出価格
-                order = Order.query.\
-                    filter(Order.token_address == row.token_address).\
+                order = Order.query. \
+                    filter(Order.token_address == row.token_address). \
                     filter(Order.exchange_address == token_exchange_address). \
                     filter(Order.account_address == owner). \
-                    filter(Order.is_buy == False).\
-                    filter(Order.is_cancelled == False).\
+                    filter(Order.is_buy == False). \
+                    filter(Order.is_cancelled == False). \
                     first()
                 if order is not None and order.amount != 0:
                     on_sale = True
                     order_id = order.order_id
                     order_price = order.price
-                else: # 未発注の場合
+                else:  # 未発注の場合
                     on_sale = False
                     order_id = None
                     order_price = None
@@ -965,7 +976,7 @@ def sell(token_address):
                 createOrder(token_address, balance, form.sellPrice.data, False, agent_address). \
                 transact({'from': Config.ETH_ACCOUNT, 'gas': sell_gas})
             web3.eth.waitForTransactionReceipt(txid)
-            time.sleep(3) # NOTE: バックプロセスによるDB反映までにタイムラグがあるため3秒待つ
+            time.sleep(3)  # NOTE: バックプロセスによるDB反映までにタイムラグがあるため3秒待つ
             flash('新規売出を受け付けました。売出開始までに数分程かかることがあります。', 'success')
             return redirect(url_for('.positions'))
         else:
@@ -1037,7 +1048,7 @@ def cancel_order(token_address, order_id):
             txid = ExchangeContract.functions.cancelOrder(order_id). \
                 transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
             web3.eth.waitForTransactionReceipt(txid)
-            time.sleep(3) # NOTE: バックプロセスによるDB反映までにタイムラグがあるため3秒待つ
+            time.sleep(3)  # NOTE: バックプロセスによるDB反映までにタイムラグがあるため3秒待つ
             flash('売出停止処理を受け付けました。停止されるまでに数分程かかることがあります。', 'success')
             return redirect(url_for('.positions'))
         else:
@@ -1081,8 +1092,7 @@ def add_supply(token_address):
         if form.validate():
             eth_unlock_account()
             gas = TokenContract.estimateGas().issue(form.addSupply.data)
-            tx = TokenContract.functions.issue(form.addSupply.data). \
-                transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
+            TokenContract.functions.issue(form.addSupply.data).transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
             flash('追加発行を受け付けました。発行完了までに数分程かかることがあります。', 'success')
             return redirect(url_for('.list'))
         else:
@@ -1101,6 +1111,7 @@ def add_supply(token_address):
             token_name=name
         )
 
+
 ####################################################
 # [会員権]有効化/無効化
 ####################################################
@@ -1112,6 +1123,7 @@ def valid():
     membership_valid(token_address, True)
     return redirect(url_for('.setting', token_address=token_address))
 
+
 @membership.route('/invalid', methods=['POST'])
 @login_required
 def invalid():
@@ -1119,6 +1131,7 @@ def invalid():
     token_address = request.form.get('token_address')
     membership_valid(token_address, False)
     return redirect(url_for('.setting', token_address=token_address))
+
 
 def membership_valid(token_address, isvalid):
     eth_unlock_account()
@@ -1140,6 +1153,7 @@ def membership_valid(token_address, isvalid):
         logger.error(e)
         flash('更新処理でエラーが発生しました。', 'error')
 
+
 ####################################################
 # [会員権]募集申込開始/停止
 ####################################################
@@ -1151,6 +1165,7 @@ def start_initial_offering():
     set_initial_offering_status(token_address, True)
     return redirect(url_for('.setting', token_address=token_address))
 
+
 @membership.route('/stop_initial_offering', methods=['POST'])
 @login_required
 def stop_initial_offering():
@@ -1158,6 +1173,7 @@ def stop_initial_offering():
     token_address = request.form.get('token_address')
     set_initial_offering_status(token_address, False)
     return redirect(url_for('.setting', token_address=token_address))
+
 
 def set_initial_offering_status(token_address, status):
     eth_unlock_account()
@@ -1178,6 +1194,7 @@ def set_initial_offering_status(token_address, status):
     except Exception as e:
         logger.error(e)
         flash('更新処理でエラーが発生しました。', 'error')
+
 
 ####################################################
 # [会員権]権限エラー
