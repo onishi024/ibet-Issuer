@@ -1,33 +1,38 @@
 # -*- coding:utf-8 -*-
+import json
+import base64
 import io
 import csv
-import datetime
 import time
-import traceback
+import datetime
+from datetime import datetime, timezone, timedelta
+JST = timezone(timedelta(hours=+9), 'JST')
 
-from flask import request, redirect, url_for, flash, make_response
-from flask import render_template
+from Crypto.PublicKey import RSA
+from Crypto.Cipher import PKCS1_OAEP
+
+from flask import request, redirect, url_for, flash, make_response, render_template, abort
 from flask_login import login_required
 from sqlalchemy import func
 
-from . import coupon
-from .. import db
-from ..util import *
-from .forms import *
-from ..models import Token, Order, Agreement, AgreementStatus, CouponBulkTransfer
-from config import Config
+from app import db
+from app.util import eth_unlock_account, get_holder
+from app.models import Token, Order, Agreement, AgreementStatus, CouponBulkTransfer
 from app.contracts import Contract
-
-from logging import getLogger
+from config import Config
+from . import coupon
+from .forms import IssueCouponForm, SellForm, CancelOrderForm, TransferForm, BulkTransferForm, TransferOwnershipForm, \
+    SettingCouponForm, AddSupplyForm
 
 from web3 import Web3
 from eth_utils import to_checksum_address
 from web3.middleware import geth_poa_middleware
-
 web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
 web3.middleware_stack.inject(geth_poa_middleware, layer=0)
 
+from logging import getLogger
 logger = getLogger('api')
+
 
 # +++++++++++++++++++++++++++++++
 # Utils
@@ -53,7 +58,7 @@ def list():
     for row in tokens:
         try:
             # トークンがデプロイ済みの場合、トークン情報を取得する
-            if row.token_address == None:
+            if row.token_address is None:
                 name = '--'
                 symbol = '--'
                 status = '--'
@@ -61,14 +66,12 @@ def list():
                 # Token-Contractへの接続
                 TokenContract = web3.eth.contract(
                     address=row.token_address,
-                    abi=json.loads(
-                        row.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+                    abi=json.loads(row.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
                 )
                 # Token-Contractから情報を取得する
                 name = TokenContract.functions.name().call()
                 symbol = TokenContract.functions.symbol().call()
                 status = TokenContract.functions.status().call()
-
             token_list.append({
                 'name': name,
                 'symbol': symbol,
@@ -101,9 +104,8 @@ def get_applications(token_address):
     try:
         key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
         cipher = PKCS1_OAEP.new(key)
-    except:
-        traceback.print_exc()
-        pass
+    except Exception as e:
+        logger.error(e)
 
     token = Token.query.filter(Token.token_address == token_address).first()
     token_abi = json.loads(
@@ -131,8 +133,10 @@ def get_applications(token_address):
         list_temp = []
         for entry in entries:
             list_temp.append(entry['args']['accountAddress'])
-    except:
+    except Exception as e:
+        logger.error(e)
         list_temp = []
+        pass
 
     # 口座リストをユニークにする
     account_list = []
@@ -149,7 +153,7 @@ def get_applications(token_address):
 
         account_name = ''
         account_email_address = ''
-        if encrypted_info == '' or cipher == None:
+        if encrypted_info == '' or cipher is None:
             pass
         else:
             try:
@@ -160,7 +164,8 @@ def get_applications(token_address):
                     account_name = personal_info_json['name']
                 if 'email' in personal_info_json:
                     account_email_address = personal_info_json['email']
-            except:
+            except Exception as e:
+                logger.warning(e)
                 pass
 
         data = TokenContract.functions.applications(account_address).call()
@@ -282,11 +287,11 @@ def issue():
             flash('新規発行を受け付けました。発行完了までに数分程かかることがあります。', 'success')
             return redirect(url_for('.list'))
 
-        else: # バリデーションエラー
+        else:  # バリデーションエラー
             flash_errors(form)
             return render_template('coupon/issue.html', form=form, form_description=form.description)
 
-    else: # GET
+    else:  # GET
         return render_template('coupon/issue.html', form=form, form_description=form.description)
 
 
@@ -527,6 +532,10 @@ def setting(token_address):
 @coupon.route('/positions', methods=['GET'])
 @login_required
 def positions():
+    """
+    保有トークン一覧
+    :return: 保有トークン情報
+    """
     logger.info('coupon/positions')
 
     # 自社が発行したトークンの一覧を取得
@@ -534,20 +543,18 @@ def positions():
 
     position_list = []
     for row in tokens:
-        if row.token_address != None:
+        if row.token_address is not None:
             owner = to_checksum_address(row.admin_address)
             try:
                 # Tokenコントラクトに接続
                 TokenContract = web3.eth.contract(
                     address=row.token_address,
-                    abi=json.loads(
-                        row.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+                    abi=json.loads(row.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
                 )
 
                 # Exchange
                 token_exchange_address = Config.IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS
-                ExchangeContract = Contract.get_contract(
-                    'IbetCouponExchange', token_exchange_address)
+                ExchangeContract = Contract.get_contract('IbetCouponExchange', token_exchange_address)
 
                 # トークン名称
                 name = TokenContract.functions.name().call()
@@ -562,8 +569,12 @@ def positions():
                 balance = TokenContract.functions.balanceOf(owner).call()
 
                 # 拘束中数量
-                commitment = ExchangeContract.functions. \
-                    commitmentOf(owner, row.token_address).call()
+                try:
+                    commitment = ExchangeContract.functions.commitmentOf(owner, row.token_address).call()
+                except Exception as e:
+                    logger.warning(e)
+                    commitment = 0
+                    pass
 
                 # 売出状態、注文ID、売出価格
                 order = Order.query. \
@@ -577,7 +588,7 @@ def positions():
                     on_sale = True
                     order_id = order.order_id
                     order_price = order.price
-                else: # 未発注の場合
+                else:  # 未発注の場合
                     on_sale = False
                     order_id = None
                     order_price = None
@@ -785,8 +796,6 @@ def transfer():
                 filter(Token.token_address == form.token_address.data).first()
             token_abi = json.loads(
                 token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
-            token_exchange_address = \
-                Config.IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS
             TokenContract = web3.eth.contract(
                 address=token.token_address,
                 abi=token_abi
@@ -796,7 +805,7 @@ def transfer():
             from_address = Config.ETH_ACCOUNT
             to_address = to_checksum_address(form.to_address.data)
             amount = form.amount.data
-            tx_hash = transfer_token(TokenContract, from_address, to_address, amount)
+            transfer_token(TokenContract, from_address, to_address, amount)
 
             flash('処理を受け付けました。割当完了までに数分程かかることがあります。', 'success')
             return render_template('coupon/transfer.html', form=form)
@@ -936,12 +945,10 @@ def allocate(token_address, account_address):
                     account_address=account_address,
                     form=form
                 )
-
             # 割当処理（発行体アドレス→指定アドレス）
             from_address = Config.ETH_ACCOUNT
             to_address = to_checksum_address(account_address)
-            tx_hash = transfer_token(TokenContract, from_address, to_address, amount)
-
+            transfer_token(TokenContract, from_address, to_address, amount)
             flash('処理を受け付けました。割当完了までに数分程かかることがあります。', 'success')
             return redirect(url_for('.applications', token_address=token_address))
         else:
@@ -1046,8 +1053,7 @@ def transfer_ownership(token_address, account_address):
             txid = ExchangeContract.functions. \
                 transfer(to_checksum_address(token_address), to_address, amount). \
                 transact({'from': Config.ETH_ACCOUNT, 'gas': transfer_gas})
-
-            tx = web3.eth.waitForTransactionReceipt(txid)
+            web3.eth.waitForTransactionReceipt(txid)
             return redirect(url_for('.holders', token_address=token_address))
         else:
             flash_errors(form)
@@ -1094,8 +1100,7 @@ def get_usage_history(token_address):
     if token is None:
         abort(404)
 
-    token_abi = json.loads(token.abi.replace("'", '"'). \
-                           replace('True', 'true').replace('False', 'false'))
+    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
     CouponContract = web3.eth.contract(
         address=token_address, abi=token_abi)
 
@@ -1109,15 +1114,15 @@ def get_usage_history(token_address):
         )
         entries = event_filter.get_all_entries()
         web3.eth.uninstallFilter(event_filter.filter_id)
-    except:
+    except Exception as e:
+        logger.error(e)
         entries = []
+        pass
 
     usage_list = []
     for entry in entries:
         usage = {
-            'block_timestamp': datetime.fromtimestamp(
-                web3.eth.getBlock(entry['blockNumber'])['timestamp'], JST). \
-                strftime("%Y/%m/%d %H:%M:%S"),
+            'block_timestamp': datetime.fromtimestamp(web3.eth.getBlock(entry['blockNumber'])['timestamp'], JST).strftime("%Y/%m/%d %H:%M:%S"),
             'consumer': entry['args']['consumer'],
             'value': int(entry['args']['value'])
         }
@@ -1139,8 +1144,7 @@ def used_csv_download():
     token = Token.query.filter(Token.token_address == token_address).first()
     if token is None:
         abort(404)
-    token_abi = json.loads(token.abi.replace("'", '"'). \
-                           replace('True', 'true').replace('False', 'false'))
+    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
 
     # トークンコントラクト接続
     CouponContract = web3.eth.contract(address=token_address, abi=token_abi)
@@ -1155,16 +1159,16 @@ def used_csv_download():
         )
         entries = event_filter.get_all_entries()
         web3.eth.uninstallFilter(event_filter.filter_id)
-    except:
+    except Exception as e:
+        logger.error(e)
         entries = []
+        pass
 
     # リスト作成
     usage_list = []
     for entry in entries:
         usage = {
-            'block_timestamp': datetime.fromtimestamp(
-                web3.eth.getBlock(entry['blockNumber'])['timestamp'], JST). \
-                strftime("%Y/%m/%d %H:%M:%S"),
+            'block_timestamp': datetime.fromtimestamp(web3.eth.getBlock(entry['blockNumber'])['timestamp'], JST).strftime("%Y/%m/%d %H:%M:%S"),
             'consumer': entry['args']['consumer'],
             'value': int(entry['args']['value'])
         }
@@ -1176,7 +1180,8 @@ def used_csv_download():
         for usage in usage_list:
             # データ行
             data_row = \
-                token_name + ',' + token_address + ',' + str(usage["block_timestamp"]) + ',' + str(usage["consumer"]) + ',' \
+                token_name + ',' + token_address + ',' + str(usage["block_timestamp"]) + ',' + str(
+                    usage["consumer"]) + ',' \
                 + str(usage["value"]) + '\n'
             f.write(data_row)
 
@@ -1186,7 +1191,7 @@ def used_csv_download():
     res.data = csvdata.encode('sjis')
     res.headers['Content-Type'] = 'text/plain'
     res.headers['Content-Disposition'] = 'attachment; filename=' + now.strftime("%Y%m%d%H%M%S") + \
-        'coupon_used_list.csv'
+                                         'coupon_used_list.csv'
     return res
 
 
@@ -1196,6 +1201,11 @@ def used_csv_download():
 @coupon.route('/holders/<string:token_address>', methods=['GET'])
 @login_required
 def holders(token_address):
+    """
+    保有者一覧画面参照
+    :param token_address:
+    :return: 保有者一覧画面
+    """
     logger.info('coupon/holders')
     return render_template(
         'coupon/holders.html',
@@ -1203,37 +1213,72 @@ def holders(token_address):
     )
 
 
+@coupon.route('/holders_csv_download', methods=['POST'])
+@login_required
+def holders_csv_download():
+    """
+    保有者一覧CSVダウンロード
+    :return: 保有者一覧（CSV）
+    """
+    logger.info('coupon/holders_csv_download')
+
+    token_address = request.form.get('token_address')
+    holders = json.loads(get_holders(token_address))
+    token_name = json.loads(get_token_name(token_address))
+
+    f = io.StringIO()
+    for holder in holders:
+        # データ行
+        data_row = \
+            token_name + ',' + token_address + ',' + holder["account_address"] + ',' + str(holder["balance"]) + ',' \
+            + str(holder["used"]) + ',' + holder["name"] + ',' + holder["postal_code"] + ',' + holder["address"] + ',' \
+            + holder["email"] + '\n'
+        f.write(data_row)
+
+    now = datetime.now()
+    res = make_response()
+    csvdata = f.getvalue()
+    res.data = csvdata.encode('sjis', 'ignore')
+    res.headers['Content-Type'] = 'text/plain'
+    res.headers['Content-Disposition'] = 'attachment; filename=' + now.strftime("%Y%m%d%H%M%S") + \
+                                         'coupon_holders_list.csv'
+    return res
+
+
 @coupon.route('/get_holders/<string:token_address>', methods=['GET'])
 @login_required
-# クーポントークンの保有者一覧、token_nameを返す
 def get_holders(token_address):
+    """
+    保有者一覧取得
+    :param token_address: トークンアドレス
+    :return: トークンの保有者一覧
+    """
+    logger.info('coupon/get_holders')
+
+    # RSA秘密鍵の取得
     cipher = None
     try:
         key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
         cipher = PKCS1_OAEP.new(key)
-    except:
-        traceback.print_exc()
+    except Exception as e:
+        logger.error(e)
         pass
 
-    # Coupon Token Contract
-    # Note: token_addressに対して、Couponトークンのものであるかはチェックしていない。
+    # Token情報取得
     token = Token.query.filter(Token.token_address == token_address).first()
+    if token is None:
+        abort(404)
     token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
 
-    TokenContract = web3.eth.contract(
-        address=token_address,
-        abi=token_abi
-    )
+    # Tokenコントラクト接続
+    TokenContract = web3.eth.contract(address=token_address, abi=token_abi)
 
     # PersonalInfo Contract
     personalinfo_address = Config.PERSONAL_INFO_CONTRACT_ADDRESS
-    PersonalInfoContract = Contract.get_contract(
-        'PersonalInfo', personalinfo_address)
+    PersonalInfoContract = Contract.get_contract('PersonalInfo', personalinfo_address)
 
     # 残高を保有している可能性のあるアドレスを抽出する
-    holders_temp = []
-    holders_temp.append(TokenContract.functions.owner().call())
-
+    holders_temp = [TokenContract.functions.owner().call()]
     event_filter = TokenContract.eventFilter(
         'Transfer', {
             'filter': {},
@@ -1250,17 +1295,16 @@ def get_holders(token_address):
         if x not in holders_uniq:
             holders_uniq.append(x)
 
+    # 保有者情報抽出
     token_owner = TokenContract.functions.owner().call()
-
-    # 残高（balance）、または使用済（used）が存在する情報を抽出
     holders = []
     for account_address in holders_uniq:
         balance = TokenContract.functions.balanceOf(account_address).call()
         used = TokenContract.functions.usedOf(account_address).call()
-        if balance > 0 or used > 0:
+        if balance > 0 or used > 0:  # 残高（balance）、または使用済（used）が存在する情報を抽出
             encrypted_info = PersonalInfoContract.functions. \
                 personal_info(account_address, token_owner).call()[2]
-            if encrypted_info == '' or cipher == None:
+            if encrypted_info == '' or cipher is None:
                 name = '--'
                 address = '--'
                 postal_code = '--'
@@ -1271,18 +1315,17 @@ def get_holders(token_address):
                     message = cipher.decrypt(ciphertext)
                     personal_info_json = json.loads(message)
                     name = personal_info_json['name'] if personal_info_json['name'] else "--"
-                    # 住所は連結して表示
-                    address = personal_info_json['address']['prefecture'] + personal_info_json['address']['city'] + \
-                        personal_info_json['address']['address1'] + personal_info_json['address']['address2'] if personal_info_json['address']['prefecture'] and personal_info_json['address']['city'] and personal_info_json['address']['address1'] else "--"
+                    address = personal_info_json['address']['prefecture'] + personal_info_json['address']['city'] + personal_info_json['address']['address1'] + personal_info_json['address']['address2'] if personal_info_json['address']['prefecture'] and personal_info_json['address']['city'] and personal_info_json['address']['address1'] else "--"
                     postal_code = personal_info_json['address']['postal_code'] if personal_info_json['address']['postal_code'] else "--"
                     email = personal_info_json['email'] if personal_info_json['email'] else "--"
-                except:
+                except Exception as e:
+                    logger.warning(e)
                     name = '--'
                     address = '--'
                     postal_code = '--'
                     email = '--'
-
-            holder = {
+                    pass
+            holders.append({
                 'account_address': account_address,
                 'name': name,
                 'postal_code': postal_code,
@@ -1290,8 +1333,7 @@ def get_holders(token_address):
                 'address': address,
                 'balance': balance,
                 'used': used
-            }
-            holders.append(holder)
+            })
 
     return json.dumps(holders)
 
@@ -1310,35 +1352,6 @@ def get_token_name(token_address):
     token_name = TokenContract.functions.name().call()
 
     return json.dumps(token_name)
-
-
-# 保有者リストCSVダウンロード
-@coupon.route('/holders_csv_download', methods=['POST'])
-@login_required
-def holders_csv_download():
-    logger.info('coupon/holders_csv_download')
-
-    token_address = request.form.get('token_address')
-    holders = json.loads(get_holders(token_address))
-    token_name = json.loads(get_token_name(token_address))
-
-    f = io.StringIO()
-    for holder in holders:
-        # データ行
-        data_row = \
-            token_name + ',' + token_address + ',' + holder["account_address"] + ',' + str(holder["balance"]) + ','\
-            + str(holder["used"]) + ',' + holder["name"] + ',' + holder["postal_code"] + ',' + holder["address"] + ','\
-            + holder["email"] + '\n'
-        f.write(data_row)
-
-    now = datetime.now()
-    res = make_response()
-    csvdata = f.getvalue()
-    res.data = csvdata.encode('sjis', 'ignore')
-    res.headers['Content-Type'] = 'text/plain'
-    res.headers['Content-Disposition'] = 'attachment; filename=' + now.strftime("%Y%m%d%H%M%S") + \
-        'coupon_holders_list.csv'
-    return res
 
 
 ####################################################
