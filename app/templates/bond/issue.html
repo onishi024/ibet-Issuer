@@ -50,7 +50,7 @@
                 <div class="form-group">
                     {{ form.interestRate.label(class="col-md-2 control-label") }}
                     <div class="col-md-4">
-                        {{ form.interestRate(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：0.5", title=form_description['interestRate'] )}}
+                        {{ form.interestRate(class="form-control comma-separate", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：0.5", title=form_description['interestRate'] )}}
                     </div>
                 </div>
 
@@ -257,12 +257,16 @@
     // 数値項目3桁区切り考慮
     $('.comma-separate').each(function (index, element) {
       var num = $(element).val();
-      num = num.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
+      if (!isNaN(num) && num >= 1) {
+        num = num.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
+      }
       $(element).val(num);
       // フォーカスアウト
       $(element).on('blur', function () {
         var num = $(this).val();
-        num = num.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
+        if (!isNaN(num) && num >= 1) {
+          num = num.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
+        }
         $(this).val(num);
       });
       // フォーカス

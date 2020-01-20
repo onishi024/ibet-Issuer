@@ -313,12 +313,16 @@
         // 数値項目3桁区切り考慮
         $('.comma-separate').each(function (index, element) {
             var num = $(element).val();
+            if (!isNaN(num) && num >= 1) {
                 num = num.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
-                $(element).val(num);
+            }
+            $(element).val(num);
             // フォーカスアウト
             $(element).on('blur', function () {
                 var num = $(this).val();
-                num = num.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
+                if (!isNaN(num) && num >= 1) {
+                    num = num.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
+                }
                 $(this).val(num);
             });
             // フォーカス
