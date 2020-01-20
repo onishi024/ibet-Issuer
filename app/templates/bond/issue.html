@@ -38,19 +38,19 @@
                 <div class="form-group">
                     {{ form.totalSupply.label(class="col-md-2 control-label") }}
                     <div class="col-md-4">
-                            {{ form.totalSupply(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：100000", title=form_description['totalSupply'] )}}
+                            {{ form.totalSupply(class="form-control comma-separate", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：100,000", title=form_description['totalSupply'] )}}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.faceValue.label(class="col-md-2 control-label") }}
                     <div class="col-md-4">
-                        {{ form.faceValue(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：100000", title=form_description['faceValue'] )}}
+                        {{ form.faceValue(class="form-control comma-separate", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：100,000", title=form_description['faceValue'] )}}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.interestRate.label(class="col-md-2 control-label") }}
                     <div class="col-md-4">
-                        {{ form.interestRate(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：0.001", title=form_description['interestRate'] )}}
+                        {{ form.interestRate(class="form-control comma-separate", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：0.5", title=form_description['interestRate'] )}}
                     </div>
                 </div>
 
@@ -139,7 +139,7 @@
                 <div class="form-group">
                     {{ form.redemptionValue.label(class="col-md-2 control-label") }}
                     <div class="col-md-4">
-                            {{ form.redemptionValue(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：100000", title=form_description['redemptionValue'] )}}
+                            {{ form.redemptionValue(class="form-control comma-separate", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：100,000", title=form_description['redemptionValue'] )}}
                     </div>
                 </div>
                 <div class="form-group">
@@ -253,6 +253,37 @@
             addPayDate();
         }
     });
+  $(function () {
+    // 数値項目3桁区切り考慮
+    $('.comma-separate').each(function (index, element) {
+      var num = $(element).val();
+      if (!isNaN(num) && num >= 1) {
+        num = num.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
+      }
+      $(element).val(num);
+      // フォーカスアウト
+      $(element).on('blur', function () {
+        var num = $(this).val();
+        if (!isNaN(num) && num >= 1) {
+          num = num.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
+        }
+        $(this).val(num);
+      });
+      // フォーカス
+      $(element).on('focus', function () {
+        var num = $(this).val();
+        num = num.replace(/,/g, '');
+        $(this).val(num);
+      });
+    });
+    $('form').submit(function () {
+      $('.comma-separate').each(function (index, element) {
+        var num = $(element).val();
+        num = num.replace(/,/g, '');
+        $(element).val(num);
+      });
+    })
+  });
 </script>
 <script type="text/javascript">
   $('#load.btn').on('click', function() {
