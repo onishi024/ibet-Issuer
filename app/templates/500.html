@@ -1,17 +1,19 @@
-{% extends "base_error.html" %}
+{% extends "base.html" %}
 
-{% block title %}Internal Server Error {% endblock %}
+{% block title %}Internal Server Error{% endblock %}
+
+{% block page_header %}Internal Server Error{% endblock %}
+{% block page_description %}500 Error{% endblock %}
+{% block breadcrumb %}
+    <li><a href="{{ url_for('index.index') }}">トップ</a></li>
+{% endblock %}
 
 {% block page_content %}
+<!-- content-header -->
 <section class="content">
-    <div class="pad margin no-print">
-        <div class="callout callout-warning" style="margin-bottom: 0!important;">
-            <h4><i class="fa fa-danger"></i>システムエラーが発生しました。管理者にお問い合わせください。</h4>
-            Internal Server Error
-        </div>
-    </div>
-    <div class="login-logo">
-        <h4><a href="{{ url_for('index.index') }}">Issuer</a></h4>
-    </div>
-</section>
+  <div class="alert alert-danger">
+    <h4>エラー</h4>
+    <p>システムエラーが発生しました。管理者にお問い合わせください。</p>
+  </div>
+</section><!-- /.content -->
 {% endblock %}
