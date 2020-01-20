@@ -337,20 +337,24 @@ def get_holders(token_address):
         abi=token_abi
     )
 
-    # Exchange Contract
-    token_exchange_address = Config.IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS
-    ExchangeContract = Contract.get_contract(
-        'IbetMembershipExchange', token_exchange_address)
+    # 取引コントラクトの情報取得
+    try:
+        tradable_exchange = TokenContract.functions.tradableExchange().call()
+    except Exception as e:
+        logger.error(e)
+        tradable_exchange = '0x0000000000000000000000000000000000000000'
+        pass
 
-    # PersonalInfo Contract
+    # 取引コントラクト接続
+    ExchangeContract = Contract.get_contract('IbetMembershipExchange', tradable_exchange)
+
+    # 個人情報コントラクト接続
     personalinfo_address = Config.PERSONAL_INFO_CONTRACT_ADDRESS
-    PersonalInfoContract = Contract.get_contract(
-        'PersonalInfo', personalinfo_address)
+    PersonalInfoContract = Contract.get_contract('PersonalInfo', personalinfo_address)
 
     # 残高を保有している可能性のあるアドレスを抽出する
     holders_temp = []
     holders_temp.append(TokenContract.functions.owner().call())
-
     event_filter = TokenContract.eventFilter(
         'Transfer', {
             'filter': {},
@@ -358,7 +362,6 @@ def get_holders(token_address):
         }
     )
     entries = event_filter.get_all_entries()
-
     for entry in entries:
         holders_temp.append(entry['args']['to'])
 
@@ -368,15 +371,14 @@ def get_holders(token_address):
         if x not in holders_uniq:
             holders_uniq.append(x)
 
+    # 保有者情報抽出
     token_owner = TokenContract.functions.owner().call()
-
-    # 残高（balance）、または注文中の残高（commitment）が存在する情報を抽出
     holders = []
     for account_address in holders_uniq:
         balance = TokenContract.functions.balanceOf(account_address).call()
         commitment = ExchangeContract.functions. \
             commitmentOf(account_address, token_address).call()
-        if balance > 0 or commitment > 0:
+        if balance > 0 or commitment > 0:  # 残高（balance）、または注文中の残高（commitment）が存在する情報を抽出
             encrypted_info = PersonalInfoContract.functions.personal_info(account_address, token_owner).call()[2]
             if encrypted_info == '' or cipher is None:
                 name = '--'
