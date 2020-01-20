@@ -2,9 +2,18 @@
 
 {% block title %}Forbidden{% endblock %}
 
-{% block page_content %}
-<section class="content">
-    <h1>Forbidden</h1>
-</section>
+{% block page_header %}Forbidden{% endblock %}
+{% block page_description %}403 Error{% endblock %}
+{% block breadcrumb %}
+    <li><a href="{{ url_for('index.index') }}">トップ</a></li>
 {% endblock %}
 
+{% block page_content %}
+<!-- content-header -->
+<section class="content">
+  <div class="alert alert-success">
+    <h4>権限エラー</h4>
+    <p>画面に対するアクセス権限がありません。</p>
+  </div>
+</section><!-- /.content -->
+{% endblock %}

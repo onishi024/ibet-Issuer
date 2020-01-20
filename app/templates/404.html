@@ -1,18 +1,19 @@
-{% extends "base_error.html" %}
+{% extends "base.html" %}
 
-{% block title %}Page Not Found {% endblock %}
+{% block title %}Page Not Found{% endblock %}
 
-{% block page_content %}
-<section class="content">
-    <div class="pad margin no-print">
-        <div class="callout callout-warning" style="margin-bottom: 0!important;">
-            <h4><i class="fa fa-warning"></i> 404 error</h4>
-            お探しのページが見つかりません。
-        </div>
-    </div>
-    <div class="login-logo">
-        <h4><a href="{{ url_for('index.index') }}">Issuer</a></h4>
-    </div>
-</section>
+{% block page_header %}Not Found{% endblock %}
+{% block page_description %}404 Error{% endblock %}
+{% block breadcrumb %}
+    <li><a href="{{ url_for('index.index') }}">トップ</a></li>
 {% endblock %}
 
+{% block page_content %}
+<!-- content-header -->
+<section class="content">
+  <div class="alert alert-success">
+    <h4>エラー</h4>
+    <p>お探しのページが見つかりませんでした。</p>
+  </div>
+</section><!-- /.content -->
+{% endblock %}
