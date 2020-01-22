@@ -22,9 +22,9 @@
                 <div class="box-header with-border">
                     <h3 class="box-title">{{ user.user_name }} さん</h3>
                     <div class="pull-right box-tools">
-                        <button id="pwdchg" class="btn btn-warning btn-sm" type="button">パスワード初期化 <i class="fa fa-arrow-circle-right"></i></button>
+                        <button id="pwdchg" class="btn btn-warning btn-sm" style="width: 130px" type="button">パスワード初期化 <i class="fa fa-arrow-circle-right"></i></button>
                         {% if current_user.id != user.id  %}
-                            <button id="usrdel" class="btn btn-danger btn-sm" type="button">削除 <i class="fa fa-arrow-circle-right"></i></button>
+                            <button id="usrdel" class="btn btn-danger btn-sm" style="width: 130px" type="button">削除 <i class="fa fa-arrow-circle-right"></i></button>
                         {% endif %}
                     </div>
                 </div>
@@ -46,8 +46,8 @@
                         <div class="form-group">
                             {{ form.icon.label(class="col-md-3 control-label") }}
                             <div class="col-md-6">
-                                <label class="btn btn-sm btn-success">アイコンを選択...{{ form.icon(style="display: none;") }}</label>
-                                <button id="iconreset" type="button" class="btn btn-sm btn-default" disabled>リセット</button>
+                                <label class="btn btn-sm btn-success" style="width: 130px">アイコンを選択...{{ form.icon(style="display: none;") }}</label>
+                                <button id="iconreset" type="button" class="btn btn-sm btn-default" style="width: 130px" disabled>リセット</button>
                             </div>
                         </div>
                         <div class="form-group">
