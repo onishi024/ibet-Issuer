@@ -28,17 +28,23 @@ web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
 web3.middleware_stack.inject(geth_poa_middleware, layer=0)
 
 from logging import getLogger
-
 logger = getLogger('api')
 
 
-# +++++++++++++++++++++++++++++++
-# Utils
-# +++++++++++++++++++++++++++++++
+# 共通処理：エラー表示
 def flash_errors(form):
     for field, errors in form.errors.items():
         for error in errors:
             flash(error, 'error')
+
+
+# 共通処理：トークン移転（強制移転）
+def transfer_token(token_contract, from_address, to_address, amount):
+    eth_unlock_account()
+    gas = token_contract.estimateGas().transferFrom(from_address, to_address, amount)
+    tx_hash = token_contract.functions.transferFrom(from_address, to_address, amount). \
+        transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
+    return tx_hash
 
 
 ####################################################
@@ -249,27 +255,6 @@ def allocate(token_address, account_address):
         )
 
 
-def transfer_token(TokenContract, from_address, to_address, amount):
-    eth_unlock_account()
-    token_exchange_address = Config.IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS
-    ExchangeContract = Contract.get_contract(
-        'IbetMembershipExchange', token_exchange_address)
-
-    # 取引所コントラクトへトークン送信
-    deposit_gas = TokenContract.estimateGas(). \
-        transferFrom(from_address, token_exchange_address, amount)
-    TokenContract.functions. \
-        transferFrom(from_address, token_exchange_address, amount). \
-        transact({'from': Config.ETH_ACCOUNT, 'gas': deposit_gas})
-
-    # 取引所コントラクトからtransferで送信相手へ送信
-    transfer_gas = ExchangeContract.estimateGas(). \
-        transfer(to_checksum_address(TokenContract.address), to_address, amount)
-    tx_hash = ExchangeContract.functions. \
-        transfer(to_checksum_address(TokenContract.address), to_address, amount). \
-        transact({'from': Config.ETH_ACCOUNT, 'gas': transfer_gas})
-    return tx_hash
-
 
 ####################################################
 # [会員権]保有者一覧
@@ -475,21 +460,7 @@ def transfer_ownership(token_address, account_address):
                     form=form
                 )
 
-            eth_unlock_account()
-            token_exchange_address = Config.IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS
-            ExchangeContract = Contract.get_contract('IbetMembershipExchange', token_exchange_address)
-
-            deposit_gas = TokenContract.estimateGas(). \
-                transferFrom(from_address, token_exchange_address, amount)
-            TokenContract.functions. \
-                transferFrom(from_address, token_exchange_address, amount). \
-                transact({'from': Config.ETH_ACCOUNT, 'gas': deposit_gas})
-
-            transfer_gas = ExchangeContract.estimateGas(). \
-                transfer(to_checksum_address(token_address), to_address, amount)
-            txid = ExchangeContract.functions. \
-                transfer(to_checksum_address(token_address), to_address, amount). \
-                transact({'from': Config.ETH_ACCOUNT, 'gas': transfer_gas})
+            txid = transfer_token(TokenContract, from_address, to_address, amount)
             web3.eth.waitForTransactionReceipt(txid)
             return redirect(url_for('.holders', token_address=token_address))
         else:

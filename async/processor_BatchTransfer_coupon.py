@@ -66,7 +66,7 @@ while True:
         )
 
         # 割当処理
-        from_address = Config.ETH_ACCOUNT # 発行体アドレス
+        from_address = Config.ETH_ACCOUNT  # 発行体アドレス
         to_address = to_checksum_address(item.to_address)
         amount = item.amount
 
@@ -75,18 +75,9 @@ while True:
             eth_unlock_account()
 
             # 取引所コントラクトへデポジット（Transfer）
-            deposit_gas = TokenContract.estimateGas(). \
-                transferFrom(from_address, exchange_address, amount)
-            TokenContract.functions. \
-                transferFrom(from_address, exchange_address, amount). \
+            deposit_gas = TokenContract.estimateGas().transferFrom(from_address, to_address, amount)
+            TokenContract.functions.transferFrom(from_address, to_address, amount). \
                 transact({'from': Config.ETH_ACCOUNT, 'gas': deposit_gas})
-
-            # 取引所コントラクトから割当先へTransfer
-            transfer_gas = exchange_contract.estimateGas(). \
-                transfer(to_checksum_address(TokenContract.address), to_address, amount)
-            exchange_contract.functions. \
-                transfer(to_checksum_address(TokenContract.address), to_address, amount). \
-                transact({'from': Config.ETH_ACCOUNT, 'gas': transfer_gas})
 
             # DBを割当済に更新
             item.transferred = True
