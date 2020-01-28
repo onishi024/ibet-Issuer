@@ -1140,12 +1140,14 @@ def get_applications(token_address):
                     account_email_address = personal_info_json['email']
             except:
                 pass
-        data = TokenContract.functions.applications(account_address).call()
+        application_data = TokenContract.functions.applications(account_address).call()
         application = {
             'account_address': account_address,
             'account_name': account_name,
             'account_email_address': account_email_address,
-            'data': data
+            'requested_amount': application_data[0],
+            'allotted_amount': application_data[1],
+            'data': application_data[2]
         }
         applications.append(application)
 
