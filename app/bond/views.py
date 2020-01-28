@@ -32,13 +32,29 @@ from logging import getLogger
 logger = getLogger('api')
 
 
-# +++++++++++++++++++++++++++++++
-# Utils
-# +++++++++++++++++++++++++++++++
+# 共通処理：エラー表示
 def flash_errors(form):
     for field, errors in form.errors.items():
         for error in errors:
             flash(error, 'error')
+
+
+# 共通処理：トークン名取得
+@bond.route('/get_token_name/<string:token_address>', methods=['GET'])
+@login_required
+def get_token_name(token_address):
+    logger.info('bond/get_token_name')
+    token = Token.query.filter(Token.token_address == token_address).first()
+    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+
+    TokenContract = web3.eth.contract(
+        address=token_address,
+        abi=token_abi
+    )
+
+    token_name = TokenContract.functions.name().call()
+
+    return json.dumps(token_name)
 
 
 ####################################################
@@ -245,23 +261,6 @@ def get_holders(token_address):
             })
 
     return json.dumps(holders)
-
-
-@bond.route('/get_token_name/<string:token_address>', methods=['GET'])
-@login_required
-def get_token_name(token_address):
-    logger.info('bond/get_token_name')
-    token = Token.query.filter(Token.token_address == token_address).first()
-    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
-
-    TokenContract = web3.eth.contract(
-        address=token_address,
-        abi=token_abi
-    )
-
-    token_name = TokenContract.functions.name().call()
-
-    return json.dumps(token_name)
 
 
 ####################################################
@@ -1141,12 +1140,14 @@ def get_applications(token_address):
                     account_email_address = personal_info_json['email']
             except:
                 pass
-        data = TokenContract.functions.applications(account_address).call()
+        application_data = TokenContract.functions.applications(account_address).call()
         application = {
             'account_address': account_address,
             'account_name': account_name,
             'account_email_address': account_email_address,
-            'data': data
+            'requested_amount': application_data[0],
+            'allotted_amount': application_data[1],
+            'data': application_data[2]
         }
         applications.append(application)
 
