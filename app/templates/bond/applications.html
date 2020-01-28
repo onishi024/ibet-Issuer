@@ -56,7 +56,7 @@
 <!-- FastClick -->
 <script src="/static/adminlte/bower_components/fastclick/lib/fastclick.js"></script>
 <script>
-token_address = '{{ token_address | tojson }}';
+token_address = {{ token_address | tojson }};
 token_name_url = '{{ url_for("bond.get_token_name", token_address=token_address) }}';
 applications_list_url = '{{ url_for("bond.get_applications", token_address=token_address) }}';
 applications_allocate_url_base = '{{ url_for("bond.allocate", token_address=token_address, account_address="account_address") }}';
