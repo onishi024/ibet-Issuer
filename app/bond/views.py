@@ -20,7 +20,7 @@ from app.contracts import Contract
 from config import Config
 from . import bond
 from .forms import TransferOwnershipForm, SettingForm, RequestSignatureForm, IssueForm, SellTokenForm, CancelOrderForm, \
-    TransferForm, AllotForm
+    TransferForm, AllotForm, AddSupplyForm
 
 from web3 import Web3
 from eth_utils import to_checksum_address
@@ -55,6 +55,89 @@ def get_token_name(token_address):
     token_name = TokenContract.functions.name().call()
 
     return json.dumps(token_name)
+
+
+####################################################
+# [債券]新規発行
+####################################################
+@bond.route('/issue', methods=['GET', 'POST'])
+@login_required
+def issue():
+    logger.info('bond/issue')
+    form = IssueForm()
+
+    if request.method == 'POST':
+        if form.validate():
+            # Exchangeコントラクトのアドレスフォーマットチェック
+            if not Web3.isAddress(form.tradableExchange.data):
+                flash('DEXアドレスは有効なアドレスではありません。', 'error')
+                return render_template('bond/issue.html', form=form, form_description=form.description)
+
+            # PersonalInfoコントラクトのアドレスフォーマットチェック
+            if not Web3.isAddress(form.personalInfoAddress.data):
+                flash('個人情報コントラクトは有効なアドレスではありません。', 'error')
+                return render_template('bond/issue.html', form=form, form_description=form.description)
+
+            # EOAアンロック
+            eth_unlock_account()
+
+            # トークン発行（トークンコントラクトのデプロイ）
+            interestPaymentDate = {
+                'interestPaymentDate1': form.interestPaymentDate1.data,
+                'interestPaymentDate2': form.interestPaymentDate2.data,
+                'interestPaymentDate3': form.interestPaymentDate3.data,
+                'interestPaymentDate4': form.interestPaymentDate4.data,
+                'interestPaymentDate5': form.interestPaymentDate5.data,
+                'interestPaymentDate6': form.interestPaymentDate6.data,
+                'interestPaymentDate7': form.interestPaymentDate7.data,
+                'interestPaymentDate8': form.interestPaymentDate8.data,
+                'interestPaymentDate9': form.interestPaymentDate9.data,
+                'interestPaymentDate10': form.interestPaymentDate10.data,
+                'interestPaymentDate11': form.interestPaymentDate11.data,
+                'interestPaymentDate12': form.interestPaymentDate12.data
+            }
+            interestPaymentDate_string = json.dumps(interestPaymentDate)
+
+            arguments = [
+                form.name.data,
+                form.symbol.data,
+                form.totalSupply.data,
+                to_checksum_address(form.tradableExchange.data),
+                form.faceValue.data,
+                int(form.interestRate.data * 1000),
+                interestPaymentDate_string,
+                form.redemptionDate.data,
+                form.redemptionValue.data,
+                form.returnDate.data,
+                form.returnAmount.data,
+                form.purpose.data,
+                form.memo.data,
+                form.contact_information.data,
+                form.privacy_policy.data,
+                form.personalInfoAddress.data
+            ]
+            _, bytecode, bytecode_runtime = Contract.get_contract_info('IbetStraightBond')
+            contract_address, abi, tx_hash = \
+                Contract.deploy_contract('IbetStraightBond', arguments, Config.ETH_ACCOUNT)
+
+            # 発行情報をDBに登録
+            token = Token()
+            token.template_id = Config.TEMPLATE_ID_SB
+            token.tx_hash = tx_hash
+            token.admin_address = None
+            token.token_address = None
+            token.abi = str(abi)
+            token.bytecode = bytecode
+            token.bytecode_runtime = bytecode_runtime
+            db.session.add(token)
+
+            flash('新規発行を受け付けました。発行完了までに数分程かかることがあります。', 'success')
+            return redirect(url_for('.list'))
+        else:
+            flash_errors(form)
+            return render_template('bond/issue.html', form=form, form_description=form.description)
+    else:  # GET
+        return render_template('bond/issue.html', form=form, form_description=form.description)
 
 
 ####################################################
@@ -672,86 +755,59 @@ def redeem():
 
 
 ####################################################
-# [債券]新規発行
+# [債券]追加発行
 ####################################################
-@bond.route('/issue', methods=['GET', 'POST'])
+@bond.route('/add_supply/<string:token_address>', methods=['GET', 'POST'])
 @login_required
-def issue():
-    logger.info('bond/issue')
-    form = IssueForm()
+def add_supply(token_address):
+    logger.info('bond/add_supply')
+
+    token = Token.query.filter(Token.token_address == token_address).first()
+    if token is None:
+        abort(404)
+    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+    TokenContract = web3.eth.contract(address=token.token_address, abi=token_abi)
+
+    form = AddSupplyForm()
+    form.token_address.data = token.token_address
+    name = TokenContract.functions.name().call()
+    form.name.data = name
+    form.total_supply.data = TokenContract.functions.totalSupply().call()
 
     if request.method == 'POST':
         if form.validate():
-            # Exchangeコントラクトのアドレスフォーマットチェック
-            if not Web3.isAddress(form.tradableExchange.data):
-                flash('DEXアドレスは有効なアドレスではありません。', 'error')
-                return render_template('bond/issue.html', form=form, form_description=form.description)
-
-            # PersonalInfoコントラクトのアドレスフォーマットチェック
-            if not Web3.isAddress(form.personalInfoAddress.data):
-                flash('個人情報コントラクトは有効なアドレスではありません。', 'error')
-                return render_template('bond/issue.html', form=form, form_description=form.description)
-
-            # EOAアンロック
-            eth_unlock_account()
-
-            # トークン発行（トークンコントラクトのデプロイ）
-            interestPaymentDate = {
-                'interestPaymentDate1': form.interestPaymentDate1.data,
-                'interestPaymentDate2': form.interestPaymentDate2.data,
-                'interestPaymentDate3': form.interestPaymentDate3.data,
-                'interestPaymentDate4': form.interestPaymentDate4.data,
-                'interestPaymentDate5': form.interestPaymentDate5.data,
-                'interestPaymentDate6': form.interestPaymentDate6.data,
-                'interestPaymentDate7': form.interestPaymentDate7.data,
-                'interestPaymentDate8': form.interestPaymentDate8.data,
-                'interestPaymentDate9': form.interestPaymentDate9.data,
-                'interestPaymentDate10': form.interestPaymentDate10.data,
-                'interestPaymentDate11': form.interestPaymentDate11.data,
-                'interestPaymentDate12': form.interestPaymentDate12.data
-            }
-            interestPaymentDate_string = json.dumps(interestPaymentDate)
-
-            arguments = [
-                form.name.data,
-                form.symbol.data,
-                form.totalSupply.data,
-                to_checksum_address(form.tradableExchange.data),
-                form.faceValue.data,
-                int(form.interestRate.data * 1000),
-                interestPaymentDate_string,
-                form.redemptionDate.data,
-                form.redemptionValue.data,
-                form.returnDate.data,
-                form.returnAmount.data,
-                form.purpose.data,
-                form.memo.data,
-                form.contact_information.data,
-                form.privacy_policy.data,
-                form.personalInfoAddress.data
-            ]
-            _, bytecode, bytecode_runtime = Contract.get_contract_info('IbetStraightBond')
-            contract_address, abi, tx_hash = \
-                Contract.deploy_contract('IbetStraightBond', arguments, Config.ETH_ACCOUNT)
-
-            # 発行情報をDBに登録
-            token = Token()
-            token.template_id = Config.TEMPLATE_ID_SB
-            token.tx_hash = tx_hash
-            token.admin_address = None
-            token.token_address = None
-            token.abi = str(abi)
-            token.bytecode = bytecode
-            token.bytecode_runtime = bytecode_runtime
-            db.session.add(token)
-
-            flash('新規発行を受け付けました。発行完了までに数分程かかることがあります。', 'success')
+            eth_unlock_account()  # アカウントアンロック
+            try:
+                gas = TokenContract.estimateGas().issue(form.amount.data)
+                tx_hash = TokenContract.functions.issue(form.amount.data).\
+                    transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
+                web3.eth.waitForTransactionReceipt(tx_hash)
+            except Exception as e:
+                logger.error(e)
+                flash('処理に失敗しました。', 'error')
+                return render_template(
+                    'bond/add_supply.html',
+                    form=form,
+                    token_address=token_address,
+                    token_name=name
+                )
+            flash('追加発行を受け付けました。発行完了までに数分程かかることがあります。', 'success')
             return redirect(url_for('.list'))
         else:
             flash_errors(form)
-            return render_template('bond/issue.html', form=form, form_description=form.description)
+            return render_template(
+                'bond/add_supply.html',
+                form=form,
+                token_address=token_address,
+                token_name=name
+            )
     else:  # GET
-        return render_template('bond/issue.html', form=form, form_description=form.description)
+        return render_template(
+            'bond/add_supply.html',
+            form=form,
+            token_address=token_address,
+            token_name=name
+        )
 
 
 ####################################################

@@ -80,6 +80,7 @@
                     <div class="col-md-4">
                         {{ form.totalSupply(class="form-control comma-separate", disabled=True) }}
                     </div>
+                    <button type="button" class="btn btn-success btn-sm" style="width: 120px" onclick="location.href='{{ url_for("bond.add_supply", token_address=token_address)}}'"> 追加発行 <i class="fa fa-plus-circle"></i></button>
                 </div>
                 <div class="form-group">
                     {{ form.faceValue.label(class="col-md-2 control-label") }}

@@ -4,7 +4,7 @@ from flask_wtf import FlaskForm as Form
 from wtforms import IntegerField, StringField, TextAreaField, \
     SubmitField, HiddenField, DecimalField, SelectField
 from wtforms.validators import DataRequired, URL, Optional, Length, Regexp, \
-    NumberRange
+    NumberRange, InputRequired
 from wtforms import ValidationError
 from config import Config
 
@@ -36,14 +36,15 @@ class IssueForm(Form):
     totalSupply = IntegerField(
         "総発行量",
         validators=[
-            DataRequired('総発行量は必須です。'),
-            NumberRange(min=1, max=100000000, message='総発行量は100,000,000が上限です。'),
+            InputRequired('総発行量は必須です。'),
+            NumberRange(min=0, max=100000000, message='総発行量は100,000,000が上限です。'),
         ]
     )
 
     faceValue = IntegerField(
         "額面（円）",
         validators=[
+            InputRequired('額面は必須です。'),
             NumberRange(min=0, max=5000000000, message='額面は5,000,000,000円が上限です。')
         ]
     )
@@ -52,6 +53,7 @@ class IssueForm(Form):
         "金利[税引前]（%）",
         places=3,
         validators=[
+            InputRequired('金利は必須です。'),
             NumberRange(min=0.000, max=100.000, message='金利は100％が上限です。')
         ]
     )
@@ -163,6 +165,7 @@ class IssueForm(Form):
     redemptionValue = IntegerField(
         "償還金額（額面当り）",
         validators=[
+            Optional(),
             NumberRange(min=0, max=5000000000, message='償還金額は5,000,000,000円が上限です。')
         ]
     )
@@ -506,3 +509,22 @@ class TransferOwnershipForm(Form):
     def validate_to_address(self, field):
         if not Web3.isAddress(field.data):
             raise ValidationError('移転先は無効なアドレスです。')
+
+
+# 追加発行
+class AddSupplyForm(Form):
+    token_address = StringField("トークンアドレス", validators=[])
+    name = StringField("名称", validators=[])
+    total_supply = IntegerField("現在の発行量", validators=[])
+    amount = IntegerField(
+        "追加発行量",
+        validators=[
+            DataRequired('追加発行量は必須です。'),
+            NumberRange(min=1, max=100000000, message='追加発行量は100,000,000が上限です。'),
+        ]
+    )
+    submit = SubmitField('追加発行')
+
+    def __init__(self, issue=None, *args, **kwargs):
+        super(AddSupplyForm, self).__init__(*args, **kwargs)
+        self.issue = issue
