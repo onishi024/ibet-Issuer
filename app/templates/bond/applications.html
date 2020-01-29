@@ -33,6 +33,7 @@
                     <th></th>
                     <th></th>
                     <th></th>
+                    <th></th>
                 </tr>
                 </thead>
                 <tbody style="word-break : break-all;">
@@ -62,7 +63,8 @@
 token_address = {{ token_address | tojson }};
 token_name_url = '{{ url_for("bond.get_token_name", token_address=token_address) }}';
 applications_list_url = '{{ url_for("bond.get_applications", token_address=token_address) }}';
-applications_allocate_url_base = '{{ url_for("bond.allocate", token_address=token_address, account_address="account_address") }}';
+allot_url_base = '{{ url_for("bond.allot", token_address=token_address, account_address="account_address") }}';
+transfer_allotment_url_base = '{{ url_for("bond.transfer_allotment", token_address=token_address, account_address="account_address") }}';
 $(function () {
     $ ('#data_table').DataTable({
         columns: [{
@@ -83,21 +85,25 @@ $(function () {
         }, {
             data: "data",
             orderable: true,
-            title: "認可コード"
+            title: "コード"
         },  {
             data: "requested_amount",
             orderable: true,
-            title: "申込数量"
+            title: "申込数"
         },  {
             data: "allotted_amount",
             orderable: true,
-            title: "割当数量"
+            title: "割当数"
+        },  {
+            data: "balance",
+            orderable: true,
+            title: "保有数"
         }, {
             data: "token_allot",
             orderable: false,
             className: "text-center",
             render: function (data) {
-                return `<button type="button" class="btn btn-default btn-sm" onclick='' />割当登録`;
+                return `<button type="button" class="btn btn-default btn-sm" onclick='location.href= "${data}"' />割当登録`;
             }
         }, {
             data: "token_transfer",
@@ -119,8 +125,9 @@ $(function () {
                         data: json[index]['data'] ? json[index]['data'] : '--',
                         requested_amount: json[index]['requested_amount'] ? json[index]['requested_amount'] : 0,
                         allotted_amount: json[index]['allotted_amount'] ? json[index]['allotted_amount'] : '--',
-                        token_allot: json[index]['account_address'] ? applications_allocate_url_base.replace('account_address', json[index]['account_address']) : '--',
-                        token_transfer: json[index]['account_address'] ? applications_allocate_url_base.replace('account_address', json[index]['account_address']) : '--'
+                        balance: json[index]['balance'] ? json[index]['balance'] : '--',
+                        token_allot: json[index]['account_address'] ? allot_url_base.replace('account_address', json[index]['account_address']) : '--',
+                        token_transfer: json[index]['account_address'] ? transfer_allotment_url_base.replace('account_address', json[index]['account_address']) : '--'
                     };
                     returnJson.push(returnJsonRaw)
                 }
