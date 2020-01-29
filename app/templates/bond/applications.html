@@ -125,7 +125,7 @@ $(function () {
                         data: json[index]['data'] ? json[index]['data'] : '--',
                         requested_amount: json[index]['requested_amount'] ? json[index]['requested_amount'] : 0,
                         allotted_amount: json[index]['allotted_amount'] ? json[index]['allotted_amount'] : '--',
-                        balance: json[index]['balance'] ? json[index]['balance'] : '--',
+                        balance: json[index]['balance'] ? json[index]['balance'] : 0,
                         token_allot: json[index]['account_address'] ? allot_url_base.replace('account_address', json[index]['account_address']) : '--',
                         token_transfer: json[index]['account_address'] ? transfer_allotment_url_base.replace('account_address', json[index]['account_address']) : '--'
                     };
