@@ -42,7 +42,7 @@ class TestBond(TestBase):
     url_stop_initial_offering = 'bond/stop_initial_offering'  # 募集申込停止
     url_applications = 'bond/applications/'  # 募集申込一覧
     url_get_applications = 'bond/get_applications/'  # 募集申込一覧
-    url_allocate = 'bond/allocate'  # 割当（募集申込）
+    url_transfer_allotment = 'bond/transfer_allotment'  # 割当（募集申込）
 
     #############################################################################
     # PersonalInfo情報の暗号化

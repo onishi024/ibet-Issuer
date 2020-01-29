@@ -11,6 +11,7 @@ from config import Config
 from web3 import Web3
 
 
+# トークン新規発行
 class IssueForm(Form):
     mmdd_regexp = '^(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])$'
     yyyymmdd_regexp = '^(19[0-9]{2}|20[0-9]{2})(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])$'
@@ -249,6 +250,7 @@ class IssueForm(Form):
         }
 
 
+# トークン設定変更
 class SettingForm(Form):
     token_address = StringField("トークンアドレス", validators=[])
     name = StringField("商品名", validators=[])
@@ -338,6 +340,7 @@ class SettingForm(Form):
         self.transferable.choices = [('True', 'なし'), ('False', 'あり')]
 
 
+# 売出
 class SellTokenForm(Form):
     token_address = StringField("トークンアドレス", validators=[])
     name = StringField("商品名", validators=[])
@@ -383,6 +386,7 @@ class SellTokenForm(Form):
         self.sell_token = sell_token
 
 
+# 売出停止（注文取消）
 class CancelOrderForm(Form):
     order_id = IntegerField("注文ID", validators=[])
     token_address = StringField("トークンアドレス", validators=[])
@@ -399,6 +403,7 @@ class CancelOrderForm(Form):
         self.sell_token = cancel_order
 
 
+# 認定依頼
 class RequestSignatureForm(Form):
     token_address = HiddenField("トークンアドレス", validators=[DataRequired('トークンアドレスは必須です。')])
     signer = StringField("認定者", validators=[DataRequired('認定者は必須です。')])
@@ -409,6 +414,7 @@ class RequestSignatureForm(Form):
         self.request_signature = request_signature
 
 
+# 権利移転（募集申込）
 class TransferForm(Form):
     token_address = StringField(
         "債券アドレス",
@@ -418,27 +424,64 @@ class TransferForm(Form):
     )
 
     to_address = StringField(
-        "割当先アドレス",
+        "移転先",
         validators=[
-            DataRequired('割当先アドレスは必須です。')
+            DataRequired('移転先は必須です。')
         ]
     )
 
     amount = IntegerField(
-        "割当数量",
+        "移転数量",
         validators=[
-            DataRequired('割当数量は必須です。'),
-            NumberRange(min=1, max=100000000, message='割当数量は100,000,000が上限です。'),
+            DataRequired('移転数量を入力してください。'),
+            NumberRange(min=1, max=100000000, message='移転数量は100,000,000が上限です。'),
         ]
     )
 
-    submit = SubmitField('割当')
+    submit = SubmitField('移転')
 
     def __init__(self, transfer_bond=None, *args, **kwargs):
         super(TransferForm, self).__init__(*args, **kwargs)
-        self.transfer_membership = transfer_bond
+        self.transfer_bond = transfer_bond
+
+    def validate_token_address(self, field):
+        if not Web3.isAddress(field.data):
+            raise ValidationError('債券アドレスは無効なアドレスです。')
+
+    def validate_to_address(self, field):
+        if not Web3.isAddress(field.data):
+            raise ValidationError('移転先は無効なアドレスです。')
 
 
+# 募集申込割当
+class AllotForm(Form):
+    token_address = StringField(
+        "債券アドレス",
+        validators=[
+            DataRequired('債券アドレスは必須です。')
+        ]
+    )
+    to_address = StringField(
+        "割当先",
+        validators=[
+            DataRequired('割当先は必須です。')
+        ]
+    )
+    amount = IntegerField(
+        "割当数量",
+        validators=[
+            DataRequired('割当数量を入力してください。'),
+            NumberRange(min=1, max=100000000, message='割当数量は100,000,000が上限です。'),
+        ]
+    )
+    submit = SubmitField('割当')
+
+    def __init__(self, allot_bond=None, *args, **kwargs):
+        super(AllotForm, self).__init__(*args, **kwargs)
+        self.allot_bond = allot_bond
+
+
+# 所有者移転
 class TransferOwnershipForm(Form):
     from_address = StringField("現在の所有者", validators=[])
     to_address = StringField(
@@ -461,6 +504,5 @@ class TransferOwnershipForm(Form):
         self.transfer_ownership = transfer_ownership
 
     def validate_to_address(self, field):
-        chk = None
         if not Web3.isAddress(field.data):
             raise ValidationError('移転先は無効なアドレスです。')
