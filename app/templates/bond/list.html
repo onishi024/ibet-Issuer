@@ -31,6 +31,7 @@
                     <th>取扱</th>
                     <th></th>
                     <th></th>
+                    <th></th>
                 </tr>
                 </thead>
                 <tbody>
@@ -54,6 +55,11 @@
                     <td align="center"><span class="badge">償還済</span></td>
                     {% else %}
                     <td align="center"><span class="badge bg-green">取扱中</span></td>
+                    {% endif %}
+                    {% if token.token_address != None %}
+                    <td align="center"><a href="{{ url_for('bond.token_tracker', token_address=token.token_address) }}">追跡</a></td>
+                    {% else %}
+                    <td></td>
                     {% endif %}
                     {% if token.token_address != None %}
                     <td align="center">

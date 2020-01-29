@@ -194,3 +194,23 @@ class AgreementStatus(Enum):
     PENDING = 0
     DONE = 1
     CANCELED = 2
+
+
+# トークン移転履歴（Event）
+class Transfer(db.Model):
+    __tablename__ = 'transfer'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    transaction_hash = db.Column(db.String(66), index=True)
+    token_address = db.Column(db.String(42), index=True)
+    account_address_from = db.Column(db.String(42), index=True)
+    account_address_to = db.Column(db.String(42), index=True)
+    transfer_amount = db.Column(db.Integer)
+    block_timestamp = db.Column(db.DateTime)
+
+    def __repr__(self):
+        return "<Transfer('transaction_hash'='%s', 'token_address'='%s')>" % \
+               (self.transaction_hash, self.token_address)
+
+    @classmethod
+    def get_id(cls):
+        return Transfer.id

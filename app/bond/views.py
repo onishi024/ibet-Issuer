@@ -11,11 +11,11 @@ from Crypto.Cipher import PKCS1_OAEP
 
 from flask import request, redirect, url_for, flash, make_response, render_template, abort
 from flask_login import login_required
-from sqlalchemy import func
+from sqlalchemy import func, desc
 
 from app import db
 from app.util import eth_unlock_account, get_holder
-from app.models import Token, Certification, Order, Agreement, AgreementStatus
+from app.models import Token, Certification, Order, Agreement, AgreementStatus, Transfer
 from app.contracts import Contract
 from config import Config
 from . import bond
@@ -1340,6 +1340,27 @@ def transfer_allotment(token_address, account_address):
             account_address=account_address,
             form=form
         )
+
+
+# トークン追跡
+@bond.route('/token/track/<string:token_address>', methods=['GET'])
+@login_required
+def token_tracker(token_address):
+    logger.info('bond/token_tracker')
+
+    # アドレスフォーマットのチェック
+    if not Web3.isAddress(token_address):
+        abort(404)
+
+    track = Transfer.query.filter(Transfer.token_address == token_address).\
+        order_by(desc(Transfer.block_timestamp)).\
+        all()
+
+    return render_template(
+        'bond/token_tracker.html',
+        token_address=token_address,
+        track=track
+    )
 
 
 ####################################################
