@@ -112,7 +112,7 @@ class IssueCouponForm(Form):
     privacy_policy = TextAreaField(
         "プライバシーポリシー",
         validators=[
-            Length(max=2000, message='プライバシーポリシーは2,000文字以内で入力してください。')
+            Length(max=5000, message='プライバシーポリシーは5,000文字以内で入力してください。')
         ]
     )
 
@@ -210,7 +210,7 @@ class SettingCouponForm(Form):
     privacy_policy = TextAreaField(
         "プライバシーポリシー",
         validators=[
-            Length(max=2000, message='プライバシーポリシーは2,000文字以内で入力してください。')
+            Length(max=5000, message='プライバシーポリシーは5,000文字以内で入力してください。')
         ]
     )
 
