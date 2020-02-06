@@ -168,6 +168,24 @@
                     </div>
                 </div>
                 <div class="form-group">
+                    {{ form.image_1.label(class="col-md-2 control-label") }}
+                    <div class="col-md-8">
+                        {{ form.image_1(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：http://image.png", title=form_description['image_1'] )}}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.image_2.label(class="col-md-2 control-label") }}
+                    <div class="col-md-8">
+                        {{ form.image_2(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：http://image_1.png", title=form_description['image_2'] )}}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.image_3.label(class="col-md-2 control-label") }}
+                    <div class="col-md-8">
+                        {{ form.image_3(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：http://image_2.png", title=form_description['image_3'] )}}
+                    </div>
+                </div>
+                <div class="form-group">
                     {{ form.contact_information.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
                             {{ form.contact_information(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right", title=form_description['contact_information'] )}}

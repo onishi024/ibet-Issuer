@@ -200,6 +200,30 @@ class IssueForm(Form):
         ]
     )
 
+    image_1 = StringField(
+        "画像（１）URL",
+        validators=[
+            Optional(),
+            URL(message='画像（１）URLは無効なURLです。')
+        ]
+    )
+
+    image_2 = StringField(
+        "画像（２）URL",
+        validators=[
+            Optional(),
+            URL(message='画像（２）URLは無効なURLです。')
+        ]
+    )
+
+    image_3 = StringField(
+        "画像（３）URL",
+        validators=[
+            Optional(),
+            URL(message='画像（３）URLは無効なURLです。')
+        ]
+    )
+
     tradableExchange = StringField(
         "DEXアドレス",
         validators=[
