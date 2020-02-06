@@ -23,40 +23,41 @@
               <h3 class="box-title">発行条件</h3>
             </div>
             <div class="box-body">
+                <p><small>* 変更不可項目</small></p>
                 <div class="form-group">
                     {{ form.name.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
-                            {{ form.name(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：ibet社債", title=form_description['name'] )}}
+                            {{ form.name(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="（必須）例：ibet社債", title=form_description['name'] )}}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.symbol.label(class="col-md-2 control-label") }}
-                    <div class="col-md-4">
-                            {{ form.symbol(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：IBD", title=form_description['symbol'] )}}
+                    <div class="col-md-5">
+                            {{ form.symbol(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="（必須）例：IBD", title=form_description['symbol'] )}}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.totalSupply.label(class="col-md-2 control-label") }}
-                    <div class="col-md-4">
-                            {{ form.totalSupply(class="form-control comma-separate", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：100,000", title=form_description['totalSupply'] )}}
+                    <div class="col-md-5">
+                            {{ form.totalSupply(class="form-control comma-separate", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="（必須）例：100,000", title=form_description['totalSupply'] )}}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.faceValue.label(class="col-md-2 control-label") }}
-                    <div class="col-md-4">
-                        {{ form.faceValue(class="form-control comma-separate", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：100,000", title=form_description['faceValue'] )}}
+                    <div class="col-md-5">
+                        {{ form.faceValue(class="form-control comma-separate", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="（必須）例：100,000", title=form_description['faceValue'] )}}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.interestRate.label(class="col-md-2 control-label") }}
-                    <div class="col-md-4">
-                        {{ form.interestRate(class="form-control comma-separate", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：0.5", title=form_description['interestRate'] )}}
+                    <div class="col-md-5">
+                        {{ form.interestRate(class="form-control comma-separate", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="（必須）例：0.5", title=form_description['interestRate'] )}}
                     </div>
                 </div>
 
                 <div class="form-group">
                     {{ form.interestPaymentDate1.label(class="col-md-2 control-label") }}
-                    <div class="col-md-4">
+                    <div class="col-md-5">
                         {{ form.interestPaymentDate1(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right", placeholder="MMDD（例：3/31 → 0331）", title=form_description['interestPaymentDate'] )}}
                     </div>
                     <div class="col-md-4">
@@ -65,86 +66,86 @@
                 </div>
                 <div class="form-group" id="divInterestPaymentDate2" style="display: none;">
                     {{ form.interestPaymentDate2.label(class="col-md-2 control-label") }}
-                    <div class="col-md-4">
+                    <div class="col-md-5">
                         {{ form.interestPaymentDate2(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="MMDD（例：3/31 → 0331）", title=form_description['interestPaymentDate'] )}}
                     </div>
                 </div>
                 <div class="form-group" id="divInterestPaymentDate3" style="display: none;">
                     {{ form.interestPaymentDate3.label(class="col-md-2 control-label") }}
-                    <div class="col-md-4">
+                    <div class="col-md-5">
                         {{ form.interestPaymentDate3(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="MMDD（例：3/31 → 0331）", title=form_description['interestPaymentDate'] )}}
                     </div>
                 </div>
                 <div class="form-group" id="divInterestPaymentDate4" style="display: none;">
                     {{ form.interestPaymentDate4.label(class="col-md-2 control-label") }}
-                    <div class="col-md-4">
+                    <div class="col-md-5">
                         {{ form.interestPaymentDate4(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="MMDD（例：3/31 → 0331）", title=form_description['interestPaymentDate'] )}}
                     </div>
                 </div>
                 <div class="form-group" id="divInterestPaymentDate5" style="display: none;">
                     {{ form.interestPaymentDate5.label(class="col-md-2 control-label") }}
-                    <div class="col-md-4">
+                    <div class="col-md-5">
                             {{ form.interestPaymentDate5(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="MMDD（例：3/31 → 0331）", title=form_description['interestPaymentDate'] )}}
                     </div>
                 </div>
                 <div class="form-group" id="divInterestPaymentDate6" style="display: none;">
                     {{ form.interestPaymentDate6.label(class="col-md-2 control-label") }}
-                    <div class="col-md-4">
+                    <div class="col-md-5">
                         {{ form.interestPaymentDate6(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="MMDD（例：3/31 → 0331）", title=form_description['interestPaymentDate'] )}}
                     </div>
                 </div>
                 <div class="form-group" id="divInterestPaymentDate7" style="display: none;">
                     {{ form.interestPaymentDate7.label(class="col-md-2 control-label") }}
-                    <div class="col-md-4">
+                    <div class="col-md-5">
                         {{ form.interestPaymentDate7(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="MMDD（例：3/31 → 0331）", title=form_description['interestPaymentDate'] )}}
                     </div>
                 </div>
                 <div class="form-group" id="divInterestPaymentDate8" style="display: none;">
                     {{ form.interestPaymentDate8.label(class="col-md-2 control-label") }}
-                    <div class="col-md-4">
+                    <div class="col-md-5">
                         {{ form.interestPaymentDate8(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="MMDD（例：3/31 → 0331）", title=form_description['interestPaymentDate'] )}}
                     </div>
                 </div>
                 <div class="form-group" id="divInterestPaymentDate9" style="display: none;">
                     {{ form.interestPaymentDate9.label(class="col-md-2 control-label") }}
-                    <div class="col-md-4">
+                    <div class="col-md-5">
                             {{ form.interestPaymentDate9(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="MMDD（例：3/31 → 0331）", title=form_description['interestPaymentDate'] )}}
                     </div>
                 </div>
                 <div class="form-group" id="divInterestPaymentDate10" style="display: none;">
                     {{ form.interestPaymentDate10.label(class="col-md-2 control-label") }}
-                    <div class="col-md-4">
+                    <div class="col-md-5">
                             {{ form.interestPaymentDate10(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="MMDD（例：3/31 → 0331）", title=form_description['interestPaymentDate'] )}}
                     </div>
                 </div>
                 <div class="form-group" id="divInterestPaymentDate11" style="display: none;">
                     {{ form.interestPaymentDate11.label(class="col-md-2 control-label") }}
-                    <div class="col-md-4">
+                    <div class="col-md-5">
                             {{ form.interestPaymentDate11(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="MMDD（例：3/31 → 0331）",title=form_description['interestPaymentDate'] )}}
                     </div>
                 </div>
                 <div class="form-group" id="divInterestPaymentDate12" style="display: none;">
                     {{ form.interestPaymentDate12.label(class="col-md-2 control-label") }}
-                    <div class="col-md-4">
+                    <div class="col-md-5">
                             {{ form.interestPaymentDate12(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="MMDD（例：3/31 → 0331）", title=form_description['interestPaymentDate'] )}}
                     </div>
                 </div>
 
                 <div class="form-group">
                     {{ form.redemptionDate.label(class="col-md-2 control-label") }}
-                    <div class="col-md-4">
+                    <div class="col-md-5">
                             {{ form.redemptionDate(class="form-control",id="datepicker", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="YYYYMMDD（例：2022/3/31 → 20220331）", title=form_description['redemptionDate'] )}}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.redemptionValue.label(class="col-md-2 control-label") }}
-                    <div class="col-md-4">
+                    <div class="col-md-5">
                             {{ form.redemptionValue(class="form-control comma-separate", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：100,000", title=form_description['redemptionValue'] )}}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.returnDate.label(class="col-md-2 control-label") }}
-                    <div class="col-md-4">
+                    <div class="col-md-5">
                             {{ form.returnDate(class="form-control",id="datepicker", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="YYYYMMDD（例：2022/3/31 → 20220331）", title=form_description['returnDate'] )}}
                     </div>
                 </div>
@@ -157,25 +158,13 @@
                 <div class="form-group">
                     {{ form.purpose.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
-                            {{ form.purpose(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：新規プロジェクト実行資金", title=form_description['purpose'] )}}
+                            {{ form.purpose(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="（必須）例：新規プロジェクト実行資金", title=form_description['purpose'] )}}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.memo.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
                             {{ form.memo(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right", title=form_description['memo'] )}}
-                    </div>
-                </div>
-                <div class="form-group">
-                    {{ form.tradableExchange.label(class="col-md-2 control-label") }}
-                    <div class="col-md-8">
-                            {{ form.tradableExchange(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：0x123456789A123456789B123456789C123456789D", title=form_description['tradableExchange'] )}}
-                    </div>
-                </div>
-                <div class="form-group">
-                    {{ form.personalInfoAddress.label(class="col-md-2 control-label") }}
-                    <div class="col-md-8">
-                            {{ form.personalInfoAddress(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：0x123456789A123456789B123456789C123456789D", title=form_description['personalInfoAddress'] )}}
                     </div>
                 </div>
                 <div class="form-group">
@@ -188,6 +177,18 @@
                     {{ form.privacy_policy.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
                             {{ form.privacy_policy(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right", title=form_description['privacy_policy'] )}}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.tradableExchange.label(class="col-md-2 control-label") }}
+                    <div class="col-md-8">
+                            {{ form.tradableExchange(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="（必須）例：0x123456789A123456789B123456789C123456789D", title=form_description['tradableExchange'] )}}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.personalInfoAddress.label(class="col-md-2 control-label") }}
+                    <div class="col-md-8">
+                            {{ form.personalInfoAddress(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="（必須）例：0x123456789A123456789B123456789C123456789D", title=form_description['personalInfoAddress'] )}}
                     </div>
                 </div>
           </div>

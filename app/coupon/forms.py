@@ -13,7 +13,7 @@ class IssueCouponForm(Form):
     yyyymmdd_regexp = '^(19[0-9]{2}|20[0-9]{2})(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])$'
 
     name = StringField(
-        "クーポン名",
+        "クーポン名 *",
         validators=[
             DataRequired('クーポン名は必須です。'),
             Length(min=1, max=50, message='クーポン名は50文字以内で入力してください。')
@@ -21,7 +21,7 @@ class IssueCouponForm(Form):
     )
 
     symbol = StringField(
-        "略称",
+        "略称 *",
         validators=[
             DataRequired('略称は必須です。'),
             Regexp('^[a-zA-Z0-9]+$', message='略称は半角英数字で入力してください。'),
@@ -30,7 +30,7 @@ class IssueCouponForm(Form):
     )
 
     totalSupply = IntegerField(
-        "総発行量",
+        "総発行量 *",
         validators=[
             DataRequired('総発行量は必須です。'),
             NumberRange(min=1, max=100000000, message='総発行量は100,000,000が上限です。'),
@@ -53,9 +53,9 @@ class IssueCouponForm(Form):
     )
 
     return_details = TextAreaField(
-        "リターン詳細",
+        "特典詳細",
         validators=[
-            Length(max=2000, message='クーポン詳細は2,000文字以内で入力してください。')
+            Length(max=2000, message='特典詳細は2,000文字以内で入力してください。')
         ]
     )
 
@@ -127,7 +127,7 @@ class IssueCouponForm(Form):
             'symbol': '商品を識別するための略称を設定してください。',
             'totalSupply': '',
             'details': '商品の詳細説明を入力してください。',
-            'return_details': '商品を購入することで得られるリターン（特典）の説明を入力してください。',
+            'return_details': '商品を購入することで得られる特典の説明を入力してください。',
             'memo': '商品の補足情報を入力してください。',
             'expirationDate': '商品の有効期限を入力してください。',
             'transferable': '譲渡可能な場合は「なし」、譲渡不可の場合は「あり」を選択してください。',
@@ -154,9 +154,9 @@ class SettingCouponForm(Form):
         ])
 
     return_details = TextAreaField(
-        "リターン詳細",
+        "特典詳細",
         validators=[
-            Length(max=2000, message='リターン詳細は2,000文字以内で入力してください。')
+            Length(max=2000, message='特典詳細は2,000文字以内で入力してください。')
         ])
 
     memo = TextAreaField(

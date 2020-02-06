@@ -17,7 +17,7 @@ class IssueForm(Form):
     yyyymmdd_regexp = '^(19[0-9]{2}|20[0-9]{2})(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])$'
 
     name = StringField(
-        "商品名",
+        "商品名 *",
         validators=[
             DataRequired('商品名は必須です。'),
             Length(min=1, max=50, message='商品名は50文字以内で入力してください。')
@@ -25,7 +25,7 @@ class IssueForm(Form):
     )
 
     symbol = StringField(
-        "略称",
+        "略称 *",
         validators=[
             DataRequired('略称は必須です。'),
             Regexp('^[a-zA-Z0-9]+$', message='略称は半角英数字で入力してください。'),
@@ -34,7 +34,7 @@ class IssueForm(Form):
     )
 
     totalSupply = IntegerField(
-        "総発行量",
+        "総発行量 *",
         validators=[
             InputRequired('総発行量は必須です。'),
             NumberRange(min=0, max=100000000, message='総発行量は100,000,000が上限です。'),
@@ -42,7 +42,7 @@ class IssueForm(Form):
     )
 
     faceValue = IntegerField(
-        "額面（円）",
+        "額面（円） *",
         validators=[
             InputRequired('額面は必須です。'),
             NumberRange(min=0, max=5000000000, message='額面は5,000,000,000円が上限です。')
@@ -50,7 +50,7 @@ class IssueForm(Form):
     )
 
     interestRate = DecimalField(
-        "金利[税引前]（%）",
+        "年利（税引前）（%） *",
         places=3,
         validators=[
             InputRequired('金利は必須です。'),
@@ -59,7 +59,7 @@ class IssueForm(Form):
     )
 
     interestPaymentDate1 = StringField(
-        "利払日１",
+        "利払日１ *",
         validators=[
             Optional(),
             Regexp(mmdd_regexp, message='利払日１はMMDDで入力してください。'),
@@ -67,7 +67,7 @@ class IssueForm(Form):
     )
 
     interestPaymentDate2 = StringField(
-        "利払日２",
+        "利払日２ *",
         validators=[
             Optional(),
             Regexp(mmdd_regexp, message='利払日２はMMDDで入力してください。'),
@@ -75,7 +75,7 @@ class IssueForm(Form):
     )
 
     interestPaymentDate3 = StringField(
-        "利払日３",
+        "利払日３ *",
         validators=[
             Optional(),
             Regexp(mmdd_regexp, message='利払日３はMMDDで入力してください。'),
@@ -83,7 +83,7 @@ class IssueForm(Form):
     )
 
     interestPaymentDate4 = StringField(
-        "利払日４",
+        "利払日４ *",
         validators=[
             Optional(),
             Regexp(mmdd_regexp, message='利払日４はMMDDで入力してください。'),
@@ -91,7 +91,7 @@ class IssueForm(Form):
     )
 
     interestPaymentDate5 = StringField(
-        "利払日５",
+        "利払日５ *",
         validators=[
             Optional(),
             Regexp(mmdd_regexp, message='利払日５はMMDDで入力してください。'),
@@ -99,7 +99,7 @@ class IssueForm(Form):
     )
 
     interestPaymentDate6 = StringField(
-        "利払日６",
+        "利払日６ *",
         validators=[
             Optional(),
             Regexp(mmdd_regexp, message='利払日６はMMDDで入力してください。'),
@@ -107,7 +107,7 @@ class IssueForm(Form):
     )
 
     interestPaymentDate7 = StringField(
-        "利払日７",
+        "利払日７ *",
         validators=[
             Optional(),
             Regexp(mmdd_regexp, message='利払日７はMMDDで入力してください。'),
@@ -115,7 +115,7 @@ class IssueForm(Form):
     )
 
     interestPaymentDate8 = StringField(
-        "利払日８",
+        "利払日８ *",
         validators=[
             Optional(),
             Regexp(mmdd_regexp, message='利払日８はMMDDで入力してください。'),
@@ -123,7 +123,7 @@ class IssueForm(Form):
     )
 
     interestPaymentDate9 = StringField(
-        "利払日９",
+        "利払日９ *",
         validators=[
             Optional(),
             Regexp(mmdd_regexp, message='利払日９はMMDDで入力してください。'),
@@ -131,7 +131,7 @@ class IssueForm(Form):
     )
 
     interestPaymentDate10 = StringField(
-        "利払日１０",
+        "利払日１０ *",
         validators=[
             Optional(),
             Regexp(mmdd_regexp, message='利払日１０はMMDDで入力してください。'),
@@ -139,7 +139,7 @@ class IssueForm(Form):
     )
 
     interestPaymentDate11 = StringField(
-        "利払日１１",
+        "利払日１１ *",
         validators=[
             Optional(),
             Regexp(mmdd_regexp, message='利払日１１はMMDDで入力してください。'),
@@ -147,7 +147,7 @@ class IssueForm(Form):
     )
 
     interestPaymentDate12 = StringField(
-        "利払日１２",
+        "利払日１２ *",
         validators=[
             Optional(),
             Regexp(mmdd_regexp, message='利払日１２はMMDDで入力してください。'),
@@ -155,7 +155,7 @@ class IssueForm(Form):
     )
 
     redemptionDate = StringField(
-        "償還日",
+        "償還日 *",
         validators=[
             Optional(),
             Regexp(yyyymmdd_regexp, message='償還日はYYYYMMDDで入力してください。'),
@@ -163,7 +163,7 @@ class IssueForm(Form):
     )
 
     redemptionValue = IntegerField(
-        "償還金額（額面当り）",
+        "償還金額（額面当り） *",
         validators=[
             Optional(),
             NumberRange(min=0, max=5000000000, message='償還金額は5,000,000,000円が上限です。')
@@ -171,22 +171,22 @@ class IssueForm(Form):
     )
 
     returnDate = StringField(
-        "リターン実施日",
+        "特典付与日 *",
         validators=[
             Optional(),
-            Regexp(yyyymmdd_regexp, message='リターン実施日はYYYYMMDDで入力してください。'),
+            Regexp(yyyymmdd_regexp, message='特典付与日はYYYYMMDDで入力してください。'),
         ]
     )
 
     returnAmount = TextAreaField(
-        "リターン内容",
+        "特典内容 *",
         validators=[
-            Length(max=2000, message='リターン内容は2,000文字以内で入力してください。')
+            Length(max=2000, message='特典内容は2,000文字以内で入力してください。')
         ]
     )
 
     purpose = TextAreaField(
-        "発行目的",
+        "発行目的 *",
         validators=[
             DataRequired('発行目的は必須です。'),
             Length(max=2000, message='発行目的は2,000文字以内で入力してください。')
@@ -242,8 +242,8 @@ class IssueForm(Form):
             'interestPaymentDate': '',
             'redemptionDate': '',
             'redemptionValue': '額面当りの償還金額を入力してください。',
-            'returnDate': 'リターンを実施する日付を入力してください。',
-            'returnAmount': '商品を購入することで得られるリターン（特典）の内容を入力してください。',
+            'returnDate': '特典を付与する日付を入力してください。',
+            'returnAmount': '商品を購入することで得られる特典の内容を入力してください。',
             'purpose': '商品の発行目的を入力してください。',
             'memo': '商品の補足情報を入力してください。',
             'tradableExchange': '商品が取引可能な取引所コントラクトのアドレスを入力してください。',
@@ -275,8 +275,8 @@ class SettingForm(Form):
     interestPaymentDate12 = StringField("利払日１２", validators=[])
     redemptionDate = StringField("償還日", validators=[])
     redemptionValue = IntegerField("償還金額（額面当り）", validators=[])
-    returnDate = StringField("リターン実施日", validators=[])
-    returnAmount = TextAreaField("リターン内容", validators=[])
+    returnDate = StringField("特典付与日", validators=[])
+    returnAmount = TextAreaField("特典内容", validators=[])
     purpose = TextAreaField("発行目的", validators=[])
     memo = TextAreaField("メモ", validators=[])
 
@@ -365,8 +365,8 @@ class SellTokenForm(Form):
     interestPaymentDate12 = StringField("利払日１２", validators=[])
     redemptionDate = StringField("償還日", validators=[])
     redemptionValue = IntegerField("償還金額（額面当り）", validators=[])
-    returnDate = StringField("リターン実施日", validators=[])
-    returnAmount = TextAreaField("リターン内容", validators=[])
+    returnDate = StringField("特典付与日", validators=[])
+    returnAmount = TextAreaField("特典内容", validators=[])
     purpose = TextAreaField("発行目的", validators=[])
     memo = TextAreaField("メモ", validators=[])
     tradableExchange = StringField("DEXアドレス", validators=[])
