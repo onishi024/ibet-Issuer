@@ -98,6 +98,12 @@ def issue():
             }
             interestPaymentDate_string = json.dumps(interestPaymentDate)
 
+            # 任意設定項目のデフォルト値変換（償還金額）
+            if form.redemptionValue.data is None:
+                redemption_value = 0
+            else:
+                redemption_value = form.redemptionValue.data
+
             arguments = [
                 form.name.data,
                 form.symbol.data,
@@ -107,7 +113,7 @@ def issue():
                 int(form.interestRate.data * 1000),
                 interestPaymentDate_string,
                 form.redemptionDate.data,
-                form.redemptionValue.data,
+                redemption_value,
                 form.returnDate.data,
                 form.returnAmount.data,
                 form.purpose.data,
@@ -130,6 +136,32 @@ def issue():
             token.bytecode = bytecode
             token.bytecode_runtime = bytecode_runtime
             db.session.add(token)
+
+            # 商品画像URLの登録処理
+            if form.image_1.data != '' or form.image_2.data != '' or form.image_3.data != '':
+                # トークンのデプロイ完了まで待つ
+                tx_receipt = web3.eth.waitForTransactionReceipt(tx_hash)
+                # トークンが正常にデプロイされた後に画像URLの登録処理を実行する
+                if tx_receipt is not None:
+                    TokenContract = web3.eth.contract(
+                        address=tx_receipt['contractAddress'],
+                        abi=abi
+                    )
+                    if form.image_1.data != '':
+                        gas = TokenContract.estimateGas().setImageURL(0, form.image_1.data)
+                        TokenContract.functions.setImageURL(0, form.image_1.data).transact(
+                            {'from': Config.ETH_ACCOUNT, 'gas': gas}
+                        )
+                    if form.image_2.data != '':
+                        gas = TokenContract.estimateGas().setImageURL(1, form.image_2.data)
+                        TokenContract.functions.setImageURL(1, form.image_2.data).transact(
+                            {'from': Config.ETH_ACCOUNT, 'gas': gas}
+                        )
+                    if form.image_3.data != '':
+                        gas = TokenContract.estimateGas().setImageURL(2, form.image_3.data)
+                        TokenContract.functions.setImageURL(2, form.image_3.data).transact(
+                            {'from': Config.ETH_ACCOUNT, 'gas': gas}
+                        )
 
             flash('新規発行を受け付けました。発行完了までに数分程かかることがあります。', 'success')
             return redirect(url_for('.list'))

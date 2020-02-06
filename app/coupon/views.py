@@ -427,7 +427,7 @@ def setting(token_address):
                 TokenContract.functions.setDetails(form.details.data). \
                     transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
 
-            # リターン詳細変更
+            # 特典詳細変更
             if form.return_details.data != return_details:
                 gas = TokenContract.estimateGas().setReturnDetails(form.return_details.data)
                 TokenContract.functions.setReturnDetails(form.return_details.data). \

@@ -18,22 +18,23 @@
                 <h3 class="box-title">発行条件</h3>
             </div>
             <div class="box-body">
+                <p><small>* 変更不可項目</small></p>
                 <div class="form-group">
                     {{ form.name.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
-                        {{ form.name(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：ibet会員権", title=form_description['name'] )}}
+                        {{ form.name(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="（必須）例：ibet会員権", title=form_description['name'] )}}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.symbol.label(class="col-md-2 control-label") }}
-                    <div class="col-md-4">
-                        {{ form.symbol(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：IMB", title=form_description['symbol'] )}}
+                    <div class="col-md-5">
+                        {{ form.symbol(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="（必須）例：IMB", title=form_description['symbol'] )}}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.totalSupply.label(class="col-md-2 control-label") }}
-                    <div class="col-md-4">
-                        {{ form.totalSupply(class="form-control comma-separate", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：100000", title=form_description['totalSupply'] )}}
+                    <div class="col-md-5">
+                        {{ form.totalSupply(class="form-control comma-separate", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="（必須）例：100000", title=form_description['totalSupply'] )}}
                     </div>
                 </div>
                 <div class="form-group">
@@ -56,20 +57,14 @@
                 </div>
                 <div class="form-group">
                     {{ form.expirationDate.label(class="col-md-2 control-label") }}
-                    <div class="col-md-4">
+                    <div class="col-md-5">
                         {{ form.expirationDate(class="form-control",id="datepicker", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：20201231", title=form_description['expirationDate'] )}}
                     </div>
                 </div>
                 <div class="form-group">
                     {{ form.transferable.label(class="col-md-2 control-label") }}
-                    <div class="col-md-4">
+                    <div class="col-md-5">
                         {{ form.transferable(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right", title=form_description['transferable'] )}}
-                    </div>
-                </div>
-                <div class="form-group">
-                    {{ form.tradableExchange.label(class="col-md-2 control-label") }}
-                    <div class="col-md-8">
-                        {{ form.tradableExchange(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：0x123456789A123456789B123456789C123456789D", title=form_description['tradableExchange'] )}}
                     </div>
                 </div>
                 <div class="form-group">
@@ -100,6 +95,12 @@
                     {{ form.privacy_policy.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
                         {{ form.privacy_policy(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right", title=form_description['privacy_policy'] )}}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.tradableExchange.label(class="col-md-2 control-label") }}
+                    <div class="col-md-8">
+                        {{ form.tradableExchange(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="（必須）例：0x123456789A123456789B123456789C123456789D", title=form_description['tradableExchange'] )}}
                     </div>
                 </div>
             </div>
