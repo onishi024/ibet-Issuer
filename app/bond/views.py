@@ -245,13 +245,14 @@ def holders_csv_download():
     for holder in holders:
         # データ行
         data_row = \
-            token_name + ',' + token_address + ',' + holder["account_address"] + ',' + str(holder["balance"]) + ',' \
-            + str(holder["commitment"]) + ',' + holder["name"] + ',' + holder["postal_code"] + ',' + holder[
-                "address"] + ',' \
-            + holder["email"] + '\n'
+            token_name + ',' + token_address + ',' + holder["account_address"] + ',' + \
+            str(holder["balance"]) + ',' + str(holder["commitment"]) + ',' + \
+            holder["name"] + ',' + holder["birth_date"] + ',' + \
+            holder["postal_code"] + ',' + holder["address"] + ',' + \
+            holder["email"] + '\n'
         f.write(data_row)
 
-    now = datetime.now()
+    now = datetime.datetime.now()
     res = make_response()
     csvdata = f.getvalue()
     res.data = csvdata.encode('sjis', 'ignore')
@@ -341,30 +342,30 @@ def get_holders(token_address):
                 logger.warning(e)
                 encrypted_info = ''
                 pass
-            if encrypted_info == '' or cipher is None:
+            if encrypted_info == '' or cipher is None:  # 情報が空の場合、デフォルト値の設定
                 name = '--'
                 address = '--'
                 postal_code = '--'
                 email = '--'
+                birth_date = '--'
             else:
                 try:
                     ciphertext = base64.decodebytes(encrypted_info.encode('utf-8'))
                     message = cipher.decrypt(ciphertext)
                     personal_info_json = json.loads(message)
                     name = personal_info_json['name'] if personal_info_json['name'] else "--"
-                    address = personal_info_json['address']['prefecture'] + personal_info_json['address']['city'] + \
-                              personal_info_json['address']['address1'] + personal_info_json['address']['address2'] if \
-                        personal_info_json['address']['prefecture'] and personal_info_json['address']['city'] and \
-                        personal_info_json['address']['address1'] else "--"
-                    postal_code = personal_info_json['address']['postal_code'] if personal_info_json['address'][
-                        'postal_code'] else "--"
+                    address = personal_info_json['address']['prefecture'] + personal_info_json['address']['city'] + personal_info_json['address']['address1'] + personal_info_json['address']['address2'] if personal_info_json['address']['prefecture'] and personal_info_json['address']['city'] and personal_info_json['address']['address1'] else "--"
+                    postal_code = personal_info_json['address']['postal_code'] if personal_info_json['address']['postal_code'] else "--"
                     email = personal_info_json['email'] if personal_info_json['email'] else "--"
+                    birth_date = personal_info_json['birth'] if personal_info_json['birth'] else "--"
                 except Exception as e:
                     logger.error(e)
                     name = '--'
                     address = '--'
                     postal_code = '--'
                     email = '--'
+                    birth_date = '--'
+
             holders.append({
                 'account_address': account_address,
                 'name': name,
@@ -372,7 +373,8 @@ def get_holders(token_address):
                 'email': email,
                 'address': address,
                 'balance': balance,
-                'commitment': commitment
+                'commitment': commitment,
+                'birth_date': birth_date
             })
 
     return json.dumps(holders)

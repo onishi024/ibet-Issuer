@@ -23,6 +23,7 @@
     <div class=row>
       <div class="col-md-1"></div>
       <div class="col-md-10">
+        <!-- 住所 -->
         <div class="box box-default box-solid">
           <div class="box-header with-border">
             <h3 class="box-title">住所</h3>
@@ -62,6 +63,23 @@
             </div>
           </form>
         </div>
+        <!-- 生年月日 -->
+        <div class="box box-default box-solid">
+          <div class="box-header with-border">
+            <h3 class="box-title">生年月日</h3>
+          </div>
+          <form class="form-horizontal" role="form">
+            <div class="box-body">
+              <div class="row">
+                <label class="col-md-3">生年月日</label>
+                <div class="form-group col-md-4">
+                  {{ personal_info['birth'] }}
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+        <!-- Eメールアドレス -->
         <div class="box box-default box-solid">
           <div class="box-header with-border">
             <h3 class="box-title">Eメールアドレス</h3>
