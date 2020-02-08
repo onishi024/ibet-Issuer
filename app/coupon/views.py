@@ -1119,14 +1119,13 @@ def used_csv_download():
 
     # ファイル作成
     f = io.StringIO()
-    if usage_list[0] is not '[':
-        for usage in usage_list:
-            # データ行
-            data_row = \
-                token_name + ',' + token_address + ',' + str(usage["block_timestamp"]) + ',' + str(
-                    usage["consumer"]) + ',' \
-                + str(usage["value"]) + '\n'
-            f.write(data_row)
+    for usage in usage_list:
+        # データ行
+        data_row = \
+            token_name + ',' + token_address + ',' + str(usage["block_timestamp"]) + ',' + str(
+                usage["consumer"]) + ',' \
+            + str(usage["value"]) + '\n'
+        f.write(data_row)
 
     now = datetime.now()
     res = make_response()
