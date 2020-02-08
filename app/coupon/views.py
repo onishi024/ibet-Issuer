@@ -1172,9 +1172,11 @@ def holders_csv_download():
     for holder in holders:
         # データ行
         data_row = \
-            token_name + ',' + token_address + ',' + holder["account_address"] + ',' + str(holder["balance"]) + ',' \
-            + str(holder["used"]) + ',' + holder["name"] + ',' + holder["postal_code"] + ',' + holder["address"] + ',' \
-            + holder["email"] + '\n'
+            token_name + ',' + token_address + ',' + holder["account_address"] + ',' + \
+            str(holder["balance"]) + ',' + str(holder["used"]) + ',' + \
+            holder["name"] + ',' + holder["birth_date"] + ',' + \
+            holder["postal_code"] + ',' + holder["address"] + ',' + \
+            holder["email"] + '\n'
         f.write(data_row)
 
     now = datetime.now()
@@ -1245,13 +1247,18 @@ def get_holders(token_address):
         balance = TokenContract.functions.balanceOf(account_address).call()
         used = TokenContract.functions.usedOf(account_address).call()
         if balance > 0 or used > 0:  # 残高（balance）、または使用済（used）が存在する情報を抽出
-            encrypted_info = PersonalInfoContract.functions. \
-                personal_info(account_address, token_owner).call()[2]
-            if encrypted_info == '' or cipher is None:
+            try:
+                encrypted_info = PersonalInfoContract.functions.personal_info(account_address, token_owner).call()[2]
+            except Exception as e:
+                logger.warning(e)
+                encrypted_info = ''
+                pass
+            if encrypted_info == '' or cipher is None:  # 情報が空の場合、デフォルト値の設定
                 name = '--'
                 address = '--'
                 postal_code = '--'
                 email = '--'
+                birth_date = '--'
             else:
                 try:
                     ciphertext = base64.decodebytes(encrypted_info.encode('utf-8'))
@@ -1261,12 +1268,14 @@ def get_holders(token_address):
                     address = personal_info_json['address']['prefecture'] + personal_info_json['address']['city'] + personal_info_json['address']['address1'] + personal_info_json['address']['address2'] if personal_info_json['address']['prefecture'] and personal_info_json['address']['city'] and personal_info_json['address']['address1'] else "--"
                     postal_code = personal_info_json['address']['postal_code'] if personal_info_json['address']['postal_code'] else "--"
                     email = personal_info_json['email'] if personal_info_json['email'] else "--"
+                    birth_date = personal_info_json['birth'] if personal_info_json['birth'] else "--"
                 except Exception as e:
                     logger.warning(e)
                     name = '--'
                     address = '--'
                     postal_code = '--'
                     email = '--'
+                    birth_date = '--'
                     pass
             holders.append({
                 'account_address': account_address,
@@ -1275,7 +1284,8 @@ def get_holders(token_address):
                 'email': email,
                 'address': address,
                 'balance': balance,
-                'used': used
+                'used': used,
+                'birth_date': birth_date
             })
 
     return json.dumps(holders)
