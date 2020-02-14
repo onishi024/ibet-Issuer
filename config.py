@@ -186,7 +186,7 @@ class ProductionConfig(Config):
                 'propagate': False,
             }},
         'root': {
-            'level': 'WARNING',
+            'level': 'INFO',
         }
     })
 
