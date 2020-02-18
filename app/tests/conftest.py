@@ -243,9 +243,9 @@ def bond_exchange_contract(payment_gateway_address, personalinfo_address, exchan
     ExchangeRegulatorService = \
         Contract.get_contract('ExchangeRegulatorService', exchange_regulator_service_address)
     ExchangeRegulatorService.functions.register(issuer['account_address'], False). \
-        transact({'from': issuer['account_address'], 'gas': 4000000})
+        transact({'from': deployer['account_address'], 'gas': 4000000})
     ExchangeRegulatorService.functions.register(trader['account_address'], False). \
-        transact({'from': trader['account_address'], 'gas': 4000000})
+        transact({'from': deployer['account_address'], 'gas': 4000000})
 
     return {'address': contract_address, 'abi': abi}
 
