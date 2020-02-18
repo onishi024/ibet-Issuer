@@ -54,7 +54,8 @@ def token_list_bond():
                 name = TokenContract.functions.name().call()
                 symbol = TokenContract.functions.symbol().call()
                 redemption_date = TokenContract.functions.redemptionDate().call()
-                redemption_date = redemption_date[:4] + '/' + redemption_date[4:6] + '/' + redemption_date[6:]
+                if redemption_date != "":
+                    redemption_date = redemption_date[:4] + '/' + redemption_date[4:6] + '/' + redemption_date[6:]
                 total_supply = TokenContract.functions.totalSupply().call()
 
                 # 現在値の取得
