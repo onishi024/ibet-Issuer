@@ -131,6 +131,7 @@ def issue():
             return render_template('coupon/issue.html', form=form, form_description=form.description)
 
     else:  # GET
+        form.tradableExchange.data = Config.IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS
         return render_template('coupon/issue.html', form=form, form_description=form.description)
 
 
