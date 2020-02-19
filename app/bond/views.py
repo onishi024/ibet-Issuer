@@ -169,6 +169,8 @@ def issue():
             flash_errors(form)
             return render_template('bond/issue.html', form=form, form_description=form.description)
     else:  # GET
+        form.tradableExchange.data = Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS
+        form.personalInfoAddress.data = Config.PERSONAL_INFO_CONTRACT_ADDRESS
         return render_template('bond/issue.html', form=form, form_description=form.description)
 
 
