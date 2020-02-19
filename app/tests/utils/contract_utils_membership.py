@@ -29,9 +29,8 @@ def take_buy(invoker, membership_exchange, order_id, amount):
     web3.personal.unlockAccount(invoker['account_address'], invoker['password'])
 
     ExchangeContract = Contract.get_contract('IbetMembershipExchange', membership_exchange['address'])
-    gas = ExchangeContract.estimateGas().executeOrder(order_id, amount, True)
     tx_hash = ExchangeContract.functions.executeOrder(order_id, amount, True). \
-        transact({'from': invoker['account_address'], 'gas': gas})
+        transact({'from': invoker['account_address'], 'gas': 4000000})
     web3.eth.waitForTransactionReceipt(tx_hash)
 
 
@@ -55,7 +54,6 @@ def apply_for_offering(invoker, token_address):
     web3.eth.defaultAccount = invoker['account_address']
     web3.personal.unlockAccount(invoker['account_address'], invoker['password'])
     TokenContract = Contract.get_contract('IbetMembership', token_address)
-    gas = TokenContract.estimateGas().applyForOffering('abcdefgh')
     tx_hash = TokenContract.functions.applyForOffering('abcdefgh'). \
-        transact({'from': invoker['account_address'], 'gas': gas})
+        transact({'from': invoker['account_address'], 'gas': 4000000})
     web3.eth.waitForTransactionReceipt(tx_hash)

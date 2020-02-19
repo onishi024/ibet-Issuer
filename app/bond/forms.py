@@ -53,8 +53,8 @@ class IssueForm(Form):
         "年利（税引前）（%） *",
         places=3,
         validators=[
-            InputRequired('金利は必須です。'),
-            NumberRange(min=0.000, max=100.000, message='金利は100％が上限です。')
+            InputRequired('年利は必須です。'),
+            NumberRange(min=0.000, max=100.000, message='年利は100％が上限です。')
         ]
     )
 
@@ -284,7 +284,7 @@ class SettingForm(Form):
     symbol = StringField("略称", validators=[])
     totalSupply = IntegerField("総発行量", validators=[])
     faceValue = IntegerField("額面（円）", validators=[])
-    interestRate = DecimalField("金利[税引前]（%）", places=3, validators=[])
+    interestRate = DecimalField("年利（税引前）（%）", places=3, validators=[])
     interestPaymentDate1 = StringField("利払日１", validators=[])
     interestPaymentDate2 = StringField("利払日２", validators=[])
     interestPaymentDate3 = StringField("利払日３", validators=[])
@@ -374,7 +374,7 @@ class SellTokenForm(Form):
     symbol = StringField("略称", validators=[])
     totalSupply = IntegerField("総発行量", validators=[])
     faceValue = IntegerField("額面（円）", validators=[])
-    interestRate = DecimalField("金利[税引前]（%）", places=3, validators=[])
+    interestRate = DecimalField("年利（税引前）（%）", places=3, validators=[])
     interestPaymentDate1 = StringField("利払日１", validators=[])
     interestPaymentDate2 = StringField("利払日２", validators=[])
     interestPaymentDate3 = StringField("利払日３", validators=[])

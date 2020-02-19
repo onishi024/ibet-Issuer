@@ -169,6 +169,8 @@ def issue():
             flash_errors(form)
             return render_template('bond/issue.html', form=form, form_description=form.description)
     else:  # GET
+        form.tradableExchange.data = Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS
+        form.personalInfoAddress.data = Config.PERSONAL_INFO_CONTRACT_ADDRESS
         return render_template('bond/issue.html', form=form, form_description=form.description)
 
 
@@ -306,8 +308,11 @@ def get_holders(token_address):
     # 個人情報コントラクト接続
     PersonalInfoContract = Contract.get_contract('PersonalInfo', personal_info_address)
 
+    # トークン発行体アドレスを取得
+    token_owner = TokenContract.functions.owner().call()
+
     # 残高を保有している可能性のあるアドレスを抽出する
-    holders_temp = [TokenContract.functions.owner().call()]  # 発行体アドレスをリストに追加
+    holders_temp = [token_owner]  # 発行体アドレスをリストに追加
     event_filter = TokenContract.eventFilter(
         'Transfer', {
             'filter': {},
@@ -325,7 +330,6 @@ def get_holders(token_address):
             holders_uniq.append(x)
 
     # 保有者情報抽出
-    token_owner = TokenContract.functions.owner().call()
     holders = []
     for account_address in holders_uniq:
         balance = TokenContract.functions.balanceOf(account_address).call()
@@ -336,20 +340,37 @@ def get_holders(token_address):
             commitment = 0
             pass
         if balance > 0 or commitment > 0:  # 残高（balance）、または注文中の残高（commitment）が存在する情報を抽出
+            if account_address == token_owner:
+                is_owner = True
+            else:
+                is_owner = False
+
+            # 保有者情報：初期値（個人情報なし）
+            holder = {
+                'account_address': account_address,
+                'name': '--',
+                'postal_code': '--',
+                'email': '--',
+                'address': '--',
+                'birth_date': '--',
+                'balance': balance,
+                'commitment': commitment,
+                'is_owner': is_owner
+            }
+
+            # 暗号化個人情報取得
             try:
                 encrypted_info = PersonalInfoContract.functions.personal_info(account_address, token_owner).call()[2]
             except Exception as e:
                 logger.warning(e)
                 encrypted_info = ''
                 pass
-            if encrypted_info == '' or cipher is None:  # 情報が空の場合、デフォルト値の設定
-                name = '--'
-                address = '--'
-                postal_code = '--'
-                email = '--'
-                birth_date = '--'
+
+            if encrypted_info == '' or cipher is None:  # 情報が空の場合、デフォルト値を設定
+                pass
             else:
                 try:
+                    # 個人情報復号化
                     ciphertext = base64.decodebytes(encrypted_info.encode('utf-8'))
                     message = cipher.decrypt(ciphertext)
                     personal_info_json = json.loads(message)
@@ -358,24 +379,23 @@ def get_holders(token_address):
                     postal_code = personal_info_json['address']['postal_code'] if personal_info_json['address']['postal_code'] else "--"
                     email = personal_info_json['email'] if personal_info_json['email'] else "--"
                     birth_date = personal_info_json['birth'] if personal_info_json['birth'] else "--"
-                except Exception as e:
+                    # 保有者情報（個人情報あり）
+                    holder ={
+                        'account_address': account_address,
+                        'name': name,
+                        'postal_code': postal_code,
+                        'email': email,
+                        'address': address,
+                        'birth_date': birth_date,
+                        'balance': balance,
+                        'commitment': commitment,
+                        'is_owner': is_owner
+                    }
+                except Exception as e: # 復号化処理でエラーが発生した場合、デフォルト値を設定
                     logger.error(e)
-                    name = '--'
-                    address = '--'
-                    postal_code = '--'
-                    email = '--'
-                    birth_date = '--'
+                    pass
 
-            holders.append({
-                'account_address': account_address,
-                'name': name,
-                'postal_code': postal_code,
-                'email': email,
-                'address': address,
-                'balance': balance,
-                'commitment': commitment,
-                'birth_date': birth_date
-            })
+            holders.append(holder)
 
     return json.dumps(holders)
 
