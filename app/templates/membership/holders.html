@@ -39,6 +39,7 @@
                     <th></th>
                     <th></th>
                     <th></th>
+                    <th></th>
                 </tr>
                 </thead>
                 <tbody>
@@ -175,7 +176,14 @@
   holder_transfer_url_base = '{{ url_for("membership.transfer_ownership", token_address=token_address, account_address="account_address") }}';
   $(function () {
     $('#data_table').DataTable({
-      columns: [{
+      columns: [
+      {
+        data: 'is_owner',
+        title: '',
+        render: function (data) {
+            return '<div align="center"><span class="badge bg-green">' + data + '</span></div>'
+        }
+      }, {
         data: 'account_address',
         title: 'アカウントアドレス',
         className: 'tableAddress',
@@ -215,6 +223,7 @@
           returnJson = [];
           for(index in json){
             returnJsonRaw = {
+              is_owner : json[index]['is_owner'] ? '発行体' : '',
               account_address : json[index]['account_address'] ? json[index]['account_address'] : '--',
               name: json[index]['name'] ? json[index]['name'] : '--',
               balance: json[index]['balance'] ? json[index]['balance'].toLocaleString() : 0,
@@ -237,6 +246,7 @@
       'info': true,
       'autoWidth': true,
       'pagingType': "full_numbers",
+      'order': [1, 'asc'],
       'language': {
         'info': "_TOTAL_ 件中 _START_ 〜 _END_ 件目",
         'lengthMenu': "表示件数 _MENU_ 件",
