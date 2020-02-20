@@ -514,9 +514,7 @@ def setting(token_address):
     faceValue = TokenContract.functions.faceValue().call()
     interestRate = TokenContract.functions.interestRate().call() * 0.001
     interestPaymentDate_string = TokenContract.functions.interestPaymentDate().call()
-    interestPaymentDate = json.loads(
-        interestPaymentDate_string.replace("'", '"'). \
-            replace('True', 'true').replace('False', 'false'))
+    interestPaymentDate = json.loads(interestPaymentDate_string.replace("'", '"').replace('True', 'true').replace('False', 'false'))
     redemptionDate = TokenContract.functions.redemptionDate().call()
     redemptionValue = TokenContract.functions.redemptionValue().call()
     returnDate = TokenContract.functions.returnDate().call()
@@ -532,11 +530,11 @@ def setting(token_address):
     transferable = str(TokenContract.functions.transferable().call())
     personalInfoAddress = TokenContract.functions.personalInfoAddress().call()
     initial_offering_status = TokenContract.functions.initialOfferingStatus().call()
+    is_redeemed = TokenContract.functions.isRedeemed().call()
 
     # TokenList登録状態取得
     list_contract_address = Config.TOKEN_LIST_CONTRACT_ADDRESS
-    ListContract = Contract.get_contract(
-        'TokenList', list_contract_address)
+    ListContract = Contract.get_contract('TokenList', list_contract_address)
     token_struct = ListContract.functions.getTokenByAddress(token_address).call()
     is_released = False
     if token_struct[0] == token_address:
@@ -566,11 +564,18 @@ def setting(token_address):
                 return render_template(
                     'bond/setting.html',
                     form=form, token_address=token_address,
-                    token_name=name, is_released=is_released
+                    token_name=name, is_released=is_released, is_redeemed=is_redeemed,
+                    initial_offering_status=initial_offering_status
                 )
 
             # EOAアンロック
             eth_unlock_account()
+
+            # メモ欄変更
+            if form.memo.data != memo:
+                gas = TokenContract.estimateGas().updateMemo(form.memo.data)
+                TokenContract.functions.updateMemo(form.memo.data). \
+                    transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
 
             # 譲渡制限変更
             if form.transferable.data != transferable:
@@ -617,7 +622,7 @@ def setting(token_address):
                 TokenContract.functions.setContactInformation(form.contact_information.data). \
                     transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
 
-            # プライバシーポリシー
+            # プライバシーポリシー変更
             if form.privacy_policy.data != privacy_policy:
                 gas = TokenContract.estimateGas().setPrivacyPolicy(form.privacy_policy.data)
                 TokenContract.functions.setPrivacyPolicy(form.privacy_policy.data). \
@@ -645,7 +650,8 @@ def setting(token_address):
             return render_template(
                 'bond/setting.html',
                 form=form, token_address=token_address,
-                token_name=name, is_released=is_released
+                token_name=name, is_released=is_released, is_redeemed=is_redeemed,
+                initial_offering_status=initial_offering_status
             )
     else:  # GET
         form.token_address.data = token.token_address
@@ -677,7 +683,8 @@ def setting(token_address):
             token_address=token_address,
             token_name=name,
             is_released=is_released,
-            initial_offering_status=initial_offering_status
+            initial_offering_status=initial_offering_status,
+            is_redeemed=is_redeemed
         )
 
 
@@ -902,6 +909,9 @@ def positions():
                 # 残高
                 balance = TokenContract.functions.balanceOf(owner).call()
 
+                # 償還状況
+                is_redeemed = TokenContract.functions.isRedeemed().call()
+
                 # 拘束中数量
                 try:
                     commitment = ExchangeContract.functions.commitmentOf(owner, row.token_address).call()
@@ -951,7 +961,8 @@ def positions():
                     'order_price': order_price,
                     'fundraise': fundraise,
                     'on_sale': on_sale,
-                    'order_id': order_id
+                    'order_id': order_id,
+                    'is_redeemed': is_redeemed
                 })
             except Exception as e:
                 logger.error(e)
