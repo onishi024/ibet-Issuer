@@ -21,43 +21,29 @@
         <div class="box-header with-border">
             <h3 class="box-title"><small>{{ token_address }}</small></h3>
             <div class="pull-right box-tools">
-                <!-- 募集申込開始/停止 -->
-                {% if initial_offering_status %}
-                <button id="stop_initial_offering"
-                        type="button"
-                        class="btn btn-danger btn-sm"
-                        data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中" style="width: 120px">
-                    募集申込停止 <i class="fa fa-exclamation-triangle"></i>
-                </button>
-                {% else %}
-                <button id="start_initial_offering"
-                        type="button"
-                        class="btn btn-success btn-sm"
-                        data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中" style="width: 120px">
-                    募集申込開始 <i class="fa fa-exclamation-triangle"></i>
-                </button>
-                {% endif %}
                 <!-- 公開/公開済 -->
                 {% if is_released %}
-                <button class="btn btn-gray btn-sm" type="button" style="width: 120px" disabled>
-                    公開済
-                </button>
+                <button class="btn btn-default btn-sm" type="button" style="width: 120px" disabled>公開済</button>
                 {% else %}
-                <button id="release" class="btn btn-warning btn-sm" type="button" style="width: 120px">
-                    公開 <i class="fa fa-exclamation-triangle"></i>
-                </button>
+                <button id="release" class="btn btn-warning btn-sm" type="button" style="width: 120px">公開 <i class="fa fa-exclamation-triangle"></i></button>
+                {% endif %}
+                <!-- 募集申込開始/停止 -->
+                {% if is_redeemed %}
+                {% elif initial_offering_status %}
+                <button id="stop_initial_offering" type="button" class="btn btn-warning btn-sm" data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中" style="width: 120px">募集申込停止 <i class="fa fa-exclamation-triangle"></i></button>
+                {% else %}
+                <button id="start_initial_offering" type="button" class="btn btn-success btn-sm" data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中" style="width: 120px">募集申込開始</button>
                 {% endif %}
                 <!-- 償還 -->
-                <button id="redeem" class="btn btn-danger btn-sm" type="button" style="width: 120px">
-                    償還 <i class="fa fa-exclamation-triangle"></i>
-                </button>
+                {% if is_redeemed %}
+                <button class="btn btn-default btn-sm" type="button" style="width: 120px" disabled>償還済</button>
+                {% else %}
+                <button id="redeem" class="btn btn-danger btn-sm" type="button" style="width: 120px">償還 <i class="fa fa-exclamation-triangle"></i></button>
+                {% endif %}
                 <!-- 認定依頼 -->
-                <button type="button"
-                        class="btn btn-default btn-sm"
-                        style="width: 120px"
-                        onclick="location.href='{{ url_for("bond.request_signature", token_address=token_address)}}'">
-                    認定依頼 <i class="fa fa-arrow-circle-right"></i>
-                </button>
+                {% if not is_redeemed %}
+                <button type="button" class="btn btn-success btn-sm" style="width: 120px" onclick="location.href='{{ url_for("bond.request_signature", token_address=token_address)}}'">認定依頼 <i class="fa fa-arrow-circle-right"></i></button>
+                {% endif %}
             </div>
         </div>
         <form class="form-horizontal" method="POST" role="form" action="{{ url_for('bond.setting', token_address=form.token_address.data) }}">
@@ -80,7 +66,10 @@
                     <div class="col-md-5">
                         {{ form.totalSupply(class="form-control comma-separate", disabled=True) }}
                     </div>
-                    <button type="button" class="btn btn-success btn-sm" style="width: 120px" onclick="location.href='{{ url_for("bond.add_supply", token_address=token_address)}}'"> 追加発行 <i class="fa fa-plus-circle"></i></button>
+                    <!-- 追加発行 -->
+                    {% if not is_redeemed %}
+                    <button type="button" class="btn btn-default btn-sm" style="width: 120px" onclick="location.href='{{ url_for("bond.add_supply", token_address=token_address)}}'">追加発行 <i class="fa fa-plus-circle"></i></button>
+                    {% endif %}
                 </div>
                 <div class="form-group">
                     {{ form.faceValue.label(class="col-md-2 control-label") }}
@@ -94,7 +83,6 @@
                         {{ form.interestRate(class="form-control", disabled=True) }}
                     </div>
                 </div>
-
                 <div class="form-group">
                     {{ form.interestPaymentDate1.label(class="col-md-2 control-label") }}
                     <div class="col-md-5">
@@ -211,7 +199,7 @@
                 <div class="form-group">
                     {{ form.memo.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
-                        {{ form.memo(class="form-control", disabled=True) }}
+                        {{ form.memo(class="form-control") }}
                     </div>
                 </div>
                 <div class="form-group">
