@@ -40,7 +40,7 @@
                 {% if initial_offering_status %}
                   <button
                     id="stop_initial_offering"
-                    type="button" class="btn btn-danger btn-sm"
+                    type="button" class="btn btn-warning btn-sm"
                     data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中"
                     style="width: 120px">
                     募集申込停止 <i class="fa fa-exclamation-triangle"></i>
@@ -51,7 +51,7 @@
                     type="button" class="btn btn-success btn-sm"
                     data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中"
                     style="width: 120px">
-                    募集申込開始 <i class="fa fa-exclamation-triangle"></i>
+                    募集申込開始
                   </button>
                 {% endif %}
 
@@ -70,16 +70,9 @@
                       type="button" class="btn btn-success btn-sm"
                       data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中"
                       style="width: 120px">
-                      クーポン有効化 <i class="fa fa-exclamation-triangle"></i>
+                      クーポン有効化
                     </button>
                 {% endif %}
-
-              <!-- 追加発行 -->
-                <button
-                  type="button" class="btn btn-default btn-sm" style="width: 120px"
-                  onclick="location.href='{{ url_for("coupon.add_supply", token_address=token_address)}}'">
-                  追加発行 <i class="fa fa-arrow-circle-right"></i>
-                </button>
             </div>
         </div>
         <form class="form-horizontal" method="POST" role="form" action="{{ url_for('coupon.setting', token_address=form.token_address.data) }}">
@@ -102,6 +95,8 @@
                     <div class="col-md-4">
                         {{ form.totalSupply(class="form-control comma-separate", disabled=True) }}
                     </div>
+                    <!-- 追加発行 -->
+                    <button type="button" class="btn btn-default btn-sm" style="width: 120px" onclick="location.href='{{ url_for("coupon.add_supply", token_address=token_address)}}'">追加発行 <i class="fa fa-plus-circle"></i></button>
                 </div>
                 <div class="form-group">
                     {{ form.details.label(class="col-md-2 control-label") }}
