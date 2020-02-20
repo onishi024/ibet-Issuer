@@ -369,7 +369,7 @@ class TestBond(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(10)
+        time.sleep(3)
 
         # 債券詳細設定
         url_setting = self.url_setting + token.token_address
@@ -458,7 +458,6 @@ class TestBond(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(10)
 
         # 債券詳細設定画面を参照
         response = client.get(self.url_setting + token.token_address)
@@ -466,9 +465,120 @@ class TestBond(TestBase):
         assert '<title>債券詳細設定'.encode('utf-8') in response.data
         assert '認定依頼を受け付けました。'.encode('utf-8') in response.data
 
-    # ＜正常系14＞
+    # ＜正常系14_1＞
+    # ＜募集申込開始・停止＞
+    #   初期状態：募集申込停止中（詳細設定画面で確認）
+    def test_normal_14_1(self, app):
+        client = self.client_with_admin_login(app)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
+        token = tokens[0]
+
+        # 詳細設定画面の参照
+        url_setting = self.url_setting + token.token_address
+        response = client.get(url_setting)
+        assert response.status_code == 200
+        assert '<title>債券詳細設定'.encode('utf-8') in response.data
+        assert '募集申込開始'.encode('utf-8') in response.data
+
+    # ＜正常系14_2＞
+    # ＜募集申込開始・停止＞
+    #   募集申込開始　→　詳細設定画面で確認
+    def test_normal_14_2(self, app):
+        client = self.client_with_admin_login(app)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
+        token = tokens[0]
+
+        # 募集申込開始
+        response = client.post(
+            self.url_start_initial_offering,
+            data={
+                'token_address': token.token_address
+            }
+        )
+        assert response.status_code == 302
+        time.sleep(3)
+
+        # 詳細設定画面の参照
+        url_setting = self.url_setting + token.token_address
+        response = client.get(url_setting)
+        assert response.status_code == 200
+        assert '<title>債券詳細設定'.encode('utf-8') in response.data
+        assert '募集申込停止'.encode('utf-8') in response.data
+
+    # ＜正常系14_3＞
+    # ＜募集申込開始・停止＞
+    #   募集申込停止　→　詳細設定画面で確認
+    def test_normal_14_3(self, app):
+        client = self.client_with_admin_login(app)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
+        token = tokens[0]
+
+        # 募集申込停止
+        response = client.post(
+            self.url_stop_initial_offering,
+            data={
+                'token_address': token.token_address
+            }
+        )
+        assert response.status_code == 302
+
+        # 詳細設定画面の参照
+        url_setting = self.url_setting + token.token_address
+        response = client.get(url_setting)
+        assert response.status_code == 200
+        assert '<title>債券詳細設定'.encode('utf-8') in response.data
+        assert '募集申込開始'.encode('utf-8') in response.data
+
+        # 募集申込状態に戻す
+        response = client.post(
+            self.url_start_initial_offering,
+            data={
+                'token_address': token.token_address
+            }
+        )
+        assert response.status_code == 302
+
+    # ＜正常系15_1＞
+    # ＜募集申込一覧参照＞
+    #   0件：募集申込一覧
+    def test_normal_15_1(self, app):
+        client = self.client_with_admin_login(app)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
+        token = tokens[0]
+
+        # 募集申込一覧参照
+        response = client.get(self.url_applications + str(token.token_address))
+        assert response.status_code == 200
+        assert '<title>募集申込一覧'.encode('utf-8') in response.data
+        assert 'データが存在しません'.encode('utf-8') in response.data
+
+    # ＜正常系15_2＞
+    # ＜募集申込一覧参照＞
+    #   1件：募集申込一覧
+    def test_normal_15_2(self, app):
+        client = self.client_with_admin_login(app)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
+        token = tokens[0]
+
+        token_address = str(token.token_address)
+        trader_address = eth_account['trader']['account_address']
+
+        # 募集申込データの作成：投資家
+        bond_apply_for_offering(
+            eth_account['trader'],
+            token_address
+        )
+
+        # 募集申込一覧参照
+        response = client.get(self.url_applications + token_address)
+        assert response.status_code == 200
+        assert '<title>募集申込一覧'.encode('utf-8') in response.data
+        applications = client.get(self.url_get_applications + token_address)
+        assert trader_address.encode('utf-8') in applications.data
+
+    # ＜正常系16＞
     #   償還実施　→　債券一覧で確認
-    def test_normal_14(self, app):
+    def test_normal_16(self, app):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
         token = tokens[0]
         client = self.client_with_admin_login(app)
@@ -479,7 +589,7 @@ class TestBond(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(10)
+        time.sleep(3)
 
         # 債券一覧を参照
         client = self.client_with_admin_login(app)
@@ -490,10 +600,10 @@ class TestBond(TestBase):
         assert 'BOND'.encode('utf-8') in response.data
         assert '償還済'.encode('utf-8') in response.data
 
-    # ＜正常系15_1＞
+    # ＜正常系17_1＞
     # ＜所有者移転＞
     #   所有者移転画面の参照
-    def test_normal_15_1(self, app):
+    def test_normal_17_1(self, app):
         client = self.client_with_admin_login(app)
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
         token = tokens[0]
@@ -507,10 +617,10 @@ class TestBond(TestBase):
         assert '<title>所有者移転'.encode('utf-8') in response.data
         assert ('value="' + str(issuer_address)).encode('utf-8') in response.data
 
-    # ＜正常系15_2＞
+    # ＜正常系17_2＞
     # ＜所有者移転＞
     #   所有者移転処理　→　保有者一覧の参照
-    def test_normal_15_2(self, app):
+    def test_normal_17_2(self, app):
         client = self.client_with_admin_login(app)
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
         token = tokens[0]
@@ -527,7 +637,7 @@ class TestBond(TestBase):
                 'amount': 10
             }
         )
-        assert response.status_code == 302
+        assert response.status_code == 302  # 処理内でSleep
 
         # 保有者一覧の参照
         response = client.get(self.url_get_holders + token.token_address)
@@ -560,115 +670,6 @@ class TestBond(TestBase):
         assert response.status_code == 200
         assert 'テスト債券' == response_data
 
-    # ＜正常系16_1＞
-    # ＜募集申込開始・停止＞
-    #   初期状態：募集申込停止中（詳細設定画面で確認）
-    def test_normal_16_1(self, app):
-        client = self.client_with_admin_login(app)
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
-        token = tokens[0]
-
-        # 詳細設定画面の参照
-        url_setting = self.url_setting + token.token_address
-        response = client.get(url_setting)
-        assert response.status_code == 200
-        assert '<title>債券詳細設定'.encode('utf-8') in response.data
-        assert '募集申込開始'.encode('utf-8') in response.data
-
-    # ＜正常系16_2＞
-    # ＜募集申込開始・停止＞
-    #   募集申込開始　→　詳細設定画面で確認
-    def test_normal_16_2(self, app):
-        client = self.client_with_admin_login(app)
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
-        token = tokens[0]
-
-        # 募集申込開始
-        response = client.post(
-            self.url_start_initial_offering,
-            data={
-                'token_address': token.token_address
-            }
-        )
-        assert response.status_code == 302
-
-        # 詳細設定画面の参照
-        url_setting = self.url_setting + token.token_address
-        response = client.get(url_setting)
-        assert response.status_code == 200
-        assert '<title>債券詳細設定'.encode('utf-8') in response.data
-        assert '募集申込停止'.encode('utf-8') in response.data
-
-    # ＜正常系16_3＞
-    # ＜募集申込開始・停止＞
-    #   募集申込停止　→　詳細設定画面で確認
-    def test_normal_16_3(self, app):
-        client = self.client_with_admin_login(app)
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
-        token = tokens[0]
-
-        # 募集申込停止
-        response = client.post(
-            self.url_stop_initial_offering,
-            data={
-                'token_address': token.token_address
-            }
-        )
-        assert response.status_code == 302
-
-        # 詳細設定画面の参照
-        url_setting = self.url_setting + token.token_address
-        response = client.get(url_setting)
-        assert response.status_code == 200
-        assert '<title>債券詳細設定'.encode('utf-8') in response.data
-        assert '募集申込開始'.encode('utf-8') in response.data
-
-        # 募集申込状態に戻す
-        response = client.post(
-            self.url_start_initial_offering,
-            data={
-                'token_address': token.token_address
-            }
-        )
-        assert response.status_code == 302
-
-    # ＜正常系17_1＞
-    # ＜募集申込一覧参照＞
-    #   0件：募集申込一覧
-    def test_normal_17_1(self, app):
-        client = self.client_with_admin_login(app)
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
-        token = tokens[0]
-
-        # 募集申込一覧参照
-        response = client.get(self.url_applications + str(token.token_address))
-        assert response.status_code == 200
-        assert '<title>募集申込一覧'.encode('utf-8') in response.data
-        assert 'データが存在しません'.encode('utf-8') in response.data
-
-    # ＜正常系17_2＞
-    # ＜募集申込一覧参照＞
-    #   1件：募集申込一覧
-    def test_normal_17_2(self, app):
-        client = self.client_with_admin_login(app)
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
-        token = tokens[0]
-
-        token_address = str(token.token_address)
-        trader_address = eth_account['trader']['account_address']
-
-        # 募集申込データの作成：投資家
-        bond_apply_for_offering(
-            eth_account['trader'],
-            token_address
-        )
-
-        # 募集申込一覧参照
-        response = client.get(self.url_applications + token_address)
-        assert response.status_code == 200
-        assert '<title>募集申込一覧'.encode('utf-8') in response.data
-        applications = client.get(self.url_get_applications + token_address)
-        assert trader_address.encode('utf-8') in applications.data
 
     #############################################################################
     # テスト（エラー系）
