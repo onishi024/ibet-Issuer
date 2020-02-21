@@ -68,6 +68,11 @@ def issue():
 
     if request.method == 'POST':
         if form.validate():
+            # 小数点有効桁数チェック
+            if not form.check_decimal_places(4, form.interestRate):
+                flash('金利は小数点以下4桁以下で入力してください。', 'error')
+                return render_template('bond/issue.html', form=form, form_description=form.description)
+
             # Exchangeコントラクトのアドレスフォーマットチェック
             if not Web3.isAddress(form.tradableExchange.data):
                 flash('DEXアドレスは有効なアドレスではありません。', 'error')
@@ -110,7 +115,7 @@ def issue():
                 form.totalSupply.data,
                 to_checksum_address(form.tradableExchange.data),
                 form.faceValue.data,
-                int(form.interestRate.data * 1000),
+                int(form.interestRate.data * 10000),
                 interestPaymentDate_string,
                 form.redemptionDate.data,
                 redemption_value,
@@ -512,7 +517,7 @@ def setting(token_address):
     symbol = TokenContract.functions.symbol().call()
     totalSupply = TokenContract.functions.totalSupply().call()
     faceValue = TokenContract.functions.faceValue().call()
-    interestRate = TokenContract.functions.interestRate().call() * 0.001
+    interestRate = TokenContract.functions.interestRate().call() * 0.0001
     interestPaymentDate_string = TokenContract.functions.interestPaymentDate().call()
     interestPaymentDate = json.loads(interestPaymentDate_string.replace("'", '"').replace('True', 'true').replace('False', 'false'))
     redemptionDate = TokenContract.functions.redemptionDate().call()
@@ -994,7 +999,7 @@ def sell(token_address):
     symbol = TokenContract.functions.symbol().call()
     totalSupply = TokenContract.functions.totalSupply().call()
     faceValue = TokenContract.functions.faceValue().call()
-    interestRate = TokenContract.functions.interestRate().call() * 0.001
+    interestRate = TokenContract.functions.interestRate().call() * 0.0001
     interestPaymentDate_string = TokenContract.functions.interestPaymentDate().call()
     interestPaymentDate = \
         json.loads(interestPaymentDate_string.replace("'", '"').replace('True', 'true').replace('False', 'false'))
