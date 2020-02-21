@@ -68,9 +68,9 @@ def issue():
 
     if request.method == 'POST':
         if form.validate():
-            # 小数点有効桁数チェック
+            # 年利：小数点有効桁数チェック
             if not form.check_decimal_places(4, form.interestRate):
-                flash('金利は小数点以下4桁以下で入力してください。', 'error')
+                flash('年利は小数点4桁以下で入力してください。', 'error')
                 return render_template('bond/issue.html', form=form, form_description=form.description)
 
             # Exchangeコントラクトのアドレスフォーマットチェック
