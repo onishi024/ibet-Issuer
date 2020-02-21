@@ -1,4 +1,6 @@
 # -*- coding:utf-8 -*-
+import math
+
 from flask_wtf import FlaskForm as Form
 
 from wtforms import IntegerField, StringField, TextAreaField, \
@@ -51,10 +53,10 @@ class IssueForm(Form):
 
     interestRate = DecimalField(
         "年利（税引前）（%） *",
-        places=3,
+        places=4,
         validators=[
             InputRequired('年利は必須です。'),
-            NumberRange(min=0.000, max=100.000, message='年利は100％が上限です。')
+            NumberRange(min=0.0000, max=100.0000, message='年利は100％が上限です。')
         ]
     )
 
@@ -276,6 +278,17 @@ class IssueForm(Form):
             'privacy_policy': '商品に関するプライバシーポリシーを入力してください。',
         }
 
+    def check_decimal_places(self, places, field):
+        """
+        有効小数点桁数チェック
+        :param places: 小数点以下有効桁数：整数
+        :param field: 桁数チェックを行う変数：小数（Form）
+        :return: 真偽値
+        """
+        float_data = float(field.data * 10**places)  # 小数点以下5桁目が存在する場合は小数になる
+        int_data = int(field.data * 10**places)  # 小数部は切り捨て
+        return math.isclose(int_data, float_data)
+
 
 # トークン設定変更
 class SettingForm(Form):
@@ -284,7 +297,7 @@ class SettingForm(Form):
     symbol = StringField("略称", validators=[])
     totalSupply = IntegerField("総発行量", validators=[])
     faceValue = IntegerField("額面（円）", validators=[])
-    interestRate = DecimalField("年利（税引前）（%）", places=3, validators=[])
+    interestRate = DecimalField("年利（税引前）（%）", places=4, validators=[])
     interestPaymentDate1 = StringField("利払日１", validators=[])
     interestPaymentDate2 = StringField("利払日２", validators=[])
     interestPaymentDate3 = StringField("利払日３", validators=[])
@@ -374,7 +387,7 @@ class SellTokenForm(Form):
     symbol = StringField("略称", validators=[])
     totalSupply = IntegerField("総発行量", validators=[])
     faceValue = IntegerField("額面（円）", validators=[])
-    interestRate = DecimalField("年利（税引前）（%）", places=3, validators=[])
+    interestRate = DecimalField("年利（税引前）（%）", places=4, validators=[])
     interestPaymentDate1 = StringField("利払日１", validators=[])
     interestPaymentDate2 = StringField("利払日２", validators=[])
     interestPaymentDate3 = StringField("利払日３", validators=[])
