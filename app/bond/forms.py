@@ -287,9 +287,6 @@ class IssueForm(Form):
         """
         float_data = float(field.data * 10**places)  # 小数点以下5桁目が存在する場合は小数になる
         int_data = int(field.data * 10**places)  # 小数部は切り捨て
-        print(float_data)
-        print(int_data)
-        print(math.isclose(int_data, float_data))
         return math.isclose(int_data, float_data)
 
 
