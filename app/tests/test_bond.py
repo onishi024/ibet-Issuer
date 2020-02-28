@@ -56,7 +56,8 @@ class TestBond(TestBase):
             "address1": "日本橋11-1",
             "address2": "東京マンション１０１"
         },
-        "email": "abcd1234@aaa.bbb.cc"
+        "email": "abcd1234@aaa.bbb.cc",
+        "birth": "20190902"
     }
 
     trader_personal_info_json = {
@@ -68,7 +69,8 @@ class TestBond(TestBase):
             "address1": "勝どき6丁目３－２",
             "address2": "ＴＴＴ６０１２"
         },
-        "email": "abcd1234@aaa.bbb.cc"
+        "email": "abcd1234@aaa.bbb.cc",
+        "birth": "20191102"
     }
 
     key = RSA.importKey(open('data/rsa/public.pem').read())
@@ -367,7 +369,7 @@ class TestBond(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(10)
+        time.sleep(3)
 
         # 債券詳細設定
         url_setting = self.url_setting + token.token_address
@@ -406,6 +408,7 @@ class TestBond(TestBase):
         assert '1234567' == response_data[0]['postal_code']
         assert '東京都中央区日本橋11-1東京マンション１０１' == response_data[0]['address']
         assert 'abcd1234@aaa.bbb.cc' == response_data[0]['email']
+        assert '20190902' == response_data[0]['birth_date']
         assert 1000000 == response_data[0]['balance']
         assert 0 == response_data[0]['commitment']
 
@@ -455,7 +458,6 @@ class TestBond(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(10)
 
         # 債券詳細設定画面を参照
         response = client.get(self.url_setting + token.token_address)
@@ -463,102 +465,10 @@ class TestBond(TestBase):
         assert '<title>債券詳細設定'.encode('utf-8') in response.data
         assert '認定依頼を受け付けました。'.encode('utf-8') in response.data
 
-    # ＜正常系14＞
-    #   償還実施　→　債券一覧で確認
-    def test_normal_14(self, app):
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
-        token = tokens[0]
-        client = self.client_with_admin_login(app)
-        response = client.post(
-            self.url_redeem,
-            data={
-                'token_address': token.token_address
-            }
-        )
-        assert response.status_code == 302
-        time.sleep(10)
-
-        # 債券一覧を参照
-        client = self.client_with_admin_login(app)
-        response = client.get(self.url_list)
-        assert response.status_code == 200
-        assert '<title>債券一覧'.encode('utf-8') in response.data
-        assert 'テスト債券'.encode('utf-8') in response.data
-        assert 'BOND'.encode('utf-8') in response.data
-        assert '償還済'.encode('utf-8') in response.data
-
-    # ＜正常系15_1＞
-    # ＜所有者移転＞
-    #   所有者移転画面の参照
-    def test_normal_15_1(self, app):
-        client = self.client_with_admin_login(app)
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
-        token = tokens[0]
-        issuer_address = \
-            to_checksum_address(eth_account['issuer']['account_address'])
-
-        # 所有者移転画面の参照
-        response = client.get(
-            self.url_transfer_ownership + token.token_address + '/' + issuer_address)
-        assert response.status_code == 200
-        assert '<title>所有者移転'.encode('utf-8') in response.data
-        assert ('value="' + str(issuer_address)).encode('utf-8') in response.data
-
-    # ＜正常系15_2＞
-    # ＜所有者移転＞
-    #   所有者移転処理　→　保有者一覧の参照
-    def test_normal_15_2(self, app):
-        client = self.client_with_admin_login(app)
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
-        token = tokens[0]
-        issuer_address = \
-            to_checksum_address(eth_account['issuer']['account_address'])
-        trader_address = \
-            to_checksum_address(eth_account['trader']['account_address'])
-
-        # 所有者移転
-        response = client.post(
-            self.url_transfer_ownership + token.token_address + '/' + issuer_address,
-            data={
-                'to_address': trader_address,
-                'amount': 10
-            }
-        )
-        assert response.status_code == 302
-
-        # 保有者一覧の参照
-        response = client.get(self.url_get_holders + token.token_address)
-        response_data_list = json.loads(response.data)
-
-        assert response.status_code == 200
-        for response_data in response_data_list:
-            if eth_account['issuer']['account_address'] == response_data['account_address']:  # issuer
-                assert '株式会社１' == response_data['name']
-                assert '1234567' == response_data['postal_code']
-                assert '東京都中央区日本橋11-1東京マンション１０１' == response_data['address']
-                assert 'abcd1234@aaa.bbb.cc' == response_data['email']
-                assert 999990 == response_data['balance']
-                assert 0 == response_data['commitment']
-            elif eth_account['trader']['account_address'] == response_data['account_address']:  # trader
-                assert 'ﾀﾝﾀｲﾃｽﾄ' == response_data['name']
-                assert '1040053' == response_data['postal_code']
-                assert '東京都中央区勝どき6丁目３－２ＴＴＴ６０１２' == response_data['address']
-                assert 'abcd1234@aaa.bbb.cc' == response_data['email']
-                assert 10 == response_data['balance']
-                assert 0 == response_data['commitment']
-            else:
-                pytest.raises(AssertionError)
-
-        # トークン名APIの参照
-        response = client.get(self.url_get_token_name + token.token_address)
-        response_data = json.loads(response.data)
-        assert response.status_code == 200
-        assert 'テスト債券' == response_data
-
-    # ＜正常系16_1＞
+    # ＜正常系14_1＞
     # ＜募集申込開始・停止＞
     #   初期状態：募集申込停止中（詳細設定画面で確認）
-    def test_normal_16_1(self, app):
+    def test_normal_14_1(self, app):
         client = self.client_with_admin_login(app)
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
         token = tokens[0]
@@ -570,10 +480,10 @@ class TestBond(TestBase):
         assert '<title>債券詳細設定'.encode('utf-8') in response.data
         assert '募集申込開始'.encode('utf-8') in response.data
 
-    # ＜正常系16_2＞
+    # ＜正常系14_2＞
     # ＜募集申込開始・停止＞
     #   募集申込開始　→　詳細設定画面で確認
-    def test_normal_16_2(self, app):
+    def test_normal_14_2(self, app):
         client = self.client_with_admin_login(app)
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
         token = tokens[0]
@@ -586,6 +496,7 @@ class TestBond(TestBase):
             }
         )
         assert response.status_code == 302
+        time.sleep(3)
 
         # 詳細設定画面の参照
         url_setting = self.url_setting + token.token_address
@@ -594,10 +505,10 @@ class TestBond(TestBase):
         assert '<title>債券詳細設定'.encode('utf-8') in response.data
         assert '募集申込停止'.encode('utf-8') in response.data
 
-    # ＜正常系16_3＞
+    # ＜正常系14_3＞
     # ＜募集申込開始・停止＞
     #   募集申込停止　→　詳細設定画面で確認
-    def test_normal_16_3(self, app):
+    def test_normal_14_3(self, app):
         client = self.client_with_admin_login(app)
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
         token = tokens[0]
@@ -627,10 +538,10 @@ class TestBond(TestBase):
         )
         assert response.status_code == 302
 
-    # ＜正常系17_1＞
+    # ＜正常系15_1＞
     # ＜募集申込一覧参照＞
     #   0件：募集申込一覧
-    def test_normal_17_1(self, app):
+    def test_normal_15_1(self, app):
         client = self.client_with_admin_login(app)
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
         token = tokens[0]
@@ -641,10 +552,10 @@ class TestBond(TestBase):
         assert '<title>募集申込一覧'.encode('utf-8') in response.data
         assert 'データが存在しません'.encode('utf-8') in response.data
 
-    # ＜正常系17_2＞
+    # ＜正常系15_2＞
     # ＜募集申込一覧参照＞
     #   1件：募集申込一覧
-    def test_normal_17_2(self, app):
+    def test_normal_15_2(self, app):
         client = self.client_with_admin_login(app)
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
         token = tokens[0]
@@ -665,6 +576,101 @@ class TestBond(TestBase):
         applications = client.get(self.url_get_applications + token_address)
         assert trader_address.encode('utf-8') in applications.data
 
+    # ＜正常系16＞
+    #   償還実施　→　債券一覧で確認
+    def test_normal_16(self, app):
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
+        token = tokens[0]
+        client = self.client_with_admin_login(app)
+        response = client.post(
+            self.url_redeem,
+            data={
+                'token_address': token.token_address
+            }
+        )
+        assert response.status_code == 302
+        time.sleep(3)
+
+        # 債券一覧を参照
+        client = self.client_with_admin_login(app)
+        response = client.get(self.url_list)
+        assert response.status_code == 200
+        assert '<title>債券一覧'.encode('utf-8') in response.data
+        assert 'テスト債券'.encode('utf-8') in response.data
+        assert 'BOND'.encode('utf-8') in response.data
+        assert '償還済'.encode('utf-8') in response.data
+
+    # ＜正常系17_1＞
+    # ＜所有者移転＞
+    #   所有者移転画面の参照
+    def test_normal_17_1(self, app):
+        client = self.client_with_admin_login(app)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
+        token = tokens[0]
+        issuer_address = \
+            to_checksum_address(eth_account['issuer']['account_address'])
+
+        # 所有者移転画面の参照
+        response = client.get(
+            self.url_transfer_ownership + token.token_address + '/' + issuer_address)
+        assert response.status_code == 200
+        assert '<title>所有者移転'.encode('utf-8') in response.data
+        assert ('value="' + str(issuer_address)).encode('utf-8') in response.data
+
+    # ＜正常系17_2＞
+    # ＜所有者移転＞
+    #   所有者移転処理　→　保有者一覧の参照
+    def test_normal_17_2(self, app):
+        client = self.client_with_admin_login(app)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
+        token = tokens[0]
+        issuer_address = \
+            to_checksum_address(eth_account['issuer']['account_address'])
+        trader_address = \
+            to_checksum_address(eth_account['trader']['account_address'])
+
+        # 所有者移転
+        response = client.post(
+            self.url_transfer_ownership + token.token_address + '/' + issuer_address,
+            data={
+                'to_address': trader_address,
+                'amount': 10
+            }
+        )
+        assert response.status_code == 302  # 処理内でSleep
+
+        # 保有者一覧の参照
+        response = client.get(self.url_get_holders + token.token_address)
+        response_data_list = json.loads(response.data)
+
+        assert response.status_code == 200
+        for response_data in response_data_list:
+            if eth_account['issuer']['account_address'] == response_data['account_address']:  # issuer
+                assert '株式会社１' == response_data['name']
+                assert '1234567' == response_data['postal_code']
+                assert '東京都中央区日本橋11-1東京マンション１０１' == response_data['address']
+                assert 'abcd1234@aaa.bbb.cc' == response_data['email']
+                assert '20190902' == response_data['birth_date']
+                assert 999990 == response_data['balance']
+                assert 0 == response_data['commitment']
+            elif eth_account['trader']['account_address'] == response_data['account_address']:  # trader
+                assert 'ﾀﾝﾀｲﾃｽﾄ' == response_data['name']
+                assert '1040053' == response_data['postal_code']
+                assert '東京都中央区勝どき6丁目３－２ＴＴＴ６０１２' == response_data['address']
+                assert 'abcd1234@aaa.bbb.cc' == response_data['email']
+                assert '20191102' == response_data['birth_date']
+                assert 10 == response_data['balance']
+                assert 0 == response_data['commitment']
+            else:
+                pytest.raises(AssertionError)
+
+        # トークン名APIの参照
+        response = client.get(self.url_get_token_name + token.token_address)
+        response_data = json.loads(response.data)
+        assert response.status_code == 200
+        assert 'テスト債券' == response_data
+
+
     #############################################################################
     # テスト（エラー系）
     #############################################################################
@@ -681,7 +687,7 @@ class TestBond(TestBase):
         )
         assert response.status_code == 200
         assert '<title>債券新規発行'.encode('utf-8') in response.data
-        assert '商品名は必須です。'.encode('utf-8') in response.data
+        assert '名称は必須です。'.encode('utf-8') in response.data
         assert '略称は必須です。'.encode('utf-8') in response.data
         assert '総発行量は必須です。'.encode('utf-8') in response.data
         assert '発行目的は必須です。'.encode('utf-8') in response.data

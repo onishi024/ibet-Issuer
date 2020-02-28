@@ -21,7 +21,7 @@
         <div class="box-header with-border">
             <h3 class="box-title"><small>{{ token_address }}</small></h3>
             <div class="pull-right box-tools">
-              <!-- 公開/公開済 -->
+                <!-- 公開/公開済 -->
                 {% if isRelease %}
                   <button class="btn btn-default btn-sm" type="button" style="width: 120px" disabled>
                     公開済
@@ -35,12 +35,11 @@
                     公開 <i class="fa fa-exclamation-triangle"></i>
                   </button>
                 {% endif %}
-
-              <!-- 募集申込開始/停止 -->
+                <!-- 募集申込開始/停止 -->
                 {% if initial_offering_status %}
                   <button
                     id="stop_initial_offering"
-                    type="button" class="btn btn-danger btn-sm"
+                    type="button" class="btn btn-warning btn-sm"
                     data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中"
                     style="width: 120px">
                     募集申込停止 <i class="fa fa-exclamation-triangle"></i>
@@ -51,11 +50,10 @@
                     type="button" class="btn btn-success btn-sm"
                     data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中"
                     style="width: 120px">
-                    募集申込開始 <i class="fa fa-exclamation-triangle"></i>
+                    募集申込開始
                   </button>
                 {% endif %}
-
-              <!-- 取扱開始/停止 -->
+                <!-- 取扱開始/停止 -->
                 {% if status %}
                   <button 
                     id="invalid"
@@ -70,16 +68,9 @@
                     type="button" class="btn btn-success btn-sm"
                     data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中"
                     style="width: 120px">
-                    取扱開始 <i class="fa fa-exclamation-triangle"></i>
+                    取扱開始
                   </button>
                 {% endif %}
-
-              <!-- 追加発行 -->
-                <button
-                  type="button" class="btn btn-default btn-sm" style="width: 120px"
-                  onclick="location.href='{{ url_for("membership.add_supply", token_address=token_address)}}'">
-                  追加発行 <i class="fa fa-arrow-circle-right"></i>
-                </button>
             </div>
         </div>
         <form class="form-horizontal" method="POST" role="form" action="{{ url_for('membership.setting', token_address=form.token_address.data) }}">
@@ -102,6 +93,8 @@
                     <div class="col-md-4">
                         {{ form.totalSupply(class="form-control comma-separate", disabled=True) }}
                     </div>
+                    <!-- 追加発行 -->
+                    <button type="button" class="btn btn-default btn-sm" style="width: 120px" onclick="location.href='{{ url_for("membership.add_supply", token_address=token_address)}}'">追加発行 <i class="fa fa-plus-circle"></i></button>
                 </div>
                 <div class="form-group">
                     {{ form.details.label(class="col-md-2 control-label") }}
@@ -139,12 +132,6 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    {{ form.tradableExchange.label(class="col-md-2 control-label") }}
-                    <div class="col-md-8">
-                        {{ form.tradableExchange(class="form-control", autocomplete="off") }}
-                    </div>
-                </div>
-                <div class="form-group">
                     {{ form.image_1.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
                         {{ form.image_1(class="form-control", autocomplete="off") }}
@@ -172,6 +159,12 @@
                     {{ form.privacy_policy.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
                         {{ form.privacy_policy(class="form-control", autocomplete="off") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.tradableExchange.label(class="col-md-2 control-label") }}
+                    <div class="col-md-8">
+                        {{ form.tradableExchange(class="form-control", autocomplete="off") }}
                     </div>
                 </div>
                 <div class="form-group">

@@ -131,6 +131,7 @@ def issue():
             return render_template('coupon/issue.html', form=form, form_description=form.description)
 
     else:  # GET
+        form.tradableExchange.data = Config.IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS
         return render_template('coupon/issue.html', form=form, form_description=form.description)
 
 
@@ -427,7 +428,7 @@ def setting(token_address):
                 TokenContract.functions.setDetails(form.details.data). \
                     transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
 
-            # リターン詳細変更
+            # 特典詳細変更
             if form.return_details.data != return_details:
                 gas = TokenContract.estimateGas().setReturnDetails(form.return_details.data)
                 TokenContract.functions.setReturnDetails(form.return_details.data). \
@@ -1119,14 +1120,13 @@ def used_csv_download():
 
     # ファイル作成
     f = io.StringIO()
-    if usage_list[0] is not '[':
-        for usage in usage_list:
-            # データ行
-            data_row = \
-                token_name + ',' + token_address + ',' + str(usage["block_timestamp"]) + ',' + str(
-                    usage["consumer"]) + ',' \
-                + str(usage["value"]) + '\n'
-            f.write(data_row)
+    for usage in usage_list:
+        # データ行
+        data_row = \
+            token_name + ',' + token_address + ',' + str(usage["block_timestamp"]) + ',' + str(
+                usage["consumer"]) + ',' \
+            + str(usage["value"]) + '\n'
+        f.write(data_row)
 
     now = datetime.now()
     res = make_response()
@@ -1172,9 +1172,11 @@ def holders_csv_download():
     for holder in holders:
         # データ行
         data_row = \
-            token_name + ',' + token_address + ',' + holder["account_address"] + ',' + str(holder["balance"]) + ',' \
-            + str(holder["used"]) + ',' + holder["name"] + ',' + holder["postal_code"] + ',' + holder["address"] + ',' \
-            + holder["email"] + '\n'
+            token_name + ',' + token_address + ',' + holder["account_address"] + ',' + \
+            str(holder["balance"]) + ',' + str(holder["used"]) + ',' + \
+            holder["name"] + ',' + holder["birth_date"] + ',' + \
+            holder["postal_code"] + ',' + holder["address"] + ',' + \
+            holder["email"] + '\n'
         f.write(data_row)
 
     now = datetime.now()
@@ -1220,8 +1222,11 @@ def get_holders(token_address):
     personalinfo_address = Config.PERSONAL_INFO_CONTRACT_ADDRESS
     PersonalInfoContract = Contract.get_contract('PersonalInfo', personalinfo_address)
 
+    # トークン発行体アドレスを取得
+    token_owner = TokenContract.functions.owner().call()
+
     # 残高を保有している可能性のあるアドレスを抽出する
-    holders_temp = [TokenContract.functions.owner().call()]
+    holders_temp = [token_owner]
     event_filter = TokenContract.eventFilter(
         'Transfer', {
             'filter': {},
@@ -1239,21 +1244,42 @@ def get_holders(token_address):
             holders_uniq.append(x)
 
     # 保有者情報抽出
-    token_owner = TokenContract.functions.owner().call()
     holders = []
     for account_address in holders_uniq:
         balance = TokenContract.functions.balanceOf(account_address).call()
         used = TokenContract.functions.usedOf(account_address).call()
         if balance > 0 or used > 0:  # 残高（balance）、または使用済（used）が存在する情報を抽出
-            encrypted_info = PersonalInfoContract.functions. \
-                personal_info(account_address, token_owner).call()[2]
-            if encrypted_info == '' or cipher is None:
-                name = '--'
-                address = '--'
-                postal_code = '--'
-                email = '--'
+            if account_address == token_owner:
+                is_owner = True
+            else:
+                is_owner = False
+
+            # 保有者情報：初期値（個人情報なし）
+            holder = {
+                'account_address': account_address,
+                'name': '--',
+                'postal_code': '--',
+                'email': '--',
+                'address': '--',
+                'birth_date': '--',
+                'balance': balance,
+                'used': used,
+                'is_owner': is_owner
+            }
+
+            # 暗号化個人情報取得
+            try:
+                encrypted_info = PersonalInfoContract.functions.personal_info(account_address, token_owner).call()[2]
+            except Exception as e:
+                logger.warning(e)
+                encrypted_info = ''
+                pass
+
+            if encrypted_info == '' or cipher is None:  # 情報が空の場合、デフォルト値の設定
+                pass
             else:
                 try:
+                    # 個人情報復号化
                     ciphertext = base64.decodebytes(encrypted_info.encode('utf-8'))
                     message = cipher.decrypt(ciphertext)
                     personal_info_json = json.loads(message)
@@ -1261,22 +1287,24 @@ def get_holders(token_address):
                     address = personal_info_json['address']['prefecture'] + personal_info_json['address']['city'] + personal_info_json['address']['address1'] + personal_info_json['address']['address2'] if personal_info_json['address']['prefecture'] and personal_info_json['address']['city'] and personal_info_json['address']['address1'] else "--"
                     postal_code = personal_info_json['address']['postal_code'] if personal_info_json['address']['postal_code'] else "--"
                     email = personal_info_json['email'] if personal_info_json['email'] else "--"
+                    birth_date = personal_info_json['birth'] if personal_info_json['birth'] else "--"
+                    # 保有者情報（個人情報あり）
+                    holder = {
+                        'account_address': account_address,
+                        'name': name,
+                        'postal_code': postal_code,
+                        'email': email,
+                        'address': address,
+                        'birth_date': birth_date,
+                        'balance': balance,
+                        'used': used,
+                        'is_owner': is_owner
+                    }
                 except Exception as e:
                     logger.warning(e)
-                    name = '--'
-                    address = '--'
-                    postal_code = '--'
-                    email = '--'
                     pass
-            holders.append({
-                'account_address': account_address,
-                'name': name,
-                'postal_code': postal_code,
-                'email': email,
-                'address': address,
-                'balance': balance,
-                'used': used
-            })
+
+            holders.append(holder)
 
     return json.dumps(holders)
 

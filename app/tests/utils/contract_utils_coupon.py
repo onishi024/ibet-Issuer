@@ -11,7 +11,6 @@ def apply_for_offering(invoker, token_address):
     web3.eth.defaultAccount = invoker['account_address']
     web3.personal.unlockAccount(invoker['account_address'], invoker['password'])
     TokenContract = Contract.get_contract('IbetCoupon', token_address)
-    gas = TokenContract.estimateGas().applyForOffering('abcdefgh')
     tx_hash = TokenContract.functions.applyForOffering('abcdefgh'). \
-        transact({'from': invoker['account_address'], 'gas': gas})
+        transact({'from': invoker['account_address'], 'gas': 4000000})
     web3.eth.waitForTransactionReceipt(tx_hash)

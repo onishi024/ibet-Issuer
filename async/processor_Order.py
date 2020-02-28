@@ -144,7 +144,11 @@ class Processor:
         exchange_address_list = []
         for token in tokens:
             token_contract = Contract.get_contract('IbetStandardTokenInterface', token.token_address)
-            exchange_address = token_contract.functions.tradableExchange().call()
+            try:
+                exchange_address = token_contract.functions.tradableExchange().call()
+            except Exception as e:
+                logging.warning(e)
+                continue
             if exchange_address not in exchange_address_list:
                 exchange_address_list.append(exchange_address)
                 if token.template_id == 1:  # 債券トークン

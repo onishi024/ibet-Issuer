@@ -13,15 +13,15 @@ class IssueForm(Form):
     yyyymmdd_regexp = '^(19[0-9]{2}|20[0-9]{2})(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])$'
 
     name = StringField(
-        "名称",
+        "名称 *",
         validators=[
             DataRequired('名称は必須です。'),
-            Length(min=1, max=50, message='名称は50文字以内で入力してください。')
+            Length(min=1, max=100, message='名称は100文字以内で入力してください。')
         ]
     )
 
     symbol = StringField(
-        "略称",
+        "略称 *",
         validators=[
             DataRequired('略称は必須です。'),
             Regexp('^[a-zA-Z0-9]+$', message='略称は半角英数字で入力してください。'),
@@ -30,7 +30,7 @@ class IssueForm(Form):
     )
 
     totalSupply = IntegerField(
-        "総発行量",
+        "総発行量 *",
         validators=[
             DataRequired('総発行量は必須です。'),
             NumberRange(min=1, max=100000000, message='総発行量は100,000,000が上限です。'),
@@ -45,9 +45,9 @@ class IssueForm(Form):
     )
 
     return_details = TextAreaField(
-        "リターン詳細",
+        "特典詳細",
         validators=[
-            Length(max=2000, message='リターン詳細は2,000文字以内で入力してください。')
+            Length(max=2000, message='特典詳細は2,000文字以内で入力してください。')
         ]
     )
 
@@ -112,7 +112,7 @@ class IssueForm(Form):
     privacy_policy = TextAreaField(
         "プライバシーポリシー",
         validators=[
-            Length(max=2000, message='プライバシーポリシーは2,000文字以内で入力してください。')
+            Length(max=5000, message='プライバシーポリシーは5,000文字以内で入力してください。')
         ]
     )
 
@@ -127,7 +127,7 @@ class IssueForm(Form):
             'symbol': '商品を識別するための略称を設定してください。',
             'totalSupply': '',
             'details': '商品の詳細説明を入力してください。',
-            'return_details': '商品を購入することで得られるリターン（特典）の説明を入力してください。',
+            'return_details': '商品を購入することで得られる特典の説明を入力してください。',
             'memo': '商品の補足情報を入力してください。',
             'expirationDate': '商品の有効期限を入力してください。',
             'transferable': '譲渡可能な場合は「なし」、譲渡不可の場合は「あり」を選択してください。',
@@ -155,9 +155,9 @@ class SettingForm(Form):
         ])
 
     return_details = TextAreaField(
-        "リターン詳細",
+        "特典詳細",
         validators=[
-            Length(max=2000, message='リターン詳細は2,000文字以内で入力してください。')
+            Length(max=2000, message='特典詳細は2,000文字以内で入力してください。')
         ]
     )
 
@@ -220,7 +220,7 @@ class SettingForm(Form):
     privacy_policy = TextAreaField(
         "プライバシーポリシー",
         validators=[
-            Length(max=2000, message='プライバシーポリシーは2,000文字以内で入力してください。')
+            Length(max=5000, message='プライバシーポリシーは5,000文字以内で入力してください。')
         ]
     )
 
@@ -248,7 +248,7 @@ class SellForm(Form):
     symbol = StringField("略称", validators=[])
     totalSupply = IntegerField("総発行量", validators=[])
     details = TextAreaField("会員権詳細", validators=[])
-    return_details = TextAreaField("リターン詳細", validators=[])
+    return_details = TextAreaField("特典詳細", validators=[])
     expirationDate = StringField("有効期限", validators=[])
     memo = TextAreaField("メモ", validators=[])
     tradableExchange = StringField("DEXアドレス", validators=[])

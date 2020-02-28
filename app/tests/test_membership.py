@@ -108,7 +108,8 @@ class TestMembership(TestBase):
             "address1": "日本橋11-1",
             "address2": "東京マンション１０１"
         },
-        "email": "abcd1234@aaa.bbb.cc"
+        "email": "abcd1234@aaa.bbb.cc",
+        "birth": "20190902"
     }
 
     trader_personal_info_json = {
@@ -120,7 +121,8 @@ class TestMembership(TestBase):
             "address1": "勝どき6丁目３－２",
             "address2": "ＴＴＴ６０１２"
         },
-        "email": "abcd1234@aaa.bbb.cc"
+        "email": "abcd1234@aaa.bbb.cc",
+        "birth": "20191102"
     }
 
     key = RSA.importKey(open('data/rsa/public.pem').read())
@@ -631,6 +633,7 @@ class TestMembership(TestBase):
         assert '1234567' == response_data[0]['postal_code']
         assert '東京都中央区日本橋11-1東京マンション１０１' == response_data[0]['address']
         assert 'abcd1234@aaa.bbb.cc' == response_data[0]['email']
+        assert '20190902' == response_data[0]['birth_date']
         assert 10 == response_data[0]['balance']
         assert 1000000 == response_data[0]['commitment']
 
@@ -678,6 +681,7 @@ class TestMembership(TestBase):
                 assert '1234567' == response_data['postal_code']
                 assert '東京都中央区日本橋11-1東京マンション１０１' == response_data['address']
                 assert 'abcd1234@aaa.bbb.cc' == response_data['email']
+                assert '20190902' == response_data['birth_date']
                 assert 10 == response_data['balance']
                 assert 999980 == response_data['commitment']
             elif eth_account['trader']['account_address'] == response_data['account_address']:  # trader
@@ -685,6 +689,7 @@ class TestMembership(TestBase):
                 assert '1040053' == response_data['postal_code']
                 assert '東京都中央区勝どき6丁目３－２ＴＴＴ６０１２' == response_data['address']
                 assert 'abcd1234@aaa.bbb.cc' == response_data['email']
+                assert '20191102' == response_data['birth_date']
                 assert 20 == response_data['balance']
                 assert 0 == response_data['commitment']
             else:
@@ -771,6 +776,7 @@ class TestMembership(TestBase):
                 assert '1234567' == response_data['postal_code']
                 assert '東京都中央区日本橋11-1東京マンション１０１' == response_data['address']
                 assert 'abcd1234@aaa.bbb.cc' == response_data['email']
+                assert '20190902' == response_data['birth_date']
                 assert 0 == response_data['balance']
                 assert 999980 == response_data['commitment']
             elif eth_account['trader']['account_address'] == response_data['account_address']:  # trader
@@ -778,6 +784,7 @@ class TestMembership(TestBase):
                 assert '1040053' == response_data['postal_code']
                 assert '東京都中央区勝どき6丁目３－２ＴＴＴ６０１２' == response_data['address']
                 assert 'abcd1234@aaa.bbb.cc' == response_data['email']
+                assert '20191102' == response_data['birth_date']
                 assert 30 == response_data['balance']
                 assert 0 == response_data['commitment']
             else:
@@ -959,6 +966,7 @@ class TestMembership(TestBase):
         assert '1234567' == response_data[0]['postal_code']
         assert '東京都中央区日本橋11-1東京マンション１０１' == response_data[0]['address']
         assert 'abcd1234@aaa.bbb.cc' == response_data[0]['email']
+        assert '20190902' == response_data[0]['birth_date']
         assert 999970 == response_data[0]['balance']
         assert 0 == response_data[0]['commitment']
 
@@ -968,6 +976,7 @@ class TestMembership(TestBase):
         assert '1040053' == response_data[1]['postal_code']
         assert '東京都中央区勝どき6丁目３－２ＴＴＴ６０１２' == response_data[1]['address']
         assert 'abcd1234@aaa.bbb.cc' == response_data[1]['email']
+        assert '20191102' == response_data[1]['birth_date']
         assert 40 == response_data[1]['balance']
         assert 0 == response_data[1]['commitment']
 
