@@ -17,7 +17,7 @@ from sqlalchemy import func
 
 from app import db
 from app.util import eth_unlock_account, get_holder
-from app.models import Token, Order, Agreement, AgreementStatus, CouponBulkTransfer
+from app.models import Token, Order, Agreement, AgreementStatus, CouponBulkTransfer, AddressType
 from app.contracts import Contract
 from config import Config
 from . import coupon
@@ -1249,10 +1249,13 @@ def get_holders(token_address):
         balance = TokenContract.functions.balanceOf(account_address).call()
         used = TokenContract.functions.usedOf(account_address).call()
         if balance > 0 or used > 0:  # 残高（balance）、または使用済（used）が存在する情報を抽出
+            # アドレス種別判定
             if account_address == token_owner:
-                is_owner = True
+                address_type = AddressType.ISSUER.value
+            elif account_address == Config.IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS:
+                address_type = AddressType.EXCHANGE.value
             else:
-                is_owner = False
+                address_type = AddressType.OTHERS.value
 
             # 保有者情報：初期値（個人情報なし）
             holder = {
@@ -1264,7 +1267,7 @@ def get_holders(token_address):
                 'birth_date': '--',
                 'balance': balance,
                 'used': used,
-                'is_owner': is_owner
+                'address_type': address_type
             }
 
             # 暗号化個人情報取得
@@ -1298,7 +1301,7 @@ def get_holders(token_address):
                         'birth_date': birth_date,
                         'balance': balance,
                         'used': used,
-                        'is_owner': is_owner
+                        'address_type': address_type
                     }
                 except Exception as e:
                     logger.warning(e)

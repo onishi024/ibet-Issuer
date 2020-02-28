@@ -214,3 +214,10 @@ class Transfer(db.Model):
     @classmethod
     def get_id(cls):
         return Transfer.id
+
+
+# アドレスタイプ
+class AddressType(Enum):
+    OTHERS = 0
+    ISSUER = 1
+    EXCHANGE = 2
