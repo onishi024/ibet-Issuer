@@ -178,10 +178,16 @@ $(function () {
     $('#data_table').DataTable({
         columns: [
         {
-            data: 'is_owner',
+            data: 'address_type',
             title: '',
             render: function (data) {
-                return '<div align="center"><span class="badge bg-green">' + data + '</span></div>'
+                if (data == 0) {
+                    return '<div align="center"></div>'
+                } else if (data == 1) {
+                    return '<div align="center"><span class="badge bg-green">発行体</span></div>'
+                } else {
+                    return '<div align="center"><span class="badge bg-default">DEX</span></div>'
+                }
             }
         }, {
             data: 'account_address',
@@ -222,11 +228,16 @@ $(function () {
             dataSrc : function (json) {
             returnJson = [];
             for(index in json){
+                if (json[index]['address_type'] == 2) {
+                    balance = '(' + json[index]['balance'].toLocaleString() + ')'
+                } else {
+                    balance = json[index]['balance'].toLocaleString()
+                }
                 returnJsonRaw = {
-                    is_owner : json[index]['is_owner'] ? '発行体' : '',
+                    address_type : json[index]['address_type'] ? json[index]['address_type'] : 0,
                     account_address : json[index]['account_address'] ? json[index]['account_address'] : '--',
                     name: json[index]['name'] ? json[index]['name'] : '--',
-                    balance: json[index]['balance'] ? json[index]['balance'].toLocaleString() : 0,
+                    balance: balance,
                     commitment: json[index]['commitment'] ? json[index]['commitment'].toLocaleString() : 0,
                     holder_detail: json[index]['account_address'] ? holder_detail_url_base.replace('account_address', json[index]['account_address']) : '--',
                     token_transfer: json[index]['account_address'] ? holder_transfer_url_base.replace('account_address', json[index]['account_address']) : '--'
