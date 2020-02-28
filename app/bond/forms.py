@@ -19,10 +19,10 @@ class IssueForm(Form):
     yyyymmdd_regexp = '^(19[0-9]{2}|20[0-9]{2})(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])$'
 
     name = StringField(
-        "商品名 *",
+        "名称 *",
         validators=[
-            DataRequired('商品名は必須です。'),
-            Length(min=1, max=50, message='商品名は50文字以内で入力してください。')
+            DataRequired('名称は必須です。'),
+            Length(min=1, max=100, message='名称は100文字以内で入力してください。')
         ]
     )
 
@@ -293,7 +293,7 @@ class IssueForm(Form):
 # トークン設定変更
 class SettingForm(Form):
     token_address = StringField("トークンアドレス", validators=[])
-    name = StringField("商品名", validators=[])
+    name = StringField("名称", validators=[])
     symbol = StringField("略称", validators=[])
     totalSupply = IntegerField("総発行量", validators=[])
     faceValue = IntegerField("額面（円）", validators=[])
@@ -383,7 +383,7 @@ class SettingForm(Form):
 # 売出
 class SellTokenForm(Form):
     token_address = StringField("トークンアドレス", validators=[])
-    name = StringField("商品名", validators=[])
+    name = StringField("名称", validators=[])
     symbol = StringField("略称", validators=[])
     totalSupply = IntegerField("総発行量", validators=[])
     faceValue = IntegerField("額面（円）", validators=[])
@@ -430,7 +430,7 @@ class SellTokenForm(Form):
 class CancelOrderForm(Form):
     order_id = IntegerField("注文ID", validators=[])
     token_address = StringField("トークンアドレス", validators=[])
-    name = StringField("商品名", validators=[])
+    name = StringField("名称", validators=[])
     symbol = StringField("略称", validators=[])
     totalSupply = IntegerField("総発行量", validators=[])
     amount = IntegerField("売出中数量（残注文数量）", validators=[])

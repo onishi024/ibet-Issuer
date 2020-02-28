@@ -16,7 +16,7 @@ class IssueForm(Form):
         "名称 *",
         validators=[
             DataRequired('名称は必須です。'),
-            Length(min=1, max=50, message='名称は50文字以内で入力してください。')
+            Length(min=1, max=100, message='名称は100文字以内で入力してください。')
         ]
     )
 

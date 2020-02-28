@@ -16,7 +16,7 @@ class IssueCouponForm(Form):
         "クーポン名 *",
         validators=[
             DataRequired('クーポン名は必須です。'),
-            Length(min=1, max=50, message='クーポン名は50文字以内で入力してください。')
+            Length(min=1, max=100, message='クーポン名は100文字以内で入力してください。')
         ]
     )
 
