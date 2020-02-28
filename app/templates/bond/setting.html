@@ -293,6 +293,35 @@
         </div>
     </div>
 </div>
+<!-- プロンプトダイアログ -->
+<div class="modal" id="modal-prompt" tabindex="-1" role="dialog" aria-labelledby="staticModalLabel" aria-hidden="true"
+    data-show="true" data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="modal-action" id="modal-prompt-form" method="POST">
+                <input type="hidden" name="token_address" value="{{ form.token_address.data }}">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                    <h4 id="modal-prompt-title">modal</h4>
+                </div>
+                <div class="modal-body">
+                    <p class="recipient" id="modal-prompt-text">modal</p>
+                    <!-- 名称チェック -->
+                    <div class="form-group">
+                        <input type="text" class="form-control" autocomplete="off" id="prompt-form" name="name" />
+                        <input type="text" name="dummy" style="display:none;">
+                        <p class="text-danger" id="modal-prompt-validate">名称が一致しません。償還対象の債券であることを確認してください。</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" id="modal-prompt-cancel" data-dismiss="modal">キャンセル</button>
+                    <button type="button" class="btn btn-danger" id="modal-prompt-ok" data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中">　 OK 　</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script type="text/javascript">
   $(document).ready(function() {
       $('#modal-ok').click(function () {
@@ -304,14 +333,27 @@
               $this.button('reset');
           }, 10000);
       });
+      $('#modal-prompt-ok').click(function () {
+          $('#modal-prompt-cancel').prop('disabled', true);
+          var $this = $(this);
+          var name_confirm = $('#prompt-form').val();
+          if (name_confirm != null && name_confirm.length > 0) {
+              var name = "{{ form.name.data }}"
+              if (name === name_confirm) {
+                  $this.parents('form').submit();
+                  $this.button('loading');
+                  setTimeout(function () {
+                      $this.button('reset');
+                  }, 10000);
+              } else {
+                  $('#modal-prompt-cancel').prop('disabled', false);
+                  $('#modal-prompt-validate').show();
+              }
+          }
+      });
       $('#release').click(function(){
         $('#modal-text').html('この商品をウォレット向けに公開します。よろしいですか？');
         $('#modal-form').attr('action', "{{ url_for('bond.release') }}");
-        $('#modal-confirm').modal();
-      });
-      $('#redeem').click(function(){
-        $('#modal-text').html('この商品を償還します。よろしいですか？');
-        $('#modal-form').attr('action', "{{ url_for('bond.redeem') }}");
         $('#modal-confirm').modal();
       });
       $('#start_initial_offering').click(function(){
@@ -323,6 +365,13 @@
         $("#modal-text").html("現在この商品は募集申込中です。<br>この商品の募集申込受付を停止します。よろしいですか？");
         $('#modal-form').attr('action', "{{ url_for('bond.stop_initial_offering') }}");
         $('#modal-confirm').modal();
+      });
+      $('#redeem').click(function(){
+        $('#modal-prompt-title').html('償還時確認 <i class="fa fa-exclamation-triangle"></i>');
+        $('#modal-prompt-text').html('この操作は元に戻すことができません。<br>念のため、償還を行う債券の名称を入力してください。');
+        $('#modal-prompt-form').attr('action', "{{ url_for('bond.redeem') }}");
+        $('#modal-prompt-validate').hide();
+        $('#modal-prompt').modal();
       });
   });
   $(function () {
