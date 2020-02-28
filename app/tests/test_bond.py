@@ -687,7 +687,7 @@ class TestBond(TestBase):
         )
         assert response.status_code == 200
         assert '<title>債券新規発行'.encode('utf-8') in response.data
-        assert '商品名は必須です。'.encode('utf-8') in response.data
+        assert '名称は必須です。'.encode('utf-8') in response.data
         assert '略称は必須です。'.encode('utf-8') in response.data
         assert '総発行量は必須です。'.encode('utf-8') in response.data
         assert '発行目的は必須です。'.encode('utf-8') in response.data
