@@ -15,7 +15,7 @@ from sqlalchemy import func, desc
 
 from app import db
 from app.util import eth_unlock_account, get_holder
-from app.models import Token, Certification, Order, Agreement, AgreementStatus, Transfer
+from app.models import Token, Certification, Order, Agreement, AgreementStatus, Transfer, AddressType
 from app.contracts import Contract
 from config import Config
 from . import bond
@@ -345,10 +345,13 @@ def get_holders(token_address):
             commitment = 0
             pass
         if balance > 0 or commitment > 0:  # 残高（balance）、または注文中の残高（commitment）が存在する情報を抽出
+            # アドレス種別判定
             if account_address == token_owner:
-                is_owner = True
+                address_type = AddressType.ISSUER.value
+            elif account_address == tradable_exchange:
+                address_type = AddressType.EXCHANGE.value
             else:
-                is_owner = False
+                address_type = AddressType.OTHERS.value
 
             # 保有者情報：初期値（個人情報なし）
             holder = {
@@ -360,7 +363,7 @@ def get_holders(token_address):
                 'birth_date': '--',
                 'balance': balance,
                 'commitment': commitment,
-                'is_owner': is_owner
+                'address_type': address_type
             }
 
             # 暗号化個人情報取得
@@ -394,7 +397,7 @@ def get_holders(token_address):
                         'birth_date': birth_date,
                         'balance': balance,
                         'commitment': commitment,
-                        'is_owner': is_owner
+                        'address_type': address_type
                     }
                 except Exception as e: # 復号化処理でエラーが発生した場合、デフォルト値を設定
                     logger.error(e)
