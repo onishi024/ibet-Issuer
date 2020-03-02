@@ -555,7 +555,7 @@ class TestBond(TestBase):
     # ＜正常系15_2＞
     # ＜募集申込一覧参照＞
     #   1件：募集申込一覧
-    def test_normal_15_2(self, app):
+    def test_normal_15_2(self, db, app):
         client = self.client_with_admin_login(app)
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
         token = tokens[0]
@@ -565,6 +565,7 @@ class TestBond(TestBase):
 
         # 募集申込データの作成：投資家
         bond_apply_for_offering(
+            db,
             eth_account['trader'],
             token_address
         )

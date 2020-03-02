@@ -887,7 +887,7 @@ class TestMembership(TestBase):
     # ＜募集申込一覧参照＞
     #   1件：募集申込一覧
     #   ※Token_1が対象
-    def test_normal_9_2(self, app):
+    def test_normal_9_2(self, db, app):
         client = self.client_with_admin_login(app)
         token = TestMembership.get_token(0)
         token_address = str(token.token_address)
@@ -895,6 +895,7 @@ class TestMembership(TestBase):
 
         # 募集申込データの作成：投資家
         apply_for_offering(
+            db,
             eth_account['trader'],
             token_address
         )
