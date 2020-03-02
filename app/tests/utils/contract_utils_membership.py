@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
+
+from app.models import ApplyFor
 from config import Config
 from app.contracts import Contract
 
@@ -50,10 +52,18 @@ def confirm_agreement(invoker, membership_exchange, order_id, agreement_id):
 
 
 # 会員権：募集申込
-def apply_for_offering(invoker, token_address):
+def apply_for_offering(db, invoker, token_address):
     web3.eth.defaultAccount = invoker['account_address']
     web3.personal.unlockAccount(invoker['account_address'], invoker['password'])
     TokenContract = Contract.get_contract('IbetMembership', token_address)
     tx_hash = TokenContract.functions.applyForOffering('abcdefgh'). \
         transact({'from': invoker['account_address'], 'gas': 4000000})
     web3.eth.waitForTransactionReceipt(tx_hash)
+
+    # 募集申込イベント登録
+    apply_for = ApplyFor()
+    apply_for.transaction_hash = tx_hash
+    apply_for.token_address = token_address
+    apply_for.account_address = invoker['account_address']
+    apply_for.amount = 1
+    db.session.add(apply_for)

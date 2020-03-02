@@ -15,7 +15,7 @@ from sqlalchemy import func, desc
 
 from app import db
 from app.util import eth_unlock_account, get_holder
-from app.models import Token, Certification, Order, Agreement, AgreementStatus, Transfer, AddressType
+from app.models import Token, Certification, Order, Agreement, AgreementStatus, Transfer, AddressType, ApplyFor
 from app.contracts import Contract
 from config import Config
 from . import bond
@@ -1226,26 +1226,14 @@ def get_applications(token_address):
     PersonalInfoContract = Contract.get_contract('PersonalInfo', Config.PERSONAL_INFO_CONTRACT_ADDRESS)
 
     # 申込（ApplyFor）イベントを検索
-    try:
-        event_filter = TokenContract.eventFilter(
-            'ApplyFor', {
-                'filter': {},
-                'fromBlock': 'earliest'
-            }
-        )
-        entries = event_filter.get_all_entries()
-        list_temp = []
-        for entry in entries:
-            list_temp.append(entry['args']['accountAddress'])
-    except Exception as e:
-        logger.error(e)
-        list_temp = []
+    apply_for_events = ApplyFor.query.\
+        distinct(ApplyFor.account_address).\
+        filter(ApplyFor.token_address == token_address).all()
 
-    # アカウントのリストをユニークにする
+    # 募集申込の履歴が存在するアカウントアドレスのリストを作成
     account_list = []
-    for item in list_temp:
-        if item not in account_list:
-            account_list.append(item)
+    for event in apply_for_events:
+        account_list.append(event.account_address)
 
     token_owner = TokenContract.functions.owner().call()
     applications = []
@@ -1325,6 +1313,8 @@ def allot(token_address, account_address):
                     'bond/allot.html',
                     token_address=token_address, account_address=account_address, form=form
                 )
+            # NOTE: 募集申込一覧が非同期で更新されるため、5秒待つ
+            time.sleep(5)
             flash('処理を受け付けました。', 'success')
             return redirect(url_for('.applications', token_address=token_address))
         else:
@@ -1396,6 +1386,8 @@ def transfer_allotment(token_address, account_address):
                     'bond/transfer_allotment.html',
                     token_address=token_address, account_address=account_address, form=form
                 )
+            # NOTE: 募集申込一覧が非同期で更新されるため、5秒待つ
+            time.sleep(5)
             flash('処理を受け付けました。', 'success')
             return redirect(url_for('.applications', token_address=token_address))
         else:

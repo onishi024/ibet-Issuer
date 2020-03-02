@@ -801,7 +801,7 @@ class TestCoupon(TestBase):
     # ＜募集申込一覧参照＞
     #   1件：募集申込一覧
     #   ※Token_1が対象
-    def test_normal_13_2(self, app):
+    def test_normal_13_2(self, db, app):
         client = self.client_with_admin_login(app)
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
         token = tokens[0]
@@ -811,6 +811,7 @@ class TestCoupon(TestBase):
 
         # 募集申込データの作成：投資家
         apply_for_offering(
+            db,
             eth_account['trader'],
             token_address
         )

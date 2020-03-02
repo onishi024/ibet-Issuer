@@ -17,7 +17,7 @@ from sqlalchemy import func
 
 from app import db
 from app.util import eth_unlock_account, get_holder
-from app.models import Token, Order, Agreement, AgreementStatus, CouponBulkTransfer, AddressType
+from app.models import Token, Order, Agreement, AgreementStatus, CouponBulkTransfer, AddressType, ApplyFor
 from app.contracts import Contract
 from config import Config
 from . import coupon
@@ -211,30 +211,17 @@ def get_applications(token_address):
     PersonalInfoContract = \
         Contract.get_contract('PersonalInfo', personalinfo_address)
 
-    try:
-        event_filter = TokenContract.eventFilter(
-            'ApplyFor', {
-                'filter': {},
-                'fromBlock': 'earliest'
-            }
-        )
-        entries = event_filter.get_all_entries()
-        list_temp = []
-        for entry in entries:
-            list_temp.append(entry['args']['accountAddress'])
-    except Exception as e:
-        logger.error(e)
-        list_temp = []
-        pass
+    # 申込（ApplyFor）イベントを検索
+    apply_for_events = ApplyFor.query. \
+        distinct(ApplyFor.account_address). \
+        filter(ApplyFor.token_address == token_address).all()
 
-    # 口座リストをユニークにする
+    # 募集申込の履歴が存在するアカウントアドレスのリストを作成
     account_list = []
-    for item in list_temp:
-        if item not in account_list:
-            account_list.append(item)
+    for event in apply_for_events:
+        account_list.append(event.account_address)
 
     token_owner = TokenContract.functions.owner().call()
-
     applications = []
     for account_address in account_list:
         encrypted_info = PersonalInfoContract.functions. \
@@ -937,6 +924,8 @@ def allocate(token_address, account_address):
             from_address = Config.ETH_ACCOUNT
             to_address = to_checksum_address(account_address)
             transfer_token(TokenContract, from_address, to_address, amount)
+            # NOTE: 募集申込一覧が非同期で更新されるため、5秒待つ
+            time.sleep(5)
             flash('処理を受け付けました。割当完了までに数分程かかることがあります。', 'success')
             return redirect(url_for('.applications', token_address=token_address))
         else:
