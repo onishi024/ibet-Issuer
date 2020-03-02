@@ -11,7 +11,7 @@ from Crypto.Cipher import PKCS1_OAEP
 
 from flask import request, redirect, url_for, flash, make_response, render_template, abort
 from flask_login import login_required
-from sqlalchemy import func, desc, distinct
+from sqlalchemy import func, desc
 
 from app import db
 from app.util import eth_unlock_account, get_holder
