@@ -11,7 +11,7 @@ from eth_utils import to_checksum_address
 from config import Config
 from .conftest import TestBase
 from .utils.account_config import eth_account
-from .utils.contract_utils_common import processor_issue_event
+from .utils.contract_utils_common import processor_issue_event, index_transfer_event
 from .utils.contract_utils_membership import \
     get_latest_orderid, get_latest_agreementid, take_buy, confirm_agreement, apply_for_offering
 from .utils.contract_utils_personal_info import register_personal_info
@@ -932,7 +932,7 @@ class TestMembership(TestBase):
     #   ※7_2, 9_2の後に実施
     #   割当（募集申込）処理　→　保有者一覧参照
     #   ※Token_1が対象
-    def test_normal_10_2(self, app):
+    def test_normal_10_2(self, db, app):
         client = self.client_with_admin_login(app)
         token = TestMembership.get_token(0)
         token_address = str(token.token_address)
@@ -949,7 +949,16 @@ class TestMembership(TestBase):
         url = self.url_allocate + '/' + token_address + '/' + trader_address
         response = client.post(url, data={'amount': 10})
         assert response.status_code == 302
-        time.sleep(10)
+
+        # Transferイベント登録
+        index_transfer_event(
+            db,
+            '0xac22f75bae96f8e9f840f980dfefc1d497979341d3106aeb25e014483c3f414a',  # 仮のトランザクションハッシュ
+            token.token_address,
+            issuer_address,
+            trader_address,
+            10
+        )
 
         # 保有者一覧の参照
         response = client.get(self.url_holders + token_address)
