@@ -234,8 +234,7 @@ def list():
 @login_required
 def holders(token_address):
     logger.info('bond/holders')
-    return render_template('bond/holders.html',
-                           token_address=token_address)
+    return render_template('bond/holders.html', token_address=token_address)
 
 
 # 保有者リストCSVダウンロード
@@ -313,20 +312,16 @@ def get_holders(token_address):
     # 個人情報コントラクト接続
     PersonalInfoContract = Contract.get_contract('PersonalInfo', personal_info_address)
 
-    # トークン発行体アドレスを取得
-    token_owner = TokenContract.functions.owner().call()
+    # Transferイベントを検索
+    transfer_events = Transfer.query. \
+        distinct(Transfer.account_address_to). \
+        filter(Transfer.token_address == token_address).all()
 
     # 残高を保有している可能性のあるアドレスを抽出する
+    token_owner = TokenContract.functions.owner().call()  # トークン発行体アドレスを取得
     holders_temp = [token_owner]  # 発行体アドレスをリストに追加
-    event_filter = TokenContract.eventFilter(
-        'Transfer', {
-            'filter': {},
-            'fromBlock': 'earliest'
-        }
-    )
-    entries = event_filter.get_all_entries()
-    for entry in entries:
-        holders_temp.append(entry['args']['to'])  # 宛先アドレスを収集する
+    for event in transfer_events:
+        holders_temp.append(event.account_address_to)
 
     # 口座リストをユニークにする
     holders_uniq = []
@@ -456,6 +451,8 @@ def transfer_ownership(token_address, account_address):
             txid = TokenContract.functions.transferFrom(from_address, to_address, amount). \
                 transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
             web3.eth.waitForTransactionReceipt(txid)
+            # NOTE: 保有者一覧が非同期で更新されるため、5秒待つ
+            time.sleep(5)
             return redirect(url_for('.holders', token_address=token_address))
         else:
             flash_errors(form)

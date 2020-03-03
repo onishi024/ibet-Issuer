@@ -17,7 +17,7 @@ from sqlalchemy import func
 
 from app import db
 from app.util import eth_unlock_account, get_holder
-from app.models import Token, Order, Agreement, AgreementStatus, CouponBulkTransfer, AddressType, ApplyFor
+from app.models import Token, Order, Agreement, AgreementStatus, CouponBulkTransfer, AddressType, ApplyFor, Transfer
 from app.contracts import Contract
 from config import Config
 from . import coupon
@@ -989,6 +989,8 @@ def transfer_ownership(token_address, account_address):
                 )
             txid = transfer_token(TokenContract, from_address, to_address, amount)
             web3.eth.waitForTransactionReceipt(txid)
+            # NOTE: 保有者一覧が非同期で更新されるため、5秒待つ
+            time.sleep(5)
             return redirect(url_for('.holders', token_address=token_address))
         else:
             flash_errors(form)
@@ -1207,24 +1209,20 @@ def get_holders(token_address):
     # Tokenコントラクト接続
     TokenContract = web3.eth.contract(address=token_address, abi=token_abi)
 
-    # PersonalInfo Contract
+    # 個人情報コントラクト接続
     personalinfo_address = Config.PERSONAL_INFO_CONTRACT_ADDRESS
     PersonalInfoContract = Contract.get_contract('PersonalInfo', personalinfo_address)
 
-    # トークン発行体アドレスを取得
-    token_owner = TokenContract.functions.owner().call()
+    # Transferイベントを検索
+    transfer_events = Transfer.query. \
+        distinct(Transfer.account_address_to). \
+        filter(Transfer.token_address == token_address).all()
 
     # 残高を保有している可能性のあるアドレスを抽出する
-    holders_temp = [token_owner]
-    event_filter = TokenContract.eventFilter(
-        'Transfer', {
-            'filter': {},
-            'fromBlock': 'earliest'
-        }
-    )
-    entries = event_filter.get_all_entries()
-    for entry in entries:
-        holders_temp.append(entry['args']['to'])
+    token_owner = TokenContract.functions.owner().call()  # トークン発行体アドレスを取得
+    holders_temp = [token_owner]  # 発行体アドレスをリストに追加
+    for event in transfer_events:
+        holders_temp.append(event.account_address_to)
 
     # 口座リストをユニークにする
     holders_uniq = []
