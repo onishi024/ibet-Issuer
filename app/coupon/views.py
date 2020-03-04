@@ -1274,7 +1274,12 @@ def get_holders(token_address):
                     message = cipher.decrypt(ciphertext)
                     personal_info_json = json.loads(message)
                     name = personal_info_json['name'] if personal_info_json['name'] else "--"
-                    address = personal_info_json['address']['prefecture'] + personal_info_json['address']['city'] + personal_info_json['address']['address1'] + personal_info_json['address']['address2'] if personal_info_json['address']['prefecture'] and personal_info_json['address']['city'] and personal_info_json['address']['address1'] else "--"
+                    if personal_info_json['address']['prefecture'] and personal_info_json['address']['city'] and personal_info_json['address']['address1']:
+                        address = personal_info_json['address']['prefecture'] + personal_info_json['address']['city']
+                        if personal_info_json['address']['address1'] != "":
+                            address = address + "　" + personal_info_json['address']['address1']
+                        if personal_info_json['address']['address2'] != "":
+                            address = address + "　" + personal_info_json['address']['address2']
                     postal_code = personal_info_json['address']['postal_code'] if personal_info_json['address']['postal_code'] else "--"
                     email = personal_info_json['email'] if personal_info_json['email'] else "--"
                     birth_date = personal_info_json['birth'] if personal_info_json['birth'] else "--"
