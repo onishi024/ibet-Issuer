@@ -64,8 +64,8 @@ class TestBond(TestBase):
             "postal_code": "1040053",
             "prefecture": "東京都",
             "city": "中央区",
-            "address1": "勝どき6丁目３－２",
-            "address2": "ＴＴＴ６０１２"
+            "address1": "勝どき1丁目１－２ー３",
+            "address2": ""
         },
         "email": "abcd1234@aaa.bbb.cc",
         "birth": "20191102"
@@ -404,7 +404,7 @@ class TestBond(TestBase):
         assert eth_account['issuer']['account_address'] == response_data[0]['account_address']
         assert '株式会社１' == response_data[0]['name']
         assert '1234567' == response_data[0]['postal_code']
-        assert '東京都中央区日本橋11-1東京マンション１０１' == response_data[0]['address']
+        assert '東京都中央区　日本橋11-1　東京マンション１０１' == response_data[0]['address']
         assert 'abcd1234@aaa.bbb.cc' == response_data[0]['email']
         assert '20190902' == response_data[0]['birth_date']
         assert 1000000 == response_data[0]['balance']
@@ -656,7 +656,7 @@ class TestBond(TestBase):
             if eth_account['issuer']['account_address'] == response_data['account_address']:  # issuer
                 assert '株式会社１' == response_data['name']
                 assert '1234567' == response_data['postal_code']
-                assert '東京都中央区日本橋11-1東京マンション１０１' == response_data['address']
+                assert '東京都中央区　日本橋11-1　東京マンション１０１' == response_data['address']
                 assert 'abcd1234@aaa.bbb.cc' == response_data['email']
                 assert '20190902' == response_data['birth_date']
                 assert 999990 == response_data['balance']
@@ -665,7 +665,7 @@ class TestBond(TestBase):
             elif eth_account['trader']['account_address'] == response_data['account_address']:  # trader
                 assert 'ﾀﾝﾀｲﾃｽﾄ' == response_data['name']
                 assert '1040053' == response_data['postal_code']
-                assert '東京都中央区勝どき6丁目３－２ＴＴＴ６０１２' == response_data['address']
+                assert '東京都中央区　勝どき1丁目１－２ー３' == response_data['address']
                 assert 'abcd1234@aaa.bbb.cc' == response_data['email']
                 assert '20191102' == response_data['birth_date']
                 assert 10 == response_data['balance']
