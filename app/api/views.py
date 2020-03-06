@@ -131,9 +131,9 @@ def bond_holders(token_address):
                     ciphertext = base64.decodebytes(encrypted_info.encode('utf-8'))
                     message = cipher.decrypt(ciphertext)
                     personal_info_json = json.loads(message)
+
                     name = personal_info_json['name'] if personal_info_json['name'] else "--"
-                    if personal_info_json['address']['prefecture'] and personal_info_json['address']['city'] and \
-                            personal_info_json['address']['address1']:
+                    if personal_info_json['address']['prefecture'] and personal_info_json['address']['city'] and personal_info_json['address']['address1']:
                         address = personal_info_json['address']['prefecture'] + personal_info_json['address']['city']
                         if personal_info_json['address']['address1'] != "":
                             address = address + "　" + personal_info_json['address']['address1']
@@ -141,10 +141,10 @@ def bond_holders(token_address):
                             address = address + "　" + personal_info_json['address']['address2']
                     else:
                         address = "--"
-                    postal_code = personal_info_json['address']['postal_code'] if personal_info_json['address'][
-                        'postal_code'] else "--"
+                    postal_code = personal_info_json['address']['postal_code'] if personal_info_json['address']['postal_code'] else "--"
                     email = personal_info_json['email'] if personal_info_json['email'] else "--"
                     birth_date = personal_info_json['birth'] if personal_info_json['birth'] else "--"
+
                     # 保有者情報（個人情報あり）
                     holder = {
                         'account_address': account_address,
