@@ -8,7 +8,7 @@ from datetime import datetime
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 
-from flask import request, redirect, url_for, flash, make_response, render_template, abort
+from flask import request, redirect, url_for, flash, make_response, render_template, abort, jsonify
 from flask_login import login_required
 from sqlalchemy import func
 
@@ -178,7 +178,7 @@ def get_applications(token_address):
         }
         applications.append(application)
 
-    return json.dumps(applications)
+    return jsonify(applications)
 
 
 ####################################################
@@ -265,8 +265,8 @@ def holders_csv_download():
     logger.info('membership/holders_csv_download')
 
     token_address = request.form.get('token_address')
-    holders = json.loads(get_holders(token_address))
-    token_name = json.loads(get_token_name(token_address))
+    holders = json.loads(get_holders(token_address).data)
+    token_name = json.loads(get_token_name(token_address).data)
 
     f = io.StringIO()
     for holder in holders:
@@ -404,6 +404,8 @@ def get_holders(token_address):
                             address = address + "　" + personal_info_json['address']['address1']
                         if personal_info_json['address']['address2'] != "":
                             address = address + "　" + personal_info_json['address']['address2']
+                    else:
+                        address = "--"
                     postal_code = personal_info_json['address']['postal_code'] if personal_info_json['address']['postal_code'] else "--"
                     email = personal_info_json['email'] if personal_info_json['email'] else "--"
                     birth_date = personal_info_json['birth'] if personal_info_json['birth'] else "--"
@@ -425,7 +427,7 @@ def get_holders(token_address):
 
             holders.append(holder)
 
-    return json.dumps(holders)
+    return jsonify(holders)
 
 
 @membership.route('/get_token_name/<string:token_address>', methods=['GET'])
@@ -441,7 +443,7 @@ def get_token_name(token_address):
 
     token_name = TokenContract.functions.name().call()
 
-    return json.dumps(token_name)
+    return jsonify(token_name)
 
 
 ####################################################

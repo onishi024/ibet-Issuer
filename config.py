@@ -31,6 +31,9 @@ class Config:
     SSL_DISABLE = False
     PERMANENT_SESSION_LIFETIME = timedelta(minutes=30)
 
+    JWT_AUTH_URL_RULE = '/api/auth'
+    JWT_AUTH_USERNAME_KEY = 'login_id'
+
     SQLALCHEMY_DATABASE_URI = \
         os.environ.get('DATABASE_URL') or 'postgresql://issueruser:issuerpass@localhost:5432/issuerdb'
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
