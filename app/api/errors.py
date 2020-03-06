@@ -6,6 +6,11 @@ logger = getLogger('api')
 
 
 def bad_request(message):
+    """
+    入力値エラー（400）
+    :param message: エラーメッセージ
+    :return: HTTPレスポンス
+    """
     response = jsonify({
         'description': message,
         'error': 'Bad Request',
@@ -16,6 +21,11 @@ def bad_request(message):
 
 
 def unauthorized(message):
+    """
+    認証エラー（401）
+    :param message: エラーメッセージ
+    :return: HTTPレスポンス
+    """
     response = jsonify({
         'description': message,
         'error': 'Authorization Required',
@@ -26,6 +36,11 @@ def unauthorized(message):
 
 
 def forbidden(message):
+    """
+    権限エラー（400）
+    :param message: エラーメッセージ
+    :return: HTTPレスポンス
+    """
     response = jsonify({
         'description': message,
         'error': 'Forbidden',
@@ -36,6 +51,10 @@ def forbidden(message):
 
 
 def internal_server_error():
+    """
+    内部エラー（500）
+    :return: HTTPレスポンス
+    """
     response = jsonify({
         'error': 'Internal Server Error',
         'status_code': 500
@@ -46,4 +65,9 @@ def internal_server_error():
 
 @api.errorhandler(ValidationError)
 def validation_error(e):
+    """
+    バリデーションエラー
+    :param e: Exception
+    :return: HTTPレスポンス
+    """
     return bad_request(e.args[0])
