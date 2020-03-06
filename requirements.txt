@@ -23,6 +23,7 @@ eth-typing==2.2.1
 eth-utils==1.8.4
 ethereum==2.3.0
 Flask==1.1.1
+Flask-JWT==0.3.2
 Flask-Login==0.4.0
 Flask-Mail==0.9.1
 Flask-Migrate==2.0.2
@@ -57,6 +58,7 @@ py-solc==2.1.0
 pycparser==2.18
 pycryptodome==3.9.6
 pyethash==0.1.27
+PyJWT==1.4.2
 pyrsistent==0.15.7
 pysha3==1.0.2
 pytest==3.3.1

@@ -11,7 +11,7 @@ from eth_utils import to_checksum_address
 from config import Config
 from .conftest import TestBase
 from .utils.account_config import eth_account
-from .utils.contract_utils_common import processor_issue_event, index_transfer_event
+from .utils.contract_utils_common import processor_issue_event, index_transfer_event, clean_issue_event
 from .utils.contract_utils_membership import \
     get_latest_orderid, get_latest_agreementid, take_buy, confirm_agreement, apply_for_offering
 from .utils.contract_utils_personal_info import register_personal_info
@@ -1223,3 +1223,9 @@ class TestMembership(TestBase):
         )
         assert response.status_code == 200
         assert '移転数量が残高を超えています。'.encode('utf-8') in response.data
+
+    #############################################################################
+    # 後処理
+    #############################################################################
+    def test_end(self, db):
+        clean_issue_event(db)

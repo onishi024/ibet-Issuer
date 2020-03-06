@@ -2,8 +2,12 @@
 from flask_mail import Mail
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
+from flask_jwt import JWT
 from config import config
 from . import errors
+
+from logging import getLogger
+logger = getLogger('api')
 
 mail = Mail()
 db = SQLAlchemy()
@@ -13,6 +17,20 @@ login_manager.session_protection = 'strong'
 login_manager.login_view = 'auth.login'
 login_manager.login_message = u"ログインが必要です。"
 login_manager.login_message_category = "info"
+
+
+def authenticate(login_id, password):
+    from .models import User
+    logger.info('api/auth')
+    user = User.query.filter_by(login_id=login_id).first()
+    if user and user.verify_password(password):
+        return user
+
+
+def identity(payload):
+    from .models import User
+    user_id = payload['identity']
+    return user_id
 
 
 def create_app(config_name):
@@ -49,6 +67,10 @@ def create_app(config_name):
 
     from .auth import auth as auth_blueprint
     app.register_blueprint(auth_blueprint, url_prefix='/auth')
+
+    jwt = JWT(app, authenticate, identity)
+    from .api import api as api_blueprint
+    app.register_blueprint(api_blueprint, url_prefix='/api')
 
     from .dashboard import dashboard as dashboard_blueprint
     app.register_blueprint(dashboard_blueprint, url_prefix='/dashboard')
