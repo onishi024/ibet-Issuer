@@ -132,8 +132,25 @@ class TestAPI(TestBase):
     #############################################################################
 
     # ＜エラー系1＞
-    #   債券保有者一覧(API)
+    #   入力エラー（存在しないトークン）：400
     def test_error_1(self, app):
+        client, jwt = self.client_with_api_login(app)
+
+        # 保有者一覧の参照
+        response = client.get(
+            self.url_bond_holders + '0x0000000000000000000000000000000000000111',  # 存在しないトークンアドレス
+            headers={'Authorization': 'JWT ' + jwt}
+        )
+        assert response.status_code == 400
+        assert json.loads(response.data.decode('utf-8')) == {
+            'description': 'Invalid token_address',
+            'error': 'Bad Request',
+            'status_code': 400
+        }
+
+    # ＜エラー系2＞
+    #   認証エラー：401
+    def test_error_2(self, app):
         # 発行済みトークン情報を取得
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
         token = tokens[0]
