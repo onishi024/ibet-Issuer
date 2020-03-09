@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:16.04
 
 # make application directory
 RUN mkdir -p /app
@@ -30,11 +30,7 @@ RUN apt-get update -q \
  language-pack-ja-base \
  language-pack-ja \
  git \
- libyaml-cpp-dev && \
- apt-get install -y software-properties-common && \
- add-apt-repository -y ppa:ethereum/ethereum && \
- apt-get update -y && \
- apt-get install -y solc
+ libyaml-cpp-dev
 
 # remove unnessesory package files
 RUN apt clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
