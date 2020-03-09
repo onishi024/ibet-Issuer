@@ -8,3 +8,5 @@ mv ./app/tests/data/rsa/test_public.pem ./data/rsa/public.pem
 
 # test
 python manage.py test -v --cov 
+
+mv coverage.xml ./cov
