@@ -11,11 +11,11 @@ RUN groupadd -g 1000 apl \
 
 # install packages
 RUN apt-get update -q
-RUN dpkg --purge --force-depends libc6-dev
 RUN apt-get install -y --no-install-recommends \
  build-essential \
  ca-certificates \
  curl \
+ libc6-dev \
  libbz2-dev \
  libreadline-dev \
  libsqlite3-dev \
