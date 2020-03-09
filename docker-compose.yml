@@ -1,0 +1,26 @@
+version: "3"
+
+services:
+  postgres-issuer:
+    image: postgres:9.6
+    environment:
+      - POSTGRES_USER=apluser
+      - POSTGRES_PASSWORD=apluserpass
+      - POSTGRES_DB=apldb
+  ganache-cli:
+    image: "trufflesuite/ganache-cli:latest"
+    ports:
+      - "8545:8545"
+  ibet-issuer:
+    build: "."
+    environment:
+      FLASK_CONFIG: "testing"
+      WEB3_HTTP_PROVIDER: "http://quorum:8545"
+      RSA_PASSWORD: "password"
+      TEST_DATABASE_URL: "postgresql://apluser:apluserpass@postgres/apldb"
+    links:
+      - postgres_issuer:postgres
+      - ganache-cli:quorum
+    depends_on:
+      - postgres_issuer
+      - ganache-cli
