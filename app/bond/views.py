@@ -9,7 +9,7 @@ import time
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 
-from flask import request, redirect, url_for, flash, make_response, render_template, abort
+from flask import request, redirect, url_for, flash, make_response, render_template, abort, jsonify
 from flask_login import login_required
 from sqlalchemy import func, desc
 
@@ -54,7 +54,7 @@ def get_token_name(token_address):
 
     token_name = TokenContract.functions.name().call()
 
-    return json.dumps(token_name)
+    return jsonify(token_name)
 
 
 ####################################################
@@ -244,8 +244,8 @@ def holders_csv_download():
     logger.info('bond/holders_csv_download')
 
     token_address = request.form.get('token_address')
-    holders = json.loads(get_holders(token_address))
-    token_name = json.loads(get_token_name(token_address))
+    holders = json.loads(get_holders(token_address).data)
+    token_name = json.loads(get_token_name(token_address).data)
 
     f = io.StringIO()
     for holder in holders:
@@ -407,7 +407,7 @@ def get_holders(token_address):
 
             holders.append(holder)
 
-    return json.dumps(holders)
+    return jsonify(holders)
 
 
 ####################################################
@@ -1274,7 +1274,7 @@ def get_applications(token_address):
         }
         applications.append(application)
 
-    return json.dumps(applications)
+    return jsonify(applications)
 
 
 ####################################################

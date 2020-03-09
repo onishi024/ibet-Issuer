@@ -38,6 +38,15 @@ def processor_issue_event(db):
                     db.session.add(token)
 
 
+def clean_issue_event(db):
+    """
+    発行済みトークンの削除処理
+    :return: なし
+    """
+    Token.query.delete()
+    db.session.execute("ALTER SEQUENCE tokens_id_seq RESTART WITH 1")
+
+
 def index_transfer_event(db, transaction_hash, token_address, account_address_from, account_address_to, amount):
     """
     任意のTransferイベントをDBに登録

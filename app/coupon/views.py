@@ -11,7 +11,7 @@ JST = timezone(timedelta(hours=+9), 'JST')
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 
-from flask import request, redirect, url_for, flash, make_response, render_template, abort
+from flask import request, redirect, url_for, flash, make_response, render_template, abort, jsonify
 from flask_login import login_required
 from sqlalchemy import func
 
@@ -254,7 +254,7 @@ def get_applications(token_address):
         }
         applications.append(application)
 
-    return json.dumps(applications)
+    return jsonify(applications)
 
 
 # トークン公開
@@ -1063,7 +1063,7 @@ def get_usage_history(token_address):
         }
         usage_list.append(usage)
 
-    return json.dumps(usage_list)
+    return jsonify(usage_list)
 
 
 # トークン利用履歴リストCSVダウンロード
@@ -1073,7 +1073,7 @@ def used_csv_download():
     logger.info('coupon/used_csv_download')
 
     token_address = request.form.get('token_address')
-    token_name = json.loads(get_token_name(token_address))
+    token_name = json.loads(get_token_name(token_address).data)
 
     # ABI参照
     token = Token.query.filter(Token.token_address == token_address).first()
@@ -1156,8 +1156,8 @@ def holders_csv_download():
     logger.info('coupon/holders_csv_download')
 
     token_address = request.form.get('token_address')
-    holders = json.loads(get_holders(token_address))
-    token_name = json.loads(get_token_name(token_address))
+    holders = json.loads(get_holders(token_address).data)
+    token_name = json.loads(get_token_name(token_address).data)
 
     f = io.StringIO()
     for holder in holders:
@@ -1280,6 +1280,8 @@ def get_holders(token_address):
                             address = address + "　" + personal_info_json['address']['address1']
                         if personal_info_json['address']['address2'] != "":
                             address = address + "　" + personal_info_json['address']['address2']
+                    else:
+                        address = "--"
                     postal_code = personal_info_json['address']['postal_code'] if personal_info_json['address']['postal_code'] else "--"
                     email = personal_info_json['email'] if personal_info_json['email'] else "--"
                     birth_date = personal_info_json['birth'] if personal_info_json['birth'] else "--"
@@ -1301,7 +1303,7 @@ def get_holders(token_address):
 
             holders.append(holder)
 
-    return json.dumps(holders)
+    return jsonify(holders)
 
 
 # トークン名称取得（API）
@@ -1318,7 +1320,7 @@ def get_token_name(token_address):
 
     token_name = TokenContract.functions.name().call()
 
-    return json.dumps(token_name)
+    return jsonify(token_name)
 
 
 # 保有者詳細

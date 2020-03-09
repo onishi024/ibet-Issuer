@@ -12,7 +12,7 @@ from config import Config
 from app.models import Token
 from .conftest import TestBase
 from .utils.account_config import eth_account
-from .utils.contract_utils_common import processor_issue_event, index_transfer_event
+from .utils.contract_utils_common import processor_issue_event, index_transfer_event, clean_issue_event
 from .utils.contract_utils_bond import bond_apply_for_offering
 from .utils.contract_utils_payment_gateway import register_payment_account
 from .utils.contract_utils_personal_info import register_personal_info
@@ -963,3 +963,9 @@ class TestBond(TestBase):
         )
         assert response.status_code == 200
         assert '移転数量が残高を超えています。'.encode('utf-8') in response.data
+
+    #############################################################################
+    # 後処理
+    #############################################################################
+    def test_end(self, db):
+        clean_issue_event(db)
