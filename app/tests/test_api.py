@@ -116,7 +116,7 @@ class TestAPI(TestBase):
         )
         assert response.status_code == 200
         assert json.loads(response.data.decode('utf-8')) == [{
-            'account_address': '0x2e98E5e4098d838900509703FA8ee220E31eEdEE',
+            'account_address': eth_account['issuer']['account_address'],
             'name': '株式会社１',
             'postal_code': '1234567',
             'address': '東京都中央区　日本橋11-1　東京マンション１０１',
