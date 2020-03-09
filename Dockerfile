@@ -1,4 +1,4 @@
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 
 # make application directory
 RUN mkdir -p /app
@@ -11,12 +11,10 @@ RUN groupadd -g 1000 apl \
 
 # install packages
 RUN apt-get update -q
-RUN dpkg -i libc6_2.29-0ubuntu2_amd64.deb
-RUN apt-get install -y --no-install-recommends \
+ && apt-get install -y --no-install-recommends \
  build-essential \
  ca-certificates \
  curl \
- libc6-dev \
  libbz2-dev \
  libreadline-dev \
  libsqlite3-dev \
