@@ -10,8 +10,9 @@ RUN groupadd -g 1000 apl \
  && chown -R apl:apl /app
 
 # install packages
-RUN apt-get update -q \
- && apt-get install -y --no-install-recommends \
+RUN apt-get update -q
+RUN dpkg -i libc6_2.29-0ubuntu2_amd64.deb
+RUN apt-get install -y --no-install-recommends \
  build-essential \
  ca-certificates \
  curl \
