@@ -83,21 +83,25 @@ $ python manage.py test
     - トークン種別(string):IbetStraightBond, IbetMembership, IbetCoupon
 
 ```bash
-python ./app/tests/script/INSERT_token.py 3 "IbetStraightBond"  
-python ./app/tests/script/INSERT_token.py 3 "IbetMembership"
-python ./app/tests/script/INSERT_token.py 3 "IbetCoupon"
+python ./app/tests/script/INSERT_token.py 3 IbetStraightBond  
+python ./app/tests/script/INSERT_token.py 3 IbetMembership
+python ./app/tests/script/INSERT_token.py 3 IbetCoupon
 ```
 
 ### トークン保有者登録
 * 引数
     - 登録件数(int)
     - トークン種別(string): IbetStraightBond, IbetMembership, IbetCoupon
-    - セカンダリー売り注文フラグ(string): 0:売らない, 1:投資家が売り注文を出す
 
 ```bash
-python ./app/tests/script/INSERT_token_holders.py 3 "IbetStraightBond" "0"
-python ./app/tests/script/INSERT_token_holders.py 3 "IbetMembership" "1"
-python ./app/tests/script/INSERT_token_holders.py 3 "IbetCoupon" "1"
+python ./app/tests/script/INSERT_token_holders.py 3 IbetStraightBond
+```
+
+上記を実行後に以下を実行する。
+
+```bash
+python async/processor_IssueEvent.py
+python async/indexer_Transfer.py 
 ```
 
 ### クーポン利用履歴登録
