@@ -131,7 +131,7 @@ class IssueForm(Form):
             'memo': '商品の補足情報を入力してください。',
             'expirationDate': '商品の有効期限を入力してください。',
             'transferable': '譲渡可能な場合は「なし」、譲渡不可の場合は「あり」を選択してください。',
-            'tradableExchange': '商品が取引可能な取引所コントラクトのアドレスを入力してください。',
+            'tradableExchange': '商品が取引可能なDEXコントラクトのアドレスを入力してください。',
             'image_1': '商品画像のURLを入力してください。',
             'image_2': '商品画像のURLを入力してください',
             'image_3': '商品画像のURLを入力してください',
