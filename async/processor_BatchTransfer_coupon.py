@@ -74,7 +74,7 @@ while True:
             # EOAのアンロック
             eth_unlock_account()
 
-            # 取引所コントラクトへデポジット（Transfer）
+            # DEXコントラクトへデポジット（Transfer）
             deposit_gas = TokenContract.estimateGas().transferFrom(from_address, to_address, amount)
             TokenContract.functions.transferFrom(from_address, to_address, amount). \
                 transact({'from': Config.ETH_ACCOUNT, 'gas': deposit_gas})

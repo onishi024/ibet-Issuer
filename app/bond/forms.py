@@ -272,7 +272,7 @@ class IssueForm(Form):
             'returnAmount': '商品を購入することで得られる特典の内容を入力してください。',
             'purpose': '商品の発行目的を入力してください。',
             'memo': '商品の補足情報を入力してください。',
-            'tradableExchange': '商品が取引可能な取引所コントラクトのアドレスを入力してください。',
+            'tradableExchange': '商品が取引可能なDEXコントラクトのアドレスを入力してください。',
             'personalInfoAddress': '所有者名義情報を管理するコントラクトのアドレスを入力してください。',
             'contact_information': '商品に関する問い合わせ先情報を入力してください。',
             'privacy_policy': '商品に関するプライバシーポリシーを入力してください。',
