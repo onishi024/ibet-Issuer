@@ -2,6 +2,7 @@
 import json
 import base64
 import io
+import re
 import time
 from datetime import datetime
 
@@ -269,13 +270,31 @@ def holders_csv_download():
     token_name = json.loads(get_token_name(token_address).data)
 
     f = io.StringIO()
+
+    # ヘッダー行
+    data_header = \
+        'token_name,' + \
+        'token_address,' + \
+        'account_address,' + \
+        'balance,' + \
+        'commitment,' + \
+        'name,' + \
+        'birth_date,' + \
+        'postal_code,' + \
+        'address,' + \
+        'email\n'
+    f.write(data_header)
+
     for holder in holders:
+        # Unicodeの各種ハイフン文字を半角ハイフン（U+002D）に変換する
+        holder_address = re.sub('\u30FC|\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uFF70', '-',
+                                holder["address"])
         # データ行
         data_row = \
             token_name + ',' + token_address + ',' + holder["account_address"] + ',' + \
             str(holder["balance"]) + ',' + str(holder["commitment"]) + ',' + \
             holder["name"] + ',' + holder["birth_date"] + ',' + \
-            holder["postal_code"] + ',' + holder["address"] + ',' + \
+            holder["postal_code"] + ',' + holder_address + ',' + \
             holder["email"] + '\n'
         f.write(data_row)
 
