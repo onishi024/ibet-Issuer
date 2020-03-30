@@ -2,6 +2,7 @@
 import json
 import base64
 import io
+import re
 import time
 from datetime import datetime
 
@@ -28,6 +29,7 @@ web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
 web3.middleware_stack.inject(geth_poa_middleware, layer=0)
 
 from logging import getLogger
+
 logger = getLogger('api')
 
 
@@ -244,7 +246,6 @@ def allocate(token_address, account_address):
         )
 
 
-
 ####################################################
 # [会員権]保有者一覧
 ####################################################
@@ -269,13 +270,30 @@ def holders_csv_download():
     token_name = json.loads(get_token_name(token_address).data)
 
     f = io.StringIO()
+
+    # ヘッダー行
+    data_header = \
+        'token_name,' + \
+        'token_address,' + \
+        'account_address,' + \
+        'balance,' + \
+        'commitment,' + \
+        'name,' + \
+        'birth_date,' + \
+        'postal_code,' + \
+        'address,' + \
+        'email\n'
+    f.write(data_header)
+
     for holder in holders:
+        # Unicodeの各種ハイフン文字を半角ハイフン（U+002D）に変換する
+        holder_address = re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212', '-', holder["address"])
         # データ行
         data_row = \
             token_name + ',' + token_address + ',' + holder["account_address"] + ',' + \
             str(holder["balance"]) + ',' + str(holder["commitment"]) + ',' + \
             holder["name"] + ',' + holder["birth_date"] + ',' + \
-            holder["postal_code"] + ',' + holder["address"] + ',' + \
+            holder["postal_code"] + ',' + holder_address + ',' + \
             holder["email"] + '\n'
         f.write(data_row)
 
@@ -398,7 +416,8 @@ def get_holders(token_address):
                     message = cipher.decrypt(ciphertext)
                     personal_info_json = json.loads(message)
                     name = personal_info_json['name'] if personal_info_json['name'] else "--"
-                    if personal_info_json['address']['prefecture'] and personal_info_json['address']['city'] and personal_info_json['address']['address1']:
+                    if personal_info_json['address']['prefecture'] and personal_info_json['address']['city'] and \
+                            personal_info_json['address']['address1']:
                         address = personal_info_json['address']['prefecture'] + personal_info_json['address']['city']
                         if personal_info_json['address']['address1'] != "":
                             address = address + "　" + personal_info_json['address']['address1']
@@ -406,7 +425,8 @@ def get_holders(token_address):
                             address = address + "　" + personal_info_json['address']['address2']
                     else:
                         address = "--"
-                    postal_code = personal_info_json['address']['postal_code'] if personal_info_json['address']['postal_code'] else "--"
+                    postal_code = personal_info_json['address']['postal_code'] if personal_info_json['address'][
+                        'postal_code'] else "--"
                     email = personal_info_json['email'] if personal_info_json['email'] else "--"
                     birth_date = personal_info_json['birth'] if personal_info_json['birth'] else "--"
                     # 保有者情報（個人情報あり）
