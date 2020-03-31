@@ -2,8 +2,7 @@
 import json
 import base64
 import re
-from base64 import b64encode
-import datetime
+from datetime import datetime, date
 import io
 import time
 
@@ -35,6 +34,10 @@ from logging import getLogger
 logger = getLogger('api')
 
 
+####################################################
+# 共通処理
+####################################################
+
 # 共通処理：エラー表示
 def flash_errors(form):
     for field, errors in form.errors.items():
@@ -54,10 +57,37 @@ def get_token_name(token_address):
         address=token_address,
         abi=token_abi
     )
-
     token_name = TokenContract.functions.name().call()
 
     return jsonify(token_name)
+
+
+# 共通処理：利払日変換処理
+def set_interestPaymentDate(form, interestPaymentDate):
+    if 'interestPaymentDate1' in interestPaymentDate:
+        form.interestPaymentDate1.data = interestPaymentDate['interestPaymentDate1']
+    if 'interestPaymentDate2' in interestPaymentDate:
+        form.interestPaymentDate2.data = interestPaymentDate['interestPaymentDate2']
+    if 'interestPaymentDate3' in interestPaymentDate:
+        form.interestPaymentDate3.data = interestPaymentDate['interestPaymentDate3']
+    if 'interestPaymentDate4' in interestPaymentDate:
+        form.interestPaymentDate4.data = interestPaymentDate['interestPaymentDate4']
+    if 'interestPaymentDate5' in interestPaymentDate:
+        form.interestPaymentDate5.data = interestPaymentDate['interestPaymentDate5']
+    if 'interestPaymentDate6' in interestPaymentDate:
+        form.interestPaymentDate6.data = interestPaymentDate['interestPaymentDate6']
+    if 'interestPaymentDate7' in interestPaymentDate:
+        form.interestPaymentDate7.data = interestPaymentDate['interestPaymentDate7']
+    if 'interestPaymentDate8' in interestPaymentDate:
+        form.interestPaymentDate8.data = interestPaymentDate['interestPaymentDate8']
+    if 'interestPaymentDate9' in interestPaymentDate:
+        form.interestPaymentDate9.data = interestPaymentDate['interestPaymentDate9']
+    if 'interestPaymentDate10' in interestPaymentDate:
+        form.interestPaymentDate10.data = interestPaymentDate['interestPaymentDate10']
+    if 'interestPaymentDate11' in interestPaymentDate:
+        form.interestPaymentDate11.data = interestPaymentDate['interestPaymentDate11']
+    if 'interestPaymentDate12' in interestPaymentDate:
+        form.interestPaymentDate12.data = interestPaymentDate['interestPaymentDate12']
 
 
 ####################################################
@@ -278,7 +308,7 @@ def holders_csv_download():
             holder["email"] + '\n'
         f.write(data_row)
 
-    now = datetime.datetime.now()
+    now = datetime.now()
     res = make_response()
     csvdata = f.getvalue()
     res.data = csvdata.encode('sjis', 'ignore')
@@ -287,7 +317,7 @@ def holders_csv_download():
                                          + 'bond_holders_list.csv'
     return res
 
-
+# 保有者リスト取得
 @bond.route('/get_holders/<string:token_address>', methods=['GET'])
 @login_required
 def get_holders(token_address):
@@ -1220,6 +1250,7 @@ def set_initial_offering_status(token_address, status):
 ####################################################
 # [債券]募集申込一覧
 ####################################################
+# 申込一覧画面
 @bond.route('/applications/<string:token_address>', methods=['GET'])
 @login_required
 def applications(token_address):
@@ -1230,11 +1261,54 @@ def applications(token_address):
     )
 
 
+# 申込者リストCSVダウンロード
+@bond.route('/applications_csv_download', methods=['POST'])
+@login_required
+def applications_csv_download():
+    logger.info('bond/applications_csv_download')
+
+    token_address = request.form.get('token_address')
+    application = json.loads(get_applications(token_address).data)
+    token_name = json.loads(get_token_name(token_address).data)
+
+    f = io.StringIO()
+
+    # ヘッダー行
+    data_header = \
+        'token_name,' + \
+        'token_address,' + \
+        'account_address,' + \
+        'name,' + \
+        'email,' + \
+        'code,' + \
+        'requested_amount,' + \
+        'allot_amount,' + \
+        'balance\n'
+    f.write(data_header)
+
+    for item in application:
+        # データ行
+        data_row = \
+            token_name + ',' + token_address + ',' + item["account_address"] + ',' + \
+            item["account_name"] + ',' + item["account_email_address"] + ',' + item["data"] + ',' + \
+            str(item["requested_amount"]) + ',' + str(item["allotted_amount"]) + ',' + \
+            str(item["balance"]) + '\n'
+        f.write(data_row)
+
+    now = datetime.now()
+    res = make_response()
+    csvdata = f.getvalue()
+    res.data = csvdata.encode('sjis', 'ignore')
+    res.headers['Content-Type'] = 'text/plain'
+    res.headers['Content-Disposition'] = \
+        'attachment; filename=' + now.strftime("%Y%m%d%H%M%S") + 'bond_applications_list.csv'
+    return res
+
+
+# 申込一覧取得
 @bond.route('/get_applications/<string:token_address>', methods=['GET'])
 @login_required
 def get_applications(token_address):
-    logger.info('bond/applications')
-
     # RSA秘密鍵取得
     cipher = None
     try:
@@ -1464,50 +1538,14 @@ def permissionDenied():
     return render_template('permissiondenied.html')
 
 
-# +++++++++++++++++++++++++++++++
+####################################################
 # Custom Filter
-# +++++++++++++++++++++++++++++++
+####################################################
 @bond.app_template_filter()
-def format_date(date):  # date = datetime object.
-    if date:
-        if isinstance(date, datetime.datetime):
-            return date.strftime('%Y/%m/%d %H:%M')
-        elif isinstance(date, datetime.date):
-            return date.strftime('%Y/%m/%d')
+def format_date(_date):  # _date = datetime object.
+    if _date:
+        if isinstance(_date, datetime):
+            return _date.strftime('%Y/%m/%d %H:%M')
+        elif isinstance(_date, date):
+            return _date.strftime('%Y/%m/%d')
     return ''
-
-
-@bond.app_template_filter()
-def img_convert(icon):
-    if icon:
-        img = b64encode(icon)
-        return img.decode('utf8')
-    return None
-
-
-# 利払日をformにセットする
-def set_interestPaymentDate(form, interestPaymentDate):
-    if 'interestPaymentDate1' in interestPaymentDate:
-        form.interestPaymentDate1.data = interestPaymentDate['interestPaymentDate1']
-    if 'interestPaymentDate2' in interestPaymentDate:
-        form.interestPaymentDate2.data = interestPaymentDate['interestPaymentDate2']
-    if 'interestPaymentDate3' in interestPaymentDate:
-        form.interestPaymentDate3.data = interestPaymentDate['interestPaymentDate3']
-    if 'interestPaymentDate4' in interestPaymentDate:
-        form.interestPaymentDate4.data = interestPaymentDate['interestPaymentDate4']
-    if 'interestPaymentDate5' in interestPaymentDate:
-        form.interestPaymentDate5.data = interestPaymentDate['interestPaymentDate5']
-    if 'interestPaymentDate6' in interestPaymentDate:
-        form.interestPaymentDate6.data = interestPaymentDate['interestPaymentDate6']
-    if 'interestPaymentDate7' in interestPaymentDate:
-        form.interestPaymentDate7.data = interestPaymentDate['interestPaymentDate7']
-    if 'interestPaymentDate8' in interestPaymentDate:
-        form.interestPaymentDate8.data = interestPaymentDate['interestPaymentDate8']
-    if 'interestPaymentDate9' in interestPaymentDate:
-        form.interestPaymentDate9.data = interestPaymentDate['interestPaymentDate9']
-    if 'interestPaymentDate10' in interestPaymentDate:
-        form.interestPaymentDate10.data = interestPaymentDate['interestPaymentDate10']
-    if 'interestPaymentDate11' in interestPaymentDate:
-        form.interestPaymentDate11.data = interestPaymentDate['interestPaymentDate11']
-    if 'interestPaymentDate12' in interestPaymentDate:
-        form.interestPaymentDate12.data = interestPaymentDate['interestPaymentDate12']
