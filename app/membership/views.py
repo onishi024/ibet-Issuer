@@ -33,6 +33,10 @@ from logging import getLogger
 logger = getLogger('api')
 
 
+####################################################
+# 共通処理
+####################################################
+
 # 共通処理：エラー表示
 def flash_errors(form):
     for field, errors in form.errors.items():
@@ -102,6 +106,7 @@ def list():
 ####################################################
 # [会員権]募集申込一覧
 ####################################################
+# 申込一覧画面
 @membership.route('/applications/<string:token_address>', methods=['GET'])
 @login_required
 def applications(token_address):
@@ -112,6 +117,46 @@ def applications(token_address):
     )
 
 
+# 申込者リストCSVダウンロード
+@membership.route('/applications_csv_download', methods=['POST'])
+@login_required
+def applications_csv_download():
+    logger.info('membership/applications_csv_download')
+
+    token_address = request.form.get('token_address')
+    application = json.loads(get_applications(token_address).data)
+    token_name = json.loads(get_token_name(token_address).data)
+
+    f = io.StringIO()
+
+    # ヘッダー行
+    data_header = \
+        'token_name,' + \
+        'token_address,' + \
+        'account_address,' + \
+        'name,' + \
+        'email,' + \
+        'code\n'
+    f.write(data_header)
+
+    for item in application:
+        # データ行
+        data_row = \
+            token_name + ',' + token_address + ',' + item["account_address"] + ',' + \
+            item["account_name"] + ',' + item["account_email_address"] + ',' + item["data"] + '\n'
+        f.write(data_row)
+
+    now = datetime.now()
+    res = make_response()
+    csvdata = f.getvalue()
+    res.data = csvdata.encode('sjis', 'ignore')
+    res.headers['Content-Type'] = 'text/plain'
+    res.headers['Content-Disposition'] = \
+        'attachment; filename=' + now.strftime("%Y%m%d%H%M%S") + 'bond_applications_list.csv'
+    return res
+
+
+# 申込一覧取得
 @membership.route('/get_applications/<string:token_address>', methods=['GET'])
 @login_required
 def get_applications(token_address):

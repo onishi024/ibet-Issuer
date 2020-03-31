@@ -35,6 +35,10 @@ from logging import getLogger
 logger = getLogger('api')
 
 
+####################################################
+# 共通処理
+####################################################
+
 # 共通処理：エラー表示
 def flash_errors(form):
     for field, errors in form.errors.items():
@@ -51,6 +55,9 @@ def transfer_token(token_contract, from_address, to_address, amount):
     return tx_hash
 
 
+####################################################
+# 新規発行
+####################################################
 # 新規発行
 @coupon.route('/issue', methods=['GET', 'POST'])
 @login_required
@@ -136,7 +143,9 @@ def issue():
         return render_template('coupon/issue.html', form=form, form_description=form.description)
 
 
-# 発行済みトークン一覧
+####################################################
+# 発行済一覧
+####################################################
 @coupon.route('/list', methods=['GET', 'POST'])
 @login_required
 def list():
@@ -178,12 +187,54 @@ def list():
     return render_template('coupon/list.html', tokens=token_list)
 
 
+####################################################
+# 募集申込一覧
+####################################################
 # 募集申込一覧画面参照
 @coupon.route('/applications/<string:token_address>', methods=['GET'])
 @login_required
 def applications(token_address):
     logger.info('coupon/applications')
     return render_template('coupon/applications.html', token_address=token_address)
+
+
+# 申込者リストCSVダウンロード
+@coupon.route('/applications_csv_download', methods=['POST'])
+@login_required
+def applications_csv_download():
+    logger.info('coupon/applications_csv_download')
+
+    token_address = request.form.get('token_address')
+    application = json.loads(get_applications(token_address).data)
+    token_name = json.loads(get_token_name(token_address).data)
+
+    f = io.StringIO()
+
+    # ヘッダー行
+    data_header = \
+        'token_name,' + \
+        'token_address,' + \
+        'account_address,' + \
+        'name,' + \
+        'email,' + \
+        'code\n'
+    f.write(data_header)
+
+    for item in application:
+        # データ行
+        data_row = \
+            token_name + ',' + token_address + ',' + item["account_address"] + ',' + \
+            item["account_name"] + ',' + item["account_email_address"] + ',' + item["data"] + '\n'
+        f.write(data_row)
+
+    now = datetime.now()
+    res = make_response()
+    csvdata = f.getvalue()
+    res.data = csvdata.encode('sjis', 'ignore')
+    res.headers['Content-Type'] = 'text/plain'
+    res.headers['Content-Disposition'] = \
+        'attachment; filename=' + now.strftime("%Y%m%d%H%M%S") + 'bond_applications_list.csv'
+    return res
 
 
 # 募集申込一覧取得（API）
@@ -258,7 +309,9 @@ def get_applications(token_address):
     return jsonify(applications)
 
 
-# トークン公開
+####################################################
+# 公開
+####################################################
 @coupon.route('/release', methods=['POST'])
 @login_required
 def release():
@@ -284,7 +337,9 @@ def release():
     return redirect(url_for('.setting', token_address=token_address))
 
 
-# トークン追加発行
+####################################################
+# 追加発行
+####################################################
 @coupon.route('/add_supply/<string:token_address>', methods=['GET', 'POST'])
 @login_required
 def add_supply(token_address):
@@ -334,7 +389,9 @@ def add_supply(token_address):
         )
 
 
-# トークン設定内容修正
+####################################################
+# 設定内容修正
+####################################################
 @coupon.route('/setting/<string:token_address>', methods=['GET', 'POST'])
 @login_required
 def setting(token_address):
@@ -513,7 +570,9 @@ def setting(token_address):
         )
 
 
+####################################################
 # 保有一覧（売出管理画面）
+####################################################
 @coupon.route('/positions', methods=['GET'])
 @login_required
 def positions():
@@ -611,7 +670,9 @@ def positions():
     return render_template('coupon/positions.html', position_list=position_list)
 
 
+####################################################
 # 売出
+####################################################
 @coupon.route('/sell/<string:token_address>', methods=['GET', 'POST'])
 @login_required
 def sell(token_address):
@@ -690,7 +751,9 @@ def sell(token_address):
         )
 
 
+####################################################
 # 売出停止
+####################################################
 @coupon.route('/cancel_order/<string:token_address>/<int:order_id>', methods=['GET', 'POST'])
 @login_required
 def cancel_order(token_address, order_id):
@@ -748,6 +811,9 @@ def cancel_order(token_address, order_id):
         return render_template('coupon/cancel_order.html', form=form)
 
 
+####################################################
+# 割当
+####################################################
 # 割当
 @coupon.route('/transfer', methods=['GET', 'POST'])
 @login_required
@@ -946,7 +1012,9 @@ def allocate(token_address, account_address):
         )
 
 
+####################################################
 # 保有者移転
+####################################################
 @coupon.route('/transfer_ownership/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
 @login_required
 def transfer_ownership(token_address, account_address):
@@ -1014,7 +1082,9 @@ def transfer_ownership(token_address, account_address):
         )
 
 
-# トークン利用履歴画面参照
+####################################################
+# 利用履歴
+####################################################
 @coupon.route('/usage_history/<string:token_address>', methods=['GET'])
 @login_required
 def usage_history(token_address):
@@ -1139,7 +1209,9 @@ def used_csv_download():
     return res
 
 
-# 保有者一覧画面参照
+####################################################
+# 保有者一覧
+####################################################
 @coupon.route('/holders/<string:token_address>', methods=['GET'])
 @login_required
 def holders(token_address):
@@ -1362,7 +1434,9 @@ def holder(token_address, account_address):
         token_address=token_address)
 
 
-# トークン有効化/無効化
+####################################################
+# 有効化/無効化
+####################################################
 @coupon.route('/valid', methods=['POST'])
 @login_required
 def valid():
@@ -1401,7 +1475,9 @@ def coupon_valid(token_address, status):
         flash('更新処理でエラーが発生しました。', 'error')
 
 
+####################################################
 # 募集申込開始/停止
+####################################################
 @coupon.route('/start_initial_offering', methods=['POST'])
 @login_required
 def start_initial_offering():
@@ -1442,7 +1518,9 @@ def set_initial_offering_status(token_address, status):
         flash('更新処理でエラーが発生しました。', 'error')
 
 
+####################################################
 # Custom Filter：日付フォーマット
+####################################################
 @coupon.app_template_filter()
 def format_date(date):  # date = datetime object.
     if date:

@@ -1,6 +1,8 @@
 # -*- coding:utf-8 -*-
 import secrets
 import datetime
+from base64 import b64encode
+
 import requests
 
 from flask import request, redirect, url_for, flash, render_template
