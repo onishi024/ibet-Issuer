@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-from flask import render_template
+from flask import render_template, jsonify
 from flask_login import login_required
 
 from . import dashboard
@@ -76,7 +76,7 @@ def token_list_bond():
         except Exception as e:
             logger.error(e)
             pass
-    return json.dumps(token_list)
+    return jsonify(token_list)
 
 
 @dashboard.route('/token_list_membership', methods=['GET'])
@@ -122,7 +122,7 @@ def token_list_membership():
         except Exception as e:
             logger.error(e)
             pass
-    return json.dumps(token_list)
+    return jsonify(token_list)
 
 
 @dashboard.route('/token_list_coupon', methods=['GET'])
@@ -170,4 +170,4 @@ def token_list_coupon():
         except Exception as e:
             logger.error(e)
             pass
-    return json.dumps(token_list)
+    return jsonify(token_list)

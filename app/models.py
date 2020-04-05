@@ -216,6 +216,25 @@ class Transfer(db.Model):
         return Transfer.id
 
 
+# 募集申込（Event）
+class ApplyFor(db.Model):
+    __tablename__ = 'apply_for'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    transaction_hash = db.Column(db.String(66), index=True)
+    token_address = db.Column(db.String(42), index=True)
+    account_address = db.Column(db.String(42), index=True)
+    amount = db.Column(db.Integer)
+    block_timestamp = db.Column(db.DateTime)
+
+    def __repr__(self):
+        return "<ApplyFor('transaction_hash'='%s', 'token_address'='%s')>" % \
+               (self.transaction_hash, self.token_address)
+
+    @classmethod
+    def get_id(cls):
+        return ApplyFor.id
+
+
 # アドレスタイプ
 class AddressType(Enum):
     OTHERS = 0

@@ -94,11 +94,15 @@ desired effect
         <ul class="nav navbar-nav">
           <li class="dropdown user user-menu">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+              {% if current_user.icon %}
+              <img src="data:image/png;base64,{{ current_user.icon | img_convert }}" class="user-image" alt="User Image">
+              {% else %}
+              <img src="/static/img/user-icon.png" class="user-image" alt="User Image">
+              {% endif %}
               <span class="hidden-xs">{{ current_user.user_name }}</span>
             </a>
             <ul class="dropdown-menu">
               <li class="user-header">
-                <!-- http://icons.iconarchive.com/icons/custom-icon-design/silky-line-user/128/user-icon.png -->
                 {% if current_user.icon %}
                 <img src="data:image/png;base64,{{ current_user.icon | img_convert }}" class="img-circle" alt="User Image">
                 {% else %}
@@ -251,7 +255,7 @@ desired effect
   <!-- Main Footer -->
   <footer class="main-footer">
     <!-- Default to the left -->
-    <strong>Copyright &copy; 2020 BOOSTRY Co., Ltd.</strong> All rights reserved.&nbsp;&nbsp;&nbsp;<div class="pull-right">@verison 0.9</div>
+    <strong>Copyright &copy; 2020 BOOSTRY Co., Ltd.</strong> All rights reserved.&nbsp;&nbsp;&nbsp;<div class="pull-right">@verison 0.10</div>
   </footer>
   <!-- /.control-sidebar -->
   <!-- Add the sidebar's background. This div must be placed

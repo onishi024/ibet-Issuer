@@ -9,18 +9,16 @@ from Crypto.Cipher import PKCS1_OAEP
 from eth_utils import to_checksum_address
 
 from config import Config
+from app.models import Token
 from .conftest import TestBase
 from .utils.account_config import eth_account
-from .utils.contract_utils_common import processor_issue_event
+from .utils.contract_utils_common import processor_issue_event, index_transfer_event, clean_issue_event
 from .utils.contract_utils_bond import bond_apply_for_offering
 from .utils.contract_utils_payment_gateway import register_payment_account
 from .utils.contract_utils_personal_info import register_personal_info
 
-from ..models import Token
-
 
 class TestBond(TestBase):
-
     #############################################################################
     # テスト対象URL
     #############################################################################
@@ -66,8 +64,8 @@ class TestBond(TestBase):
             "postal_code": "1040053",
             "prefecture": "東京都",
             "city": "中央区",
-            "address1": "勝どき6丁目３－２",
-            "address2": "ＴＴＴ６０１２"
+            "address1": "勝どき1丁目１－２ー３",
+            "address2": ""
         },
         "email": "abcd1234@aaa.bbb.cc",
         "birth": "20191102"
@@ -406,7 +404,7 @@ class TestBond(TestBase):
         assert eth_account['issuer']['account_address'] == response_data[0]['account_address']
         assert '株式会社１' == response_data[0]['name']
         assert '1234567' == response_data[0]['postal_code']
-        assert '東京都中央区日本橋11-1東京マンション１０１' == response_data[0]['address']
+        assert '東京都中央区　日本橋11-1　東京マンション１０１' == response_data[0]['address']
         assert 'abcd1234@aaa.bbb.cc' == response_data[0]['email']
         assert '20190902' == response_data[0]['birth_date']
         assert 1000000 == response_data[0]['balance']
@@ -555,7 +553,7 @@ class TestBond(TestBase):
     # ＜正常系15_2＞
     # ＜募集申込一覧参照＞
     #   1件：募集申込一覧
-    def test_normal_15_2(self, app):
+    def test_normal_15_2(self, db, app):
         client = self.client_with_admin_login(app)
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
         token = tokens[0]
@@ -565,6 +563,7 @@ class TestBond(TestBase):
 
         # 募集申込データの作成：投資家
         bond_apply_for_offering(
+            db,
             eth_account['trader'],
             token_address
         )
@@ -620,14 +619,12 @@ class TestBond(TestBase):
     # ＜正常系17_2＞
     # ＜所有者移転＞
     #   所有者移転処理　→　保有者一覧の参照
-    def test_normal_17_2(self, app):
+    def test_normal_17_2(self, db, app):
         client = self.client_with_admin_login(app)
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
         token = tokens[0]
-        issuer_address = \
-            to_checksum_address(eth_account['issuer']['account_address'])
-        trader_address = \
-            to_checksum_address(eth_account['trader']['account_address'])
+        issuer_address = to_checksum_address(eth_account['issuer']['account_address'])
+        trader_address = to_checksum_address(eth_account['trader']['account_address'])
 
         # 所有者移転
         response = client.post(
@@ -639,37 +636,50 @@ class TestBond(TestBase):
         )
         assert response.status_code == 302  # 処理内でSleep
 
+        # Transferイベント登録
+        index_transfer_event(
+            db,
+            '0xac22f75bae96f8e9f840f980dfefc1d497979341d3106aeb25e014483c3f414a',  # 仮のトランザクションハッシュ
+            token.token_address,
+            issuer_address,
+            trader_address,
+            10
+        )
+
         # 保有者一覧の参照
         response = client.get(self.url_get_holders + token.token_address)
         response_data_list = json.loads(response.data)
 
         assert response.status_code == 200
+        count = 0
         for response_data in response_data_list:
             if eth_account['issuer']['account_address'] == response_data['account_address']:  # issuer
                 assert '株式会社１' == response_data['name']
                 assert '1234567' == response_data['postal_code']
-                assert '東京都中央区日本橋11-1東京マンション１０１' == response_data['address']
+                assert '東京都中央区　日本橋11-1　東京マンション１０１' == response_data['address']
                 assert 'abcd1234@aaa.bbb.cc' == response_data['email']
                 assert '20190902' == response_data['birth_date']
                 assert 999990 == response_data['balance']
                 assert 0 == response_data['commitment']
+                count += 1
             elif eth_account['trader']['account_address'] == response_data['account_address']:  # trader
                 assert 'ﾀﾝﾀｲﾃｽﾄ' == response_data['name']
                 assert '1040053' == response_data['postal_code']
-                assert '東京都中央区勝どき6丁目３－２ＴＴＴ６０１２' == response_data['address']
+                assert '東京都中央区　勝どき1丁目１－２ー３' == response_data['address']
                 assert 'abcd1234@aaa.bbb.cc' == response_data['email']
                 assert '20191102' == response_data['birth_date']
                 assert 10 == response_data['balance']
                 assert 0 == response_data['commitment']
+                count += 1
             else:
                 pytest.raises(AssertionError)
+        assert count == 2
 
         # トークン名APIの参照
         response = client.get(self.url_get_token_name + token.token_address)
         response_data = json.loads(response.data)
         assert response.status_code == 200
         assert 'テスト債券' == response_data
-
 
     #############################################################################
     # テスト（エラー系）
@@ -953,3 +963,9 @@ class TestBond(TestBase):
         )
         assert response.status_code == 200
         assert '移転数量が残高を超えています。'.encode('utf-8') in response.data
+
+    #############################################################################
+    # 後処理
+    #############################################################################
+    def test_end(self, db):
+        clean_issue_event(db)

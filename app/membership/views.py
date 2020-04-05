@@ -2,19 +2,20 @@
 import json
 import base64
 import io
+import re
 import time
 from datetime import datetime
 
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 
-from flask import request, redirect, url_for, flash, make_response, render_template, abort
+from flask import request, redirect, url_for, flash, make_response, render_template, abort, jsonify
 from flask_login import login_required
 from sqlalchemy import func
 
 from app import db
 from app.util import eth_unlock_account, get_holder
-from app.models import Token, Order, Agreement, AgreementStatus, AddressType
+from app.models import Token, Order, Agreement, AgreementStatus, AddressType, ApplyFor, Transfer
 from app.contracts import Contract
 from config import Config
 from . import membership
@@ -28,8 +29,13 @@ web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
 web3.middleware_stack.inject(geth_poa_middleware, layer=0)
 
 from logging import getLogger
+
 logger = getLogger('api')
 
+
+####################################################
+# 共通処理
+####################################################
 
 # 共通処理：エラー表示
 def flash_errors(form):
@@ -100,6 +106,7 @@ def list():
 ####################################################
 # [会員権]募集申込一覧
 ####################################################
+# 申込一覧画面
 @membership.route('/applications/<string:token_address>', methods=['GET'])
 @login_required
 def applications(token_address):
@@ -110,6 +117,46 @@ def applications(token_address):
     )
 
 
+# 申込者リストCSVダウンロード
+@membership.route('/applications_csv_download', methods=['POST'])
+@login_required
+def applications_csv_download():
+    logger.info('membership/applications_csv_download')
+
+    token_address = request.form.get('token_address')
+    application = json.loads(get_applications(token_address).data)
+    token_name = json.loads(get_token_name(token_address).data)
+
+    f = io.StringIO()
+
+    # ヘッダー行
+    data_header = \
+        'token_name,' + \
+        'token_address,' + \
+        'account_address,' + \
+        'name,' + \
+        'email,' + \
+        'code\n'
+    f.write(data_header)
+
+    for item in application:
+        # データ行
+        data_row = \
+            token_name + ',' + token_address + ',' + item["account_address"] + ',' + \
+            item["account_name"] + ',' + item["account_email_address"] + ',' + item["data"] + '\n'
+        f.write(data_row)
+
+    now = datetime.now()
+    res = make_response()
+    csvdata = f.getvalue()
+    res.data = csvdata.encode('sjis', 'ignore')
+    res.headers['Content-Type'] = 'text/plain'
+    res.headers['Content-Disposition'] = \
+        'attachment; filename=' + now.strftime("%Y%m%d%H%M%S") + 'bond_applications_list.csv'
+    return res
+
+
+# 申込一覧取得
 @membership.route('/get_applications/<string:token_address>', methods=['GET'])
 @login_required
 def get_applications(token_address):
@@ -135,30 +182,17 @@ def get_applications(token_address):
     PersonalInfoContract = \
         Contract.get_contract('PersonalInfo', personalinfo_address)
 
-    try:
-        event_filter = TokenContract.eventFilter(
-            'ApplyFor', {
-                'filter': {},
-                'fromBlock': 'earliest'
-            }
-        )
-        entries = event_filter.get_all_entries()
-        list_temp = []
-        for entry in entries:
-            list_temp.append(entry['args']['accountAddress'])
-    except Exception as e:
-        logger.error(e)
-        list_temp = []
-        pass
+    # 申込（ApplyFor）イベントを検索
+    apply_for_events = ApplyFor.query. \
+        distinct(ApplyFor.account_address). \
+        filter(ApplyFor.token_address == token_address).all()
 
-    # 口座リストをユニークにする
+    # 募集申込の履歴が存在するアカウントアドレスのリストを作成
     account_list = []
-    for item in list_temp:
-        if item not in account_list:
-            account_list.append(item)
+    for event in apply_for_events:
+        account_list.append(event.account_address)
 
     token_owner = TokenContract.functions.owner().call()
-
     applications = []
     for account_address in account_list:
         encrypted_info = PersonalInfoContract.functions. \
@@ -191,7 +225,7 @@ def get_applications(token_address):
         }
         applications.append(application)
 
-    return json.dumps(applications)
+    return jsonify(applications)
 
 
 ####################################################
@@ -236,6 +270,8 @@ def allocate(token_address, account_address):
             from_address = Config.ETH_ACCOUNT
             to_address = to_checksum_address(account_address)
             transfer_token(TokenContract, from_address, to_address, amount)
+            # NOTE: 募集申込一覧が非同期で更新されるため、5秒待つ
+            time.sleep(5)
             flash('処理を受け付けました。割当完了までに数分程かかることがあります。', 'success')
             return redirect(url_for('.applications', token_address=token_address))
         else:
@@ -253,7 +289,6 @@ def allocate(token_address, account_address):
             account_address=account_address,
             form=form
         )
-
 
 
 ####################################################
@@ -276,17 +311,34 @@ def holders_csv_download():
     logger.info('membership/holders_csv_download')
 
     token_address = request.form.get('token_address')
-    holders = json.loads(get_holders(token_address))
-    token_name = json.loads(get_token_name(token_address))
+    holders = json.loads(get_holders(token_address).data)
+    token_name = json.loads(get_token_name(token_address).data)
 
     f = io.StringIO()
+
+    # ヘッダー行
+    data_header = \
+        'token_name,' + \
+        'token_address,' + \
+        'account_address,' + \
+        'balance,' + \
+        'commitment,' + \
+        'name,' + \
+        'birth_date,' + \
+        'postal_code,' + \
+        'address,' + \
+        'email\n'
+    f.write(data_header)
+
     for holder in holders:
+        # Unicodeの各種ハイフン文字を半角ハイフン（U+002D）に変換する
+        holder_address = re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', holder["address"])
         # データ行
         data_row = \
             token_name + ',' + token_address + ',' + holder["account_address"] + ',' + \
             str(holder["balance"]) + ',' + str(holder["commitment"]) + ',' + \
             holder["name"] + ',' + holder["birth_date"] + ',' + \
-            holder["postal_code"] + ',' + holder["address"] + ',' + \
+            holder["postal_code"] + ',' + holder_address + ',' + \
             holder["email"] + '\n'
         f.write(data_row)
 
@@ -305,9 +357,12 @@ def holders_csv_download():
 def get_holders(token_address):
     """
     保有者一覧取得
-    :param token_address:
+    :param token_address: トークンアドレス
     :return: トークンの保有者一覧
     """
+    logger.info('membership/get_holders')
+
+    # RSA秘密鍵の取得
     cipher = None
     try:
         key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
@@ -315,9 +370,11 @@ def get_holders(token_address):
     except Exception as e:
         logger.error(e)
 
+    # Token情報取得
     token = Token.query.filter(Token.token_address == token_address).first()
     token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
 
+    # Tokenコントラクト接続
     TokenContract = web3.eth.contract(
         address=token_address,
         abi=token_abi
@@ -338,20 +395,16 @@ def get_holders(token_address):
     personalinfo_address = Config.PERSONAL_INFO_CONTRACT_ADDRESS
     PersonalInfoContract = Contract.get_contract('PersonalInfo', personalinfo_address)
 
-    # トークン発行体アドレスを取得
-    token_owner = TokenContract.functions.owner().call()
+    # Transferイベントを検索
+    transfer_events = Transfer.query. \
+        distinct(Transfer.account_address_to). \
+        filter(Transfer.token_address == token_address).all()
 
     # 残高を保有している可能性のあるアドレスを抽出する
-    holders_temp = [token_owner]
-    event_filter = TokenContract.eventFilter(
-        'Transfer', {
-            'filter': {},
-            'fromBlock': 'earliest'
-        }
-    )
-    entries = event_filter.get_all_entries()
-    for entry in entries:
-        holders_temp.append(entry['args']['to'])
+    token_owner = TokenContract.functions.owner().call()  # トークン発行体アドレスを取得
+    holders_temp = [token_owner]  # 発行体アドレスをリストに追加
+    for event in transfer_events:
+        holders_temp.append(event.account_address_to)
 
     # 口座リストをユニークにする
     holders_uniq = []
@@ -408,8 +461,17 @@ def get_holders(token_address):
                     message = cipher.decrypt(ciphertext)
                     personal_info_json = json.loads(message)
                     name = personal_info_json['name'] if personal_info_json['name'] else "--"
-                    address = personal_info_json['address']['prefecture'] + personal_info_json['address']['city'] + personal_info_json['address']['address1'] + personal_info_json['address']['address2'] if personal_info_json['address']['prefecture'] and personal_info_json['address']['city'] and personal_info_json['address']['address1'] else "--"
-                    postal_code = personal_info_json['address']['postal_code'] if personal_info_json['address']['postal_code'] else "--"
+                    if personal_info_json['address']['prefecture'] and personal_info_json['address']['city'] and \
+                            personal_info_json['address']['address1']:
+                        address = personal_info_json['address']['prefecture'] + personal_info_json['address']['city']
+                        if personal_info_json['address']['address1'] != "":
+                            address = address + "　" + personal_info_json['address']['address1']
+                        if personal_info_json['address']['address2'] != "":
+                            address = address + "　" + personal_info_json['address']['address2']
+                    else:
+                        address = "--"
+                    postal_code = personal_info_json['address']['postal_code'] if personal_info_json['address'][
+                        'postal_code'] else "--"
                     email = personal_info_json['email'] if personal_info_json['email'] else "--"
                     birth_date = personal_info_json['birth'] if personal_info_json['birth'] else "--"
                     # 保有者情報（個人情報あり）
@@ -430,7 +492,7 @@ def get_holders(token_address):
 
             holders.append(holder)
 
-    return json.dumps(holders)
+    return jsonify(holders)
 
 
 @membership.route('/get_token_name/<string:token_address>', methods=['GET'])
@@ -446,7 +508,7 @@ def get_token_name(token_address):
 
     token_name = TokenContract.functions.name().call()
 
-    return json.dumps(token_name)
+    return jsonify(token_name)
 
 
 ####################################################
@@ -496,6 +558,8 @@ def transfer_ownership(token_address, account_address):
 
             txid = transfer_token(TokenContract, from_address, to_address, amount)
             web3.eth.waitForTransactionReceipt(txid)
+            # NOTE: 保有者一覧が非同期で更新されるため、5秒待つ
+            time.sleep(5)
             return redirect(url_for('.holders', token_address=token_address))
         else:
             flash_errors(form)

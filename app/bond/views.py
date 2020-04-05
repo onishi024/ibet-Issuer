@@ -1,21 +1,21 @@
 # -*- coding:utf-8 -*-
 import json
 import base64
-from base64 import b64encode
-import datetime
+import re
+from datetime import datetime, date
 import io
 import time
 
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 
-from flask import request, redirect, url_for, flash, make_response, render_template, abort
+from flask import request, redirect, url_for, flash, make_response, render_template, abort, jsonify
 from flask_login import login_required
 from sqlalchemy import func, desc
 
 from app import db
 from app.util import eth_unlock_account, get_holder
-from app.models import Token, Certification, Order, Agreement, AgreementStatus, Transfer, AddressType
+from app.models import Token, Certification, Order, Agreement, AgreementStatus, Transfer, AddressType, ApplyFor
 from app.contracts import Contract
 from config import Config
 from . import bond
@@ -25,12 +25,18 @@ from .forms import TransferOwnershipForm, SettingForm, RequestSignatureForm, Iss
 from web3 import Web3
 from eth_utils import to_checksum_address
 from web3.middleware import geth_poa_middleware
+
 web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
 web3.middleware_stack.inject(geth_poa_middleware, layer=0)
 
 from logging import getLogger
+
 logger = getLogger('api')
 
+
+####################################################
+# 共通処理
+####################################################
 
 # 共通処理：エラー表示
 def flash_errors(form):
@@ -51,10 +57,37 @@ def get_token_name(token_address):
         address=token_address,
         abi=token_abi
     )
-
     token_name = TokenContract.functions.name().call()
 
-    return json.dumps(token_name)
+    return jsonify(token_name)
+
+
+# 共通処理：利払日変換処理
+def set_interestPaymentDate(form, interestPaymentDate):
+    if 'interestPaymentDate1' in interestPaymentDate:
+        form.interestPaymentDate1.data = interestPaymentDate['interestPaymentDate1']
+    if 'interestPaymentDate2' in interestPaymentDate:
+        form.interestPaymentDate2.data = interestPaymentDate['interestPaymentDate2']
+    if 'interestPaymentDate3' in interestPaymentDate:
+        form.interestPaymentDate3.data = interestPaymentDate['interestPaymentDate3']
+    if 'interestPaymentDate4' in interestPaymentDate:
+        form.interestPaymentDate4.data = interestPaymentDate['interestPaymentDate4']
+    if 'interestPaymentDate5' in interestPaymentDate:
+        form.interestPaymentDate5.data = interestPaymentDate['interestPaymentDate5']
+    if 'interestPaymentDate6' in interestPaymentDate:
+        form.interestPaymentDate6.data = interestPaymentDate['interestPaymentDate6']
+    if 'interestPaymentDate7' in interestPaymentDate:
+        form.interestPaymentDate7.data = interestPaymentDate['interestPaymentDate7']
+    if 'interestPaymentDate8' in interestPaymentDate:
+        form.interestPaymentDate8.data = interestPaymentDate['interestPaymentDate8']
+    if 'interestPaymentDate9' in interestPaymentDate:
+        form.interestPaymentDate9.data = interestPaymentDate['interestPaymentDate9']
+    if 'interestPaymentDate10' in interestPaymentDate:
+        form.interestPaymentDate10.data = interestPaymentDate['interestPaymentDate10']
+    if 'interestPaymentDate11' in interestPaymentDate:
+        form.interestPaymentDate11.data = interestPaymentDate['interestPaymentDate11']
+    if 'interestPaymentDate12' in interestPaymentDate:
+        form.interestPaymentDate12.data = interestPaymentDate['interestPaymentDate12']
 
 
 ####################################################
@@ -234,8 +267,7 @@ def list():
 @login_required
 def holders(token_address):
     logger.info('bond/holders')
-    return render_template('bond/holders.html',
-                           token_address=token_address)
+    return render_template('bond/holders.html', token_address=token_address)
 
 
 # 保有者リストCSVダウンロード
@@ -245,21 +277,38 @@ def holders_csv_download():
     logger.info('bond/holders_csv_download')
 
     token_address = request.form.get('token_address')
-    holders = json.loads(get_holders(token_address))
-    token_name = json.loads(get_token_name(token_address))
+    holders = json.loads(get_holders(token_address).data)
+    token_name = json.loads(get_token_name(token_address).data)
 
     f = io.StringIO()
+
+    # ヘッダー行
+    data_header = \
+        'token_name,' + \
+        'token_address,' + \
+        'account_address,' + \
+        'balance,' + \
+        'commitment,' + \
+        'name,' + \
+        'birth_date,' + \
+        'postal_code,' + \
+        'address,' + \
+        'email\n'
+    f.write(data_header)
+
     for holder in holders:
+        # Unicodeの各種ハイフン文字を半角ハイフン（U+002D）に変換する
+        holder_address = re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', holder["address"])
         # データ行
         data_row = \
             token_name + ',' + token_address + ',' + holder["account_address"] + ',' + \
             str(holder["balance"]) + ',' + str(holder["commitment"]) + ',' + \
             holder["name"] + ',' + holder["birth_date"] + ',' + \
-            holder["postal_code"] + ',' + holder["address"] + ',' + \
+            holder["postal_code"] + ',' + holder_address + ',' + \
             holder["email"] + '\n'
         f.write(data_row)
 
-    now = datetime.datetime.now()
+    now = datetime.now()
     res = make_response()
     csvdata = f.getvalue()
     res.data = csvdata.encode('sjis', 'ignore')
@@ -268,7 +317,7 @@ def holders_csv_download():
                                          + 'bond_holders_list.csv'
     return res
 
-
+# 保有者リスト取得
 @bond.route('/get_holders/<string:token_address>', methods=['GET'])
 @login_required
 def get_holders(token_address):
@@ -313,20 +362,16 @@ def get_holders(token_address):
     # 個人情報コントラクト接続
     PersonalInfoContract = Contract.get_contract('PersonalInfo', personal_info_address)
 
-    # トークン発行体アドレスを取得
-    token_owner = TokenContract.functions.owner().call()
+    # Transferイベントを検索
+    transfer_events = Transfer.query. \
+        distinct(Transfer.account_address_to). \
+        filter(Transfer.token_address == token_address).all()
 
     # 残高を保有している可能性のあるアドレスを抽出する
+    token_owner = TokenContract.functions.owner().call()  # トークン発行体アドレスを取得
     holders_temp = [token_owner]  # 発行体アドレスをリストに追加
-    event_filter = TokenContract.eventFilter(
-        'Transfer', {
-            'filter': {},
-            'fromBlock': 'earliest'
-        }
-    )
-    entries = event_filter.get_all_entries()
-    for entry in entries:
-        holders_temp.append(entry['args']['to'])  # 宛先アドレスを収集する
+    for event in transfer_events:
+        holders_temp.append(event.account_address_to)
 
     # 口座リストをユニークにする
     holders_uniq = []
@@ -383,12 +428,21 @@ def get_holders(token_address):
                     message = cipher.decrypt(ciphertext)
                     personal_info_json = json.loads(message)
                     name = personal_info_json['name'] if personal_info_json['name'] else "--"
-                    address = personal_info_json['address']['prefecture'] + personal_info_json['address']['city'] + personal_info_json['address']['address1'] + personal_info_json['address']['address2'] if personal_info_json['address']['prefecture'] and personal_info_json['address']['city'] and personal_info_json['address']['address1'] else "--"
-                    postal_code = personal_info_json['address']['postal_code'] if personal_info_json['address']['postal_code'] else "--"
+                    if personal_info_json['address']['prefecture'] and personal_info_json['address']['city'] and \
+                            personal_info_json['address']['address1']:
+                        address = personal_info_json['address']['prefecture'] + personal_info_json['address']['city']
+                        if personal_info_json['address']['address1'] != "":
+                            address = address + "　" + personal_info_json['address']['address1']
+                        if personal_info_json['address']['address2'] != "":
+                            address = address + "　" + personal_info_json['address']['address2']
+                    else:
+                        address = "--"
+                    postal_code = personal_info_json['address']['postal_code'] if personal_info_json['address'][
+                        'postal_code'] else "--"
                     email = personal_info_json['email'] if personal_info_json['email'] else "--"
                     birth_date = personal_info_json['birth'] if personal_info_json['birth'] else "--"
                     # 保有者情報（個人情報あり）
-                    holder ={
+                    holder = {
                         'account_address': account_address,
                         'name': name,
                         'postal_code': postal_code,
@@ -399,13 +453,13 @@ def get_holders(token_address):
                         'commitment': commitment,
                         'address_type': address_type
                     }
-                except Exception as e: # 復号化処理でエラーが発生した場合、デフォルト値を設定
+                except Exception as e:  # 復号化処理でエラーが発生した場合、デフォルト値を設定
                     logger.error(e)
                     pass
 
             holders.append(holder)
 
-    return json.dumps(holders)
+    return jsonify(holders)
 
 
 ####################################################
@@ -456,6 +510,8 @@ def transfer_ownership(token_address, account_address):
             txid = TokenContract.functions.transferFrom(from_address, to_address, amount). \
                 transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
             web3.eth.waitForTransactionReceipt(txid)
+            # NOTE: 保有者一覧が非同期で更新されるため、5秒待つ
+            time.sleep(5)
             return redirect(url_for('.holders', token_address=token_address))
         else:
             flash_errors(form)
@@ -522,7 +578,8 @@ def setting(token_address):
     faceValue = TokenContract.functions.faceValue().call()
     interestRate = TokenContract.functions.interestRate().call() * 0.0001
     interestPaymentDate_string = TokenContract.functions.interestPaymentDate().call()
-    interestPaymentDate = json.loads(interestPaymentDate_string.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+    interestPaymentDate = json.loads(
+        interestPaymentDate_string.replace("'", '"').replace('True', 'true').replace('False', 'false'))
     redemptionDate = TokenContract.functions.redemptionDate().call()
     redemptionValue = TokenContract.functions.redemptionValue().call()
     returnDate = TokenContract.functions.returnDate().call()
@@ -848,7 +905,7 @@ def add_supply(token_address):
             eth_unlock_account()  # アカウントアンロック
             try:
                 gas = TokenContract.estimateGas().issue(form.amount.data)
-                tx_hash = TokenContract.functions.issue(form.amount.data).\
+                tx_hash = TokenContract.functions.issue(form.amount.data). \
                     transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
                 web3.eth.waitForTransactionReceipt(tx_hash)
             except Exception as e:
@@ -1193,6 +1250,7 @@ def set_initial_offering_status(token_address, status):
 ####################################################
 # [債券]募集申込一覧
 ####################################################
+# 申込一覧画面
 @bond.route('/applications/<string:token_address>', methods=['GET'])
 @login_required
 def applications(token_address):
@@ -1203,11 +1261,54 @@ def applications(token_address):
     )
 
 
+# 申込者リストCSVダウンロード
+@bond.route('/applications_csv_download', methods=['POST'])
+@login_required
+def applications_csv_download():
+    logger.info('bond/applications_csv_download')
+
+    token_address = request.form.get('token_address')
+    application = json.loads(get_applications(token_address).data)
+    token_name = json.loads(get_token_name(token_address).data)
+
+    f = io.StringIO()
+
+    # ヘッダー行
+    data_header = \
+        'token_name,' + \
+        'token_address,' + \
+        'account_address,' + \
+        'name,' + \
+        'email,' + \
+        'code,' + \
+        'requested_amount,' + \
+        'allot_amount,' + \
+        'balance\n'
+    f.write(data_header)
+
+    for item in application:
+        # データ行
+        data_row = \
+            token_name + ',' + token_address + ',' + item["account_address"] + ',' + \
+            item["account_name"] + ',' + item["account_email_address"] + ',' + item["data"] + ',' + \
+            str(item["requested_amount"]) + ',' + str(item["allotted_amount"]) + ',' + \
+            str(item["balance"]) + '\n'
+        f.write(data_row)
+
+    now = datetime.now()
+    res = make_response()
+    csvdata = f.getvalue()
+    res.data = csvdata.encode('sjis', 'ignore')
+    res.headers['Content-Type'] = 'text/plain'
+    res.headers['Content-Disposition'] = \
+        'attachment; filename=' + now.strftime("%Y%m%d%H%M%S") + 'bond_applications_list.csv'
+    return res
+
+
+# 申込一覧取得
 @bond.route('/get_applications/<string:token_address>', methods=['GET'])
 @login_required
 def get_applications(token_address):
-    logger.info('bond/applications')
-
     # RSA秘密鍵取得
     cipher = None
     try:
@@ -1226,26 +1327,14 @@ def get_applications(token_address):
     PersonalInfoContract = Contract.get_contract('PersonalInfo', Config.PERSONAL_INFO_CONTRACT_ADDRESS)
 
     # 申込（ApplyFor）イベントを検索
-    try:
-        event_filter = TokenContract.eventFilter(
-            'ApplyFor', {
-                'filter': {},
-                'fromBlock': 'earliest'
-            }
-        )
-        entries = event_filter.get_all_entries()
-        list_temp = []
-        for entry in entries:
-            list_temp.append(entry['args']['accountAddress'])
-    except Exception as e:
-        logger.error(e)
-        list_temp = []
+    apply_for_events = ApplyFor.query. \
+        distinct(ApplyFor.account_address). \
+        filter(ApplyFor.token_address == token_address).all()
 
-    # アカウントのリストをユニークにする
+    # 募集申込の履歴が存在するアカウントアドレスのリストを作成
     account_list = []
-    for item in list_temp:
-        if item not in account_list:
-            account_list.append(item)
+    for event in apply_for_events:
+        account_list.append(event.account_address)
 
     token_owner = TokenContract.functions.owner().call()
     applications = []
@@ -1282,7 +1371,7 @@ def get_applications(token_address):
         }
         applications.append(application)
 
-    return json.dumps(applications)
+    return jsonify(applications)
 
 
 ####################################################
@@ -1325,6 +1414,8 @@ def allot(token_address, account_address):
                     'bond/allot.html',
                     token_address=token_address, account_address=account_address, form=form
                 )
+            # NOTE: 募集申込一覧が非同期で更新されるため、5秒待つ
+            time.sleep(5)
             flash('処理を受け付けました。', 'success')
             return redirect(url_for('.applications', token_address=token_address))
         else:
@@ -1396,6 +1487,8 @@ def transfer_allotment(token_address, account_address):
                     'bond/transfer_allotment.html',
                     token_address=token_address, account_address=account_address, form=form
                 )
+            # NOTE: 募集申込一覧が非同期で更新されるため、5秒待つ
+            time.sleep(5)
             flash('処理を受け付けました。', 'success')
             return redirect(url_for('.applications', token_address=token_address))
         else:
@@ -1425,8 +1518,8 @@ def token_tracker(token_address):
     if not Web3.isAddress(token_address):
         abort(404)
 
-    track = Transfer.query.filter(Transfer.token_address == token_address).\
-        order_by(desc(Transfer.block_timestamp)).\
+    track = Transfer.query.filter(Transfer.token_address == token_address). \
+        order_by(desc(Transfer.block_timestamp)). \
         all()
 
     return render_template(
@@ -1445,50 +1538,14 @@ def permissionDenied():
     return render_template('permissiondenied.html')
 
 
-# +++++++++++++++++++++++++++++++
+####################################################
 # Custom Filter
-# +++++++++++++++++++++++++++++++
+####################################################
 @bond.app_template_filter()
-def format_date(date):  # date = datetime object.
-    if date:
-        if isinstance(date, datetime.datetime):
-            return date.strftime('%Y/%m/%d %H:%M')
-        elif isinstance(date, datetime.date):
-            return date.strftime('%Y/%m/%d')
+def format_date(_date):  # _date = datetime object.
+    if _date:
+        if isinstance(_date, datetime):
+            return _date.strftime('%Y/%m/%d %H:%M')
+        elif isinstance(_date, date):
+            return _date.strftime('%Y/%m/%d')
     return ''
-
-
-@bond.app_template_filter()
-def img_convert(icon):
-    if icon:
-        img = b64encode(icon)
-        return img.decode('utf8')
-    return None
-
-
-# 利払日をformにセットする
-def set_interestPaymentDate(form, interestPaymentDate):
-    if 'interestPaymentDate1' in interestPaymentDate:
-        form.interestPaymentDate1.data = interestPaymentDate['interestPaymentDate1']
-    if 'interestPaymentDate2' in interestPaymentDate:
-        form.interestPaymentDate2.data = interestPaymentDate['interestPaymentDate2']
-    if 'interestPaymentDate3' in interestPaymentDate:
-        form.interestPaymentDate3.data = interestPaymentDate['interestPaymentDate3']
-    if 'interestPaymentDate4' in interestPaymentDate:
-        form.interestPaymentDate4.data = interestPaymentDate['interestPaymentDate4']
-    if 'interestPaymentDate5' in interestPaymentDate:
-        form.interestPaymentDate5.data = interestPaymentDate['interestPaymentDate5']
-    if 'interestPaymentDate6' in interestPaymentDate:
-        form.interestPaymentDate6.data = interestPaymentDate['interestPaymentDate6']
-    if 'interestPaymentDate7' in interestPaymentDate:
-        form.interestPaymentDate7.data = interestPaymentDate['interestPaymentDate7']
-    if 'interestPaymentDate8' in interestPaymentDate:
-        form.interestPaymentDate8.data = interestPaymentDate['interestPaymentDate8']
-    if 'interestPaymentDate9' in interestPaymentDate:
-        form.interestPaymentDate9.data = interestPaymentDate['interestPaymentDate9']
-    if 'interestPaymentDate10' in interestPaymentDate:
-        form.interestPaymentDate10.data = interestPaymentDate['interestPaymentDate10']
-    if 'interestPaymentDate11' in interestPaymentDate:
-        form.interestPaymentDate11.data = interestPaymentDate['interestPaymentDate11']
-    if 'interestPaymentDate12' in interestPaymentDate:
-        form.interestPaymentDate12.data = interestPaymentDate['interestPaymentDate12']

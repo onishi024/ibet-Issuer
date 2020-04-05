@@ -1,3 +1,5 @@
+import json
+
 import pytest
 import os
 
@@ -143,6 +145,11 @@ class TestBase(object):
         client.post(url_for('auth.login'), data={'login_id': 'admin', 'password': '1234'})
         return client
 
+    @staticmethod
+    def client_with_api_login(param_app):
+        client = param_app.test_client()
+        response = client.post('/api/auth', json={'login_id': 'admin', 'password': '1234'})
+        return client, json.loads(response.data.decode('utf-8'))['access_token']
 
 # ---------------------------------------------------------------------------------------------
 # quorum系

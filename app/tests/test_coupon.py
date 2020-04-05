@@ -11,7 +11,7 @@ from eth_utils import to_checksum_address
 from config import Config
 from .conftest import TestBase
 from .utils.account_config import eth_account
-from .utils.contract_utils_common import processor_issue_event
+from .utils.contract_utils_common import processor_issue_event, index_transfer_event, clean_issue_event
 from .utils.contract_utils_coupon import apply_for_offering
 from .utils.contract_utils_personal_info import register_personal_info
 from ..models import Token
@@ -71,8 +71,8 @@ class TestCoupon(TestBase):
             "postal_code": "1040053",
             "prefecture": "東京都",
             "city": "中央区",
-            "address1": "勝どき6丁目３－２",
-            "address2": "ＴＴＴ６０１２"
+            "address1": "勝どき1丁目１－２ー３",
+            "address2": ""
         },
         "email": "abcd1234@aaa.bbb.cc",
         "birth": "20191102"
@@ -467,7 +467,7 @@ class TestCoupon(TestBase):
             if eth_account['issuer']['account_address'] == response_data['account_address']:  # issuer
                 assert '株式会社１' == response_data['name']
                 assert '1234567' == response_data['postal_code']
-                assert '東京都中央区日本橋11-1東京マンション１０１' == response_data['address']
+                assert '東京都中央区　日本橋11-1　東京マンション１０１' == response_data['address']
                 assert 'abcd1234@aaa.bbb.cc' == response_data['email']
                 assert '20190902' == response_data['birth_date']
                 assert 2000000 == response_data['balance']
@@ -475,7 +475,7 @@ class TestCoupon(TestBase):
             elif eth_account['trader']['account_address'] == response_data['account_address']:  # trader
                 assert 'ﾀﾝﾀｲﾃｽﾄ' == response_data['name']
                 assert '1040053' == response_data['postal_code']
-                assert '東京都中央区勝どき6丁目３－２ＴＴＴ６０１２' == response_data['address']
+                assert '東京都中央区　勝どき1丁目１－２−３' == response_data['address']
                 assert 'abcd1234@aaa.bbb.cc' == response_data['email']
                 assert '20191102' == response_data['birth_date']
                 assert 100 == response_data['balance']
@@ -660,7 +660,7 @@ class TestCoupon(TestBase):
             if eth_account['issuer']['account_address'] == response_data['account_address']:  # issuer
                 assert '株式会社１' == response_data['name']
                 assert '1234567' == response_data['postal_code']
-                assert '東京都中央区日本橋11-1東京マンション１０１' == response_data['address']
+                assert '東京都中央区　日本橋11-1　東京マンション１０１' == response_data['address']
                 assert 'abcd1234@aaa.bbb.cc' == response_data['email']
                 assert '20190902' == response_data['birth_date']
                 assert 1999990 == response_data['balance']
@@ -668,7 +668,7 @@ class TestCoupon(TestBase):
             elif eth_account['trader']['account_address'] == response_data['account_address']:  # trader
                 assert 'ﾀﾝﾀｲﾃｽﾄ' == response_data['name']
                 assert '1040053' == response_data['postal_code']
-                assert '東京都中央区勝どき6丁目３－２ＴＴＴ６０１２' == response_data['address']
+                assert '東京都中央区　勝どき1丁目１－２ー３' == response_data['address']
                 assert 'abcd1234@aaa.bbb.cc' == response_data['email']
                 assert '20191102' == response_data['birth_date']
                 assert 110 == response_data['balance']
@@ -801,7 +801,7 @@ class TestCoupon(TestBase):
     # ＜募集申込一覧参照＞
     #   1件：募集申込一覧
     #   ※Token_1が対象
-    def test_normal_13_2(self, app):
+    def test_normal_13_2(self, db, app):
         client = self.client_with_admin_login(app)
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
         token = tokens[0]
@@ -811,6 +811,7 @@ class TestCoupon(TestBase):
 
         # 募集申込データの作成：投資家
         apply_for_offering(
+            db,
             eth_account['trader'],
             token_address
         )
@@ -849,7 +850,7 @@ class TestCoupon(TestBase):
     #   ※10_2, 12_2の後に実施
     #   割当（募集申込）処理　→　保有者一覧参照
     #   ※Token_1が対象
-    def test_normal_14_2(self, app):
+    def test_normal_14_2(self, db, app):
         client = self.client_with_admin_login(app)
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
         token = tokens[0]
@@ -862,7 +863,16 @@ class TestCoupon(TestBase):
         url = self.url_allocate + '/' + token_address + '/' + trader_address
         response = client.post(url, data={'amount': 10})
         assert response.status_code == 302
-        time.sleep(10)
+
+        # Transferイベント登録
+        index_transfer_event(
+            db,
+            '0xac22f75bae96f8e9f840f980dfefc1d497979341d3106aeb25e014483c3f414a',  # 仮のトランザクションハッシュ
+            token.token_address,
+            issuer_address,
+            trader_address,
+            10
+        )
 
         # 保有者一覧の参照
         response = client.get(self.url_holders + token_address)
@@ -878,7 +888,7 @@ class TestCoupon(TestBase):
         assert issuer_address == response_data[0]['account_address']
         assert '株式会社１' == response_data[0]['name']
         assert '1234567' == response_data[0]['postal_code']
-        assert '東京都中央区日本橋11-1東京マンション１０１' == response_data[0]['address']
+        assert '東京都中央区　日本橋11-1　東京マンション１０１' == response_data[0]['address']
         assert 'abcd1234@aaa.bbb.cc' == response_data[0]['email']
         assert '20190902' == response_data[0]['birth_date']
         assert 1999980 == response_data[0]['balance']
@@ -888,7 +898,7 @@ class TestCoupon(TestBase):
         assert trader_address == response_data[1]['account_address']
         assert 'ﾀﾝﾀｲﾃｽﾄ' == response_data[1]['name']
         assert '1040053' == response_data[1]['postal_code']
-        assert '東京都中央区勝どき6丁目３－２ＴＴＴ６０１２' == response_data[1]['address']
+        assert '東京都中央区　勝どき1丁目１－２ー３' == response_data[1]['address']
         assert 'abcd1234@aaa.bbb.cc' == response_data[1]['email']
         assert '20191102' == response_data[1]['birth_date']
         assert 120 == response_data[1]['balance']
@@ -1293,3 +1303,9 @@ class TestCoupon(TestBase):
         url = self.url_allocate + '/' + "0x6666" + '/' + trader_address  # 不正なアドレス
         response = client.get(url)
         assert response.status_code == 404  # abortされる
+
+    #############################################################################
+    # 後処理
+    #############################################################################
+    def test_end(self, db):
+        clean_issue_event(db)

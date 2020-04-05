@@ -16,7 +16,7 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 path = os.path.join(os.path.dirname(__file__), '../')
 sys.path.append(path)
 
-from app.models import Token, Transfer
+from app.models import Token, ApplyFor
 from config import Config
 
 from web3 import Web3
@@ -24,7 +24,7 @@ from web3.middleware import geth_poa_middleware
 
 # NOTE:ログフォーマットはメッセージ監視が出来るように設定する必要がある。
 dictConfig(Config.LOG_CONFIG)
-log_fmt = 'INDEXER-Transfer [%(asctime)s] [%(process)d] [%(levelname)s] %(message)s'
+log_fmt = 'INDEXER-ApplyFor [%(asctime)s] [%(process)d] [%(levelname)s] %(message)s'
 logging.basicConfig(format=log_fmt)
 
 # 設定の取得
@@ -46,9 +46,9 @@ class Sinks:
     def register(self, sink):
         self.sinks.append(sink)
 
-    def on_transfer(self, *args, **kwargs):
+    def on_apply_for(self, *args, **kwargs):
         for sink in self.sinks:
-            sink.on_transfer(*args, **kwargs)
+            sink.on_apply_for(*args, **kwargs)
 
     def flush(self, *args, **kwargs):
         for sink in self.sinks:
@@ -57,11 +57,10 @@ class Sinks:
 
 class ConsoleSink:
     @staticmethod
-    def on_transfer(transaction_hash, token_address,
-                    account_address_from, account_address_to, transfer_amount, block_timestamp):
+    def on_apply_for(transaction_hash, token_address, account_address, amount, block_timestamp):
         logging.info(
-            "Transfer: transaction_hash={}, token_address={}, account_address_from={}, account_address_to={}".format(
-                transaction_hash, token_address, account_address_from, account_address_to
+            "ApplyFor: transaction_hash={}, token_address={}, account_address={}".format(
+                transaction_hash, token_address, account_address
             )
         )
 
@@ -73,26 +72,24 @@ class DBSink:
     def __init__(self, db):
         self.db = db
 
-    def on_transfer(self, transaction_hash, token_address,
-                    account_address_from, account_address_to, transfer_amount, block_timestamp):
-        transfer_record = self.__get_record(transaction_hash, token_address)
-        if transfer_record is None:
-            transfer_record = Transfer()
-            transfer_record.transaction_hash = transaction_hash
-            transfer_record.token_address = token_address
-            transfer_record.account_address_from = account_address_from
-            transfer_record.account_address_to = account_address_to
-            transfer_record.transfer_amount = transfer_amount
-            transfer_record.block_timestamp = block_timestamp
-            self.db.merge(transfer_record)
+    def on_apply_for(self, transaction_hash, token_address, account_address, amount, block_timestamp):
+        apply_for_record = self.__get_record(transaction_hash, token_address)
+        if apply_for_record is None:
+            apply_for_record = ApplyFor()
+            apply_for_record.transaction_hash = transaction_hash
+            apply_for_record.token_address = token_address
+            apply_for_record.account_address = account_address
+            apply_for_record.amount = amount
+            apply_for_record.block_timestamp = block_timestamp
+            self.db.merge(apply_for_record)
 
     def flush(self):
         self.db.commit()
 
     def __get_record(self, transaction_hash, token_address):
-        return self.db.query(Transfer). \
-            filter(Transfer.transaction_hash == transaction_hash). \
-            filter(Transfer.token_address == token_address). \
+        return self.db.query(ApplyFor). \
+            filter(ApplyFor.transaction_hash == transaction_hash). \
+            filter(ApplyFor.token_address == token_address). \
             first()
 
 
@@ -137,7 +134,7 @@ class Processor:
         for token in self.token_list:
             try:
                 event_filter = token.eventFilter(
-                    'Transfer', {
+                    'ApplyFor', {
                         'fromBlock': block_from,
                         'toBlock': block_to,
                     }
@@ -146,15 +143,20 @@ class Processor:
                     args = event['args']
                     transaction_hash = event['transactionHash'].hex()
                     block_timestamp = datetime.fromtimestamp(web3.eth.getBlock(event['blockNumber'])['timestamp'], JST)
-                    if args['value'] > sys.maxsize:
+
+                    if 'amount' not in args:  # NOTE:IbetStraightBond以外は args['amount'] はNone
+                        amount = 0
+                    else:
+                        amount = args['amount']
+
+                    if amount > sys.maxsize:  # オーバーフロー対策
                         pass
                     else:
-                        self.sink.on_transfer(
+                        self.sink.on_apply_for(
                             transaction_hash=transaction_hash,
                             token_address=to_checksum_address(token.address),
-                            account_address_from=args['from'],
-                            account_address_to=args['to'],
-                            transfer_amount=args['value'],
+                            account_address=args['accountAddress'],
+                            amount=amount,
                             block_timestamp=block_timestamp
                         )
                 self.web3.eth.uninstallFilter(event_filter.filter_id)
