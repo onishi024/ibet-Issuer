@@ -289,6 +289,7 @@ def holders_csv_download():
         'account_address,' + \
         'balance,' + \
         'commitment,' + \
+        'total_balance,' + \
         'name,' + \
         'birth_date,' + \
         'postal_code,' + \
@@ -299,10 +300,12 @@ def holders_csv_download():
     for holder in holders:
         # Unicodeの各種ハイフン文字を半角ハイフン（U+002D）に変換する
         holder_address = re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', holder["address"])
+        # 保有数量合計
+        total_balance = holder["balance"] + holder["commitment"]
         # データ行
         data_row = \
             token_name + ',' + token_address + ',' + holder["account_address"] + ',' + \
-            str(holder["balance"]) + ',' + str(holder["commitment"]) + ',' + \
+            str(holder["balance"]) + ',' + str(holder["commitment"]) + ',' + str(total_balance) + ',' + \
             holder["name"] + ',' + holder["birth_date"] + ',' + \
             holder["postal_code"] + ',' + holder_address + ',' + \
             holder["email"] + '\n'
