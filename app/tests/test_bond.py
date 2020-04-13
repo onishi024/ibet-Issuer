@@ -435,13 +435,13 @@ class TestBond(TestBase):
             # CSVヘッダ
             ",".join([
                 'token_name', 'token_address', 'account_address',
-                'balance', 'commitment', 'total_balance',
+                'balance', 'commitment', 'total_balance', 'total_bond_value',
                 'name', 'birth_date', 'postal_code', 'address', 'email'
             ]),
             # CSVデータ
             ','.join([
                 'テスト債券', token.token_address, eth_account['issuer']['account_address'],
-                '1000000', '0', '1000000',
+                '1000000', '0', '1000000', '1000000000',
                 '株式会社１', '20190902', '1234567', '東京都中央区　日本橋11-1　東京マンション１０１', 'abcd1234@aaa.bbb.cc'
             ])
         ]) + '\n'
