@@ -2,14 +2,14 @@
 import base64
 import json
 import re
-from datetime import datetime
+from http import HTTPStatus
 
-from flask import jsonify, make_response
 from flask_jwt import jwt_required
 
 from . import api
 from .errors import bad_request, internal_server_error
-from app.models import Token, Transfer, AddressType
+from app import db
+from app.models import Token, Transfer, HolderList
 from app.contracts import Contract
 from config import Config
 
@@ -25,13 +25,12 @@ from logging import getLogger
 logger = getLogger('api')
 
 
-@api.route('/bond/holders/<string:token_address>', methods=['GET'])
+@api.route('/bond/holders/<string:token_address>', methods=['POST'])
 @jwt_required()
 def bond_holders(token_address):
     """
     債券_保有者一覧取得
     :param token_address: トークンアドレス
-    :return: トークンの保有者一覧
     """
     logger.info('api/bond/holders')
 
@@ -42,156 +41,7 @@ def bond_holders(token_address):
             key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
             cipher = PKCS1_OAEP.new(key)
         except Exception as e:
-            logger.error(e)
-            pass
-
-        # Token情報取得
-        token = Token.query.filter(Token.token_address == token_address).first()
-        if token is None:
-            return bad_request('Invalid token_address')
-        token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
-
-        # Tokenコントラクト接続
-        TokenContract = web3.eth.contract(address=token_address, abi=token_abi)
-
-        # 取引コントラクト、個人情報コントラクトの情報取得
-        try:
-            tradable_exchange = TokenContract.functions.tradableExchange().call()
-            personal_info_address = TokenContract.functions.personalInfoAddress().call()
-        except Exception as e:
-            logger.error(e)
-            tradable_exchange = '0x0000000000000000000000000000000000000000'
-            personal_info_address = '0x0000000000000000000000000000000000000000'
-            pass
-
-        # 債券取引コントラクト接続
-        ExchangeContract = Contract.get_contract('IbetStraightBondExchange', tradable_exchange)
-
-        # 個人情報コントラクト接続
-        PersonalInfoContract = Contract.get_contract('PersonalInfo', personal_info_address)
-
-        # Transferイベントを検索
-        transfer_events = Transfer.query. \
-            distinct(Transfer.account_address_to). \
-            filter(Transfer.token_address == token_address).all()
-
-        # 残高を保有している可能性のあるアドレスを抽出する
-        token_owner = TokenContract.functions.owner().call()  # トークン発行体アドレスを取得
-        holders_temp = [token_owner]  # 発行体アドレスをリストに追加
-        for event in transfer_events:
-            holders_temp.append(event.account_address_to)
-
-        # 口座リストをユニークにする
-        holders_uniq = []
-        for x in holders_temp:
-            if x not in holders_uniq:
-                holders_uniq.append(x)
-
-        # 保有者情報抽出
-        holders = []
-        for account_address in holders_uniq:
-            balance = TokenContract.functions.balanceOf(account_address).call()
-            try:
-                commitment = ExchangeContract.functions.commitmentOf(account_address, token_address).call()
-            except Exception as e:
-                logger.warning(e)
-                commitment = 0
-                pass
-            if balance > 0 or commitment > 0:  # 残高（balance）、または注文中の残高（commitment）が存在する情報を抽出
-                # アドレス種別判定
-                if account_address == token_owner:
-                    address_type = AddressType.ISSUER.value
-                elif account_address == tradable_exchange:
-                    address_type = AddressType.EXCHANGE.value
-                else:
-                    address_type = AddressType.OTHERS.value
-
-                # 保有者情報：初期値（個人情報なし）
-                holder = {
-                    'account_address': account_address,
-                    'name': '--',
-                    'postal_code': '--',
-                    'email': '--',
-                    'address': '--',
-                    'birth_date': '--',
-                    'balance': balance,
-                    'commitment': commitment,
-                    'address_type': address_type
-                }
-
-                # 暗号化個人情報取得
-                try:
-                    encrypted_info = PersonalInfoContract.functions.personal_info(account_address, token_owner).call()[2]
-                except Exception as e:
-                    logger.warning(e)
-                    encrypted_info = ''
-                    pass
-
-                if encrypted_info == '' or cipher is None:  # 情報が空の場合、デフォルト値を設定
-                    pass
-                else:
-                    try:
-                        # 個人情報復号化
-                        ciphertext = base64.decodebytes(encrypted_info.encode('utf-8'))
-                        message = cipher.decrypt(ciphertext)
-                        personal_info_json = json.loads(message)
-
-                        name = personal_info_json['name'] if personal_info_json['name'] else "--"
-                        if personal_info_json['address']['prefecture'] and personal_info_json['address']['city'] and personal_info_json['address']['address1']:
-                            address = personal_info_json['address']['prefecture'] + personal_info_json['address']['city']
-                            if personal_info_json['address']['address1'] != "":
-                                address = address + "　" + personal_info_json['address']['address1']
-                            if personal_info_json['address']['address2'] != "":
-                                address = address + "　" + personal_info_json['address']['address2']
-                        else:
-                            address = "--"
-                        postal_code = personal_info_json['address']['postal_code'] if personal_info_json['address']['postal_code'] else "--"
-                        email = personal_info_json['email'] if personal_info_json['email'] else "--"
-                        birth_date = personal_info_json['birth'] if personal_info_json['birth'] else "--"
-
-                        # 保有者情報（個人情報あり）
-                        holder = {
-                            'account_address': account_address,
-                            'name': name,
-                            'postal_code': postal_code,
-                            'email': email,
-                            'address': address,
-                            'birth_date': birth_date,
-                            'balance': balance,
-                            'commitment': commitment,
-                            'address_type': address_type
-                        }
-                    except Exception as e:  # 復号化処理でエラーが発生した場合、デフォルト値を設定
-                        logger.error(e)
-                        pass
-
-                holders.append(holder)
-
-        return jsonify(holders)
-
-    except Exception as e:
-        logger.error(e)
-        return internal_server_error()
-
-
-@api.route('/bond/holders_csv_download/<string:token_address>', methods=['GET'])
-@jwt_required()
-def bond_holders_csv_download(token_address):
-    """
-    債券_保有者一覧取得（CSV）
-    :param token_address: トークンアドレス
-    :return: トークンの保有者一覧
-    """
-    logger.info('api/bond/holders_csv_download')
-
-    try:
-        # RSA秘密鍵の取得
-        cipher = None
-        try:
-            key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
-            cipher = PKCS1_OAEP.new(key)
-        except Exception as e:
-            logger.error(e)
+            logger.exception(e)
             pass
 
         # Token情報取得
@@ -210,7 +60,7 @@ def bond_holders_csv_download(token_address):
             tradable_exchange = TokenContract.functions.tradableExchange().call()
             personal_info_address = TokenContract.functions.personalInfoAddress().call()
         except Exception as e:
-            logger.error(e)
+            logger.exception(e)
             token_name = ''
             face_value = 0
             tradable_exchange = '0x0000000000000000000000000000000000000000'
@@ -251,7 +101,6 @@ def bond_holders_csv_download(token_address):
                 commitment = 0
                 pass
             if balance > 0 or commitment > 0:  # 残高（balance）、または注文中の残高（commitment）が存在する情報を抽出
-
                 # 保有者情報：初期値（個人情報なし）
                 holder = {
                     'account_address': account_address,
@@ -266,8 +115,7 @@ def bond_holders_csv_download(token_address):
 
                 # 暗号化個人情報取得
                 try:
-                    encrypted_info = PersonalInfoContract.functions.personal_info(account_address, token_owner).call()[
-                        2]
+                    encrypted_info = PersonalInfoContract.functions.personal_info(account_address, token_owner).call()[2]
                 except Exception as e:
                     logger.warning(e)
                     encrypted_info = ''
@@ -309,7 +157,7 @@ def bond_holders_csv_download(token_address):
                             'commitment': commitment
                         }
                     except Exception as e:  # 復号化処理でエラーが発生した場合、デフォルト値を設定
-                        logger.error(e)
+                        logger.exception(e)
                         pass
 
                 # CSV出力用にトークンに関する情報を追加
@@ -343,15 +191,12 @@ def bond_holders_csv_download(token_address):
             *[','.join(map(lambda column: str(holder1[column]), csv_columns)) for holder1 in holders]
         ]) + '\n'
 
-        # レスポンス作成
-        now = datetime.now()
-        res = make_response()
-        res.data = csv_data.encode('sjis', 'ignore')
-        res.headers['Content-Type'] = 'text/plain; charset=Shift_JIS'
-        res.headers['Content-Disposition'] = 'attachment; filename=' + now.strftime("%Y%m%d%H%M%S") \
-                                             + 'bond_holders_list.csv'
-        return res
+        # DBに登録
+        holder_list = HolderList(token_address=token_address, holder_list=csv_data.encode('sjis', 'ignore'))
+        db.session.add(holder_list)
+
+        return '', HTTPStatus.CREATED
 
     except Exception as e:
-        logger.error(e)
+        logger.exception(e)
         return internal_server_error()
