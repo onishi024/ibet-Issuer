@@ -16,6 +16,7 @@ from .utils.contract_utils_personal_info import register_personal_info
 class TestAPI(TestBase):
     # テスト対象URL
     url_bond_holders = 'api/bond/holders/'  # 保有者一覧(債券)
+    url_bond_holders_csv_download = 'api/bond/holders_csv_download/'  # 保有者一覧(債券）CSVダウンロード
 
     # PersonalInfo情報の暗号化
     personal_info_json = {
@@ -127,11 +128,46 @@ class TestAPI(TestBase):
             'birth_date': '20190902'
         }]
 
+    # ＜正常系2＞
+    #   債券保有者一覧(API) CSVダウンロード
+    def test_normal_2(self, app):
+        # 発行済みトークン情報を取得
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
+        token = tokens[0]
+
+        client, jwt = self.client_with_api_login(app)
+
+        # 保有者一覧の参照
+        response = client.get(
+            self.url_bond_holders_csv_download + token.token_address,
+            headers={'Authorization': 'JWT ' + jwt}
+        )
+        response_csv = response.data.decode('sjis')
+
+        assumed_csv = '\n'.join([
+            # CSVヘッダ
+            ",".join([
+                'token_name', 'token_address', 'account_address',
+                'balance', 'commitment', 'total_balance', 'total_holdings',
+                'name', 'birth_date', 'postal_code', 'address', 'email'
+            ]),
+            # CSVデータ
+            ','.join([
+                'テスト債券', token.token_address, eth_account['issuer']['account_address'],
+                '1000000', '0', '1000000', '1000000000',
+                '株式会社１', '20190902', '1234567', '東京都中央区　日本橋11-1　東京マンション１０１', 'abcd1234@aaa.bbb.cc'
+            ])
+        ]) + '\n'
+
+        assert response.status_code == 200
+        assert response_csv == assumed_csv
+
     #############################################################################
     # エラー系
     #############################################################################
 
     # ＜エラー系1＞
+    #   債券保有者一覧(API)
     #   入力エラー（存在しないトークン）：400
     def test_error_1(self, app):
         client, jwt = self.client_with_api_login(app)
@@ -149,6 +185,7 @@ class TestAPI(TestBase):
         }
 
     # ＜エラー系2＞
+    #   債券保有者一覧(API)
     #   認証エラー：401
     def test_error_2(self, app):
         # 発行済みトークン情報を取得
@@ -160,6 +197,47 @@ class TestAPI(TestBase):
         # 保有者一覧の参照（JWTなし）
         response = client.get(
             self.url_bond_holders + token.token_address,
+            headers={}
+        )
+        assert response.status_code == 401
+        assert json.loads(response.data.decode('utf-8')) == {
+            'description': 'Request does not contain an access token',
+            'error': 'Authorization Required',
+            'status_code': 401
+        }
+
+
+    # ＜エラー系3＞
+    #   債券保有者一覧(API) CSVダウンロード
+    #   入力エラー（存在しないトークン）：400
+    def test_error_3(self, app):
+        client, jwt = self.client_with_api_login(app)
+
+        # 保有者一覧の参照
+        response = client.get(
+            self.url_bond_holders_csv_download + '0x0000000000000000000000000000000000000111',  # 存在しないトークンアドレス
+            headers={'Authorization': 'JWT ' + jwt}
+        )
+        assert response.status_code == 400
+        assert json.loads(response.data.decode('utf-8')) == {
+            'description': 'Invalid token_address',
+            'error': 'Bad Request',
+            'status_code': 400
+        }
+
+    # ＜エラー系4＞
+    #   債券保有者一覧(API) CSVダウンロード
+    #   認証エラー：401
+    def test_error_4(self, app):
+        # 発行済みトークン情報を取得
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
+        token = tokens[0]
+
+        client, _ = self.client_with_api_login(app)
+
+        # 保有者一覧の参照（JWTなし）
+        response = client.get(
+            self.url_bond_holders_csv_download + token.token_address,
             headers={}
         )
         assert response.status_code == 401
