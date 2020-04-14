@@ -308,7 +308,7 @@ def holders_csv_download():
         'balance,' + \
         'commitment,' + \
         'total_balance,' + \
-        'total_bond_value,' + \
+        'total_holdings,' + \
         'name,' + \
         'birth_date,' + \
         'postal_code,' + \
@@ -321,13 +321,13 @@ def holders_csv_download():
         holder_address = re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', holder["address"])
         # 保有数量合計
         total_balance = holder["balance"] + holder["commitment"]
-        # 保有社債金額合計
-        total_bond_value = total_balance * face_value
+        # 保有金額合計
+        total_holdings = total_balance * face_value
         # データ行
         data_row = \
             token_name + ',' + token_address + ',' + holder["account_address"] + ',' + \
             str(holder["balance"]) + ',' + str(holder["commitment"]) + ',' + \
-            str(total_balance) + ',' + str(total_bond_value) + ',' + \
+            str(total_balance) + ',' + str(total_holdings) + ',' + \
             holder["name"] + ',' + holder["birth_date"] + ',' + \
             holder["postal_code"] + ',' + holder_address + ',' + \
             holder["email"] + '\n'

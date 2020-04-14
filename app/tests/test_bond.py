@@ -435,7 +435,7 @@ class TestBond(TestBase):
             # CSVヘッダ
             ",".join([
                 'token_name', 'token_address', 'account_address',
-                'balance', 'commitment', 'total_balance', 'total_bond_value',
+                'balance', 'commitment', 'total_balance', 'total_holdings',
                 'name', 'birth_date', 'postal_code', 'address', 'email'
             ]),
             # CSVデータ
