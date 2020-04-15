@@ -247,4 +247,4 @@ class HolderList(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     token_address = db.Column(db.String(42))
     holder_list = db.Column(db.LargeBinary)
-    created = db.Column(db.DateTime, nullable=False, default=datetime.now)
+    created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow())
