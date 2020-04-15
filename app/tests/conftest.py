@@ -327,5 +327,6 @@ def shared_contract():
         'TokenList': token_list,
         'IbetCouponExchange': coupon_exchange,
         'IbetMembershipExchange': membership_exchange,
+        'IbetShareExchange': {'address': '0x0000000000000000000000000000000000000000', 'abi': ''}
     }
     return contracts
