@@ -87,7 +87,7 @@ class TestAPI(TestBase):
                     'redemptionDate': '20191231',
                     'redemptionValue': 10000,
                     'returnDate': '20191231',
-                    'returnAmount': '商品券をプレゼント',
+                    'returnDetails': '商品券をプレゼント',
                     'purpose': '新商品の開発資金として利用。',
                     'tradableExchange': shared_contract['IbetStraightBondExchange']['address'],
                     'personalInfoAddress': shared_contract['PersonalInfo']['address'],
