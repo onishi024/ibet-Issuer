@@ -1,13 +1,15 @@
 # -*- coding:utf-8 -*-
 import base64
 import json
+import re
+from http import HTTPStatus
 
-from flask import jsonify
 from flask_jwt import jwt_required
 
 from . import api
 from .errors import bad_request, internal_server_error
-from app.models import Token, Transfer, AddressType
+from app import db
+from app.models import Token, Transfer, HolderList
 from app.contracts import Contract
 from config import Config
 
@@ -23,13 +25,12 @@ from logging import getLogger
 logger = getLogger('api')
 
 
-@api.route('/bond/holders/<string:token_address>', methods=['GET'])
+@api.route('/bond/holders/<string:token_address>', methods=['POST'])
 @jwt_required()
 def bond_holders(token_address):
     """
     債券_保有者一覧取得
     :param token_address: トークンアドレス
-    :return: トークンの保有者一覧
     """
     logger.info('api/bond/holders')
 
@@ -40,7 +41,7 @@ def bond_holders(token_address):
             key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
             cipher = PKCS1_OAEP.new(key)
         except Exception as e:
-            logger.error(e)
+            logger.exception(e)
             pass
 
         # Token情報取得
@@ -52,12 +53,16 @@ def bond_holders(token_address):
         # Tokenコントラクト接続
         TokenContract = web3.eth.contract(address=token_address, abi=token_abi)
 
-        # 取引コントラクト、個人情報コントラクトの情報取得
+        # トークン情報の取得
         try:
+            token_name = TokenContract.functions.name().call()
+            face_value = TokenContract.functions.faceValue().call()
             tradable_exchange = TokenContract.functions.tradableExchange().call()
             personal_info_address = TokenContract.functions.personalInfoAddress().call()
         except Exception as e:
-            logger.error(e)
+            logger.exception(e)
+            token_name = ''
+            face_value = 0
             tradable_exchange = '0x0000000000000000000000000000000000000000'
             personal_info_address = '0x0000000000000000000000000000000000000000'
             pass
@@ -96,14 +101,6 @@ def bond_holders(token_address):
                 commitment = 0
                 pass
             if balance > 0 or commitment > 0:  # 残高（balance）、または注文中の残高（commitment）が存在する情報を抽出
-                # アドレス種別判定
-                if account_address == token_owner:
-                    address_type = AddressType.ISSUER.value
-                elif account_address == tradable_exchange:
-                    address_type = AddressType.EXCHANGE.value
-                else:
-                    address_type = AddressType.OTHERS.value
-
                 # 保有者情報：初期値（個人情報なし）
                 holder = {
                     'account_address': account_address,
@@ -113,8 +110,7 @@ def bond_holders(token_address):
                     'address': '--',
                     'birth_date': '--',
                     'balance': balance,
-                    'commitment': commitment,
-                    'address_type': address_type
+                    'commitment': commitment
                 }
 
                 # 暗号化個人情報取得
@@ -141,6 +137,8 @@ def bond_holders(token_address):
                                 address = address + "　" + personal_info_json['address']['address1']
                             if personal_info_json['address']['address2'] != "":
                                 address = address + "　" + personal_info_json['address']['address2']
+                            # Unicodeの各種ハイフン文字を半角ハイフン（U+002D）に変換する
+                            address = re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', address)
                         else:
                             address = "--"
                         postal_code = personal_info_json['address']['postal_code'] if personal_info_json['address']['postal_code'] else "--"
@@ -156,17 +154,49 @@ def bond_holders(token_address):
                             'address': address,
                             'birth_date': birth_date,
                             'balance': balance,
-                            'commitment': commitment,
-                            'address_type': address_type
+                            'commitment': commitment
                         }
                     except Exception as e:  # 復号化処理でエラーが発生した場合、デフォルト値を設定
-                        logger.error(e)
+                        logger.exception(e)
                         pass
+
+                # CSV出力用にトークンに関する情報を追加
+                holder['token_name'] = token_name
+                holder['token_address'] = token_address
+                total_balance = holder['balance'] + holder['commitment']
+                holder['total_balance'] = total_balance
+                holder['total_holdings'] = total_balance * face_value
 
                 holders.append(holder)
 
-        return jsonify(holders)
+        # CSV作成
+        csv_columns = [
+            'token_name',
+            'token_address',
+            'account_address',
+            'balance',
+            'commitment',
+            'total_balance',
+            'total_holdings',
+            'name',
+            'birth_date',
+            'postal_code',
+            'address',
+            'email'
+        ]
+        csv_data = '\n'.join([
+            # CSVヘッダ行
+            ','.join(csv_columns),
+            # CSVデータ行
+            *[','.join(map(lambda column: str(holder1[column]), csv_columns)) for holder1 in holders]
+        ]) + '\n'
+
+        # DBに登録
+        holder_list = HolderList(token_address=token_address, holder_list=csv_data.encode('sjis', 'ignore'))
+        db.session.add(holder_list)
+
+        return '', HTTPStatus.CREATED
 
     except Exception as e:
-        logger.error(e)
+        logger.exception(e)
         return internal_server_error()
