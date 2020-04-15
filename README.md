@@ -31,7 +31,7 @@ $ gunicorn -b localhost:5000 --reload manage:app --config guniconf.py
 
 Or you can start a `development` server with:
 ```bash
-$ python manage.py runsever
+$ python manage.py runserver
 ```
 
 
