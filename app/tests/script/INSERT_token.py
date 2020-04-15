@@ -62,19 +62,22 @@ def issue_token(exchange_address, data_count, token_type):
         attribute['redemptionDate'] = '20181010'
         attribute['redemptionValue'] = 100
         attribute['returnDate'] = '20181010'
-        attribute['returnAmount'] = 'returnAmount'
+        attribute['returnDetails'] = 'returnDetails'
         attribute['purpose'] = 'purpose'
         interestPaymentDate = json.dumps({
             'interestPaymentDate1':attribute['interestPaymentDate1']
         })
+        attribute['personalInfoAddress'] = '0x0000000000000000000000000000000000000000'
+
         arguments = [
             attribute['name'], attribute['symbol'], attribute['totalSupply'],
             attribute['tradableExchange'],
             attribute['faceValue'], attribute['interestRate'], interestPaymentDate,
             attribute['redemptionDate'], attribute['redemptionValue'],
-            attribute['returnDate'], attribute['returnAmount'],
+            attribute['returnDate'], attribute['returnDetails'],
             attribute['purpose'], attribute['memo'],
-            attribute['contactInformation'], attribute['privacyPolicy']
+            attribute['contactInformation'], attribute['privacyPolicy'],
+            attribute['personalInfoAddress']
         ]
         template_id = Config.TEMPLATE_ID_SB
     elif token_type == 'IbetMembership':

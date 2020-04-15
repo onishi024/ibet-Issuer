@@ -180,7 +180,7 @@ class IssueForm(Form):
         ]
     )
 
-    returnAmount = TextAreaField(
+    returnDetails = TextAreaField(
         "特典内容 *",
         validators=[
             Length(max=2000, message='特典内容は2,000文字以内で入力してください。')
@@ -269,7 +269,7 @@ class IssueForm(Form):
             'redemptionDate': '',
             'redemptionValue': '額面当りの償還金額を入力してください。',
             'returnDate': '特典を付与する日付を入力してください。',
-            'returnAmount': '商品を購入することで得られる特典の内容を入力してください。',
+            'returnDetails': '商品を購入することで得られる特典の内容を入力してください。',
             'purpose': '商品の発行目的を入力してください。',
             'memo': '商品の補足情報を入力してください。',
             'tradableExchange': '商品が取引可能なDEXコントラクトのアドレスを入力してください。',
@@ -313,7 +313,7 @@ class SettingForm(Form):
     redemptionDate = StringField("償還日", validators=[])
     redemptionValue = IntegerField("償還金額（額面当り）", validators=[])
     returnDate = StringField("特典付与日", validators=[])
-    returnAmount = TextAreaField("特典内容", validators=[])
+    returnDetails = TextAreaField("特典内容", validators=[])
     purpose = TextAreaField("発行目的", validators=[])
     memo = TextAreaField("メモ", validators=[])
 
@@ -403,7 +403,7 @@ class SellTokenForm(Form):
     redemptionDate = StringField("償還日", validators=[])
     redemptionValue = IntegerField("償還金額（額面当り）", validators=[])
     returnDate = StringField("特典付与日", validators=[])
-    returnAmount = TextAreaField("特典内容", validators=[])
+    returnDetails = TextAreaField("特典内容", validators=[])
     purpose = TextAreaField("発行目的", validators=[])
     memo = TextAreaField("メモ", validators=[])
     tradableExchange = StringField("DEXアドレス", validators=[])
