@@ -240,9 +240,6 @@ class AddressType(Enum):
     OTHERS = 0
     ISSUER = 1
     EXCHANGE = 2
-<<<<<<< HEAD
-=======
-
 
 # 債権者名簿
 class HolderList(db.Model):
@@ -251,4 +248,3 @@ class HolderList(db.Model):
     token_address = db.Column(db.String(42))
     holder_list = db.Column(db.LargeBinary)
     created = db.Column(db.DateTime, nullable=False, default=datetime.now)
->>>>>>> ce0bf807cdd79f534007ebeebdef801413a57397
