@@ -285,6 +285,24 @@ def holders_csv_download():
     holders = json.loads(get_holders(token_address).data)
     token_name = json.loads(get_token_name(token_address).data)
 
+    # トークン情報の参照
+    token = Token.query.filter(Token.token_address == token_address).first()
+    if token is None:
+        abort(404)
+    token_abi = json.loads(
+        token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false')
+    )
+    TokenContract = web3.eth.contract(
+        address=token.token_address,
+        abi=token_abi
+    )
+    try:
+        face_value = TokenContract.functions.faceValue().call()
+    except Exception as e:
+        logger.error(e)
+        face_value = 0
+        pass
+
     f = io.StringIO()
 
     # ヘッダー行
@@ -294,6 +312,8 @@ def holders_csv_download():
         'account_address,' + \
         'balance,' + \
         'commitment,' + \
+        'total_balance,' + \
+        'total_holdings,' + \
         'name,' + \
         'birth_date,' + \
         'postal_code,' + \
@@ -304,10 +324,15 @@ def holders_csv_download():
     for holder in holders:
         # Unicodeの各種ハイフン文字を半角ハイフン（U+002D）に変換する
         holder_address = re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', holder["address"])
+        # 保有数量合計
+        total_balance = holder["balance"] + holder["commitment"]
+        # 保有金額合計
+        total_holdings = total_balance * face_value
         # データ行
         data_row = \
             token_name + ',' + token_address + ',' + holder["account_address"] + ',' + \
             str(holder["balance"]) + ',' + str(holder["commitment"]) + ',' + \
+            str(total_balance) + ',' + str(total_holdings) + ',' + \
             holder["name"] + ',' + holder["birth_date"] + ',' + \
             holder["postal_code"] + ',' + holder_address + ',' + \
             holder["email"] + '\n'

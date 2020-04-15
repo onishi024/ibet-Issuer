@@ -31,6 +31,7 @@ class TestBond(TestBase):
     url_release = 'bond/release'  # 公開
     url_holders = 'bond/holders/'  # 保有者一覧
     url_get_holders = 'bond/get_holders/'  # 保有者一覧(API)
+    url_holders_csv_download = 'bond/holders_csv_download'  # 保有者リストCSVダウンロード
     url_get_token_name = 'bond/get_token_name/'  # トークン名取得（API）
     url_holder = 'bond/holder/'  # 保有者詳細
     url_signature = 'bond/request_signature/'  # 認定依頼
@@ -415,6 +416,38 @@ class TestBond(TestBase):
         response_data = json.loads(response.data)
         assert response.status_code == 200
         assert 'テスト債券' == response_data
+
+    # ＜正常系11-3＞
+    #   保有者リストCSVダウンロード
+    def test_normal_11_3(self, app):
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
+        token = tokens[0]
+        client = self.client_with_admin_login(app)
+
+        # 保有者一覧の参照
+        payload = {
+            'token_address': token.token_address,
+        }
+        response = client.post(self.url_holders_csv_download, data=payload)
+        response_csv = response.data.decode('sjis')
+
+        assumed_csv = '\n'.join([
+            # CSVヘッダ
+            ",".join([
+                'token_name', 'token_address', 'account_address',
+                'balance', 'commitment', 'total_balance', 'total_holdings',
+                'name', 'birth_date', 'postal_code', 'address', 'email'
+            ]),
+            # CSVデータ
+            ','.join([
+                'テスト債券', token.token_address, eth_account['issuer']['account_address'],
+                '1000000', '0', '1000000', '1000000000',
+                '株式会社１', '20190902', '1234567', '東京都中央区　日本橋11-1　東京マンション１０１', 'abcd1234@aaa.bbb.cc'
+            ])
+        ]) + '\n'
+
+        assert response.status_code == 200
+        assert response_csv == assumed_csv
 
     # ＜正常系12＞
     #   債券保有者詳細
