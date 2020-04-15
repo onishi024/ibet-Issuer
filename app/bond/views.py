@@ -155,7 +155,7 @@ def issue():
                 form.redemptionDate.data,
                 redemption_value,
                 form.returnDate.data,
-                form.returnAmount.data,
+                form.returnDetails.data,
                 form.purpose.data,
                 form.memo.data,
                 form.contact_information.data,
@@ -612,7 +612,7 @@ def setting(token_address):
     redemptionDate = TokenContract.functions.redemptionDate().call()
     redemptionValue = TokenContract.functions.redemptionValue().call()
     returnDate = TokenContract.functions.returnDate().call()
-    returnAmount = TokenContract.functions.returnAmount().call()
+    returnDetails = TokenContract.functions.returnDetails().call()
     purpose = TokenContract.functions.purpose().call()
     memo = TokenContract.functions.memo().call()
     tradableExchange = TokenContract.functions.tradableExchange().call()
@@ -650,7 +650,7 @@ def setting(token_address):
                 form.redemptionDate.data = redemptionDate
                 form.redemptionValue.data = redemptionValue
                 form.returnDate.data = returnDate
-                form.returnAmount.data = returnAmount
+                form.returnDetails.data = returnDetails
                 form.purpose.data = purpose
                 form.memo.data = memo
                 form.abi.data = token.abi
@@ -736,7 +736,7 @@ def setting(token_address):
             form.redemptionDate.data = redemptionDate
             form.redemptionValue.data = redemptionValue
             form.returnDate.data = returnDate
-            form.returnAmount.data = returnAmount
+            form.returnDetails.data = returnDetails
             form.purpose.data = purpose
             form.memo.data = memo
             form.abi.data = token.abi
@@ -758,7 +758,7 @@ def setting(token_address):
         form.redemptionDate.data = redemptionDate
         form.redemptionValue.data = redemptionValue
         form.returnDate.data = returnDate
-        form.returnAmount.data = returnAmount
+        form.returnDetails.data = returnDetails
         form.purpose.data = purpose
         form.memo.data = memo
         form.transferable.data = transferable
@@ -1098,7 +1098,7 @@ def sell(token_address):
     redemptionDate = TokenContract.functions.redemptionDate().call()
     redemptionValue = TokenContract.functions.redemptionValue().call()
     returnDate = TokenContract.functions.returnDate().call()
-    returnAmount = TokenContract.functions.returnAmount().call()
+    returnDetails = TokenContract.functions.returnDetails().call()
     purpose = TokenContract.functions.purpose().call()
     memo = TokenContract.functions.memo().call()
     tradableExchange = TokenContract.functions.tradableExchange().call()
@@ -1161,7 +1161,7 @@ def sell(token_address):
         form.redemptionDate.data = redemptionDate
         form.redemptionValue.data = redemptionValue
         form.returnDate.data = returnDate
-        form.returnAmount.data = returnAmount
+        form.returnDetails.data = returnDetails
         form.purpose.data = purpose
         form.memo.data = memo
         form.tradableExchange.data = tradableExchange
