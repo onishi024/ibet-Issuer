@@ -172,12 +172,14 @@ def list():
                 name = TokenContract.functions.name().call()
                 symbol = TokenContract.functions.symbol().call()
                 status = TokenContract.functions.status().call()
+                # utc→jst の変換
+                created = datetime.fromtimestamp(row.created.timestamp(), JST)
             token_list.append({
                 'name': name,
                 'symbol': symbol,
                 'status': status,
                 'tx_hash': row.tx_hash,
-                'created': row.created,
+                'created': created,
                 'token_address': row.token_address
             })
         except Exception as e:
@@ -226,14 +228,13 @@ def applications_csv_download():
             token_name + ',' + token_address + ',' + item["account_address"] + ',' + \
             item["account_name"] + ',' + item["account_email_address"] + ',' + item["data"] + '\n'
         f.write(data_row)
-
-    now = datetime.now()
+    now = datetime.fromtimestamp(datetime.utcnow().timestamp(), JST)
     res = make_response()
     csvdata = f.getvalue()
     res.data = csvdata.encode('sjis', 'ignore')
     res.headers['Content-Type'] = 'text/plain'
     res.headers['Content-Disposition'] = \
-        'attachment; filename=' + now.strftime("%Y%m%d%H%M%S") + 'bond_applications_list.csv'
+        'attachment; filename=' + now.strftime("%Y%m%d%H%M%S") + 'coupon_applications_list.csv'
     return res
 
 
@@ -612,6 +613,9 @@ def positions():
                 # 残高
                 balance = TokenContract.functions.balanceOf(owner).call()
 
+                # utc→jst の変換
+                created = datetime.fromtimestamp(row.created.timestamp(), JST)
+
                 # 拘束中数量
                 try:
                     commitment = ExchangeContract.functions.commitmentOf(owner, row.token_address).call()
@@ -651,7 +655,7 @@ def positions():
                     fundraise = 0
 
                 position_list.append({
-                    'created': row.created,
+                    'created': created,
                     'token_address': row.token_address,
                     'name': name,
                     'symbol': symbol,
@@ -1198,8 +1202,7 @@ def used_csv_download():
                 usage["consumer"]) + ',' \
             + str(usage["value"]) + '\n'
         f.write(data_row)
-
-    now = datetime.now()
+    now = datetime.fromtimestamp(datetime.utcnow().timestamp(), JST)
     res = make_response()
     csvdata = f.getvalue()
     res.data = csvdata.encode('sjis')
@@ -1269,7 +1272,7 @@ def holders_csv_download():
             holder["email"] + '\n'
         f.write(data_row)
 
-    now = datetime.now()
+    now = datetime.fromtimestamp(datetime.utcnow().timestamp(), JST)
     res = make_response()
     csvdata = f.getvalue()
     res.data = csvdata.encode('sjis', 'ignore')
@@ -1525,7 +1528,7 @@ def set_initial_offering_status(token_address, status):
 def format_date(date):  # date = datetime object.
     if date:
         if isinstance(date, datetime):
-            return date.strftime('%Y/%m/%d %H:%M')
+            return date.strftime("%Y/%m/%d %H:%M:%S %z")
         elif isinstance(date, datetime.date):
             return date.strftime('%Y/%m/%d')
     return ''
