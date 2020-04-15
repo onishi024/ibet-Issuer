@@ -2,7 +2,9 @@
 import json
 import base64
 import re
-from datetime import datetime, date
+from datetime import datetime, date,timezone, timedelta
+JST = timezone(timedelta(hours=+9), 'JST')
+
 import io
 import time
 
@@ -245,10 +247,13 @@ def list():
                 symbol = TokenContract.functions.symbol().call()
                 is_redeemed = TokenContract.functions.isRedeemed().call()
 
+                # utc→jst の変換
+                created = datetime.fromtimestamp(row.created.timestamp(), JST)
+
             token_list.append({
                 'name': name,
                 'symbol': symbol,
-                'created': row.created,
+                'created': created,
                 'tx_hash': row.tx_hash,
                 'token_address': row.token_address,
                 'is_redeemed': is_redeemed
@@ -332,8 +337,7 @@ def holders_csv_download():
             holder["postal_code"] + ',' + holder_address + ',' + \
             holder["email"] + '\n'
         f.write(data_row)
-
-    now = datetime.now()
+    now = datetime.fromtimestamp(datetime.utcnow().timestamp(), JST)
     res = make_response()
     csvdata = f.getvalue()
     res.data = csvdata.encode('sjis', 'ignore')
@@ -1002,6 +1006,9 @@ def positions():
                 # 償還状況
                 is_redeemed = TokenContract.functions.isRedeemed().call()
 
+                # utc→jst の変換
+                created = datetime.fromtimestamp(row.created.timestamp(), JST)
+
                 # 拘束中数量
                 try:
                     commitment = ExchangeContract.functions.commitmentOf(owner, row.token_address).call()
@@ -1041,7 +1048,7 @@ def positions():
                     fundraise = 0
 
                 position_list.append({
-                    'created': row.created,
+                    'created': created,
                     'token_address': row.token_address,
                     'name': name,
                     'symbol': symbol,
@@ -1319,8 +1326,7 @@ def applications_csv_download():
             str(item["requested_amount"]) + ',' + str(item["allotted_amount"]) + ',' + \
             str(item["balance"]) + '\n'
         f.write(data_row)
-
-    now = datetime.now()
+    now = datetime.fromtimestamp(datetime.utcnow().timestamp(), JST)
     res = make_response()
     csvdata = f.getvalue()
     res.data = csvdata.encode('sjis', 'ignore')
@@ -1543,9 +1549,27 @@ def token_tracker(token_address):
     if not Web3.isAddress(token_address):
         abort(404)
 
-    track = Transfer.query.filter(Transfer.token_address == token_address). \
+    tracks = Transfer.query.filter(Transfer.token_address == token_address). \
         order_by(desc(Transfer.block_timestamp)). \
         all()
+
+    track = []
+    for row in tracks:
+        try:
+            # utc→jst の変換
+            block_timestamp = datetime.fromtimestamp(row.block_timestamp.timestamp(), JST).strftime("%Y/%m/%d %H:%M:%S %z")
+            track.append({
+                'id': row.id,
+                'transaction_hash': row.transaction_hash,
+                'token_address': row.token_address,
+                'account_address_from': row.account_address_from,
+                'account_address_to': row.account_address_to,
+                'transfer_amount': row.transfer_amount,
+                'block_timestamp': block_timestamp,
+            })
+        except Exception as e:
+            logger.error(e)
+            pass
 
     return render_template(
         'bond/token_tracker.html',
@@ -1570,7 +1594,7 @@ def permissionDenied():
 def format_date(_date):  # _date = datetime object.
     if _date:
         if isinstance(_date, datetime):
-            return _date.strftime('%Y/%m/%d %H:%M')
+            return _date.strftime("%Y/%m/%d %H:%M:%S %z")
         elif isinstance(_date, date):
             return _date.strftime('%Y/%m/%d')
     return ''

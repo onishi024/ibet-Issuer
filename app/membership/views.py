@@ -4,7 +4,8 @@ import base64
 import io
 import re
 import time
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
+JST = timezone(timedelta(hours=+9), 'JST')
 
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
@@ -86,11 +87,13 @@ def list():
                 symbol = TokenContract.functions.symbol().call()
                 status = TokenContract.functions.status().call()
                 totalSupply = TokenContract.functions.totalSupply().call()
+                # utc→jst の変換
+                created = datetime.fromtimestamp(row.created.timestamp(), JST)
 
             token_list.append({
                 'name': name,
                 'symbol': symbol,
-                'created': row.created,
+                'created': created,
                 'tx_hash': row.tx_hash,
                 'token_address': row.token_address,
                 'totalSupply': totalSupply,
@@ -146,13 +149,13 @@ def applications_csv_download():
             item["account_name"] + ',' + item["account_email_address"] + ',' + item["data"] + '\n'
         f.write(data_row)
 
-    now = datetime.now()
+    now = datetime.fromtimestamp(datetime.utcnow().timestamp(), JST)
     res = make_response()
     csvdata = f.getvalue()
     res.data = csvdata.encode('sjis', 'ignore')
     res.headers['Content-Type'] = 'text/plain'
     res.headers['Content-Disposition'] = \
-        'attachment; filename=' + now.strftime("%Y%m%d%H%M%S") + 'bond_applications_list.csv'
+        'attachment; filename=' + now.strftime("%Y%m%d%H%M%S") + 'membership_applications_list.csv'
     return res
 
 
@@ -342,7 +345,7 @@ def holders_csv_download():
             holder["email"] + '\n'
         f.write(data_row)
 
-    now = datetime.now()
+    now = datetime.fromtimestamp(datetime.utcnow().timestamp(), JST)
     res = make_response()
     csvdata = f.getvalue()
     res.data = csvdata.encode('sjis', 'ignore')
@@ -937,6 +940,9 @@ def positions():
                 # 残高
                 balance = TokenContract.functions.balanceOf(owner).call()
 
+                # utc→jst の変換
+                created = datetime.fromtimestamp(row.created.timestamp(), JST)
+
                 # 拘束中数量
                 try:
                     commitment = ExchangeContract.functions.commitmentOf(owner, row.token_address).call()
@@ -976,7 +982,7 @@ def positions():
                     fundraise = 0
 
                 position_list.append({
-                    'created': row.created,
+                    'created': created,
                     'token_address': row.token_address,
                     'name': name,
                     'symbol': symbol,

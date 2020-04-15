@@ -105,7 +105,7 @@ class TestAPI(TestBase):
     #   債券保有者一覧(API)
     def test_normal_1(self, app):
         # DB登録データの検証用にテスト開始時刻を取得
-        test_started = datetime.now()
+        test_started = datetime.utcnow()
 
         # 発行済みトークン情報を取得
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
