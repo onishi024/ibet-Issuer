@@ -60,7 +60,7 @@ class IssueForm(Form):
     )
 
     dividends = IntegerField(
-        "1口あたりの配当金/分配金 *",
+        "1口あたりの配当金/分配金",
         validators=[
             InputRequired('1口あたりの配当金/分配金は必須です。'),
             NumberRange(min=0, max=5_000_000_000, message='1口あたりの配当金/分配金は5,000,000,000円が上限です。')
@@ -68,7 +68,7 @@ class IssueForm(Form):
     )
 
     dividendRecordDate = StringField(
-        "権利確定日 *",
+        "権利確定日",
         validators=[
             InputRequired('権利確定日は必須です。'),
             Regexp(yyyymmdd_regexp, message='権利確定日はYYYYMMDDで入力してください。'),
@@ -76,7 +76,7 @@ class IssueForm(Form):
     )
 
     dividendPaymentDate = StringField(
-        "配当支払日 *",
+        "配当支払日",
         validators=[
             InputRequired('配当支払日は必須です。'),
             Regexp(yyyymmdd_regexp, message='配当支払日はYYYYMMDDで入力してください。'),
@@ -84,16 +84,11 @@ class IssueForm(Form):
     )
 
     cansellationDate = StringField(
-        "消却日 *",
+        "消却日",
         validators=[
             Optional(),
             Regexp(yyyymmdd_regexp, message='消却日はYYYYMMDDで入力してください。')
         ]
-    )
-
-    transferable = SelectField(
-        '譲渡制限',
-        choices=[(True, 'True'), (False, 'False')], default='True'
     )
 
     memo = TextAreaField(
@@ -101,6 +96,11 @@ class IssueForm(Form):
         validators=[
             Length(max=2000, message='補足情報は2,000文字以内で入力してください。')
         ]
+    )
+
+    transferable = SelectField(
+        '譲渡制限',
+        choices=[(True, 'True'), (False, 'False')], default='True'
     )
 
     referenceUrls_1 = StringField(
