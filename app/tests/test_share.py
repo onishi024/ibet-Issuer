@@ -95,7 +95,6 @@ class TestShare(TestBase):
         assert '1口あたりの配当金/分配金は必須です。'.encode('utf-8') in response.data
         assert '権利確定日は必須です。'.encode('utf-8') in response.data
         assert '配当支払日は必須です。'.encode('utf-8') in response.data
-        assert '消却日は必須です。'.encode('utf-8') in response.data
         assert 'DEXアドレスは必須です。'.encode('utf-8') in response.data
         assert '個人情報コントラクトアドレスは必須です。'.encode('utf-8') in response.data
 

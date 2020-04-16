@@ -86,7 +86,7 @@ class IssueForm(Form):
     cansellationDate = StringField(
         "消却日 *",
         validators=[
-            InputRequired('消却日は必須です。'),
+            Optional(),
             Regexp(yyyymmdd_regexp, message='消却日はYYYYMMDDで入力してください。')
         ]
     )
