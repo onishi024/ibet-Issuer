@@ -23,7 +23,7 @@ $ pip install -r requirements.txt
 
 * DB・テーブルのマイグレーション
 ```bash
-$ cd ibet-Issuerk
+$ cd ibet-Issuer
 $ python manage.py db init
 $ python manage.py db migrate
 $ python manage.py db upgrade
@@ -39,7 +39,7 @@ $ python manage.py shell
 >> （ibet-Issuer/app/tests/testdata.txt にあるコマンドをコピー＆ペースト）
 ```
 
-* RSAキーペア生成 
+* RSAキーペア生成
 ```bash
 $ python rsa/create_rsakey.py password
 ```
@@ -70,7 +70,7 @@ $ gunicorn -b localhost:5000 --reload manage:app --config guniconf.py
 ## 3. テスト実行
 * manage.py で定義してあるコマンドオプションにしたがって、テストを実行する
 ```bash
-$ cd ibet-PaymentAgent
+$ cd ibet-Issuer
 $ python manage.py test
 ```
 * testのオプションについては`python manage.py test --help`で確認できる
@@ -83,7 +83,7 @@ $ python manage.py test
     - トークン種別(string):IbetStraightBond, IbetMembership, IbetCoupon
 
 ```bash
-python ./app/tests/script/INSERT_token.py 3 IbetStraightBond  
+python ./app/tests/script/INSERT_token.py 3 IbetStraightBond
 python ./app/tests/script/INSERT_token.py 3 IbetMembership
 python ./app/tests/script/INSERT_token.py 3 IbetCoupon
 ```
@@ -101,7 +101,7 @@ python ./app/tests/script/INSERT_token_holders.py 3 IbetStraightBond
 
 ```bash
 python async/processor_IssueEvent.py
-python async/indexer_Transfer.py 
+python async/indexer_Transfer.py
 ```
 
 ### クーポン利用履歴登録
