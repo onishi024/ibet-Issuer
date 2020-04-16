@@ -18,8 +18,8 @@ class Role(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
     users = db.relationship('User', backref='role', lazy='dynamic')
-    created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow())
-    modified = db.Column(db.DateTime, default=datetime.utcnow(), onupdate=datetime.utcnow())
+    created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    modified = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     def __repr__(self):
         return '<Role %r>' % self.name
@@ -33,8 +33,8 @@ class User(UserMixin, db.Model):
     icon = db.Column(db.LargeBinary)
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
     password_hash = db.Column(db.String(128))
-    created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow())
-    modified = db.Column(db.DateTime, default=datetime.utcnow(), onupdate=datetime.utcnow())
+    created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    modified = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     def __repr__(self):
         return '<User login_id={login_id} role_id={role_id}>'.format(
@@ -76,8 +76,8 @@ class Token(db.Model):
     abi = db.Column(db.String(20480), nullable=False)
     bytecode = db.Column(db.String(30720), nullable=False)
     bytecode_runtime = db.Column(db.String(30720), nullable=False)
-    created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow())
-    modified = db.Column(db.DateTime, default=datetime.utcnow(), onupdate=datetime.utcnow())
+    created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    modified = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     def __repr__(self):
         return "<Token(admin_address='%s',template_id='%i','tx_hash'='%s','token_address'='%s','abi'='%s','bytecode'='%s','bytecode_runtime'='%s')>" % \
@@ -113,8 +113,8 @@ class Certification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     token_address = db.Column(db.String(64), nullable=True)
     signer = db.Column(db.String(64), nullable=True)
-    created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow())
-    modified = db.Column(db.DateTime, default=datetime.utcnow(), onupdate=datetime.utcnow())
+    created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    modified = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     def __repr__(self):
         return "<Certification(token_address='%s',signer='%s')>" % \
@@ -247,4 +247,4 @@ class HolderList(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     token_address = db.Column(db.String(42))
     holder_list = db.Column(db.LargeBinary)
-    created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow())
+    created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
