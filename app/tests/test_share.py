@@ -22,7 +22,7 @@ class TestShare(TestBase):
     #############################################################################
     # 共通処理
     #############################################################################
-    @pytest.fixture(autouse=True)
+    @pytest.fixture(scope='class', autouse=True)
     def clear_db(self, shared_contract, db):
         yield
 
