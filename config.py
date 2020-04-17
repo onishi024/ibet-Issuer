@@ -69,7 +69,8 @@ class Config:
             ('coupon_bulk_transfer', 'fa fa-circle-o', 'CSV一括割当', 'coupon.bulk_transfer')
         ]),
         ('share', 'glyphicon glyphicon-th', '株式', [
-            ('share_issue', 'fa fa-circle-o', '新規発行', 'share.issue')
+            ('share_issue', 'fa fa-circle-o', '新規発行', 'share.issue'),
+            ('share_list', 'fa fa-circle-o', '発行済一覧', 'share.list')
         ]),
     ]
 

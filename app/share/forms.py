@@ -22,10 +22,11 @@ def address(message='有効なアドレスではありません'):
     return _address
 
 
+yyyymmdd_regexp = '^(19[0-9]{2}|20[0-9]{2})(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])$'
+
+
 # トークン新規発行
 class IssueForm(Form):
-    yyyymmdd_regexp = '^(19[0-9]{2}|20[0-9]{2})(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])$'
-
     name = StringField(
         "名称 *",
         validators=[
@@ -179,3 +180,172 @@ class IssueForm(Form):
             'contact_information': '商品に関する問い合わせ先情報を入力してください。',
             'privacy_policy': '商品に関するプライバシーポリシーを入力してください。',
         }
+
+
+# トークン設定変更
+class SettingForm(Form):
+    token_address = StringField("トークンアドレス", validators=[])
+    name = StringField("名称", validators=[])
+    symbol = StringField("略称", validators=[])
+    totalSupply = IntegerField("総発行量", validators=[])
+    issuePrice = IntegerField("発行価格（円）", validators=[])
+
+    dividends = IntegerField(
+        "1口あたりの配当金/分配金",
+        validators=[
+            InputRequired('1口あたりの配当金/分配金は必須です。'),
+            NumberRange(min=0, max=5_000_000_000, message='1口あたりの配当金/分配金は5,000,000,000円が上限です。')
+        ]
+    )
+
+    dividendRecordDate = StringField(
+        "権利確定日",
+        validators=[
+            InputRequired('権利確定日は必須です。'),
+            Regexp(yyyymmdd_regexp, message='権利確定日はYYYYMMDDで入力してください。'),
+        ]
+    )
+
+    dividendPaymentDate = StringField(
+        "配当支払日",
+        validators=[
+            InputRequired('配当支払日は必須です。'),
+            Regexp(yyyymmdd_regexp, message='配当支払日はYYYYMMDDで入力してください。'),
+        ]
+    )
+
+    cansellationDate = StringField(
+        "消却日",
+        validators=[
+            Optional(),
+            Regexp(yyyymmdd_regexp, message='消却日はYYYYMMDDで入力してください。')
+        ]
+    )
+
+    memo = TextAreaField(
+        "補足情報",
+        validators=[
+            Length(max=2000, message='補足情報は2,000文字以内で入力してください。')
+        ]
+    )
+
+    transferable = SelectField(
+        '譲渡制限',
+        choices=[(True, 'True'), (False, 'False')],
+        default='True'
+    )
+
+    referenceUrls_1 = StringField(
+        "関連URL（１）",
+        validators=[
+            Optional(),
+            URL(message='関連URL（１）は無効なURLです。')
+        ]
+    )
+
+    referenceUrls_2 = StringField(
+        "関連URL（２）",
+        validators=[
+            Optional(),
+            URL(message='関連URL（２）は無効なURLです。')
+        ]
+    )
+
+    referenceUrls_3 = StringField(
+        "関連URL（３）",
+        validators=[
+            Optional(),
+            URL(message='関連URL（３）は無効なURLです。')
+        ]
+    )
+
+    contact_information = TextAreaField(
+        "問い合わせ先",
+        validators=[
+            Length(max=2000, message='問い合わせ先は2,000文字以内で入力してください。')
+        ]
+    )
+
+    privacy_policy = TextAreaField(
+        "プライバシーポリシー",
+        validators=[
+            Length(max=5000, message='プライバシーポリシーは5,000文字以内で入力してください。')
+        ]
+    )
+
+    tradableExchange = StringField(
+        "DEXアドレス",
+        validators=[
+            DataRequired('DEXアドレスは必須です。'),
+            address('DEXアドレスは有効なアドレスではありません。')
+        ]
+    )
+
+    personalInfoAddress = StringField(
+        "個人情報コントラクト",
+        validators=[
+            DataRequired('個人情報コントラクトアドレスは必須です。'),
+            address('個人情報コントラクトアドレスは有効なアドレスではありません。')
+        ]
+    )
+
+    abi = TextAreaField("インターフェース", validators=[])
+    bytecode = TextAreaField("バイトコード", validators=[])
+    submit = SubmitField('設定変更')
+
+    def __init__(self, token_setting=None, *args, **kwargs):
+        super(SettingForm, self).__init__(*args, **kwargs)
+        self.token_setting = token_setting
+        self.transferable.choices = [('True', 'なし'), ('False', 'あり')]
+
+
+# 発行量変更
+class ChangeSupplyForm(Form):
+    token_address = StringField("トークンアドレス", validators=[])
+    token_name = StringField("名称", validators=[])
+    total_supply = IntegerField("現在の発行量", validators=[])
+    amount = IntegerField(
+        "変更量",
+        validators=[
+            DataRequired('変更量は必須です。'),
+            NumberRange(min=1, max=100_000_000, message='変更量は100,000,000が上限です。'),
+        ]
+    )
+
+    target_address = StringField(
+        "保有者アドレス",
+        validators=[
+            DataRequired('保有者アドレスは必須です。'),
+            address('保有者アドレスは有効なアドレスではありません。')
+        ]
+    )
+
+    locked_address = StringField(
+        "ロック者アドレス",
+        validators=[
+            Optional(),
+            address('ロック者アドレスは有効なアドレスではありません。')
+        ]
+    )
+    submit = SubmitField('追加発行')
+
+    def __init__(self, issue=None, *args, **kwargs):
+        super(ChangeSupplyForm, self).__init__(*args, **kwargs)
+        self.issue = issue
+
+
+# アドレス認可
+class AuthorizeAddressForm(Form):
+    token_address = StringField("トークンアドレス", validators=[])
+    target_address = StringField(
+        "認可コントラクトアドレス *",
+        validators=[
+            DataRequired('認可コントラクトアドレスは必須です。'),
+            address('認可コントラクトアドレスは有効なアドレスではありません。')
+        ]
+    )
+    submit = SubmitField('認可')
+
+    def __init__(self, issue=None, *args, **kwargs):
+        super(AuthorizeAddressForm, self).__init__(*args, **kwargs)
+        self.issue = issue
