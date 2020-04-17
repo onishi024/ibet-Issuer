@@ -366,13 +366,6 @@
         $('#modal-form').attr('action', "{{ url_for('share.valid') }}");
         $('#modal-confirm').modal();
       });
-      $('#redeem').click(function(){
-        $('#modal-prompt-title').html('償還時確認 <i class="fa fa-exclamation-triangle"></i>');
-        $('#modal-prompt-text').html('この操作は元に戻すことができません。<br>念のため、償還を行う株式の名称を入力してください。');
-        $('#modal-prompt-form').attr('action', "{{ url_for('bond.redeem') }}");
-        $('#modal-prompt-validate').hide();
-        $('#modal-prompt').modal();
-      });
   });
   $(function () {
         // 数値項目3桁区切り考慮
