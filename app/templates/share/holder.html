@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% set active_page = "share_list" %}
+
+{% block title %}株式保有者詳細 - {% endblock %}
+{% block page_header %}株式保有者詳細 <span class="badge bg-secondary">株式</span>{% endblock %}
+{% block page_description %}{% endblock %}
+{% block breadcrumb %}
+    <li><a href="{{ url_for('index.index') }}">トップ</a></li>
+    <li><a href="{{ url_for('share.list') }}">株式一覧</a></li>
+    <li class="active">株式保有者詳細</li>
+{% endblock %}
+
+{% block page_content %}
+<section class="content">
+  <div class="box box-default">
+    <div class="box-header with-border">
+      <h3 class="box-title">保有者情報： {{personal_info['name']}}</h3>
+    </div>
+    <br>
+    <div class=row>
+      <div class="col-md-1"></div>
+      <div class="col-md-10">
+        <!-- 住所 -->
+        <div class="box box-default box-solid">
+          <div class="box-header with-border">
+            <h3 class="box-title">住所</h3>
+          </div>
+          <form class="form-horizontal" role="form">
+            <div class="box-body">
+              <div class="row">
+                <label class="col-md-3">郵便番号</label>
+                <div class="form-group col-md-4">
+                  {{ personal_info['address']['postal_code'] }}
+                </div>
+              </div>
+              <div class="row">
+                <label class="col-md-3">都道府県</label>
+                <div class="form-group col-md-4">
+                  {{ personal_info['address']['prefecture'] }}
+                </div>
+              </div>
+              <div class="row">
+                <label class="col-md-3">市区町村</label>
+                <div class="form-group col-md-4">
+                  {{ personal_info['address']['city'] }}
+                </div>
+              </div>
+              <div class="row">
+                <label class="col-md-3">住所１</label>
+                <div class="form-group col-md-4">
+                  {{ personal_info['address']['address1'] }}
+                </div>
+              </div>
+              <div class="row">
+                <label class="col-md-3">住所２</label>
+                <div class="form-group col-md-4">
+                  {{ personal_info['address']['address2'] }}
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+        <!-- 生年月日 -->
+        <div class="box box-default box-solid">
+          <div class="box-header with-border">
+            <h3 class="box-title">生年月日</h3>
+          </div>
+          <form class="form-horizontal" role="form">
+            <div class="box-body">
+              <div class="row">
+                <label class="col-md-3">生年月日</label>
+                <div class="form-group col-md-4">
+                  {{ personal_info['birth'] }}
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+        <!-- Eメールアドレス -->
+        <div class="box box-default box-solid">
+          <div class="box-header with-border">
+            <h3 class="box-title">Eメールアドレス</h3>
+          </div>
+          <form class="form-horizontal" role="form">
+            <div class="box-body">
+              <div class="row">
+                <label class="col-md-3">Eメール</label>
+                <div class="form-group col-md-4">
+                  {{ personal_info['email']}}
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="col-md-1"></div>
+    </div>
+    <div class="box-footer">
+        <button type="button" class="btn btn-default" onclick="location.href='{{ url_for("share.holders", token_address=token_address) }}'">一覧に戻る</button>
+    </div>
+  </div>
+</section>
+{% endblock %}
