@@ -84,7 +84,7 @@ class IssueForm(Form):
         ]
     )
 
-    cansellationDate = StringField(
+    cancellationDate = StringField(
         "消却日",
         validators=[
             Optional(),
@@ -172,7 +172,7 @@ class IssueForm(Form):
             'dividends': '',
             'dividendRecordDate': '',
             'dividendPaymentDate': '',
-            'cansellationDate': '',
+            'cancellationDate': '',
             'transferable': '譲渡可能な場合は「なし」、譲渡不可の場合は「あり」を選択してください。。',
             'memo': '商品の補足情報を入力してください。',
             'tradableExchange': '商品が取引可能なDEXコントラクトのアドレスを入力してください。',
@@ -214,7 +214,7 @@ class SettingForm(Form):
         ]
     )
 
-    cansellationDate = StringField(
+    cancellationDate = StringField(
         "消却日",
         validators=[
             Optional(),

@@ -74,7 +74,7 @@ def issue():
                 form.dividends.data,
                 form.dividendRecordDate.data,
                 form.dividendPaymentDate.data,
-                form.cansellationDate.data,
+                form.cancellationDate.data,
                 form.contact_information.data,
                 form.privacy_policy.data,
                 form.memo.data,
@@ -209,8 +209,8 @@ def setting(token_address):
     symbol = TokenContract.functions.symbol().call()
     totalSupply = TokenContract.functions.totalSupply().call()
     issuePrice = TokenContract.functions.issuePrice().call()
-    dividends, dividendRecordDate, dividendPaymentDate = TokenContract.functions.dividendInfomation().call()
-    cansellationDate = TokenContract.functions.cansellationDate().call()
+    dividends, dividendRecordDate, dividendPaymentDate = TokenContract.functions.dividendInformation().call()
+    cancellationDate = TokenContract.functions.cancellationDate().call()
     transferable = str(TokenContract.functions.transferable().call())
     memo = TokenContract.functions.memo().call()
     referenceUrls_1 = TokenContract.functions.referenceUrls(0).call()
@@ -241,12 +241,12 @@ def setting(token_address):
             # 1口あたりの配当金/分配金欄変更、権利確定日欄変更、配当支払日欄変更
             if form.dividends.data != dividends or form.dividendRecordDate.data != dividendRecordDate or \
                     form.dividendPaymentDate.data != dividendPaymentDate:
-                gas = TokenContract.estimateGas().setDividendInfomation(
+                gas = TokenContract.estimateGas().setDividendInformation(
                     form.dividends.data,
                     form.dividendRecordDate.data,
                     form.dividendPaymentDate.data
                 )
-                TokenContract.functions.setDividendInfomation(
+                TokenContract.functions.setDividendInformation(
                     form.dividends.data,
                     form.dividendRecordDate.data,
                     form.dividendPaymentDate.data
@@ -254,9 +254,9 @@ def setting(token_address):
                     transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
 
             # 消却日欄変更
-            if form.cansellationDate.data != cansellationDate:
-                gas = TokenContract.estimateGas().setCansellationDate(form.cansellationDate.data)
-                TokenContract.functions.setCansellationDate(form.cansellationDate.data). \
+            if form.cancellationDate.data != cancellationDate:
+                gas = TokenContract.estimateGas().setCancellationDate(form.cancellationDate.data)
+                TokenContract.functions.setCancellationDate(form.cancellationDate.data). \
                     transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
 
             # 補足情報欄変更
@@ -346,7 +346,7 @@ def setting(token_address):
         form.dividends.data = dividends
         form.dividendRecordDate.data = dividendRecordDate
         form.dividendPaymentDate.data = dividendPaymentDate
-        form.cansellationDate.data = cansellationDate
+        form.cancellationDate.data = cancellationDate
         form.transferable.data = transferable
         form.memo.data = memo
         form.referenceUrls_1.data = referenceUrls_1

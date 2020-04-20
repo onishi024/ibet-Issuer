@@ -49,7 +49,7 @@ class TestShare(TestBase):
         'dividends': 100,
         'dividendRecordDate': '20200401',
         'dividendPaymentDate': '20200501',
-        'cansellationDate': '20200601',
+        'cancellationDate': '20200601',
         'transferable': 'True',
         'memo': 'メモ1234',
         'referenceUrls_1': 'http://example.com',
@@ -67,7 +67,7 @@ class TestShare(TestBase):
         'dividends': 20,
         'dividendRecordDate': '20220412',
         'dividendPaymentDate': '20220512',
-        'cansellationDate': '',
+        'cancellationDate': '',
         'transferable': 'False',
         'memo': '2memo',
         'referenceUrls_1': '',
@@ -85,7 +85,7 @@ class TestShare(TestBase):
         'dividends': 30,
         'dividendRecordDate': '20230412',
         'dividendPaymentDate': '20230512',
-        'cansellationDate': '20230612',
+        'cancellationDate': '20230612',
         'transferable': 'False',
         'memo': '3memo',
         'referenceUrls_1': 'http://hoge3.co.jp/foo',
@@ -363,7 +363,7 @@ class TestShare(TestBase):
         assert str(self.token_data3['dividends']).encode('utf-8') in response.data
         assert str(self.token_data3['dividendRecordDate']).encode('utf-8') in response.data
         assert str(self.token_data3['dividendPaymentDate']).encode('utf-8') in response.data
-        assert str(self.token_data3['cansellationDate']).encode('utf-8') in response.data
+        assert str(self.token_data3['cancellationDate']).encode('utf-8') in response.data
         # セレクトボックスのassert（譲渡制限）
         assert '<option selected value="False">あり</option>'.encode('utf-8') in response.data
         assert str(self.token_data3['memo']).encode('utf-8') in response.data
