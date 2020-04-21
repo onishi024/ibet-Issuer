@@ -1134,7 +1134,7 @@ def get_usage_history(token_address):
         usage = {
             'block_timestamp': datetime.fromtimestamp(
                 web3.eth.getBlock(entry['blockNumber'])['timestamp'], JST
-            ).strftime("%Y/%m/%d %H:%M:%S"),
+            ).strftime("%Y/%m/%d %H:%M:%S %z"),
             'consumer': entry['args']['consumer'],
             'value': int(entry['args']['value'])
         }
@@ -1182,7 +1182,7 @@ def used_csv_download():
         usage = {
             'block_timestamp': datetime.fromtimestamp(
                 web3.eth.getBlock(entry['blockNumber'])['timestamp'], JST
-            ).strftime("%Y/%m/%d %H:%M:%S"),
+            ).strftime("%Y/%m/%d %H:%M:%S %z"),
             'consumer': entry['args']['consumer'],
             'value': int(entry['args']['value'])
         }
