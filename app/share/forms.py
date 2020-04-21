@@ -201,7 +201,7 @@ class SettingForm(Form):
     dividendRecordDate = StringField(
         "権利確定日",
         validators=[
-            InputRequired('権利確定日は必須です。'),
+            Optional(),
             Regexp(yyyymmdd_regexp, message='権利確定日はYYYYMMDDで入力してください。'),
         ]
     )
@@ -209,7 +209,7 @@ class SettingForm(Form):
     dividendPaymentDate = StringField(
         "配当支払日",
         validators=[
-            InputRequired('配当支払日は必須です。'),
+            Optional(),
             Regexp(yyyymmdd_regexp, message='配当支払日はYYYYMMDDで入力してください。'),
         ]
     )
