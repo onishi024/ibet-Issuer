@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 import secrets
-import datetime
+from datetime import datetime, timedelta, timezone
 from base64 import b64encode
 
 import requests
@@ -27,6 +27,9 @@ from eth_utils import to_checksum_address
 from logging import getLogger
 logger = getLogger('api')
 
+
+JST = timezone(timedelta(hours=+9), 'JST')
+
 #+++++++++++++++++++++++++++++++
 # Utils
 #+++++++++++++++++++++++++++++++
@@ -44,7 +47,22 @@ def flash_errors(form):
 def list():
     logger.info('list')
     users = User.query.all()
+
+    for user in users:
+        if user.created:
+            user.formatted_created = user.created.replace(tzinfo=timezone.utc).astimezone(JST)\
+                .strftime("%Y/%m/%d %H:%M:%S %z")
+        else:
+            user.formatted_created = ''
+
+        if user.modified:
+            user.formatted_modified = user.created.replace(tzinfo=timezone.utc).astimezone(JST)\
+                .strftime("%Y/%m/%d %H:%M:%S %z")
+        else:
+            user.formatted_modified = ''
+
     return render_template('account/list.html', users=users)
+
 
 @account.route('/edit/<int:id>', methods=['GET', 'POST'])
 @login_required
@@ -341,14 +359,6 @@ def bank_account_regist(form):
 #+++++++++++++++++++++++++++++++
 # Custom Filter
 #+++++++++++++++++++++++++++++++
-@account.app_template_filter()
-def format_date(date): # date = datetime object.
-    if date:
-        if isinstance(date, datetime.datetime):
-            return date.strftime('%Y/%m/%d %H:%M')
-        elif isinstance(date, datetime.date):
-            return date.strftime('%Y/%m/%d')
-    return ''
 
 @account.app_template_filter()
 def img_convert(icon):
