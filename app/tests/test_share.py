@@ -10,7 +10,6 @@ from config import Config
 from .conftest import TestBase
 from .utils.account_config import eth_account
 from .utils.contract_utils_common import processor_issue_event, index_transfer_event, clean_issue_event
-from .utils.contract_utils_share import is_address_authorized
 from .utils.contract_utils_personal_info import register_personal_info
 from ..models import Token
 
