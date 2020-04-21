@@ -71,7 +71,7 @@ class IssueForm(Form):
     dividendRecordDate = StringField(
         "権利確定日",
         validators=[
-            InputRequired('権利確定日は必須です。'),
+            Optional(),
             Regexp(yyyymmdd_regexp, message='権利確定日はYYYYMMDDで入力してください。'),
         ]
     )
@@ -79,7 +79,7 @@ class IssueForm(Form):
     dividendPaymentDate = StringField(
         "配当支払日",
         validators=[
-            InputRequired('配当支払日は必須です。'),
+            Optional(),
             Regexp(yyyymmdd_regexp, message='配当支払日はYYYYMMDDで入力してください。'),
         ]
     )
@@ -173,7 +173,7 @@ class IssueForm(Form):
             'dividendRecordDate': '',
             'dividendPaymentDate': '',
             'cancellationDate': '',
-            'transferable': '譲渡可能な場合は「なし」、譲渡不可の場合は「あり」を選択してください。。',
+            'transferable': '譲渡可能な場合は「なし」、譲渡不可の場合は「あり」を選択してください。',
             'memo': '商品の補足情報を入力してください。',
             'tradableExchange': '商品が取引可能なDEXコントラクトのアドレスを入力してください。',
             'personalInfoAddress': '所有者名義情報を管理するコントラクトのアドレスを入力してください。',
@@ -299,53 +299,20 @@ class SettingForm(Form):
         self.transferable.choices = [('True', 'なし'), ('False', 'あり')]
 
 
-# 発行量変更
-class ChangeSupplyForm(Form):
+# 追加発行
+class AddSupplyForm(Form):
     token_address = StringField("トークンアドレス", validators=[])
-    token_name = StringField("名称", validators=[])
+    name = StringField("名称", validators=[])
     total_supply = IntegerField("現在の発行量", validators=[])
     amount = IntegerField(
-        "変更量",
+        "追加発行量",
         validators=[
-            DataRequired('変更量は必須です。'),
-            NumberRange(min=1, max=100_000_000, message='変更量は100,000,000が上限です。'),
-        ]
-    )
-
-    target_address = StringField(
-        "保有者アドレス",
-        validators=[
-            DataRequired('保有者アドレスは必須です。'),
-            address('保有者アドレスは有効なアドレスではありません。')
-        ]
-    )
-
-    locked_address = StringField(
-        "ロック者アドレス",
-        validators=[
-            Optional(),
-            address('ロック者アドレスは有効なアドレスではありません。')
+            DataRequired('追加発行量は必須です。'),
+            NumberRange(min=1, max=100000000, message='追加発行量は100,000,000が上限です。'),
         ]
     )
     submit = SubmitField('追加発行')
 
     def __init__(self, issue=None, *args, **kwargs):
-        super(ChangeSupplyForm, self).__init__(*args, **kwargs)
-        self.issue = issue
-
-
-# アドレス認可
-class AuthorizeAddressForm(Form):
-    token_address = StringField("トークンアドレス", validators=[])
-    target_address = StringField(
-        "認可コントラクトアドレス *",
-        validators=[
-            DataRequired('認可コントラクトアドレスは必須です。'),
-            address('認可コントラクトアドレスは有効なアドレスではありません。')
-        ]
-    )
-    submit = SubmitField('認可')
-
-    def __init__(self, issue=None, *args, **kwargs):
-        super(AuthorizeAddressForm, self).__init__(*args, **kwargs)
+        super(AddSupplyForm, self).__init__(*args, **kwargs)
         self.issue = issue

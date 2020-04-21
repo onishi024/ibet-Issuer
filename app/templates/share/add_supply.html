@@ -6,22 +6,22 @@
 {% endblock %}
 {% set active_page = "share_list" %}
 
-{% block title %}発行量変更 - {% endblock %}
-{% block page_header %}発行量変更 <span class="badge bg-secondary">株式</span>{% endblock %}
+{% block title %}追加発行 - {% endblock %}
+{% block page_header %}追加発行 <span class="badge bg-secondary">株式</span>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
     <li><a href="{{ url_for('index.index') }}">トップ</a></li>
     <li><a href="{{ url_for('share.list') }}">株式一覧</a></li>
-    <li class="active">発行量変更</li>
+    <li class="active">株式追加発行</li>
 {% endblock %}
 
 {% block page_content %}
 <section class="content">
     <div class="box box-default">
         <div class="box-header with-border">
-            <h3 class="box-title">{{form.token_name.data}}　<small>{{form.token_address.data}}</small></h3>
+            <h3 class="box-title">{{token_name}}　<small>{{token_address}}</small></h3>
         </div>
-        <form class="form-horizontal" method="POST" role="form">
+        <form class="form-horizontal" method="POST" role="form" action="{{ url_for('share.add_supply', token_address=form.token_address.data) }}">
             {{ form.csrf_token }}
             <div class="box-body">
                 <div class="form-group">
@@ -36,23 +36,10 @@
                         {{ form.amount(class="form-control", autocomplete="off") }}
                     </div>
                 </div>
-                <div class="form-group">
-                    {{ form.target_address.label(class="col-md-2 control-label") }}
-                    <div class="col-md-8">
-                        {{ form.target_address(class="form-control", autocomplete="off", placeholder="（必須）例：0x123456789A123456789B123456789C123456789D") }}
-                    </div>
-                </div>
-                <div class="form-group">
-                    {{ form.locked_address.label(class="col-md-2 control-label") }}
-                    <div class="col-md-8">
-                        {{ form.locked_address(class="form-control", autocomplete="off", placeholder="（任意）例：0x123456789A123456789B123456789C123456789D") }}
-                    </div>
-                </div>
             </div>
             <div class="box-footer">
                 <button type="button" class="btn btn-default" onclick="location.href='{{ url_for("share.setting", token_address=form.token_address.data) }}'">キャンセル</button>
-                <button type="submit" class="btn btn-success load" formaction="{{ url_for('share.add_supply', token_address=form.token_address.data) }}" data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中">追加発行</button>
-                <button type="submit" class="btn btn-danger load" formaction="{{ url_for('share.remove_supply', token_address=form.token_address.data) }}" data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中">減資</button>
+                <button type="submit" class="btn btn-success" id="load" data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中">追加発行</button>
             </div>
         </form>
     </div>
@@ -62,12 +49,12 @@
 {% block required_js %}
 {{ super() }}
 <script type="text/javascript">
-  $('.load.btn').on('click', function() {
+  $('#load.btn').on('click', function() {
     var $this = $(this);
     $this.button('loading');
     setTimeout(function() {
       $this.button('reset');
-    }, 30000);
+    }, 8000);
   });
 </script>
 {% endblock %}

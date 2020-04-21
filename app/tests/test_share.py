@@ -27,12 +27,7 @@ class TestShare(TestBase):
     url_stop_offering = '/share/stop_offering'  # 募集申込停止
     url_valid = '/share/valid'  # 有効化（取扱開始）
     url_invalid = '/share/invalid'  # 無効化（取扱中止）
-    url_change_supply = '/share/change_supply/'  # 発行量変更
     url_add_supply = '/share/add_supply/'  # 追加発行
-    url_remove_supply = '/share/remove_supply/'  # 減資
-    url_address_authorization = '/share/address_authorization/'  # アドレス認可
-    url_authorize_address = '/share/authorize_address/'  # 認可
-    url_unauthorize_address = '/share/unauthorize_address/'  # 認可取り消し
     url_tokentrack = '/share/token/track/'  # 追跡
     url_applications = '/share/applications/'  # 募集申込一覧
     url_holders = '/share/holders/'  # 保有者一覧
@@ -109,7 +104,7 @@ class TestShare(TestBase):
 
     @staticmethod
     def get_token(num):
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SHARE)\
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SHARE) \
             .order_by(Token.created).all()
         return tokens[num]
 
@@ -495,164 +490,33 @@ class TestShare(TestBase):
 
     # ＜正常系5_6＞
     # ＜設定画面＞
-    #   減資　→　発行量変更画面参照　→　追加発行　→　詳細設定画面で確認
+    #   追加発行画面参照　→　追加発行処理　→　詳細設定画面で確認
     #   ※Token_1が対象
     def test_normal_5_6(self, app):
         client = self.client_with_admin_login(app)
         token = TestShare.get_token(0)
-        url_change_supply = self.url_change_supply + token.token_address
         url_add_supply = self.url_add_supply + token.token_address
-        url_remove_supply = self.url_remove_supply + token.token_address
-        url_setting = self.url_setting + token.token_address
-
-        # 減資
-        response = client.post(
-            url_remove_supply,
-            data={
-                'amount': 10,
-                'target_address': eth_account['issuer']['account_address']
-            }
-        )
-        assert response.status_code == 302
-        time.sleep(10)
-
-        # 発行量変更画面の参照
-        response = client.get(url_change_supply)
-        assert '<title>発行量変更'.encode('utf-8') in response.data
-        assert str(self.token_data1['totalSupply'] - 10).encode('utf-8') in response.data
 
         # 追加発行画面の参照
+        response = client.get(url_add_supply)
+        assert '<title>追加発行'.encode('utf-8') in response.data
+
+        # 追加発行処理
         response = client.post(
             url_add_supply,
             data={
                 'amount': 10,
-                'target_address': eth_account['issuer']['account_address']
             }
         )
         assert response.status_code == 302
         time.sleep(10)
 
         # 詳細設定画面の参照
-        response = client.get(url_setting)
-        assert response.status_code == 200
-        assert '<title>株式詳細設定'.encode('utf-8') in response.data
-        assert str(self.token_data1['totalSupply']).encode('utf-8') in response.data
-
-    # ＜正常系5_7＞
-    # ＜設定画面＞
-    #   追加発行（ロックあり）　→　詳細設定画面参照　→　減資（ロックあり）　→　発行量変更画面で確認
-    #   ※Token_1が対象
-    def test_normal_5_7(self, app):
-        client = self.client_with_admin_login(app)
-        token = TestShare.get_token(0)
-        url_change_supply = self.url_change_supply + token.token_address
-        url_add_supply = self.url_add_supply + token.token_address
-        url_remove_supply = self.url_remove_supply + token.token_address
         url_setting = self.url_setting + token.token_address
-
-        # 追加発行画面の参照
-        response = client.post(
-            url_add_supply,
-            data={
-                'amount': 33,
-                'target_address': eth_account['issuer']['account_address'],
-                'locked_account': eth_account['trader']['account_address']
-            }
-        )
-        assert response.status_code == 302
-        time.sleep(10)
-
-        # 詳細設定画面の参照
         response = client.get(url_setting)
         assert response.status_code == 200
         assert '<title>株式詳細設定'.encode('utf-8') in response.data
-        assert str(self.token_data1['totalSupply'] + 33).encode('utf-8') in response.data
-
-        # 減資
-        response = client.post(
-            url_remove_supply,
-            data={
-                'amount': 33,
-                'target_address': eth_account['issuer']['account_address'],
-                'locked_account': eth_account['trader']['account_address']
-            }
-        )
-        assert response.status_code == 302
-        time.sleep(10)
-
-        # 発行量変更画面の参照
-        response = client.get(url_change_supply)
-        assert '<title>発行量変更'.encode('utf-8') in response.data
-        assert str(self.token_data1['totalSupply']).encode('utf-8') in response.data
-
-    # ＜正常系5_8＞
-    # ＜設定画面＞
-    #   減資（保有量不足でrevert）
-    def test_normal_5_8(self, app):
-        client = self.client_with_admin_login(app)
-        token = TestShare.get_token(0)
-        url_remove_supply = self.url_remove_supply + token.token_address
-
-        # 減資
-        response = client.post(
-            url_remove_supply,
-            data={
-                'amount': self.token_data1['totalSupply'] + 1,
-                'target_address': eth_account['issuer']['account_address']
-            }
-        )
-        assert response.status_code == 200
-        assert '変更量が保有数量を上回っています。'.encode('utf-8') in response.data
-
-    # ＜正常系5_9＞
-    # ＜設定画面＞
-    #   アドレス認可画面　→　アドレス認可実施
-    #   ※Token_1が対象
-    def test_normal_5_9(self, app):
-        token = TestShare.get_token(0)
-        client = self.client_with_admin_login(app)
-        target_address = eth_account['trader']['account_address']
-
-        # アドレス認可画面
-        response = client.get(self.url_address_authorization + token.token_address)
-        assert response.status_code == 200
-        assert '<title>アドレス認可'.encode('utf-8') in response.data
-
-        # アドレス認可実施
-        response = client.post(
-            self.url_authorize_address + token.token_address,
-            data={
-                'token_address': token.token_address,
-                "target_address": target_address
-            }
-        )
-        assert response.status_code == 302
-        assert is_address_authorized(token, target_address)
-
-    # ＜正常系5_10＞
-    # ＜設定画面＞
-    #   アドレス認可画面　→　アドレス認可取消
-    #   ※Token_1が対象
-    def test_normal_5_10(self, app):
-        token = TestShare.get_token(0)
-        client = self.client_with_admin_login(app)
-        target_address = eth_account['trader']['account_address']
-
-        # アドレス認可画面
-        response = client.get(self.url_address_authorization + token.token_address)
-        assert response.status_code == 200
-        assert '<title>アドレス認可'.encode('utf-8') in response.data
-
-        # 取扱開始処理
-        response = client.post(
-            self.url_unauthorize_address + token.token_address,
-            data={
-                'token_address': token.token_address,
-                "target_address": target_address
-            }
-        )
-        assert response.status_code == 302
-        assert not is_address_authorized(token, target_address)
+        assert str(self.token_data1['totalSupply'] + 10).encode('utf-8') in response.data
 
     # ＜正常系6_1＞
     # ＜保有者一覧＞
@@ -669,7 +533,6 @@ class TestShare(TestBase):
     def test_normal_7_1(self, app):
         # TODO: Test
         pass
-
 
     # ＜正常系8_1＞
     # ＜募集申込開始・停止＞
@@ -743,7 +606,6 @@ class TestShare(TestBase):
         )
         assert response.status_code == 302
 
-
     # ＜正常系9_1＞
     # ＜追跡＞
     def test_normal_9_1(self, app):
@@ -772,8 +634,6 @@ class TestShare(TestBase):
         assert '総発行量は必須です。'.encode('utf-8') in response.data
         assert '発行価格は必須です。'.encode('utf-8') in response.data
         assert '1口あたりの配当金/分配金は必須です。'.encode('utf-8') in response.data
-        assert '権利確定日は必須です。'.encode('utf-8') in response.data
-        assert '配当支払日は必須です。'.encode('utf-8') in response.data
         assert 'DEXアドレスは必須です。'.encode('utf-8') in response.data
         assert '個人情報コントラクトアドレスは必須です。'.encode('utf-8') in response.data
 
@@ -816,75 +676,3 @@ class TestShare(TestBase):
         assert response.status_code == 200
         assert 'DEXアドレスは有効なアドレスではありません。'.encode('utf-8') in response.data
         assert '個人情報コントラクトアドレスは有効なアドレスではありません。'.encode('utf-8') in response.data
-
-    # ＜エラー系2_3＞
-    # ＜入力値チェック＞
-    #   追加発行量（アドレス形式エラー）
-    def test_error_2_3(self, app):
-        error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
-        client = self.client_with_admin_login(app)
-        token = TestShare.get_token(0)
-        url_setting = self.url_add_supply + token.token_address
-        response = client.post(
-            url_setting,
-            data={
-                'target_address': error_address,
-                'locked_address': error_address,
-            }
-        )
-        assert response.status_code == 200
-        assert '保有者アドレスは有効なアドレスではありません。'.encode('utf-8') in response.data
-        assert 'ロック者アドレスは有効なアドレスではありません。'.encode('utf-8') in response.data
-
-    # ＜エラー系2_4＞
-    # ＜入力値チェック＞
-    #   減資（アドレス形式エラー）
-    def test_error_2_4(self, app):
-        error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
-        client = self.client_with_admin_login(app)
-        token = TestShare.get_token(0)
-        url_setting = self.url_remove_supply + token.token_address
-        response = client.post(
-            url_setting,
-            data={
-                'target_address': error_address,
-                'locked_address': error_address,
-            }
-        )
-        assert response.status_code == 200
-        assert '保有者アドレスは有効なアドレスではありません。'.encode('utf-8') in response.data
-        assert 'ロック者アドレスは有効なアドレスではありません。'.encode('utf-8') in response.data
-
-    # ＜エラー系2_5＞
-    # ＜入力値チェック＞
-    #   アドレス認可（アドレス形式エラー）
-    def test_error_2_5(self, app):
-        error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
-        client = self.client_with_admin_login(app)
-        token = TestShare.get_token(0)
-        url_setting = self.url_authorize_address + token.token_address
-        response = client.post(
-            url_setting,
-            data={
-                'target_address': error_address,
-            }
-        )
-        assert response.status_code == 200
-        assert '認可コントラクトアドレスは有効なアドレスではありません。'.encode('utf-8') in response.data
-
-    # ＜エラー系2_6＞
-    # ＜入力値チェック＞
-    #   アドレス認可取消（アドレス形式エラー）
-    def test_error_2_6(self, app):
-        error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
-        client = self.client_with_admin_login(app)
-        token = TestShare.get_token(0)
-        url_setting = self.url_unauthorize_address + token.token_address
-        response = client.post(
-            url_setting,
-            data={
-                'target_address': error_address,
-            }
-        )
-        assert response.status_code == 200
-        assert '認可コントラクトアドレスは有効なアドレスではありません。'.encode('utf-8') in response.data

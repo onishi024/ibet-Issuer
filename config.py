@@ -51,6 +51,10 @@ class Config:
     }
 
     NAVI_MENU_USER = [
+        ('share', 'glyphicon glyphicon-th', '株式', [
+            ('share_issue', 'fa fa-circle-o', '新規発行', 'share.issue'),
+            ('share_list', 'fa fa-circle-o', '発行済一覧', 'share.list')
+        ]),
         ('bond', 'glyphicon glyphicon-th', '債券', [
             ('bond_issue', 'fa fa-circle-o', '新規発行', 'bond.issue'),
             ('bond_list', 'fa fa-circle-o', '発行済一覧', 'bond.list'),
@@ -67,10 +71,6 @@ class Config:
             ('coupon_position', 'fa fa-circle-o', '売出管理', 'coupon.positions'),
             ('coupon_transfer', 'fa fa-circle-o', '割当', 'coupon.transfer'),
             ('coupon_bulk_transfer', 'fa fa-circle-o', 'CSV一括割当', 'coupon.bulk_transfer')
-        ]),
-        ('share', 'glyphicon glyphicon-th', '株式', [
-            ('share_issue', 'fa fa-circle-o', '新規発行', 'share.issue'),
-            ('share_list', 'fa fa-circle-o', '発行済一覧', 'share.list')
         ]),
     ]
 

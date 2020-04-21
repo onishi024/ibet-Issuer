@@ -80,16 +80,6 @@
                     取扱開始
                   </button>
                 {% endif %}
-                <!-- アドレス認可 -->
-                <a
-                    id="authorize_address"
-                    href="{{ url_for("share.address_authorization", token_address=token_address)}}"
-                    type="button"
-                    class="btn btn-success btn-sm"
-                    data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中"
-                    style="width: 120px">
-                    アドレス認可
-                </a>
             </div>
         </div>
         <form class="form-horizontal" method="POST" role="form" action="{{ url_for('share.setting', token_address=form.token_address.data) }}">
@@ -113,7 +103,7 @@
                         {{ form.totalSupply(class="form-control comma-separate", disabled=True) }}
                     </div>
                     <!-- 発行量変更 -->
-                    <button type="button" class="btn btn-default btn-sm" style="width: 120px" onclick="location.href='{{ url_for("share.change_supply", token_address=token_address)}}'">発行量変更</button>
+                    <button type="button" class="btn btn-default btn-sm" style="width: 120px" onclick="location.href='{{ url_for("share.add_supply", token_address=token_address)}}'">追加発行 <i class="fa fa-plus-circle"></i></button>
                 </div>
                 <div class="form-group">
                     {{ form.issuePrice.label(class="col-md-2 control-label") }}

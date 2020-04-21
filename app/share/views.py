@@ -21,7 +21,7 @@ from app.models import Token, Certification, Order, Agreement, AgreementStatus, 
 from app.contracts import Contract
 from config import Config
 from . import share
-from .forms import IssueForm, SettingForm, ChangeSupplyForm, AuthorizeAddressForm
+from .forms import IssueForm, SettingForm, AddSupplyForm
 
 from web3 import Web3
 from eth_utils import to_checksum_address
@@ -33,6 +33,8 @@ web3.middleware_stack.inject(geth_poa_middleware, layer=0)
 from logging import getLogger
 
 logger = getLogger('api')
+
+ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 
 
 ####################################################
@@ -481,149 +483,59 @@ def _set_validity(token_address, isvalid):
 
 
 ####################################################
-# [株式]追加発行/減資
+# [株式]追加発行
 ####################################################
-@share.route('/change_supply/<string:token_address>', methods=['GET'])
-@login_required
-def change_supply(token_address):
-    logger.info('share/change_supply')
-
-    token = Token.query.filter(Token.token_address == token_address).first()
-    if token is None:
-        abort(404)
-    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
-    TokenContract = web3.eth.contract(address=token.token_address, abi=token_abi)
-
-    form = ChangeSupplyForm()
-    form.token_address.data = token.token_address
-    name = TokenContract.functions.name().call()
-    form.token_name.data = name
-    form.total_supply.data = TokenContract.functions.totalSupply().call()
-
-    return render_template('share/change_supply.html', form=form)
-
-
-@share.route('/add_supply/<string:token_address>', methods=['POST'])
+@share.route('/add_supply/<string:token_address>', methods=['GET', 'POST'])
 @login_required
 def add_supply(token_address):
     logger.info('share/add_supply')
-    return _update_supply(token_address, True)
 
-
-@share.route('/remove_supply/<string:token_address>', methods=['POST'])
-@login_required
-def remove_supply(token_address):
-    logger.info('share/remove_supply')
-    return _update_supply(token_address, False)
-
-
-def _update_supply(token_address, is_increased):
     token = Token.query.filter(Token.token_address == token_address).first()
     if token is None:
         abort(404)
     token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
     TokenContract = web3.eth.contract(address=token.token_address, abi=token_abi)
 
-    form = ChangeSupplyForm()
+    form = AddSupplyForm()
     form.token_address.data = token.token_address
     name = TokenContract.functions.name().call()
-    form.token_name.data = name
+    form.name.data = name
     form.total_supply.data = TokenContract.functions.totalSupply().call()
 
-    if form.validate():
-        # ロック者アドレスが未設定のときにデフォルト値を設定する
-        locked_address = form.locked_address.data if form.locked_address.data else '0x0000000000000000000000000000000000000000'
-
-        # EOAアンロック
-        eth_unlock_account()
-        try:
-            if is_increased:
-                gas = TokenContract.estimateGas().issueFrom(form.target_address.data, locked_address, form.amount.data)
-                tx_hash = TokenContract.functions.issueFrom(form.target_address.data, locked_address, form.amount.data). \
+    if request.method == 'POST':
+        if form.validate():
+            eth_unlock_account()  # アカウントアンロック
+            try:
+                gas = TokenContract.estimateGas().issueFrom(Config.ETH_ACCOUNT, ZERO_ADDRESS, form.amount.data)
+                tx_hash = TokenContract.functions.issueFrom(Config.ETH_ACCOUNT, ZERO_ADDRESS, form.amount.data). \
                     transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
                 web3.eth.waitForTransactionReceipt(tx_hash)
-            else:
-                try:
-                    gas = TokenContract.estimateGas().redeemFrom(form.target_address.data, locked_address,
-                                                                 form.amount.data)
-                    tx_hash = TokenContract.functions.redeemFrom(form.target_address.data, locked_address,
-                                                                 form.amount.data). \
-                        transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
-                    web3.eth.waitForTransactionReceipt(tx_hash)
-                except ValueError as e:
-                    logger.exception(e)
-                    flash('変更量が保有数量を上回っています。', 'error')
-                    return render_template('share/change_supply.html', form=form)
-        except Exception as e:
-            logger.exception(e)
-            flash('処理に失敗しました。', 'error')
+            except Exception as e:
+                logger.error(e)
+                flash('処理に失敗しました。', 'error')
+                return render_template(
+                    'share/add_supply.html',
+                    form=form,
+                    token_address=token_address,
+                    token_name=name
+                )
+            flash('追加発行を受け付けました。発行完了までに数分程かかることがあります。', 'success')
+            return redirect(url_for('.list'))
+        else:
+            flash_errors(form)
             return render_template(
-                'share/change_supply.html', form=form)
-        flash('処理を受け付けました。完了までに数分程かかることがあります。', 'success')
-        return redirect(url_for('.list'))
-    else:
-        flash_errors(form)
-        return render_template('share/change_supply.html', form=form)
-
-
-####################################################
-# [株式]アドレス認可/取消
-####################################################
-@share.route('/address_authorization/<string:token_address>', methods=['GET'])
-@login_required
-def address_authorization(token_address):
-    logger.info('share/address_authorization')
-
-    token = Token.query.filter(Token.token_address == token_address).first()
-    if token is None:
-        abort(404)
-
-    form = AuthorizeAddressForm()
-    form.token_address.data = token.token_address
-    return render_template('share/address_authorization.html', form=form)
-
-
-@share.route('/authorize_address/<string:token_address>', methods=['POST'])
-@login_required
-def authorize_address(token_address):
-    logger.info('share/authorize_address')
-    return _set_authorized_address(token_address, True)
-
-
-@share.route('/unauthorize_address/<string:token_address>', methods=['POST'])
-@login_required
-def unauthorize_address(token_address):
-    logger.info('share/unauthorize_address')
-    return _set_authorized_address(token_address, False)
-
-
-def _set_authorized_address(token_address, auth: bool):
-    token = Token.query.filter(Token.token_address == token_address).first()
-    if token is None:
-        abort(404)
-    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
-    TokenContract = web3.eth.contract(address=token.token_address, abi=token_abi)
-
-    form = AuthorizeAddressForm()
-    form.token_address.data = token.token_address
-
-    if form.validate():
-        # EOAアンロック
-        eth_unlock_account()
-        try:
-            gas = TokenContract.estimateGas().authorize(form.target_address.data, auth)
-            tx_hash = TokenContract.functions.authorize(form.target_address.data, auth). \
-                transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
-            web3.eth.waitForTransactionReceipt(tx_hash)
-        except Exception as e:
-            logger.exception(e)
-            flash('処理に失敗しました。', 'error')
-            return render_template('share/address_authorization.html', form=form)
-        flash('処理を受け付けました。', 'success')
-        return redirect(url_for('.setting', token_address=token_address))
-    else:
-        flash_errors(form)
-        return render_template('share/address_authorization.html', form=form)
+                'share/add_supply.html',
+                form=form,
+                token_address=token_address,
+                token_name=name
+            )
+    else:  # GET
+        return render_template(
+            'share/add_supply.html',
+            form=form,
+            token_address=token_address,
+            token_name=name
+        )
 
 
 ####################################################
