@@ -2,8 +2,7 @@
 import json
 import base64
 import re
-from datetime import datetime, date,timezone, timedelta
-JST = timezone(timedelta(hours=+9), 'JST')
+from datetime import datetime, timezone, timedelta
 
 import io
 import time
@@ -34,6 +33,8 @@ web3.middleware_stack.inject(geth_poa_middleware, layer=0)
 from logging import getLogger
 
 logger = getLogger('api')
+
+JST = timezone(timedelta(hours=+9), 'JST')
 
 
 ####################################################
@@ -247,8 +248,8 @@ def list():
                 symbol = TokenContract.functions.symbol().call()
                 is_redeemed = TokenContract.functions.isRedeemed().call()
 
-                # utc→jst の変換
-                created = datetime.fromtimestamp(row.created.timestamp(), JST)
+            # 作成日時（JST）
+            created = datetime.fromtimestamp(row.created.timestamp(), JST).strftime("%Y/%m/%d %H:%M:%S %z")
 
             token_list.append({
                 'name': name,
@@ -345,6 +346,7 @@ def holders_csv_download():
     res.headers['Content-Disposition'] = 'attachment; filename=' + now.strftime("%Y%m%d%H%M%S") \
                                          + 'bond_holders_list.csv'
     return res
+
 
 # 保有者リスト取得
 @bond.route('/get_holders/<string:token_address>', methods=['GET'])
@@ -1006,9 +1008,6 @@ def positions():
                 # 償還状況
                 is_redeemed = TokenContract.functions.isRedeemed().call()
 
-                # utc→jst の変換
-                created = datetime.fromtimestamp(row.created.timestamp(), JST)
-
                 # 拘束中数量
                 try:
                     commitment = ExchangeContract.functions.commitmentOf(owner, row.token_address).call()
@@ -1048,7 +1047,6 @@ def positions():
                     fundraise = 0
 
                 position_list.append({
-                    'created': created,
                     'token_address': row.token_address,
                     'name': name,
                     'symbol': symbol,
@@ -1557,7 +1555,8 @@ def token_tracker(token_address):
     for row in tracks:
         try:
             # utc→jst の変換
-            block_timestamp = datetime.fromtimestamp(row.block_timestamp.timestamp(), JST).strftime("%Y/%m/%d %H:%M:%S %z")
+            block_timestamp = datetime.fromtimestamp(row.block_timestamp.timestamp(), JST). \
+                strftime("%Y/%m/%d %H:%M:%S %z")
             track.append({
                 'id': row.id,
                 'transaction_hash': row.transaction_hash,
@@ -1585,16 +1584,3 @@ def token_tracker(token_address):
 @login_required
 def permissionDenied():
     return render_template('permissiondenied.html')
-
-
-####################################################
-# Custom Filter
-####################################################
-@bond.app_template_filter()
-def format_date(_date):  # _date = datetime object.
-    if _date:
-        if isinstance(_date, datetime):
-            return _date.strftime("%Y/%m/%d %H:%M:%S %z")
-        elif isinstance(_date, date):
-            return _date.strftime('%Y/%m/%d')
-    return ''

@@ -5,7 +5,6 @@ import io
 import re
 import time
 from datetime import datetime, timezone, timedelta
-JST = timezone(timedelta(hours=+9), 'JST')
 
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
@@ -32,6 +31,8 @@ web3.middleware_stack.inject(geth_poa_middleware, layer=0)
 from logging import getLogger
 
 logger = getLogger('api')
+
+JST = timezone(timedelta(hours=+9), 'JST')
 
 
 ####################################################
@@ -81,14 +82,14 @@ def list():
                     abi=json.loads(
                         row.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
                 )
-
                 # Token-Contractから情報を取得する
                 name = TokenContract.functions.name().call()
                 symbol = TokenContract.functions.symbol().call()
                 status = TokenContract.functions.status().call()
                 totalSupply = TokenContract.functions.totalSupply().call()
-                # utc→jst の変換
-                created = datetime.fromtimestamp(row.created.timestamp(), JST)
+
+            # 作成日時（JST）
+            created = datetime.fromtimestamp(row.created.timestamp(), JST).strftime("%Y/%m/%d %H:%M:%S %z")
 
             token_list.append({
                 'name': name,
@@ -940,9 +941,6 @@ def positions():
                 # 残高
                 balance = TokenContract.functions.balanceOf(owner).call()
 
-                # utc→jst の変換
-                created = datetime.fromtimestamp(row.created.timestamp(), JST)
-
                 # 拘束中数量
                 try:
                     commitment = ExchangeContract.functions.commitmentOf(owner, row.token_address).call()
@@ -982,7 +980,6 @@ def positions():
                     fundraise = 0
 
                 position_list.append({
-                    'created': created,
                     'token_address': row.token_address,
                     'name': name,
                     'symbol': symbol,
