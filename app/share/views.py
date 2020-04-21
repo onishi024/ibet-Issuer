@@ -184,7 +184,7 @@ def list():
                 symbol = TokenContract.functions.symbol().call()
                 status = TokenContract.functions.status().call()
 
-            created = _to_jst(row.created) if row.created is not None else '--'
+            created = _to_jst(row.created).strftime("%Y/%m/%d %H:%M:%S %z") if row.created is not None else '--'
 
             token_list.append({
                 'name': name,
