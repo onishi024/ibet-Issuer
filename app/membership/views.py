@@ -4,7 +4,7 @@ import base64
 import io
 import re
 import time
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
@@ -31,6 +31,8 @@ web3.middleware_stack.inject(geth_poa_middleware, layer=0)
 from logging import getLogger
 
 logger = getLogger('api')
+
+JST = timezone(timedelta(hours=+9), 'JST')
 
 
 ####################################################
@@ -80,17 +82,19 @@ def list():
                     abi=json.loads(
                         row.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
                 )
-
                 # Token-Contractから情報を取得する
                 name = TokenContract.functions.name().call()
                 symbol = TokenContract.functions.symbol().call()
                 status = TokenContract.functions.status().call()
                 totalSupply = TokenContract.functions.totalSupply().call()
 
+            # 作成日時（JST）
+            created = datetime.fromtimestamp(row.created.timestamp(), JST).strftime("%Y/%m/%d %H:%M:%S %z")
+
             token_list.append({
                 'name': name,
                 'symbol': symbol,
-                'created': row.created,
+                'created': created,
                 'tx_hash': row.tx_hash,
                 'token_address': row.token_address,
                 'totalSupply': totalSupply,
@@ -146,13 +150,13 @@ def applications_csv_download():
             item["account_name"] + ',' + item["account_email_address"] + ',' + item["data"] + '\n'
         f.write(data_row)
 
-    now = datetime.now()
+    now = datetime.fromtimestamp(datetime.utcnow().timestamp(), JST)
     res = make_response()
     csvdata = f.getvalue()
     res.data = csvdata.encode('sjis', 'ignore')
     res.headers['Content-Type'] = 'text/plain'
     res.headers['Content-Disposition'] = \
-        'attachment; filename=' + now.strftime("%Y%m%d%H%M%S") + 'bond_applications_list.csv'
+        'attachment; filename=' + now.strftime("%Y%m%d%H%M%S") + 'membership_applications_list.csv'
     return res
 
 
@@ -342,7 +346,7 @@ def holders_csv_download():
             holder["email"] + '\n'
         f.write(data_row)
 
-    now = datetime.now()
+    now = datetime.fromtimestamp(datetime.utcnow().timestamp(), JST)
     res = make_response()
     csvdata = f.getvalue()
     res.data = csvdata.encode('sjis', 'ignore')
@@ -976,7 +980,6 @@ def positions():
                     fundraise = 0
 
                 position_list.append({
-                    'created': row.created,
                     'token_address': row.token_address,
                     'name': name,
                     'symbol': symbol,

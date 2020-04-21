@@ -5,7 +5,7 @@
 # ibet for Issuer
 
 <p>
-  <img alt="Version" src="https://img.shields.io/badge/version-0.10-blue.svg?cacheSeconds=2592000" />
+  <img alt="Version" src="https://img.shields.io/badge/version-0.11-blue.svg?cacheSeconds=2592000" />
   <a href="#" target="_blank">
     <img alt="License: Apache--2.0" src="https://img.shields.io/badge/License-Apache--2.0-yellow.svg" />
   </a>
@@ -31,7 +31,7 @@ $ gunicorn -b localhost:5000 --reload manage:app --config guniconf.py
 
 Or you can start a `development` server with:
 ```bash
-$ python manage.py runsever
+$ python manage.py runserver
 ```
 
 
