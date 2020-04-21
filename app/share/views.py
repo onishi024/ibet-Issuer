@@ -615,19 +615,6 @@ def permissionDenied():
 
 
 ####################################################
-# Custom Filter
-####################################################
-@share.app_template_filter()
-def format_date(_date):  # _date = datetime object.
-    if _date:
-        if isinstance(_date, datetime):
-            return _date.strftime('%Y/%m/%d %H:%M')
-        elif isinstance(_date, date):
-            return _date.strftime('%Y/%m/%d')
-    return ''
-
-
-####################################################
 # 共通部品
 ####################################################
 def _to_jst(src_datetime):
