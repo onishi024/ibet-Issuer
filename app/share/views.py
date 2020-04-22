@@ -528,7 +528,7 @@ def add_supply(token_address):
                     transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
                 web3.eth.waitForTransactionReceipt(tx_hash)
             except Exception as e:
-                logger.error(e)
+                logger.exception(e)
                 flash('処理に失敗しました。', 'error')
                 return render_template(
                     'share/add_supply.html',
@@ -689,7 +689,7 @@ def get_holders(token_address):
         key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
         cipher = PKCS1_OAEP.new(key)
     except Exception as e:
-        logger.error(e)
+        logger.exception(e)
 
     # Token情報取得
     token = Token.query.filter(Token.token_address == token_address).first()
@@ -707,15 +707,15 @@ def get_holders(token_address):
     try:
         tradable_exchange = TokenContract.functions.tradableExchange().call()
     except Exception as e:
-        logger.error(e)
-        tradable_exchange = '0x0000000000000000000000000000000000000000'
+        logger.exception(e)
+        tradable_exchange = ZERO_ADDRESS
         pass
     # 個人情報コントラクトの情報取得
     try:
         personal_info_address = TokenContract.functions.personalInfoAddress().call()
     except Exception as e:
-        logger.error(e)
-        personal_info_address = '0x0000000000000000000000000000000000000000'
+        logger.exception(e)
+        personal_info_address = ZERO_ADDRESS
 
     # 取引コントラクト接続
     ExchangeContract = Contract.get_contract('IbetOTCExchange', tradable_exchange)
@@ -919,8 +919,8 @@ def holder(token_address, account_address):
     try:
         personal_info_address = TokenContract.functions.personalInfoAddress().call()
     except Exception as e:
-        logger.error(e)
-        personal_info_address = '0x0000000000000000000000000000000000000000'
+        logger.exception(e)
+        personal_info_address = ZERO_ADDRESS
 
     personal_info = get_holder(token_address, account_address, custom_personal_info_address=personal_info_address)
     return render_template(

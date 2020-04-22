@@ -33,7 +33,7 @@ def get_holder(token_address, account_address, custom_personal_info_address=None
     """
     トークン保有者のPersonalInfoを返す
     :param token_address: トークンのアドレス
-    :param account_address: トークン保有h差のアドレス
+    :param account_address: トークン保有者のアドレス
     :param custom_personal_info_address: 個人情報を格納している個人情報コントラクトのアドレス。
         未指定の場合はシステムデフォルトの個人情報コントラクトアドレスを使用する。
     :return: PersonalInfo
