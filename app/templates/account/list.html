@@ -30,8 +30,8 @@
 			<th style="width: 200px">ログインID</th>
 			<th>ユーザー名</th>
 			<th style="width: 100px">ロール名</th>
-			<th style="width: 150px">更新日時</th>
-			<th style="width: 150px">登録日時</th>
+			<th style="width: 170px">更新日時</th>
+			<th style="width: 170px">登録日時</th>
 		    </tr>
 		</thead>
 		<tbody>
@@ -40,8 +40,8 @@
 			<td><a href="{{ url_for('account.edit', id=user.id) }}">{{ user.login_id }}</a></td>
 			<td>{{ user.user_name }}</td>
 			<td>{{ user.role.name }}</td>
-			<td align="center">{{ user.modified | format_date }}</td>
-			<td align="center">{{ user.created | format_date }}</td>
+			<td align="center">{{ user.formatted_modified }}</td>
+			<td align="center">{{ user.formatted_created }}</td>
     </tr>
 		{% endfor %}
 		</tbody>

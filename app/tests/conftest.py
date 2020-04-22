@@ -307,6 +307,48 @@ def membership_exchange_contract(payment_gateway_address):
     return {'address': contract_address, 'abi': abi}
 
 
+# OTC Exchange
+def otc_exchange_contract(payment_gateway_address, personalinfo_address, exchange_regulator_service_address):
+    deployer = eth_account['deployer']
+    web3.eth.defaultAccount = deployer['account_address']
+    web3.personal.unlockAccount(deployer['account_address'], deployer['password'])
+
+    issuer = eth_account['issuer']
+    web3.eth.defaultAccount = issuer['account_address']
+    web3.personal.unlockAccount(issuer['account_address'], issuer['password'])
+
+    trader = eth_account['trader']
+    web3.eth.defaultAccount = trader['account_address']
+    web3.personal.unlockAccount(trader['account_address'], trader['password'])
+
+    storage_address, _, _ = Contract.deploy_contract('ExchangeStorage', [], deployer['account_address'])
+
+    args = [
+        payment_gateway_address,
+        personalinfo_address,
+        storage_address,
+        exchange_regulator_service_address
+    ]
+
+    contract_address, abi, _ = Contract.deploy_contract(
+        'IbetOTCExchange', args, deployer['account_address'])
+
+    storage = Contract.get_contract('ExchangeStorage', storage_address)
+    storage.functions.upgradeVersion(contract_address).transact(
+        {'from': deployer['account_address'], 'gas': 4000000}
+    )
+
+    # 取引参加者登録
+    ExchangeRegulatorService = \
+        Contract.get_contract('ExchangeRegulatorService', exchange_regulator_service_address)
+    ExchangeRegulatorService.functions.register(issuer['account_address'], False). \
+        transact({'from': deployer['account_address'], 'gas': 4000000})
+    ExchangeRegulatorService.functions.register(trader['account_address'], False). \
+        transact({'from': deployer['account_address'], 'gas': 4000000})
+
+    return {'address': contract_address, 'abi': abi}
+
+
 @pytest.fixture(scope='class')
 def shared_contract():
     payment_gateway = payment_gateway_contract()
@@ -320,6 +362,11 @@ def shared_contract():
     membership_exchange = membership_exchange_contract(payment_gateway['address'])
     token_list = tokenlist_contract()
     coupon_exchange = coupon_exchange_contract(payment_gateway['address'])
+    otc_exchange = otc_exchange_contract(
+        payment_gateway['address'],
+        personal_info['address'],
+        exchange_regulator_service['address']
+    )
     contracts = {
         'PaymentGateway': payment_gateway,
         'PersonalInfo': personal_info,
@@ -327,6 +374,6 @@ def shared_contract():
         'TokenList': token_list,
         'IbetCouponExchange': coupon_exchange,
         'IbetMembershipExchange': membership_exchange,
-        'IbetShareExchange': {'address': '0x0000000000000000000000000000000000000000', 'abi': ''}
+        'IbetShareExchange': otc_exchange
     }
     return contracts
