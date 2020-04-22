@@ -21,7 +21,7 @@ from app.models import Token, Certification, Order, Agreement, AgreementStatus, 
 from app.contracts import Contract
 from config import Config
 from . import share
-from .forms import IssueForm, SettingForm, AddSupplyForm
+from .forms import IssueForm, SettingForm, AddSupplyForm, TransferOwnershipForm
 
 from web3 import Web3
 from eth_utils import to_checksum_address
@@ -46,6 +46,23 @@ def flash_errors(form):
     for field, errors in form.errors.items():
         for error in errors:
             flash(error, 'error')
+
+
+# 共通処理：トークン名取得
+@share.route('/get_token_name/<string:token_address>', methods=['GET'])
+@login_required
+def get_token_name(token_address):
+    logger.info('share/get_token_name')
+    token = Token.query.filter(Token.token_address == token_address).first()
+    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+
+    TokenContract = web3.eth.contract(
+        address=token_address,
+        abi=token_abi
+    )
+    token_name = TokenContract.functions.name().call()
+
+    return jsonify(token_name)
 
 
 ####################################################
@@ -511,7 +528,7 @@ def add_supply(token_address):
                     transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
                 web3.eth.waitForTransactionReceipt(tx_hash)
             except Exception as e:
-                logger.error(e)
+                logger.exception(e)
                 flash('処理に失敗しました。', 'error')
                 return render_template(
                     'share/add_supply.html',
@@ -601,8 +618,316 @@ def applications(token_address):
 @login_required
 def holders(token_address):
     logger.info('share/holders')
-    # TODO: 実装する。templateでエラーが発生しないようにするためにダミーで作成している。
-    return render_template('share/holders.html', token_address=token_address)
+
+    return render_template(
+        'share/holders.html',
+        token_address=token_address
+    )
+
+
+# 保有者リストCSVダウンロード
+@share.route('/holders_csv_download', methods=['POST'])
+@login_required
+def holders_csv_download():
+    logger.info('share/holders_csv_download')
+
+    token_address = request.form.get('token_address')
+    holders = json.loads(get_holders(token_address).data)
+    token_name = json.loads(get_token_name(token_address).data)
+
+    f = io.StringIO()
+
+    # ヘッダー行
+    data_header = \
+        'token_name,' + \
+        'token_address,' + \
+        'account_address,' + \
+        'balance,' + \
+        'commitment,' + \
+        'name,' + \
+        'birth_date,' + \
+        'postal_code,' + \
+        'address,' + \
+        'email\n'
+    f.write(data_header)
+
+    for holder in holders:
+        # Unicodeの各種ハイフン文字を半角ハイフン（U+002D）に変換する
+        holder_address = re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', holder["address"])
+        # データ行
+        data_row = \
+            token_name + ',' + token_address + ',' + holder["account_address"] + ',' + \
+            str(holder["balance"]) + ',' + str(holder["commitment"]) + ',' + \
+            holder["name"] + ',' + holder["birth_date"] + ',' + \
+            holder["postal_code"] + ',' + holder_address + ',' + \
+            holder["email"] + '\n'
+        f.write(data_row)
+
+    now = datetime.now(JST)
+    res = make_response()
+    csvdata = f.getvalue()
+    res.data = csvdata.encode('sjis', 'ignore')
+    res.headers['Content-Type'] = 'text/plain'
+    res.headers['Content-Disposition'] = 'attachment; filename=' + now.strftime("%Y%m%d%H%M%S") \
+                                         + 'share_holders_list.csv'
+    return res
+
+
+@share.route('/get_holders/<string:token_address>', methods=['GET'])
+@login_required
+def get_holders(token_address):
+    """
+    保有者一覧取得
+    :param token_address: トークンアドレス
+    :return: トークンの保有者一覧
+    """
+    logger.info('share/get_holders')
+
+    # RSA秘密鍵の取得
+    cipher = None
+    try:
+        key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
+        cipher = PKCS1_OAEP.new(key)
+    except Exception as e:
+        logger.exception(e)
+
+    # Token情報取得
+    token = Token.query.filter(Token.token_address == token_address).first()
+    if token is None:
+        abort(404)
+    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+
+    # Tokenコントラクト接続
+    TokenContract = web3.eth.contract(
+        address=token_address,
+        abi=token_abi
+    )
+
+    # 取引コントラクトの情報取得
+    try:
+        tradable_exchange = TokenContract.functions.tradableExchange().call()
+    except Exception as e:
+        logger.exception(e)
+        tradable_exchange = ZERO_ADDRESS
+        pass
+    # 個人情報コントラクトの情報取得
+    try:
+        personal_info_address = TokenContract.functions.personalInfoAddress().call()
+    except Exception as e:
+        logger.exception(e)
+        personal_info_address = ZERO_ADDRESS
+
+    # 取引コントラクト接続
+    ExchangeContract = Contract.get_contract('IbetOTCExchange', tradable_exchange)
+
+    # 個人情報コントラクト接続
+    PersonalInfoContract = Contract.get_contract('PersonalInfo', personal_info_address)
+
+    # Transferイベントを検索
+    transfer_events = Transfer.query. \
+        distinct(Transfer.account_address_to). \
+        filter(Transfer.token_address == token_address).all()
+
+    # 残高を保有している可能性のあるアドレスを抽出する
+    token_owner = TokenContract.functions.owner().call()  # トークン発行体アドレスを取得
+    holders_temp = [token_owner]  # 発行体アドレスをリストに追加
+    for event in transfer_events:
+        holders_temp.append(event.account_address_to)
+
+    # 口座リストをユニークにする
+    holders_uniq = []
+    for x in holders_temp:
+        if x not in holders_uniq:
+            holders_uniq.append(x)
+
+    # 保有者情報抽出
+    holders = []
+    for account_address in holders_uniq:
+        balance = TokenContract.functions.balanceOf(account_address).call()
+        try:
+            commitment = ExchangeContract.functions.commitmentOf(account_address, token_address).call()
+        except Exception as e:
+            logger.warning(e)
+            commitment = 0
+            pass
+        if balance > 0 or commitment > 0:  # 残高（balance）、または注文中の残高（commitment）が存在する情報を抽出
+            # アドレス種別判定
+            if account_address == token_owner:
+                address_type = AddressType.ISSUER.value
+            elif account_address == tradable_exchange:
+                address_type = AddressType.EXCHANGE.value
+            else:
+                address_type = AddressType.OTHERS.value
+
+            # 保有者情報：初期値（個人情報なし）
+            holder = {
+                'account_address': account_address,
+                'name': '--',
+                'postal_code': '--',
+                'email': '--',
+                'address': '--',
+                'birth_date': '--',
+                'balance': balance,
+                'commitment': commitment,
+                'address_type': address_type
+            }
+
+            # 暗号化個人情報取得
+            try:
+                encrypted_info = PersonalInfoContract.functions.personal_info(account_address, token_owner).call()[2]
+            except Exception as e:
+                logger.warning(e)
+                encrypted_info = ''
+                pass
+
+            if encrypted_info == '' or cipher is None:  # 情報が空の場合、デフォルト値の設定
+                pass
+            else:
+                try:
+                    # 個人情報復号化
+                    ciphertext = base64.decodebytes(encrypted_info.encode('utf-8'))
+                    message = cipher.decrypt(ciphertext)
+                    personal_info_json = json.loads(message)
+                    name = personal_info_json['name'] if personal_info_json['name'] else "--"
+                    if personal_info_json['address']['prefecture'] and personal_info_json['address']['city'] and \
+                            personal_info_json['address']['address1']:
+                        address = personal_info_json['address']['prefecture'] + personal_info_json['address']['city']
+                        if personal_info_json['address']['address1'] != "":
+                            address = address + "　" + personal_info_json['address']['address1']
+                        if personal_info_json['address']['address2'] != "":
+                            address = address + "　" + personal_info_json['address']['address2']
+                    else:
+                        address = "--"
+                    postal_code = personal_info_json['address']['postal_code'] if personal_info_json['address'][
+                        'postal_code'] else "--"
+                    email = personal_info_json['email'] if personal_info_json['email'] else "--"
+                    birth_date = personal_info_json['birth'] if personal_info_json['birth'] else "--"
+                    # 保有者情報（個人情報あり）
+                    holder = {
+                        'account_address': account_address,
+                        'name': name,
+                        'postal_code': postal_code,
+                        'email': email,
+                        'address': address,
+                        'birth_date': birth_date,
+                        'balance': balance,
+                        'commitment': commitment,
+                        'address_type': address_type
+                    }
+                except Exception as e:
+                    logger.warning(e)
+                    pass
+
+            holders.append(holder)
+
+    return jsonify(holders)
+
+
+####################################################
+# [債券]保有者移転
+####################################################
+@share.route('/transfer_ownership/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
+@login_required
+def transfer_ownership(token_address, account_address):
+    logger.info('share/transfer_ownership')
+
+    # アドレスフォーマットのチェック
+    if not Web3.isAddress(account_address) or not Web3.isAddress(token_address):
+        abort(404)
+
+    # ABI参照
+    token = Token.query.filter(Token.token_address == token_address).first()
+    if token is None:
+        abort(404)
+    token_abi = json.loads(
+        token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+
+    TokenContract = web3.eth.contract(
+        address=token.token_address,
+        abi=token_abi
+    )
+
+    # 残高参照
+    balance = TokenContract.functions. \
+        balanceOf(to_checksum_address(account_address)).call()
+
+    form = TransferOwnershipForm()
+    if request.method == 'POST':
+        if form.validate():
+            from_address = to_checksum_address(account_address)
+            to_address = to_checksum_address(form.to_address.data)
+            amount = int(form.amount.data)
+            if amount > balance:
+                flash('移転数量が残高を超えています。', 'error')
+                form.from_address.data = from_address
+                return render_template(
+                    'share/transfer_ownership.html',
+                    token_address=token_address,
+                    account_address=account_address,
+                    form=form
+                )
+            eth_unlock_account()
+            gas = TokenContract.estimateGas().transferFrom(from_address, to_address, amount)
+            txid = TokenContract.functions.transferFrom(from_address, to_address, amount). \
+                transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
+            web3.eth.waitForTransactionReceipt(txid)
+            # NOTE: 保有者一覧が非同期で更新されるため、5秒待つ
+            time.sleep(5)
+            return redirect(url_for('.holders', token_address=token_address))
+        else:
+            flash_errors(form)
+            form.from_address.data = account_address
+            return render_template(
+                'share/transfer_ownership.html',
+                token_address=token_address,
+                account_address=account_address,
+                form=form
+            )
+    else:  # GET
+        form.from_address.data = account_address
+        form.to_address.data = ''
+        form.amount.data = balance
+        return render_template(
+            'share/transfer_ownership.html',
+            token_address=token_address,
+            account_address=account_address,
+            form=form
+        )
+
+
+####################################################
+# [株式]保有者詳細
+####################################################
+@share.route('/holder/<string:token_address>/<string:account_address>', methods=['GET'])
+@login_required
+def holder(token_address, account_address):
+    logger.info('share/holder')
+
+    # Token情報取得
+    token = Token.query.filter(Token.token_address == token_address).first()
+    if token is None:
+        abort(404)
+    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+
+    # Tokenコントラクト接続
+    TokenContract = web3.eth.contract(
+        address=token_address,
+        abi=token_abi
+    )
+
+    # 個人情報コントラクトの情報取得
+    try:
+        personal_info_address = TokenContract.functions.personalInfoAddress().call()
+    except Exception as e:
+        logger.exception(e)
+        personal_info_address = ZERO_ADDRESS
+
+    personal_info = get_holder(token_address, account_address, custom_personal_info_address=personal_info_address)
+    return render_template(
+        'share/holder.html',
+        personal_info=personal_info,
+        token_address=token_address
+    )
 
 
 ####################################################

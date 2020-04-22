@@ -316,3 +316,27 @@ class AddSupplyForm(Form):
     def __init__(self, issue=None, *args, **kwargs):
         super(AddSupplyForm, self).__init__(*args, **kwargs)
         self.issue = issue
+
+
+# 所有者移転
+class TransferOwnershipForm(Form):
+    from_address = StringField("現在の所有者", validators=[])
+    to_address = StringField(
+        "移転先",
+        validators=[
+            DataRequired('移転先は必須です。'),
+            address('移転先は無効なアドレスです。')
+        ]
+    )
+    amount = IntegerField(
+        "移転数量",
+        validators=[
+            DataRequired('移転数量は必須です。'),
+            NumberRange(min=1, max=100_000_000, message='移転数量は100,000,000が上限です。'),
+        ]
+    )
+    submit = SubmitField('移転')
+
+    def __init__(self, transfer_ownership=None, *args, **kwargs):
+        super(TransferOwnershipForm, self).__init__(*args, **kwargs)
+        self.transfer_ownership = transfer_ownership
