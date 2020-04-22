@@ -321,7 +321,7 @@ def otc_exchange_contract(payment_gateway_address, personalinfo_address, exchang
     web3.eth.defaultAccount = trader['account_address']
     web3.personal.unlockAccount(trader['account_address'], trader['password'])
 
-    storage_address, _, _ = Contract.deploy_contract('ExchangeStorage', [], deployer['account_address'])
+    storage_address, _, _ = Contract.deploy_contract('OTCExchangeStorage', [], deployer['account_address'])
 
     args = [
         payment_gateway_address,
@@ -333,7 +333,7 @@ def otc_exchange_contract(payment_gateway_address, personalinfo_address, exchang
     contract_address, abi, _ = Contract.deploy_contract(
         'IbetOTCExchange', args, deployer['account_address'])
 
-    storage = Contract.get_contract('ExchangeStorage', storage_address)
+    storage = Contract.get_contract('OTCExchangeStorage', storage_address)
     storage.functions.upgradeVersion(contract_address).transact(
         {'from': deployer['account_address'], 'gas': 4000000}
     )
