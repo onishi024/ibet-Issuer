@@ -92,6 +92,24 @@ def issue_token(token_type, amount):
             'プライバシーポリシー'  # プライバシーポリシー
         ]
         template_id = Config.TEMPLATE_ID_COUPON
+    elif token_type == 'IbetShare':
+        arguments = [
+            'TEST_TOKEN',  # 名称
+            'TEST',  # 略称
+            '0x0000000000000000000000000000000000000000',  # DEXコントラクト
+            '0x0000000000000000000000000000000000000000',  # 個人情報コントラクト
+            100,  # 発行価格
+            amount,  # 発行数量
+            10,  # 1口あたりの配当金・分配金
+            '20221231',  # 権利確定日
+            '20221231',  # 配当支払日
+            '20221231',  # 消却日
+            '問い合わせ先',  # 問い合わせ先
+            'プライバシーポリシー',  # プライバシーポリシー
+            'メモ',  # 補足情報
+            True,  # 譲渡可能
+        ]
+        template_id = Config.TEMPLATE_ID_SHARE
 
     web3.eth.defaultAccount = ISSUER
     _, bytecode, bytecode_runtime = Contract.get_contract_info(token_type)

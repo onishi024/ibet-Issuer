@@ -1,16 +1,12 @@
 # -*- coding:utf-8 -*-
-import math
 
 from flask_wtf import FlaskForm as Form
-
+from web3 import Web3
 from wtforms import IntegerField, StringField, TextAreaField, \
-    SubmitField, HiddenField, DecimalField, SelectField
+    SubmitField, SelectField
+from wtforms import ValidationError
 from wtforms.validators import DataRequired, URL, Optional, Length, Regexp, \
     NumberRange, InputRequired
-from wtforms import ValidationError
-from config import Config
-
-from web3 import Web3
 
 
 # アドレス形式のバリデータ
@@ -340,3 +336,34 @@ class TransferOwnershipForm(Form):
     def __init__(self, transfer_ownership=None, *args, **kwargs):
         super(TransferOwnershipForm, self).__init__(*args, **kwargs)
         self.transfer_ownership = transfer_ownership
+
+
+# 割当
+class TransferForm(Form):
+    token_address = StringField(
+        "株式アドレス",
+        validators=[
+            DataRequired('株式アドレスは必須です。')
+        ]
+    )
+
+    to_address = StringField(
+        "割当先アドレス",
+        validators=[
+            DataRequired('割当先アドレスは必須です。')
+        ]
+    )
+
+    amount = IntegerField(
+        "割当数量",
+        validators=[
+            DataRequired('割当数量は必須です。'),
+            NumberRange(min=1, max=100_000_000, message='割当数量は100,000,000が上限です。'),
+        ]
+    )
+
+    submit = SubmitField('割当')
+
+    def __init__(self, transfer_share=None, *args, **kwargs):
+        super(TransferForm, self).__init__(*args, **kwargs)
+        self.transfer_share = transfer_share
