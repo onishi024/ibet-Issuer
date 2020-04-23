@@ -10,7 +10,39 @@
 {% block page_content %}
     <section class="content">
         <div class="row">
-            <div class="col-lg-12 col-md-12 col-sm-12">
+            <div class="col-12">
+                <div class="box box-solid box-success">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">株式</h3>
+                        <div class="box-tools pull-right">
+                            <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                                <i class="fa fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="box-body">
+                        <table id="data_table_share" class="table table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="overlay" id="share">
+                        <i class="fa fa-refresh fa-spin"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
                 <div class="box box-solid box-success">
                     <div class="box-header with-border">
                         <h3 class="box-title">債券</h3>
@@ -28,7 +60,6 @@
                                     <th></th>
                                     <th></th>
                                     <th></th>
-                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -42,7 +73,7 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-lg-6 col-md-6 col-sm-12">
+            <div class="col-12">
                 <div class="box box-solid box-success">
                     <div class="box-header with-border">
                         <h3 class="box-title">会員権</h3>
@@ -71,7 +102,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-6 col-md-6 col-sm-12">
+            <div class="col-12">
                 <div class="box box-solid box-success">
                     <div class="box-header with-border">
                         <h3 class="box-title">クーポン</h3>
@@ -115,10 +146,83 @@
 <!-- FastClick -->
 <script src="/static/adminlte/bower_components/fastclick/lib/fastclick.js"></script>
 <script>
+token_list_share_url = "{{ url_for('dashboard.token_list_share') }}"
 token_list_bond_url = "{{ url_for('dashboard.token_list_bond') }}"
 token_list_membership_url = "{{ url_for('dashboard.token_list_membership') }}"
 token_list_coupon_url = "{{ url_for('dashboard.token_list_coupon') }}"
 $(function () {
+    $('#data_table_share').DataTable(
+        {
+            columns: [
+                {
+                    data: 'name',
+                    title: '名称',
+                    width: '200px'
+                },
+                {
+                    data: "symbol",
+                    title: "略称",
+                    width: '100px'
+                },
+                {
+                    data: "dividend_record_date",
+                    title: "権利確定日",
+                    width: '100px'
+                },
+                {
+                    data: "cancellation_date",
+                    title: "消却日",
+                    width: '100px'
+                },
+                {
+                    data: "total_supply",
+                    title: "発行量",
+                    width: '100px'
+                }
+            ],
+            ajax: {
+                url: token_list_share_url,
+                dataSrc: function (json) {
+                    returnJson = [];
+                    for(index in json){
+                        returnJsonRaw = {
+                            name: json[index]['name'] ? json[index]['name'] : '--',
+                            symbol: json[index]['symbol'] ? json[index]['symbol'] : '--',
+                            dividend_record_date: json[index]['dividend_record_date'] ? json[index]['dividend_record_date'].toLocaleString() : '--',
+                            cancellation_date: json[index]['cancellation_date'] ? json[index]['cancellation_date'].toLocaleString() : '--',
+                            total_supply: json[index]['total_supply'] ? json[index]['total_supply'].toLocaleString() : '--'
+                        };
+                        returnJson.push(returnJsonRaw)
+                    }
+                    if (json) {
+                        $("div#share.overlay").remove();
+                    }
+                    return returnJson
+                }
+            },
+            'paging': true,
+            'displayLength': 5,
+            'lengthChange': false,
+            'searching': false,
+            'ordering': true,
+            'info': true,
+            'autoWidth': true,
+            'pagingType': "simple_numbers",
+            'language': {
+                'info': "_TOTAL_ 件中 _START_ 〜 _END_ 件目",
+                'lengthMenu': "表示件数 _MENU_ 件",
+                'search': "検索:",
+                'paginate': {
+                    'first': "最初へ",
+                    'previous': "前へ",
+                    'next': "次へ",
+                    'last': "最後へ",
+                },
+                "emptyTable": "データが存在しません",
+                "sInfoEmpty": " 0 件中 0 から 0 まで表示"
+            },
+        }
+    )
     $('#data_table_bond').DataTable(
         {
             columns: [
@@ -138,11 +242,6 @@ $(function () {
                     width: '100px'
                 },
                 {
-                    data: "last_price",
-                    title: "直近価格",
-                    width: '100px'
-                },
-                {
                     data: "total_supply",
                     title: "発行量",
                     width: '100px'
@@ -157,7 +256,6 @@ $(function () {
                             name: json[index]['name'] ? json[index]['name'] : '--',
                             symbol: json[index]['symbol'] ? json[index]['symbol'] : '--',
                             redemption_date: json[index]['redemption_date'] ? json[index]['redemption_date'] : '--',
-                            last_price: json[index]['last_price'] ? json[index]['last_price'].toLocaleString() : '--',
                             total_supply: json[index]['total_supply'] ? json[index]['total_supply'].toLocaleString() : '--'
                         };
                         returnJson.push(returnJsonRaw)
@@ -190,7 +288,7 @@ $(function () {
                 "sInfoEmpty": " 0 件中 0 から 0 まで表示"
             },
         }
-    ),
+    )
     $('#data_table_membership').DataTable({
         columns: [
             {
@@ -254,7 +352,7 @@ $(function () {
             "emptyTable": "データが存在しません",
             "sInfoEmpty": " 0 件中 0 から 0 まで表示"
         },
-    }),
+    })
     $('#data_table_coupon').DataTable({
         columns: [
             {
