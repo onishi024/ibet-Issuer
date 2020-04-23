@@ -71,7 +71,7 @@ def confirm_agreement(invoker, share_exchange, order_id, agreement_id):
     web3.eth.waitForTransactionReceipt(tx_hash)
 
 
-# 会員権：募集申込
+# 株式：募集申込
 def apply_for_offering(db, invoker, token_address):
     web3.eth.defaultAccount = invoker['account_address']
     web3.personal.unlockAccount(invoker['account_address'], invoker['password'])
