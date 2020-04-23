@@ -60,7 +60,6 @@
                                     <th></th>
                                     <th></th>
                                     <th></th>
-                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -243,11 +242,6 @@ $(function () {
                     width: '100px'
                 },
                 {
-                    data: "last_price",
-                    title: "直近価格",
-                    width: '100px'
-                },
-                {
                     data: "total_supply",
                     title: "発行量",
                     width: '100px'
@@ -262,7 +256,6 @@ $(function () {
                             name: json[index]['name'] ? json[index]['name'] : '--',
                             symbol: json[index]['symbol'] ? json[index]['symbol'] : '--',
                             redemption_date: json[index]['redemption_date'] ? json[index]['redemption_date'] : '--',
-                            last_price: json[index]['last_price'] ? json[index]['last_price'].toLocaleString() : '--',
                             total_supply: json[index]['total_supply'] ? json[index]['total_supply'].toLocaleString() : '--'
                         };
                         returnJson.push(returnJsonRaw)
@@ -295,7 +288,7 @@ $(function () {
                 "sInfoEmpty": " 0 件中 0 から 0 まで表示"
             },
         }
-    ),
+    )
     $('#data_table_membership').DataTable({
         columns: [
             {
@@ -359,7 +352,7 @@ $(function () {
             "emptyTable": "データが存在しません",
             "sInfoEmpty": " 0 件中 0 から 0 まで表示"
         },
-    }),
+    })
     $('#data_table_coupon').DataTable({
         columns: [
             {
