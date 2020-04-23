@@ -79,6 +79,9 @@ def issue():
             # EOAアンロック
             eth_unlock_account()
 
+            if form.dividends.data is None:
+                form.dividends.data = 0
+
             # トークン発行（トークンコントラクトのデプロイ）
             # bool型に変換
             bool_transferable = form.transferable.data != 'False'
@@ -257,7 +260,10 @@ def setting(token_address):
             # EOAアンロック
             eth_unlock_account()
 
-            # 1口あたりの配当金/分配金欄変更、権利確定日欄変更、配当支払日欄変更
+            if form.dividends.data is None:
+                form.dividends.data = 0
+
+            # １株配当欄変更、権利確定日欄変更、配当支払日欄変更
             if form.dividends.data != dividends or form.dividendRecordDate.data != dividendRecordDate or \
                     form.dividendPaymentDate.data != dividendPaymentDate:
                 gas = TokenContract.estimateGas().setDividendInformation(
@@ -269,8 +275,7 @@ def setting(token_address):
                     form.dividends.data,
                     form.dividendRecordDate.data,
                     form.dividendPaymentDate.data
-                ). \
-                    transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
+                ).transact({'from': Config.ETH_ACCOUNT, 'gas': gas})
 
             # 消却日欄変更
             if form.cancellationDate.data != cancellationDate:
