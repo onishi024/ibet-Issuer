@@ -1,4 +1,11 @@
 {% extends "base.html" %}
+{% block head %}
+  {{ super() }}
+  <!-- DataTables -->
+  <link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
+  <!-- common.css -->
+  <link rel="stylesheet" href="/static/css/common.css">
+{% endblock %}
 
 {% block title %}トップ - {% endblock %}
 {% block page_header %}トップメニュー <small>Top Menu</small>{% endblock %}
@@ -141,10 +148,6 @@
 <!-- DataTables -->
 <script src="/static/adminlte/bower_components/datatables.net/js/jquery.dataTables.min.js"></script>
 <script src="/static/adminlte/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
-<!-- SlimScroll -->
-<script src="/static/adminlte/bower_components/jquery-slimscroll/jquery.slimscroll.min.js"></script>
-<!-- FastClick -->
-<script src="/static/adminlte/bower_components/fastclick/lib/fastclick.js"></script>
 <script>
 token_list_share_url = "{{ url_for('dashboard.token_list_share') }}"
 token_list_bond_url = "{{ url_for('dashboard.token_list_bond') }}"
@@ -157,27 +160,27 @@ $(function () {
                 {
                     data: 'name',
                     title: '名称',
-                    width: '200px'
+                    width: '40%'
                 },
                 {
                     data: "symbol",
                     title: "略称",
-                    width: '100px'
+                    width: '15%'
                 },
                 {
                     data: "dividend_record_date",
                     title: "権利確定日",
-                    width: '100px'
+                    width: '15%'
                 },
                 {
                     data: "cancellation_date",
                     title: "消却日",
-                    width: '100px'
+                    width: '15%'
                 },
                 {
                     data: "total_supply",
                     title: "発行量",
-                    width: '100px'
+                    width: '15%'
                 }
             ],
             ajax: {
@@ -201,10 +204,10 @@ $(function () {
                 }
             },
             'paging': true,
-            'displayLength': 5,
+            'displayLength': 3,
             'lengthChange': false,
             'searching': false,
-            'ordering': true,
+            'ordering': false,
             'info': true,
             'autoWidth': true,
             'pagingType': "simple_numbers",
@@ -229,22 +232,22 @@ $(function () {
                 {
                     data: 'name',
                     title: '名称',
-                    width: '200px'
+                    width: '40%'
                 },
                 {
                     data: "symbol",
                     title: "略称",
-                    width: '100px'
+                    width: '20%'
                 },
                 {
                     data: "redemption_date",
                     title: "償還日",
-                    width: '100px'
+                    width: '20%'
                 },
                 {
                     data: "total_supply",
                     title: "発行量",
-                    width: '100px'
+                    width: '20%'
                 }
             ],
             ajax: {
@@ -267,10 +270,10 @@ $(function () {
                 }
             },
             'paging': true,
-            'displayLength': 5,
+            'displayLength': 3,
             'lengthChange': false,
             'searching': false,
-            'ordering': true,
+            'ordering': false,
             'info': true,
             'autoWidth': true,
             'pagingType': "simple_numbers",
@@ -294,22 +297,22 @@ $(function () {
             {
                 data: 'name',
                 title: '名称',
-                width: '200px'
+                width: '40%'
             },
             {
                 data: "symbol",
                 title: "略称",
-                width: '100px'
+                width: '20%'
             },
             {
                 data: "last_price",
                 title: "直近価格",
-                width: '100px'
+                width: '20%'
             },
             {
                 data: "total_supply",
                 title: "発行量",
-                width: '100px'
+                width: '20%'
             }
         ],
         ajax: {
@@ -335,7 +338,7 @@ $(function () {
         'displayLength': 5,
         'lengthChange': false,
         'searching': false,
-        'ordering': true,
+        'ordering': false,
         'info': true,
         'autoWidth': true,
         'pagingType': "simple_numbers",
@@ -358,22 +361,22 @@ $(function () {
             {
                 data: 'name',
                 title: '名称',
-                width: '200px'
+                width: '40%'
             },
             {
                 data: "symbol",
                 title: "略称",
-                width: '100px'
+                width: '20%'
             },
             {
                 data: "last_price",
                 title: "直近価格",
-                width: '100px'
+                width: '20%'
             },
             {
                 data: "total_supply",
                 title: "発行量",
-                width: '100px'
+                width: '20%'
             }
         ],
         ajax: {
@@ -399,7 +402,7 @@ $(function () {
         'displayLength': 5,
         'lengthChange': false,
         'searching': false,
-        'ordering': true,
+        'ordering': false,
         'info': true,
         'autoWidth': true,
         'pagingType': "simple_numbers",
