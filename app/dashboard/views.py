@@ -28,6 +28,43 @@ def main():
     )
 
 
+@dashboard.route('/token_list_share', methods=['GET'])
+@login_required
+def token_list_share():
+    tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SHARE).all()
+    token_list = []
+    for row in tokens:
+        try:
+            # トークンがデプロイ済みの場合、トークン情報を取得する
+            if row.token_address is None:
+                name = '--'
+                symbol = '--'
+                total_supply = 0
+            else:
+                # Token-Contractへの接続
+                TokenContract = web3.eth.contract(
+                    address=row.token_address,
+                    abi=json.loads(
+                        row.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+                )
+
+                # Token-Contractから情報を取得する
+                name = TokenContract.functions.name().call()
+                symbol = TokenContract.functions.symbol().call()
+                total_supply = TokenContract.functions.totalSupply().call()
+
+            token_list.append({
+                'name': name,
+                'symbol': symbol,
+                'total_supply': total_supply
+            })
+
+        except Exception as e:
+            logger.exception(e)
+            pass
+    return jsonify(token_list)
+
+
 @dashboard.route('/token_list_bond', methods=['GET'])
 @login_required
 def token_list_bond():
