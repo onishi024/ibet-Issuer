@@ -27,6 +27,8 @@
                                     <th></th>
                                     <th></th>
                                     <th></th>
+                                    <th></th>
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -164,6 +166,16 @@ $(function () {
                     width: '100px'
                 },
                 {
+                    data: "dividend_record_date",
+                    title: "権利確定日",
+                    width: '100px'
+                },
+                {
+                    data: "cancellation_date",
+                    title: "消却日",
+                    width: '100px'
+                },
+                {
                     data: "total_supply",
                     title: "発行量",
                     width: '100px'
@@ -177,6 +189,8 @@ $(function () {
                         returnJsonRaw = {
                             name: json[index]['name'] ? json[index]['name'] : '--',
                             symbol: json[index]['symbol'] ? json[index]['symbol'] : '--',
+                            dividend_record_date: json[index]['dividend_record_date'] ? json[index]['dividend_record_date'].toLocaleString() : '--',
+                            cancellation_date: json[index]['cancellation_date'] ? json[index]['cancellation_date'].toLocaleString() : '--',
                             total_supply: json[index]['total_supply'] ? json[index]['total_supply'].toLocaleString() : '--'
                         };
                         returnJson.push(returnJsonRaw)
