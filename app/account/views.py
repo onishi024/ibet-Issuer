@@ -56,7 +56,7 @@ def list():
             user.formatted_created = ''
 
         if user.modified:
-            user.formatted_modified = user.created.replace(tzinfo=timezone.utc).astimezone(JST)\
+            user.formatted_modified = user.modified.replace(tzinfo=timezone.utc).astimezone(JST)\
                 .strftime("%Y/%m/%d %H:%M:%S %z")
         else:
             user.formatted_modified = ''
