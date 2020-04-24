@@ -1005,7 +1005,6 @@ class TestShare(TestBase):
         assert '略称は必須です。'.encode('utf-8') in response.data
         assert '総発行量は必須です。'.encode('utf-8') in response.data
         assert '発行価格は必須です。'.encode('utf-8') in response.data
-        assert '1口あたりの配当金/分配金は必須です。'.encode('utf-8') in response.data
         assert 'DEXアドレスは必須です。'.encode('utf-8') in response.data
         assert '個人情報コントラクトアドレスは必須です。'.encode('utf-8') in response.data
 

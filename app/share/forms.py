@@ -57,10 +57,10 @@ class IssueForm(Form):
     )
 
     dividends = IntegerField(
-        "1口あたりの配当金/分配金",
+        "１株配当",
         validators=[
-            InputRequired('1口あたりの配当金/分配金は必須です。'),
-            NumberRange(min=0, max=5_000_000_000, message='1口あたりの配当金/分配金は5,000,000,000円が上限です。')
+            Optional(),
+            NumberRange(min=0, max=5_000_000_000, message='１株配当は5,000,000,000円が上限です。')
         ]
     )
 
@@ -187,10 +187,10 @@ class SettingForm(Form):
     issuePrice = IntegerField("発行価格（円）", validators=[])
 
     dividends = IntegerField(
-        "1口あたりの配当金/分配金",
+        "１株配当",
         validators=[
-            InputRequired('1口あたりの配当金/分配金は必須です。'),
-            NumberRange(min=0, max=5_000_000_000, message='1口あたりの配当金/分配金は5,000,000,000円が上限です。')
+            Optional(),
+            NumberRange(min=0, max=5_000_000_000, message='1株配当は5,000,000,000円が上限です。')
         ]
     )
 
