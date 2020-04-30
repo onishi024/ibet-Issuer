@@ -5,9 +5,7 @@ import io
 import csv
 import re
 import time
-import datetime
 from datetime import datetime, timezone, timedelta
-JST = timezone(timedelta(hours=+9), 'JST')
 
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
@@ -28,11 +26,15 @@ from .forms import IssueCouponForm, SellForm, CancelOrderForm, TransferForm, Bul
 from web3 import Web3
 from eth_utils import to_checksum_address
 from web3.middleware import geth_poa_middleware
+
 web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
 web3.middleware_stack.inject(geth_poa_middleware, layer=0)
 
 from logging import getLogger
+
 logger = getLogger('api')
+
+JST = timezone(timedelta(hours=+9), 'JST')
 
 
 ####################################################
@@ -172,12 +174,16 @@ def list():
                 name = TokenContract.functions.name().call()
                 symbol = TokenContract.functions.symbol().call()
                 status = TokenContract.functions.status().call()
+
+            # 作成日時（JST）
+            created = datetime.fromtimestamp(row.created.timestamp(), JST).strftime("%Y/%m/%d %H:%M:%S %z")
+
             token_list.append({
                 'name': name,
                 'symbol': symbol,
                 'status': status,
                 'tx_hash': row.tx_hash,
-                'created': row.created,
+                'created': created,
                 'token_address': row.token_address
             })
         except Exception as e:
@@ -226,14 +232,13 @@ def applications_csv_download():
             token_name + ',' + token_address + ',' + item["account_address"] + ',' + \
             item["account_name"] + ',' + item["account_email_address"] + ',' + item["data"] + '\n'
         f.write(data_row)
-
-    now = datetime.now()
+    now = datetime.fromtimestamp(datetime.utcnow().timestamp(), JST)
     res = make_response()
     csvdata = f.getvalue()
     res.data = csvdata.encode('sjis', 'ignore')
     res.headers['Content-Type'] = 'text/plain'
     res.headers['Content-Disposition'] = \
-        'attachment; filename=' + now.strftime("%Y%m%d%H%M%S") + 'bond_applications_list.csv'
+        'attachment; filename=' + now.strftime("%Y%m%d%H%M%S") + 'coupon_applications_list.csv'
     return res
 
 
@@ -651,7 +656,6 @@ def positions():
                     fundraise = 0
 
                 position_list.append({
-                    'created': row.created,
                     'token_address': row.token_address,
                     'name': name,
                     'symbol': symbol,
@@ -1128,7 +1132,9 @@ def get_usage_history(token_address):
     usage_list = []
     for entry in entries:
         usage = {
-            'block_timestamp': datetime.fromtimestamp(web3.eth.getBlock(entry['blockNumber'])['timestamp'], JST).strftime("%Y/%m/%d %H:%M:%S"),
+            'block_timestamp': datetime.fromtimestamp(
+                web3.eth.getBlock(entry['blockNumber'])['timestamp'], JST
+            ).strftime("%Y/%m/%d %H:%M:%S %z"),
             'consumer': entry['args']['consumer'],
             'value': int(entry['args']['value'])
         }
@@ -1174,7 +1180,9 @@ def used_csv_download():
     usage_list = []
     for entry in entries:
         usage = {
-            'block_timestamp': datetime.fromtimestamp(web3.eth.getBlock(entry['blockNumber'])['timestamp'], JST).strftime("%Y/%m/%d %H:%M:%S"),
+            'block_timestamp': datetime.fromtimestamp(
+                web3.eth.getBlock(entry['blockNumber'])['timestamp'], JST
+            ).strftime("%Y/%m/%d %H:%M:%S %z"),
             'consumer': entry['args']['consumer'],
             'value': int(entry['args']['value'])
         }
@@ -1198,8 +1206,7 @@ def used_csv_download():
                 usage["consumer"]) + ',' \
             + str(usage["value"]) + '\n'
         f.write(data_row)
-
-    now = datetime.now()
+    now = datetime.fromtimestamp(datetime.utcnow().timestamp(), JST)
     res = make_response()
     csvdata = f.getvalue()
     res.data = csvdata.encode('sjis')
@@ -1269,7 +1276,7 @@ def holders_csv_download():
             holder["email"] + '\n'
         f.write(data_row)
 
-    now = datetime.now()
+    now = datetime.fromtimestamp(datetime.utcnow().timestamp(), JST)
     res = make_response()
     csvdata = f.getvalue()
     res.data = csvdata.encode('sjis', 'ignore')
@@ -1373,7 +1380,8 @@ def get_holders(token_address):
                     message = cipher.decrypt(ciphertext)
                     personal_info_json = json.loads(message)
                     name = personal_info_json['name'] if personal_info_json['name'] else "--"
-                    if personal_info_json['address']['prefecture'] and personal_info_json['address']['city'] and personal_info_json['address']['address1']:
+                    if personal_info_json['address']['prefecture'] and personal_info_json['address']['city'] and \
+                            personal_info_json['address']['address1']:
                         address = personal_info_json['address']['prefecture'] + personal_info_json['address']['city']
                         if personal_info_json['address']['address1'] != "":
                             address = address + "　" + personal_info_json['address']['address1']
@@ -1381,7 +1389,8 @@ def get_holders(token_address):
                             address = address + "　" + personal_info_json['address']['address2']
                     else:
                         address = "--"
-                    postal_code = personal_info_json['address']['postal_code'] if personal_info_json['address']['postal_code'] else "--"
+                    postal_code = personal_info_json['address']['postal_code'] if personal_info_json['address'][
+                        'postal_code'] else "--"
                     email = personal_info_json['email'] if personal_info_json['email'] else "--"
                     birth_date = personal_info_json['birth'] if personal_info_json['birth'] else "--"
                     # 保有者情報（個人情報あり）
@@ -1516,16 +1525,3 @@ def set_initial_offering_status(token_address, status):
     except Exception as e:
         logger.error(e)
         flash('更新処理でエラーが発生しました。', 'error')
-
-
-####################################################
-# Custom Filter：日付フォーマット
-####################################################
-@coupon.app_template_filter()
-def format_date(date):  # date = datetime object.
-    if date:
-        if isinstance(date, datetime):
-            return date.strftime('%Y/%m/%d %H:%M')
-        elif isinstance(date, datetime.date):
-            return date.strftime('%Y/%m/%d')
-    return ''

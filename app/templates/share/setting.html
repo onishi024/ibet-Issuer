@@ -4,15 +4,15 @@
   <!-- DataTables -->
   <link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
 {% endblock %}
-{% set active_page = "bond_list" %}
+{% set active_page = "share_list" %}
 
-{% block title %}債券詳細設定 - {% endblock %}
-{% block page_header %}詳細設定 <span class="badge bg-secondary">債券</span>{% endblock %}
+{% block title %}株式詳細設定 - {% endblock %}
+{% block page_header %}詳細設定 <span class="badge bg-secondary">株式</span>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
     <li><a href="{{ url_for('index.index') }}">トップ</a></li>
-    <li><a href="{{ url_for('bond.list') }}">債券一覧</a></li>
-    <li class="active">債券詳細設定</li>
+    <li><a href="{{ url_for('share.list') }}">株式一覧</a></li>
+    <li class="active">株式詳細設定</li>
 {% endblock %}
 
 {% block page_content %}
@@ -23,30 +23,66 @@
             <div class="pull-right box-tools">
                 <!-- 公開/公開済 -->
                 {% if is_released %}
-                <button class="btn btn-default btn-sm" type="button" style="width: 120px" disabled>公開済</button>
+                <button
+                    class="btn btn-default btn-sm"
+                    type="button"
+                    style="width: 120px"
+                    disabled>
+                    公開済
+                </button>
                 {% else %}
-                <button id="release" class="btn btn-warning btn-sm" type="button" style="width: 120px">公開 <i class="fa fa-exclamation-triangle"></i></button>
+                <button
+                    id="release"
+                    class="btn btn-warning btn-sm"
+                    type="button"
+                    style="width: 120px">
+                    公開 <i class="fa fa-exclamation-triangle"></i>
+                </button>
                 {% endif %}
                 <!-- 募集申込開始/停止 -->
                 {% if is_redeemed %}
-                {% elif initial_offering_status %}
-                <button id="stop_initial_offering" type="button" class="btn btn-warning btn-sm" data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中" style="width: 120px">募集申込停止 <i class="fa fa-exclamation-triangle"></i></button>
+                {% elif offering_status %}
+                <button
+                    id="stop_offering"
+                    type="button"
+                    class="btn btn-warning btn-sm"
+                    data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中"
+                    style="width: 120px">
+                    募集申込停止 <i class="fa fa-exclamation-triangle"></i>
+                </button>
                 {% else %}
-                <button id="start_initial_offering" type="button" class="btn btn-success btn-sm" data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中" style="width: 120px">募集申込開始</button>
+                <button
+                    id="start_offering"
+                    type="button"
+                    class="btn btn-success btn-sm"
+                    data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中"
+                    style="width: 120px">
+                    募集申込開始
+                </button>
                 {% endif %}
-                <!-- 償還 -->
-                {% if is_redeemed %}
-                <button class="btn btn-default btn-sm" type="button" style="width: 120px" disabled>償還済</button>
+                <!-- 取扱開始/停止 -->
+                {% if status %}
+                  <button
+                    id="invalid"
+                    type="button"
+                    class="btn btn-danger btn-sm"
+                    data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中"
+                    style="width: 120px">
+                    取扱停止 <i class="fa fa-exclamation-triangle"></i>
+                  </button>
                 {% else %}
-                <button id="redeem" class="btn btn-danger btn-sm" type="button" style="width: 120px">償還 <i class="fa fa-exclamation-triangle"></i></button>
-                {% endif %}
-                <!-- 認定依頼 -->
-                {% if not is_redeemed %}
-                <button type="button" class="btn btn-success btn-sm" style="width: 120px" onclick="location.href='{{ url_for("bond.request_signature", token_address=token_address)}}'">認定依頼 <i class="fa fa-arrow-circle-right"></i></button>
+                  <button
+                    id="valid"
+                    type="button"
+                    class="btn btn-success btn-sm"
+                    data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中"
+                    style="width: 120px">
+                    取扱開始
+                  </button>
                 {% endif %}
             </div>
         </div>
-        <form class="form-horizontal" method="POST" role="form" action="{{ url_for('bond.setting', token_address=form.token_address.data) }}">
+        <form class="form-horizontal" method="POST" role="form" action="{{ url_for('share.setting', token_address=form.token_address.data) }}">
             {{ form.csrf_token }}
             <div class="box-body">
                 <div class="form-group">
@@ -66,134 +102,58 @@
                     <div class="col-md-5">
                         {{ form.totalSupply(class="form-control comma-separate", disabled=True) }}
                     </div>
-                    <!-- 追加発行 -->
-                    {% if not is_redeemed %}
-                    <button type="button" class="btn btn-default btn-sm" style="width: 120px" onclick="location.href='{{ url_for("bond.add_supply", token_address=token_address)}}'">追加発行 <i class="fa fa-plus-circle"></i></button>
-                    {% endif %}
+                    <!-- 発行量変更 -->
+                    <button type="button" class="btn btn-default btn-sm" style="width: 120px" onclick="location.href='{{ url_for("share.add_supply", token_address=token_address)}}'">追加発行 <i class="fa fa-plus-circle"></i></button>
                 </div>
                 <div class="form-group">
-                    {{ form.faceValue.label(class="col-md-2 control-label") }}
+                    {{ form.issuePrice.label(class="col-md-2 control-label") }}
                     <div class="col-md-5">
-                        {{ form.faceValue(class="form-control comma-separate", disabled=True) }}
+                        {{ form.issuePrice(class="form-control comma-separate", disabled=True) }}
                     </div>
                 </div>
                 <div class="form-group">
-                    {{ form.interestRate.label(class="col-md-2 control-label") }}
+                    {{ form.dividends.label(class="col-md-2 control-label") }}
                     <div class="col-md-5">
-                        {{ form.interestRate(class="form-control", disabled=True) }}
+                        {{ form.dividends(class="form-control comma-separate") }}
                     </div>
                 </div>
                 <div class="form-group">
-                    {{ form.interestPaymentDate1.label(class="col-md-2 control-label") }}
-                    <div class="col-md-5">
-                        {{ form.interestPaymentDate1(class="form-control", disabled=True) }}
-                    </div>
-                </div>
-                <div class="form-group">
-                    {{ form.interestPaymentDate2.label(class="col-md-2 control-label") }}
-                    <div class="col-md-5">
-                        {{ form.interestPaymentDate2(class="form-control", disabled=True) }}
-                    </div>
-                </div>
-                <div class="form-group">
-                    {{ form.interestPaymentDate3.label(class="col-md-2 control-label") }}
-                    <div class="col-md-5">
-                        {{ form.interestPaymentDate3(class="form-control", disabled=True) }}
-                    </div>
-                </div>
-                <div class="form-group">
-                    {{ form.interestPaymentDate4.label(class="col-md-2 control-label") }}
-                    <div class="col-md-5">
-                        {{ form.interestPaymentDate4(class="form-control", disabled=True) }}
-                    </div>
-                </div>
-                <div class="form-group">
-                    {{ form.interestPaymentDate5.label(class="col-md-2 control-label") }}
-                    <div class="col-md-5">
-                        {{ form.interestPaymentDate5(class="form-control", disabled=True) }}
-                    </div>
-                </div>
-                <div class="form-group">
-                    {{ form.interestPaymentDate6.label(class="col-md-2 control-label") }}
-                    <div class="col-md-5">
-                        {{ form.interestPaymentDate6(class="form-control", disabled=True) }}
-                    </div>
-                </div>
-                <div class="form-group">
-                    {{ form.interestPaymentDate7.label(class="col-md-2 control-label") }}
-                    <div class="col-md-5">
-                        {{ form.interestPaymentDate7(class="form-control", disabled=True) }}
-                    </div>
-                </div>
-                <div class="form-group">
-                    {{ form.interestPaymentDate8.label(class="col-md-2 control-label") }}
-                    <div class="col-md-5">
-                        {{ form.interestPaymentDate8(class="form-control", disabled=True) }}
-                    </div>
-                </div>
-                <div class="form-group">
-                    {{ form.interestPaymentDate9.label(class="col-md-2 control-label") }}
-                    <div class="col-md-5">
-                        {{ form.interestPaymentDate9(class="form-control", disabled=True) }}
-                    </div>
-                </div>
-                <div class="form-group">
-                    {{ form.interestPaymentDate10.label(class="col-md-2 control-label") }}
-                    <div class="col-md-5">
-                        {{ form.interestPaymentDate10(class="form-control", disabled=True) }}
-                    </div>
-                </div>
-                <div class="form-group">
-                    {{ form.interestPaymentDate11.label(class="col-md-2 control-label") }}
-                    <div class="col-md-5">
-                        {{ form.interestPaymentDate11(class="form-control", disabled=True) }}
-                    </div>
-                </div>
-                <div class="form-group">
-                    {{ form.interestPaymentDate12.label(class="col-md-2 control-label") }}
-                    <div class="col-md-5">
-                        {{ form.interestPaymentDate12(class="form-control", disabled=True) }}
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    {{ form.redemptionDate.label(class="col-md-2 control-label") }}
+                    {{ form.dividendRecordDate.label(class="col-md-2 control-label") }}
                     <div class="col-md-5">
                         <div class="input-group date">
                             <div class="input-group-addon">
                                 <i class="fa fa-calendar"></i>
                             </div>
-                            {{ form.redemptionDate(class="form-control", disabled=True) }}
+                            {{ form.dividendRecordDate(class="form-control pull-right",id="datepicker", autocomplete="off")}}
                         </div>
                     </div>
                 </div>
                 <div class="form-group">
-                    {{ form.redemptionValue.label(class="col-md-2 control-label") }}
-                    <div class="col-md-5">
-                        {{ form.redemptionValue(class="form-control comma-separate", disabled=True) }}
-                    </div>
-                </div>
-                <div class="form-group">
-                    {{ form.returnDate.label(class="col-md-2 control-label") }}
+                    {{ form.dividendPaymentDate.label(class="col-md-2 control-label") }}
                     <div class="col-md-5">
                         <div class="input-group date">
                             <div class="input-group-addon">
                                 <i class="fa fa-calendar"></i>
                             </div>
-                            {{ form.returnDate(class="form-control", disabled=True) }}
+                            {{ form.dividendPaymentDate(class="form-control pull-right",id="datepicker", autocomplete="off")}}
                         </div>
                     </div>
                 </div>
                 <div class="form-group">
-                    {{ form.returnDetails.label(class="col-md-2 control-label") }}
-                    <div class="col-md-8">
-                        {{ form.returnDetails(class="form-control", disabled=True) }}
+                    {{ form.cancellationDate.label(class="col-md-2 control-label") }}
+                    <div class="col-md-5">
+                        <div class="input-group date">
+                            <div class="input-group-addon">
+                                <i class="fa fa-calendar"></i>
+                            </div>
+                            {{ form.cancellationDate(class="form-control pull-right",id="datepicker", autocomplete="off")}}
+                        </div>
                     </div>
                 </div>
                 <div class="form-group">
-                    {{ form.purpose.label(class="col-md-2 control-label") }}
-                    <div class="col-md-8">
-                        {{ form.purpose(class="form-control", disabled=True) }}
+                    {{ form.transferable.label(class="col-md-2 control-label") }}
+                    <div class="col-md-4">
+                        {{ form.transferable(class="form-control") }}
                     </div>
                 </div>
                 <div class="form-group">
@@ -203,27 +163,21 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    {{ form.transferable.label(class="col-md-2 control-label") }}
-                    <div class="col-md-5">
-                        {{ form.transferable(class="form-control") }}
+                    {{ form.referenceUrls_1.label(class="col-md-2 control-label") }}
+                    <div class="col-md-8">
+                        {{ form.referenceUrls_1(class="form-control") }}
                     </div>
                 </div>
                 <div class="form-group">
-                    {{ form.image_1.label(class="col-md-2 control-label") }}
+                    {{ form.referenceUrls_2.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
-                        {{ form.image_1(class="form-control") }}
+                        {{ form.referenceUrls_2(class="form-control") }}
                     </div>
                 </div>
                 <div class="form-group">
-                    {{ form.image_2.label(class="col-md-2 control-label") }}
+                    {{ form.referenceUrls_3.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
-                        {{ form.image_2(class="form-control") }}
-                    </div>
-                </div>
-                <div class="form-group">
-                    {{ form.image_3.label(class="col-md-2 control-label") }}
-                    <div class="col-md-8">
-                        {{ form.image_3(class="form-control") }}
+                        {{ form.referenceUrls_3(class="form-control") }}
                     </div>
                 </div>
                 <div class="form-group">
@@ -264,7 +218,7 @@
                 </div>
             </div>
             <div class="box-footer">
-                <button type="button" class="btn btn-default" onclick="location.href= '{{ url_for("bond.list") }}'">キャンセル</button>
+                <button type="button" class="btn btn-default" onclick="location.href= '{{ url_for("share.list") }}'">キャンセル</button>
                 <button type="submit" class="btn btn-success" id="load" data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中">設定変更</button>
             </div>
         </form>
@@ -310,7 +264,7 @@
                     <div class="form-group">
                         <input type="text" class="form-control" autocomplete="off" id="prompt-form" name="name" />
                         <input type="text" name="dummy" style="display:none;">
-                        <p class="text-danger" id="modal-prompt-validate">名称が一致しません。償還対象の債券であることを確認してください。</p>
+                        <p class="text-danger" id="modal-prompt-validate">名称が一致しません。償還対象の株式であることを確認してください。</p>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -322,6 +276,32 @@
     </div>
 </div>
 
+<script type="text/javascript" src="/static/adminlte/bower_components/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js"></script>
+<script type="text/javascript" src="/static/js/bootstrap-timepicker.min.js"></script>
+<script type="text/javascript">
+    $.fn.datepicker.dates['ja'] = {
+        days: ["日曜日", "月曜日", "火曜日", "水曜日", "木曜日", "金曜日", "土曜日"],
+        daysShort: ["日", "月", "火", "水", "木", "金", "土"],
+        daysMin: ["日", "月", "火", "水", "木", "金", "土"],
+        months: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"],
+        monthsShort: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"],
+        today: "今日",
+        clear: "Clear",
+        format: "yyyy/mm/dd",
+        titleFormat: "yyyy年 MM",
+        weekStart: 0
+    };
+    //Date picker
+    $('[id="datepicker"]').datepicker({
+        language: 'ja',
+        format: 'yyyymmdd',
+        todayHighlight: true,
+        autoclose: true,
+        orientation: "bottom right",
+        todayBtn: true,
+        forceParse: false
+    });
+</script>
 <script type="text/javascript">
   $(document).ready(function() {
       $('#modal-ok').click(function () {
@@ -353,25 +333,28 @@
       });
       $('#release').click(function(){
         $('#modal-text').html('この商品をウォレット向けに公開します。よろしいですか？');
-        $('#modal-form').attr('action', "{{ url_for('bond.release') }}");
+        $('#modal-form').attr('action', "{{ url_for('share.release') }}");
         $('#modal-confirm').modal();
       });
-      $('#start_initial_offering').click(function(){
+      $('#start_offering').click(function(){
         $("#modal-text").html("この商品の募集申込受付を開始します。よろしいですか？");
-        $('#modal-form').attr('action', "{{ url_for('bond.start_initial_offering') }}");
+        $('#modal-form').attr('action', "{{ url_for('share.start_offering') }}");
         $('#modal-confirm').modal();
       });
-      $('#stop_initial_offering').click(function(){
+      $('#stop_offering').click(function(){
         $("#modal-text").html("現在この商品は募集申込中です。<br>この商品の募集申込受付を停止します。よろしいですか？");
-        $('#modal-form').attr('action', "{{ url_for('bond.stop_initial_offering') }}");
+        $('#modal-form').attr('action', "{{ url_for('share.stop_offering') }}");
         $('#modal-confirm').modal();
       });
-      $('#redeem').click(function(){
-        $('#modal-prompt-title').html('償還時確認 <i class="fa fa-exclamation-triangle"></i>');
-        $('#modal-prompt-text').html('この操作は元に戻すことができません。<br>念のため、償還を行う債券の名称を入力してください。');
-        $('#modal-prompt-form').attr('action', "{{ url_for('bond.redeem') }}");
-        $('#modal-prompt-validate').hide();
-        $('#modal-prompt').modal();
+      $('#invalid').click(function(){
+        $("#modal-text").html("この商品を取扱停止します。よろしいですか？");
+        $('#modal-form').attr('action', "{{ url_for('share.invalid') }}");
+        $('#modal-confirm').modal();
+      });
+      $('#valid').click(function(){
+        $("#modal-text").html("この商品の取扱を再開します。よろしいですか？");
+        $('#modal-form').attr('action', "{{ url_for('share.valid') }}");
+        $('#modal-confirm').modal();
       });
   });
   $(function () {

@@ -8,6 +8,7 @@ from .models import Token
 from config import Config
 from app.contracts import Contract
 from logging import getLogger
+
 logger = getLogger('api')
 
 from web3 import Web3
@@ -28,7 +29,15 @@ def eth_unlock_account():
 ####################################################
 # トークン保有者のPersonalInfoを返す
 ####################################################
-def get_holder(token_address, account_address):
+def get_holder(token_address, account_address, custom_personal_info_address=None):
+    """
+    トークン保有者のPersonalInfoを返す
+    :param token_address: トークンのアドレス
+    :param account_address: トークン保有者のアドレス
+    :param custom_personal_info_address: 個人情報を格納している個人情報コントラクトのアドレス。
+        未指定の場合はシステムデフォルトの個人情報コントラクトアドレスを使用する。
+    :return: PersonalInfo
+    """
     if not Web3.isAddress(account_address):
         abort(404)
 
@@ -50,7 +59,10 @@ def get_holder(token_address, account_address):
     token_owner = TokenContract.functions.owner().call()
 
     # PersonalInfo Contract 接続
-    personalinfo_address = to_checksum_address(Config.PERSONAL_INFO_CONTRACT_ADDRESS)
+    if custom_personal_info_address is None:
+        personalinfo_address = Config.PERSONAL_INFO_CONTRACT_ADDRESS
+    else:
+        personalinfo_address = to_checksum_address(custom_personal_info_address)
     PersonalInfoContract = Contract.get_contract('PersonalInfo', personalinfo_address)
 
     # デフォルト値

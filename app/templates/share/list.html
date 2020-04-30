@@ -4,21 +4,21 @@
   <!-- DataTables -->
   <link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
 {% endblock %}
-{% set active_page = "bond_list" %}
+{% set active_page = "share_list" %}
 
-{% block title %}債券一覧 - {% endblock %}
-{% block page_header %}債券一覧 <span class="badge bg-secondary">債券</span>{% endblock %}
+{% block title %}株式一覧 - {% endblock %}
+{% block page_header %}株式一覧 <span class="badge bg-secondary">株式</span>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
     <li><a href="{{ url_for('index.index') }}">トップ</a></li>
-    <li class="active">債券一覧</li>
+    <li class="active">株式一覧</li>
 {% endblock %}
 
 {% block page_content %}
 <section class="content">
     <div class="box box-default">
         <div class="box-header">
-            <h3 class="box-title">債券一覧</h3>
+            <h3 class="box-title">株式一覧</h3>
         </div>
         <div class="box-body">
             <table id="data_table" class="table table-bordered table-hover">
@@ -38,7 +38,7 @@
                 {% for token in tokens %}
                 <tr>
                     {% if token.token_address != None %}
-                    <td style="word-break : break-all;"><a href="{{ url_for('bond.setting', token_address=token.token_address) }}">{{ token.name }}</a></td>
+                    <td style="word-break : break-all;"><a href="{{ url_for('share.setting', token_address=token.token_address) }}">{{ token.name }}</a></td>
                     {% else %}
                     <td align="center"><i class="fa fa-refresh fa-spin"></i></td>
                     {% endif %}
@@ -51,25 +51,27 @@
                     {% else %}
                     <td>-</td>
                     {% endif %}
-                    {% if token.is_redeemed == true %}
-                    <td align="center"><span class="badge">償還済</span></td>
-                    {% else %}
+                    {% if token.status == true %}
                     <td align="center"><span class="badge bg-green">取扱中</span></td>
+                    {% elif token.status == false %}
+                    <td align="center"><span class="badge bg-red">停止中</span></td>
+                    {% else %}
+                    <td align="center">{{ token.status }}</td>
                     {% endif %}
                     {% if token.token_address != None %}
-                    <td align="center"><a href="{{ url_for('bond.token_tracker', token_address=token.token_address) }}">追跡</a></td>
+                    <td align="center"><a href="{{ url_for('share.token_tracker', token_address=token.token_address) }}">追跡</a></td>
                     {% else %}
                     <td></td>
                     {% endif %}
                     {% if token.token_address != None %}
                     <td align="center">
-                        <a href="{{ url_for('bond.applications', token_address=token.token_address) }}">募集申込</a>
+                        <a href="{{ url_for('share.applications', token_address=token.token_address) }}">募集申込</a>
                     </td>
                     {% else %}
                     <td></td>
                     {% endif %}
                     {% if token.token_address != None %}
-                    <td align="center"><a href="{{ url_for('bond.holders', token_address=token.token_address) }}">保有者</a></td>
+                    <td align="center"><a href="{{ url_for('share.holders', token_address=token.token_address) }}">保有者</a></td>
                     {% else %}
                     <td></td>
                     {% endif %}

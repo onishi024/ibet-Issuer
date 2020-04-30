@@ -6,22 +6,22 @@
   <!-- common.css -->
   <link rel="stylesheet" href="/static/css/common.css">
 {% endblock %}
-{% set active_page = "bond_list" %}
+{% set active_page = "share_list" %}
 
-{% block title %}債券保有者一覧 - {% endblock %}
-{% block page_header %}債券保有者一覧 <span class="badge bg-secondary">債券</span>{% endblock %}
+{% block title %}株式保有者一覧 - {% endblock %}
+{% block page_header %}株式保有者一覧 <span class="badge bg-secondary">株式</span>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
     <li><a href="{{ url_for('index.index') }}">トップ</a></li>
-    <li><a href="{{ url_for('bond.list') }}">債券一覧</a></li>
-    <li class="active">債券保有者一覧</li>
+    <li><a href="{{ url_for('share.list') }}">株式一覧</a></li>
+    <li class="active">株式保有者一覧</li>
 {% endblock %}
 
 {% block page_content %}
 <section class="content">
     <div class="box box-default">
       <div class="box-header">
-        <form method="post" action="{{ url_for('bond.holders_csv_download') }}" enctype="multipart/form-data">
+        <form method="post" action="{{ url_for('share.holders_csv_download') }}" enctype="multipart/form-data">
           <h3 class="box-title" id="token_name"></h3>
           <input type="text" name="token_address" style="display:none;" value="{{ token_address }}">
           <div class="pull-right box-tools">
@@ -47,7 +47,7 @@
             </table>
         </div>
         <div class="box-footer">
-            <button type="button" class="btn btn-default" onclick="location.href='{{ url_for("bond.list") }}'">一覧に戻る</button>
+            <button type="button" class="btn btn-default" onclick="location.href='{{ url_for("share.list") }}'">一覧に戻る</button>
         </div>
         <div class="overlay">
             <i class="fa fa-refresh fa-spin"></i>
@@ -67,7 +67,7 @@
               <table class="table table-bordered" style="background-color: #777; color: #fff;">
                   <tr>
                       <td>ファイル名</td>
-                      <td>[YYYYMMDDHHMMSS]bond_holders.csv</td>
+                      <td>[YYYYMMDDHHMMSS]share_holders.csv</td>
                   </tr>
                   <tr>
                       <td>ファイル形式</td>
@@ -101,12 +101,12 @@
               </thead>
               <tbody>
               <tr>
-                  <td>債券名</td>
-                  <td>ibet債券</td>
+                  <td>株式名</td>
+                  <td>ibet株</td>
                   <td></td>
               </tr>
               <tr>
-                  <td>債券アドレス</td>
+                  <td>株式アドレス</td>
                   <td>0xF37aF18966609eCaDe3E4D1831996853c637cfF3</td>
                   <td></td>
               </tr>
@@ -123,16 +123,6 @@
               <tr>
                   <td>注文中数量</td>
                   <td>2</td>
-                  <td></td>
-              </tr>
-              <tr>
-                  <td>保有数量合計</td>
-                  <td>12</td>
-                  <td>保有数量と注文中数量の合計</td>
-              </tr>
-              <tr>
-                  <td>保有金額合計</td>
-                  <td>1200</td>
                   <td></td>
               </tr>
               <tr>
@@ -180,10 +170,10 @@
 <script src="/static/adminlte/bower_components/fastclick/lib/fastclick.js"></script>
 <script>
 token_address = {{ token_address | tojson }};
-token_name_url = '{{ url_for("bond.get_token_name", token_address=token_address) }}';
-holders_list_url = '{{ url_for("bond.get_holders", token_address=token_address) }}';
-holder_detail_url_base = '{{ url_for("bond.holder", token_address=token_address, account_address="account_address") }}';
-holder_transfer_url_base = '{{ url_for("bond.transfer_ownership", token_address=token_address, account_address="account_address") }}';
+token_name_url = '{{ url_for("share.get_token_name", token_address=token_address) }}';
+holders_list_url = '{{ url_for("share.get_holders", token_address=token_address) }}';
+holder_detail_url_base = '{{ url_for("share.holder", token_address=token_address, account_address="account_address") }}';
+holder_transfer_url_base = '{{ url_for("share.transfer_ownership", token_address=token_address, account_address="account_address") }}';
 $(function () {
     $('#data_table').DataTable({
         columns: [

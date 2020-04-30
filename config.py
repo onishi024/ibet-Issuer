@@ -16,6 +16,7 @@ class Config:
     TEMPLATE_ID_SB = 1 # 債券
     TEMPLATE_ID_COUPON = 2 # クーポン
     TEMPLATE_ID_MEMBERSHIP = 3 # 会員権
+    TEMPLATE_ID_SHARE = 4 # 株式
 
     # gunicornのworker数
     WORKER_COUNT = int(os.environ.get("WORKER_COUNT")) if os.environ.get("WORKER_COUNT") else 4
@@ -50,6 +51,10 @@ class Config:
     }
 
     NAVI_MENU_USER = [
+        ('share', 'glyphicon glyphicon-th', '株式', [
+            ('share_issue', 'fa fa-circle-o', '新規発行', 'share.issue'),
+            ('share_list', 'fa fa-circle-o', '発行済一覧', 'share.list')
+        ]),
         ('bond', 'glyphicon glyphicon-th', '債券', [
             ('bond_issue', 'fa fa-circle-o', '新規発行', 'bond.issue'),
             ('bond_list', 'fa fa-circle-o', '発行済一覧', 'bond.list'),
@@ -145,6 +150,12 @@ class Config:
     if os.environ.get('IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS') is not None:
         IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS = \
             to_checksum_address(os.environ.get('IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS'))
+
+    # IbetShareExchange-Contract
+    IBET_SHARE_EXCHANGE_CONTRACT_ADDRESS = ''
+    if os.environ.get('IBET_SHARE_EXCHANGE_CONTRACT_ADDRESS') is not None:
+        IBET_SHARE_EXCHANGE_CONTRACT_ADDRESS = \
+            to_checksum_address(os.environ.get('IBET_SHARE_EXCHANGE_CONTRACT_ADDRESS'))
 
     AGENT_ADDRESS = ''
     if os.environ.get('AGENT_ADDRESS') is not None:

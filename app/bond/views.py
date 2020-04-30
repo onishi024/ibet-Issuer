@@ -2,7 +2,8 @@
 import json
 import base64
 import re
-from datetime import datetime, date
+from datetime import datetime, timezone, timedelta
+
 import io
 import time
 
@@ -32,6 +33,8 @@ web3.middleware_stack.inject(geth_poa_middleware, layer=0)
 from logging import getLogger
 
 logger = getLogger('api')
+
+JST = timezone(timedelta(hours=+9), 'JST')
 
 
 ####################################################
@@ -153,7 +156,7 @@ def issue():
                 form.redemptionDate.data,
                 redemption_value,
                 form.returnDate.data,
-                form.returnAmount.data,
+                form.returnDetails.data,
                 form.purpose.data,
                 form.memo.data,
                 form.contact_information.data,
@@ -245,10 +248,13 @@ def list():
                 symbol = TokenContract.functions.symbol().call()
                 is_redeemed = TokenContract.functions.isRedeemed().call()
 
+            # 作成日時（JST）
+            created = datetime.fromtimestamp(row.created.timestamp(), JST).strftime("%Y/%m/%d %H:%M:%S %z")
+
             token_list.append({
                 'name': name,
                 'symbol': symbol,
-                'created': row.created,
+                'created': created,
                 'tx_hash': row.tx_hash,
                 'token_address': row.token_address,
                 'is_redeemed': is_redeemed
@@ -280,6 +286,24 @@ def holders_csv_download():
     holders = json.loads(get_holders(token_address).data)
     token_name = json.loads(get_token_name(token_address).data)
 
+    # トークン情報の参照
+    token = Token.query.filter(Token.token_address == token_address).first()
+    if token is None:
+        abort(404)
+    token_abi = json.loads(
+        token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false')
+    )
+    TokenContract = web3.eth.contract(
+        address=token.token_address,
+        abi=token_abi
+    )
+    try:
+        face_value = TokenContract.functions.faceValue().call()
+    except Exception as e:
+        logger.error(e)
+        face_value = 0
+        pass
+
     f = io.StringIO()
 
     # ヘッダー行
@@ -289,6 +313,8 @@ def holders_csv_download():
         'account_address,' + \
         'balance,' + \
         'commitment,' + \
+        'total_balance,' + \
+        'total_holdings,' + \
         'name,' + \
         'birth_date,' + \
         'postal_code,' + \
@@ -299,16 +325,20 @@ def holders_csv_download():
     for holder in holders:
         # Unicodeの各種ハイフン文字を半角ハイフン（U+002D）に変換する
         holder_address = re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', holder["address"])
+        # 保有数量合計
+        total_balance = holder["balance"] + holder["commitment"]
+        # 保有金額合計
+        total_holdings = total_balance * face_value
         # データ行
         data_row = \
             token_name + ',' + token_address + ',' + holder["account_address"] + ',' + \
             str(holder["balance"]) + ',' + str(holder["commitment"]) + ',' + \
+            str(total_balance) + ',' + str(total_holdings) + ',' + \
             holder["name"] + ',' + holder["birth_date"] + ',' + \
             holder["postal_code"] + ',' + holder_address + ',' + \
             holder["email"] + '\n'
         f.write(data_row)
-
-    now = datetime.now()
+    now = datetime.fromtimestamp(datetime.utcnow().timestamp(), JST)
     res = make_response()
     csvdata = f.getvalue()
     res.data = csvdata.encode('sjis', 'ignore')
@@ -316,6 +346,7 @@ def holders_csv_download():
     res.headers['Content-Disposition'] = 'attachment; filename=' + now.strftime("%Y%m%d%H%M%S") \
                                          + 'bond_holders_list.csv'
     return res
+
 
 # 保有者リスト取得
 @bond.route('/get_holders/<string:token_address>', methods=['GET'])
@@ -583,7 +614,7 @@ def setting(token_address):
     redemptionDate = TokenContract.functions.redemptionDate().call()
     redemptionValue = TokenContract.functions.redemptionValue().call()
     returnDate = TokenContract.functions.returnDate().call()
-    returnAmount = TokenContract.functions.returnAmount().call()
+    returnDetails = TokenContract.functions.returnAmount().call()
     purpose = TokenContract.functions.purpose().call()
     memo = TokenContract.functions.memo().call()
     tradableExchange = TokenContract.functions.tradableExchange().call()
@@ -621,7 +652,7 @@ def setting(token_address):
                 form.redemptionDate.data = redemptionDate
                 form.redemptionValue.data = redemptionValue
                 form.returnDate.data = returnDate
-                form.returnAmount.data = returnAmount
+                form.returnDetails.data = returnDetails
                 form.purpose.data = purpose
                 form.memo.data = memo
                 form.abi.data = token.abi
@@ -707,7 +738,7 @@ def setting(token_address):
             form.redemptionDate.data = redemptionDate
             form.redemptionValue.data = redemptionValue
             form.returnDate.data = returnDate
-            form.returnAmount.data = returnAmount
+            form.returnDetails.data = returnDetails
             form.purpose.data = purpose
             form.memo.data = memo
             form.abi.data = token.abi
@@ -729,7 +760,7 @@ def setting(token_address):
         form.redemptionDate.data = redemptionDate
         form.redemptionValue.data = redemptionValue
         form.returnDate.data = returnDate
-        form.returnAmount.data = returnAmount
+        form.returnDetails.data = returnDetails
         form.purpose.data = purpose
         form.memo.data = memo
         form.transferable.data = transferable
@@ -1016,7 +1047,6 @@ def positions():
                     fundraise = 0
 
                 position_list.append({
-                    'created': row.created,
                     'token_address': row.token_address,
                     'name': name,
                     'symbol': symbol,
@@ -1066,7 +1096,7 @@ def sell(token_address):
     redemptionDate = TokenContract.functions.redemptionDate().call()
     redemptionValue = TokenContract.functions.redemptionValue().call()
     returnDate = TokenContract.functions.returnDate().call()
-    returnAmount = TokenContract.functions.returnAmount().call()
+    returnDetails = TokenContract.functions.returnAmount().call()
     purpose = TokenContract.functions.purpose().call()
     memo = TokenContract.functions.memo().call()
     tradableExchange = TokenContract.functions.tradableExchange().call()
@@ -1129,7 +1159,7 @@ def sell(token_address):
         form.redemptionDate.data = redemptionDate
         form.redemptionValue.data = redemptionValue
         form.returnDate.data = returnDate
-        form.returnAmount.data = returnAmount
+        form.returnDetails.data = returnDetails
         form.purpose.data = purpose
         form.memo.data = memo
         form.tradableExchange.data = tradableExchange
@@ -1294,8 +1324,7 @@ def applications_csv_download():
             str(item["requested_amount"]) + ',' + str(item["allotted_amount"]) + ',' + \
             str(item["balance"]) + '\n'
         f.write(data_row)
-
-    now = datetime.now()
+    now = datetime.fromtimestamp(datetime.utcnow().timestamp(), JST)
     res = make_response()
     csvdata = f.getvalue()
     res.data = csvdata.encode('sjis', 'ignore')
@@ -1518,9 +1547,28 @@ def token_tracker(token_address):
     if not Web3.isAddress(token_address):
         abort(404)
 
-    track = Transfer.query.filter(Transfer.token_address == token_address). \
+    tracks = Transfer.query.filter(Transfer.token_address == token_address). \
         order_by(desc(Transfer.block_timestamp)). \
         all()
+
+    track = []
+    for row in tracks:
+        try:
+            # utc→jst の変換
+            block_timestamp = datetime.fromtimestamp(row.block_timestamp.timestamp(), JST). \
+                strftime("%Y/%m/%d %H:%M:%S %z")
+            track.append({
+                'id': row.id,
+                'transaction_hash': row.transaction_hash,
+                'token_address': row.token_address,
+                'account_address_from': row.account_address_from,
+                'account_address_to': row.account_address_to,
+                'transfer_amount': row.transfer_amount,
+                'block_timestamp': block_timestamp,
+            })
+        except Exception as e:
+            logger.error(e)
+            pass
 
     return render_template(
         'bond/token_tracker.html',
@@ -1536,16 +1584,3 @@ def token_tracker(token_address):
 @login_required
 def permissionDenied():
     return render_template('permissiondenied.html')
-
-
-####################################################
-# Custom Filter
-####################################################
-@bond.app_template_filter()
-def format_date(_date):  # _date = datetime object.
-    if _date:
-        if isinstance(_date, datetime):
-            return _date.strftime('%Y/%m/%d %H:%M')
-        elif isinstance(_date, date):
-            return _date.strftime('%Y/%m/%d')
-    return ''

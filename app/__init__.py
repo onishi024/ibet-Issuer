@@ -65,6 +65,9 @@ def create_app(config_name):
     from .membership import membership as membership_blueprint
     app.register_blueprint(membership_blueprint)
 
+    from .share import share as share_blueprint
+    app.register_blueprint(share_blueprint)
+
     from .auth import auth as auth_blueprint
     app.register_blueprint(auth_blueprint, url_prefix='/auth')
 

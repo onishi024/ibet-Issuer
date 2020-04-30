@@ -34,6 +34,8 @@ IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS = \
     to_checksum_address(os.environ.get('IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS'))
 IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS = \
     to_checksum_address(os.environ.get('IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS'))
+IBET_SHARE_EXCHANGE_CONTRACT_ADDRESS = \
+    to_checksum_address(os.environ.get('IBET_SHARE_EXCHANGE_CONTRACT_ADDRESS'))
 
 # DB
 URI = os.environ.get("DATABASE_URL") or 'postgresql://issueruser:issuerpass@localhost:5432/issuerdb'
@@ -62,19 +64,22 @@ def issue_token(exchange_address, data_count, token_type):
         attribute['redemptionDate'] = '20181010'
         attribute['redemptionValue'] = 100
         attribute['returnDate'] = '20181010'
-        attribute['returnAmount'] = 'returnAmount'
+        attribute['returnDetails'] = 'returnDetails'
         attribute['purpose'] = 'purpose'
         interestPaymentDate = json.dumps({
             'interestPaymentDate1':attribute['interestPaymentDate1']
         })
+        attribute['personalInfoAddress'] = '0x0000000000000000000000000000000000000000'
+
         arguments = [
             attribute['name'], attribute['symbol'], attribute['totalSupply'],
             attribute['tradableExchange'],
             attribute['faceValue'], attribute['interestRate'], interestPaymentDate,
             attribute['redemptionDate'], attribute['redemptionValue'],
-            attribute['returnDate'], attribute['returnAmount'],
+            attribute['returnDate'], attribute['returnDetails'],
             attribute['purpose'], attribute['memo'],
-            attribute['contactInformation'], attribute['privacyPolicy']
+            attribute['contactInformation'], attribute['privacyPolicy'],
+            attribute['personalInfoAddress']
         ]
         template_id = Config.TEMPLATE_ID_SB
     elif token_type == 'IbetMembership':
@@ -99,6 +104,24 @@ def issue_token(exchange_address, data_count, token_type):
             attribute['contactInformation'], attribute['privacyPolicy']
         ]
         template_id = Config.TEMPLATE_ID_COUPON
+    elif token_type == 'IbetShare':
+        attribute['personalInfoAddress'] = '0x0000000000000000000000000000000000000000'
+        attribute['issuePrice'] = 100
+        attribute['dividends'] = 10
+        attribute['dividendRecordDate'] = '20181010'
+        attribute['dividendPaymentDate'] = '20181010'
+        attribute['cancellationDate'] = '20181010'
+        arguments = [
+            attribute['name'], attribute['symbol'],
+            attribute['tradableExchange'], attribute['personalInfoAddress'],
+            attribute['issuePrice'], attribute['totalSupply'],
+            attribute['dividends'], attribute['dividendRecordDate'], attribute['dividendPaymentDate'],
+            attribute['cancellationDate'],
+            attribute['contactInformation'], attribute['privacyPolicy'],
+            attribute['memo'],
+            attribute['transferable']
+        ]
+        template_id = Config.TEMPLATE_ID_SHARE
 
     web3.eth.defaultAccount = ETH_ACCOUNT
     web3.personal.unlockAccount(ETH_ACCOUNT, ETH_ACCOUNT_PASSWORD)
@@ -137,6 +160,8 @@ def main(data_count, token_type):
         exchange_address = IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS
     elif token_type == 'IbetCoupon':
         exchange_address = IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS
+    elif token_type == 'IbetShare':
+        exchange_address = IBET_SHARE_EXCHANGE_CONTRACT_ADDRESS
     print("exchange_address: " + exchange_address)
     # token登録
     for count in range(0, data_count):
@@ -150,13 +175,13 @@ def main(data_count, token_type):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="トークンの登録")
     parser.add_argument("data_count", type=int, help="登録件数")
-    parser.add_argument("token_type", type=str, help="IbetStraightBond, IbetMembership, IbetCoupon")
+    parser.add_argument("token_type", type=str, help="IbetStraightBond, IbetMembership, IbetCoupon, IbetShare")
     args = parser.parse_args()
 
     if not args.data_count:
         raise Exception("登録件数が必要")
 
     if not args.token_type:
-        raise Exception("IbetStraightBond, IbetMembership, IbetCoupon")
+        raise Exception("IbetStraightBond, IbetMembership, IbetCoupon, IbetShare")
 
     main(args.data_count, args.token_type)
