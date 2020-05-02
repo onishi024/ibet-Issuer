@@ -24,13 +24,13 @@
             <table id="data_table" class="table table-bordered table-hover">
                 <thead>
                 <tr>
-                    <th>名称</th>
-                    <th>総発行量</th>
-                    <th>未売出</th>
-                    <th>売出中</th>
-                    <th>売出価格</th>
-                    <th>調達額</th>
-                    <th></th>
+                    <th width="35%">名称</th>
+                    <th width="10%">総発行量</th>
+                    <th width="10%">未売出</th>
+                    <th width="10%">売出中</th>
+                    <th width="10%">売出価格</th>
+                    <th width="15%">調達額</th>
+                    <th width="10%"></th>
                 </tr>
                 </thead>
                 <tbody>
@@ -49,13 +49,13 @@
                     {% else %}
                     <td>{{ "{:,}".format(position.order_price) }} 円</td>
                     {% endif %}
-                    <td>{{ "{:,}".format(position.fundraise) }} 円</td>
+                    <td align="right">{{ "{:,}".format(position.fundraise) }} 円</td>
                     {% if position.is_redeemed %}
-                    <td align="center"><button type="button" class="btn btn-default btn-sm" style="width: 80px" disabled>償還済</button></td>
+                    <td align="center"><button type="button" class="btn btn-default btn-sm" style="width: 70px" disabled>償還済</button></td>
                     {% elif position.on_sale != True %}
-                    <td align="center"><button type="button" class="btn btn-success btn-sm" style="width: 80px" onclick="location.href= '{{ url_for("bond.sell", token_address=position.token_address) }}'">売出開始</button></td>
+                    <td align="center"><button type="button" class="btn btn-success btn-sm" style="width: 70px" onclick="location.href= '{{ url_for("bond.sell", token_address=position.token_address) }}'">売出開始</button></td>
                     {% else %}
-                    <td align="center"><button type="button" class="btn btn-danger btn-sm" style="width: 80px" onclick="location.href= '{{ url_for("bond.cancel_order", token_address=position.token_address, order_id=position.order_id) }}'">売出停止</button></td>
+                    <td align="center"><button type="button" class="btn btn-danger btn-sm" style="width: 70px" onclick="location.href= '{{ url_for("bond.cancel_order", token_address=position.token_address, order_id=position.order_id) }}'">売出停止</button></td>
                     {% endif %}
                 </tr>
                 {% endfor %}
