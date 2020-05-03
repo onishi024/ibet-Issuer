@@ -517,18 +517,6 @@ class TestBankInfo(TestBase):
         # 待機
         time.sleep(10)
 
-        # PersonalInfoの確認
-        personal_info_json = get_personal_encrypted_info(shared_contract['PersonalInfo'],
-                                                         eth_account['issuer']['account_address'],
-                                                         eth_account['issuer']['account_address'])
-        assert personal_info_json['name'] == ''
-        assert personal_info_json['address']['postal_code'] == ''
-        assert personal_info_json['address']['prefecture'] == ''
-        assert personal_info_json['address']['city'] == ''
-        assert personal_info_json['address']['address1'] == ''
-        assert personal_info_json['address']['address2'] == ''
-        assert personal_info_json['email'] == ''
-
     # ＜正常系3＞
     # 通常参照（登録済）
     def test_normal_3(self, app):
@@ -572,19 +560,6 @@ class TestBankInfo(TestBase):
 
         # 待機
         time.sleep(10)
-
-        # personalInfoの確認
-        personal_info_json = get_personal_encrypted_info(
-            shared_contract['PersonalInfo'],
-            eth_account['issuer']['account_address'],
-            eth_account['issuer']['account_address']
-        )
-        assert personal_info_json['name'] == ''
-        assert personal_info_json['address']['postal_code'] == ''
-        assert personal_info_json['address']['prefecture'] == ''
-        assert personal_info_json['address']['city'] == ''
-        assert personal_info_json['address']['address1'] == ''
-        assert personal_info_json['address']['address2'] == ''
 
     # ＜エラー系1-1＞
     # 必須系
