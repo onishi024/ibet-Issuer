@@ -75,8 +75,14 @@ def issue():
 
     if request.method == 'POST':
         if form.validate():
+            # 1株配当の値が未設定の場合、0を設定
             if form.dividends.data is None:
                 form.dividends.data = 0
+
+            # 1株配当：小数点有効桁数チェック
+            if not form.check_decimal_places(2, form.dividends):
+                flash('１株配当は小数点2桁以下で入力してください。', 'error')
+                return render_template('share/issue.html', form=form, form_description=form.description)
 
             # トークン発行（トークンコントラクトのデプロイ）
             # bool型に変換
@@ -89,7 +95,7 @@ def issue():
                 to_checksum_address(form.personalInfoAddress.data),
                 form.issuePrice.data,
                 form.totalSupply.data,
-                form.dividends.data,
+                int(form.dividends.data * 100),
                 form.dividendRecordDate.data,
                 form.dividendPaymentDate.data,
                 form.cancellationDate.data,
@@ -213,15 +219,13 @@ def setting(token_address):
     )
 
     # トークン情報の参照
-    TokenContract = web3.eth.contract(
-        address=token.token_address,
-        abi=token_abi
-    )
+    TokenContract = web3.eth.contract(address=token.token_address, abi=token_abi)
     name = TokenContract.functions.name().call()
     symbol = TokenContract.functions.symbol().call()
     totalSupply = TokenContract.functions.totalSupply().call()
     issuePrice = TokenContract.functions.issuePrice().call()
     dividends, dividendRecordDate, dividendPaymentDate = TokenContract.functions.dividendInformation().call()
+    dividends = dividends * 0.01
     cancellationDate = TokenContract.functions.cancellationDate().call()
     transferable = str(TokenContract.functions.transferable().call())
     memo = TokenContract.functions.memo().call()
@@ -232,7 +236,6 @@ def setting(token_address):
     personalInfoAddress = TokenContract.functions.personalInfoAddress().call()
     contact_information = TokenContract.functions.contactInformation().call()
     privacy_policy = TokenContract.functions.privacyPolicy().call()
-
     status = TokenContract.functions.status().call()
     offering_status = TokenContract.functions.offeringStatus().call()
 
@@ -247,19 +250,42 @@ def setting(token_address):
     form = SettingForm()
     if request.method == 'POST':
         if form.validate():  # Validationチェック
+            # 1株配当の値が未設定の場合、0を設定
             if form.dividends.data is None:
                 form.dividends.data = 0
 
+            # 1株配当：小数点有効桁数チェック
+            if not form.check_decimal_places(2, form.dividends):
+                flash('１株配当は小数点2桁以下で入力してください。', 'error')
+                # 変更不可能項目を再設定
+                form.token_address.data = token.token_address
+                form.name.data = name
+                form.symbol.data = symbol
+                form.totalSupply.data = totalSupply
+                form.issuePrice.data = issuePrice
+                form.abi.data = token.abi
+                form.bytecode.data = token.bytecode
+                return render_template(
+                    'share/setting.html',
+                    form=form,
+                    token_address=token_address,
+                    token_name=name,
+                    is_released=is_released,
+                    offering_status=offering_status,
+                    status=status
+                )
+
             # １株配当欄変更、権利確定日欄変更、配当支払日欄変更
-            if form.dividends.data != dividends or form.dividendRecordDate.data != dividendRecordDate or \
+            if float(form.dividends.data) != dividends or \
+                    form.dividendRecordDate.data != dividendRecordDate or \
                     form.dividendPaymentDate.data != dividendPaymentDate:
                 gas = TokenContract.estimateGas().setDividendInformation(
-                    form.dividends.data,
+                    int(form.dividends.data * 100),
                     form.dividendRecordDate.data,
                     form.dividendPaymentDate.data
                 )
                 tx = TokenContract.functions.setDividendInformation(
-                    form.dividends.data,
+                    int(form.dividends.data * 100),
                     form.dividendRecordDate.data,
                     form.dividendPaymentDate.data
                 ).buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
@@ -289,7 +315,7 @@ def setting(token_address):
                     buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                 ContractUtils.send_transaction(transaction=tx)
 
-                # 関連URL変更
+            # 関連URL変更
             if form.referenceUrls_1.data != referenceUrls_1:
                 gas = TokenContract.estimateGas().setReferenceUrls(0, form.referenceUrls_1.data)
                 tx = TokenContract.functions.setReferenceUrls(0, form.referenceUrls_1.data). \

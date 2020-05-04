@@ -1,12 +1,11 @@
 # -*- coding:utf-8 -*-
+import math
 
 from flask_wtf import FlaskForm as Form
 from web3 import Web3
-from wtforms import IntegerField, StringField, TextAreaField, \
-    SubmitField, SelectField
+from wtforms import IntegerField, DecimalField, StringField, TextAreaField, SubmitField, SelectField
 from wtforms import ValidationError
-from wtforms.validators import DataRequired, URL, Optional, Length, Regexp, \
-    NumberRange, InputRequired
+from wtforms.validators import DataRequired, URL, Optional, Length, Regexp, NumberRange, InputRequired
 
 
 # アドレス形式のバリデータ
@@ -56,11 +55,12 @@ class IssueForm(Form):
         ]
     )
 
-    dividends = IntegerField(
+    dividends = DecimalField(
         "１株配当",
+        places=2,
         validators=[
             Optional(),
-            NumberRange(min=0, max=5_000_000_000, message='１株配当は5,000,000,000円が上限です。')
+            NumberRange(min=0.00, max=5_000_000_000.00, message='１株配当は5,000,000,000円が上限です。')
         ]
     )
 
@@ -177,6 +177,18 @@ class IssueForm(Form):
             'privacy_policy': '商品に関するプライバシーポリシーを入力してください。',
         }
 
+    @staticmethod
+    def check_decimal_places(places, field):
+        """
+        有効小数点桁数チェック
+        :param places: 小数点以下有効桁数：整数
+        :param field: 桁数チェックを行う変数：小数（Form）
+        :return: 真偽値
+        """
+        float_data = float(field.data * 10**places)  # 小数点以下5桁目が存在する場合は小数になる
+        int_data = int(field.data * 10**places)  # 小数部は切り捨て
+        return math.isclose(int_data, float_data)
+
 
 # トークン設定変更
 class SettingForm(Form):
@@ -186,11 +198,12 @@ class SettingForm(Form):
     totalSupply = IntegerField("総発行量", validators=[])
     issuePrice = IntegerField("発行価格（円）", validators=[])
 
-    dividends = IntegerField(
+    dividends = DecimalField(
         "１株配当",
+        places=2,
         validators=[
             Optional(),
-            NumberRange(min=0, max=5_000_000_000, message='1株配当は5,000,000,000円が上限です。')
+            NumberRange(min=0.00, max=5_000_000_000.00, message='1株配当は5,000,000,000円が上限です。')
         ]
     )
 
@@ -293,6 +306,18 @@ class SettingForm(Form):
         super(SettingForm, self).__init__(*args, **kwargs)
         self.token_setting = token_setting
         self.transferable.choices = [('True', 'なし'), ('False', 'あり')]
+
+    @staticmethod
+    def check_decimal_places(places, field):
+        """
+        有効小数点桁数チェック
+        :param places: 小数点以下有効桁数：整数
+        :param field: 桁数チェックを行う変数：小数（Form）
+        :return: 真偽値
+        """
+        float_data = float(field.data * 10 ** places)  # 小数点以下5桁目が存在する場合は小数になる
+        int_data = int(field.data * 10 ** places)  # 小数部は切り捨て
+        return math.isclose(int_data, float_data)
 
 
 # 追加発行
