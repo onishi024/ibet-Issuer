@@ -13,7 +13,7 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 path = os.path.join(os.path.dirname(__file__), "../../..")
 sys.path.append(path)
 
-from app.contracts import Contract
+from app.utils import ContractUtils
 from app.models import Token
 from config import Config
 
@@ -112,8 +112,8 @@ def issue_token(token_type, amount):
         template_id = Config.TEMPLATE_ID_SHARE
 
     web3.eth.defaultAccount = ISSUER
-    _, bytecode, bytecode_runtime = Contract.get_contract_info(token_type)
-    contract_address, abi, tx_hash = Contract.deploy_contract(token_type, arguments, ISSUER)
+    _, bytecode, bytecode_runtime = ContractUtils.get_contract_info(token_type)
+    contract_address, abi, tx_hash = ContractUtils.deploy_contract(token_type, arguments, ISSUER)
 
     # DB登録
     token = Token()
@@ -155,7 +155,7 @@ def main(number, token_type):
     # トークン発行
     amount = number  # 登録件数分のトークンを発行する
     token = issue_token(token_type, amount)
-    token_contract = Contract.get_contract(token_type, token['address'])
+    token_contract = ContractUtils.get_contract(token_type, token['address'])
 
     # トークン移転
     bulk_transfer(token_contract, number)

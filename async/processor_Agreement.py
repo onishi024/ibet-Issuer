@@ -13,7 +13,7 @@ sys.path.append(path)
 
 from web3 import Web3
 from app.models import Token, Agreement, AgreementStatus
-from app.contracts import Contract
+from app.utils import ContractUtils
 from config import Config
 from web3.middleware import geth_poa_middleware
 
@@ -145,7 +145,7 @@ class Processor:
         self.exchange_list = []
         exchange_address_list = []
         for token in tokens:
-            token_contract = Contract.get_contract('IbetStandardTokenInterface', token.token_address)
+            token_contract = ContractUtils.get_contract('IbetStandardTokenInterface', token.token_address)
             try:
                 exchange_address = token_contract.functions.tradableExchange().call()
             except Exception as e:
@@ -155,15 +155,15 @@ class Processor:
                 exchange_address_list.append(exchange_address)
                 if token.template_id == 1:  # 債券トークン
                     self.exchange_list.append(
-                        Contract.get_contract('IbetStraightBondExchange', exchange_address)
+                        ContractUtils.get_contract('IbetStraightBondExchange', exchange_address)
                     )
                 elif token.template_id == 2:  # クーポントークン
                     self.exchange_list.append(
-                        Contract.get_contract('IbetCouponExchange', exchange_address)
+                        ContractUtils.get_contract('IbetCouponExchange', exchange_address)
                     )
                 elif token.template_id == 3:  # 会員権トークン
                     self.exchange_list.append(
-                        Contract.get_contract('IbetMembershipExchange', exchange_address)
+                        ContractUtils.get_contract('IbetMembershipExchange', exchange_address)
                     )
                 else:
                     continue

@@ -10,7 +10,7 @@ from . import api
 from .errors import bad_request, internal_server_error
 from app import db
 from app.models import Token, Transfer, HolderList
-from app.contracts import Contract
+from app.utils import ContractUtils
 from config import Config
 
 from web3 import Web3
@@ -68,10 +68,10 @@ def bond_holders(token_address):
             pass
 
         # 債券取引コントラクト接続
-        ExchangeContract = Contract.get_contract('IbetStraightBondExchange', tradable_exchange)
+        ExchangeContract = ContractUtils.get_contract('IbetStraightBondExchange', tradable_exchange)
 
         # 個人情報コントラクト接続
-        PersonalInfoContract = Contract.get_contract('PersonalInfo', personal_info_address)
+        PersonalInfoContract = ContractUtils.get_contract('PersonalInfo', personal_info_address)
 
         # Transferイベントを検索
         transfer_events = Transfer.query. \

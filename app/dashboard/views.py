@@ -3,9 +3,9 @@ from flask import render_template, jsonify
 from flask_login import login_required
 
 from . import dashboard
-from ..util import *
+from app.utils.token_utils import *
 from config import Config
-from app.contracts import Contract
+from app.utils import ContractUtils
 
 from logging import getLogger
 
@@ -146,7 +146,7 @@ def token_list_membership():
                 total_supply = TokenContract.functions.totalSupply().call()
 
                 # 現在値の取得
-                ExchangeContract = Contract.get_contract(
+                ExchangeContract = ContractUtils.get_contract(
                     'IbetMembershipExchange',
                     Config.IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS
                 )
@@ -192,7 +192,7 @@ def token_list_coupon():
                 total_supply = TokenContract.functions.totalSupply().call()
 
                 # Exchange-Contractへの接続
-                ExchangeContract = Contract.get_contract(
+                ExchangeContract = ContractUtils.get_contract(
                     'IbetCouponExchange',
                     Config.IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS
                 )
