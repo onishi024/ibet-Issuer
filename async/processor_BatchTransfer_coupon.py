@@ -16,8 +16,7 @@ from eth_utils import to_checksum_address
 path = os.path.join(os.path.dirname(__file__), '../')
 sys.path.append(path)
 
-from app.util import eth_unlock_account
-from app.contracts import Contract
+from app.utils import ContractUtils
 from app.models import CouponBulkTransfer, Token
 from config import Config
 
@@ -39,7 +38,7 @@ db_session = scoped_session(sessionmaker())
 db_session.configure(bind=engine)
 
 # Exchangeコントラクトへの接続
-exchange_contract = Contract.get_contract('IbetCouponExchange', exchange_address)
+exchange_contract = ContractUtils.get_contract('IbetCouponExchange', exchange_address)
 
 # 常時起動（無限ループ）
 while True:
@@ -71,13 +70,11 @@ while True:
         amount = item.amount
 
         try:
-            # EOAのアンロック
-            eth_unlock_account()
-
             # DEXコントラクトへデポジット（Transfer）
-            deposit_gas = TokenContract.estimateGas().transferFrom(from_address, to_address, amount)
-            TokenContract.functions.transferFrom(from_address, to_address, amount). \
-                transact({'from': Config.ETH_ACCOUNT, 'gas': deposit_gas})
+            gas = TokenContract.estimateGas().transferFrom(from_address, to_address, amount)
+            tx = TokenContract.functions.transferFrom(from_address, to_address, amount). \
+                buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
+            ContractUtils.send_transaction(transaction=tx)
 
             # DBを割当済に更新
             item.transferred = True

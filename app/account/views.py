@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 import secrets
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta, timezone
 from base64 import b64encode
 
 import requests
@@ -12,10 +12,10 @@ from flask_login import login_required, current_user
 from . import account
 from .. import db
 from .forms import *
-from ..util import *
+from app.utils.token_utils import *
 from ..decorators import admin_required
 from config import Config
-from app.contracts import Contract
+from app.utils import ContractUtils
 from ..models import Bank
 
 from web3 import Web3
@@ -205,7 +205,6 @@ def bankinfo():
     form = BankInfoForm()
     if request.method == 'POST':
         if form.validate():
-            eth_unlock_account()
             # PaymentGatewayコントラクトに情報登録
             payment_account_regist(form)
             # DB に銀行口座情報登録
@@ -289,11 +288,11 @@ def payment_account_regist(form):
 
     # WhiteList登録
     payment_gateway_address = to_checksum_address(Config.PAYMENT_GATEWAY_CONTRACT_ADDRESS)
-    PaymentGatewayContract = Contract.get_contract('PaymentGateway', payment_gateway_address)
-    w_gas = PaymentGatewayContract.estimateGas().register(agent_address, payment_account_ciphertext)
-    PaymentGatewayContract.functions.register(agent_address, payment_account_ciphertext). \
-        transact({'from': Config.ETH_ACCOUNT, 'gas': w_gas})
-
+    PaymentGatewayContract = ContractUtils.get_contract('PaymentGateway', payment_gateway_address)
+    gas = PaymentGatewayContract.estimateGas().register(agent_address, payment_account_ciphertext)
+    tx = PaymentGatewayContract.functions.register(agent_address, payment_account_ciphertext).\
+        buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
+    ContractUtils.send_transaction(transaction=tx)
 
 def bank_account_regist(form):
     # 入力内容を格納

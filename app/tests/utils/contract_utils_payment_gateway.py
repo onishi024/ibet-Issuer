@@ -10,7 +10,7 @@ from web3.middleware import geth_poa_middleware
 from eth_utils import to_checksum_address
 
 from config import Config
-from app.contracts import Contract
+from app.utils import ContractUtils
 from .account_config import eth_account
 
 web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
@@ -18,7 +18,7 @@ web3.middleware_stack.inject(geth_poa_middleware, layer=0)
 
 # 決済用銀行口座情報登録
 def register_only_payment_account(invoker, payment_gateway, encrypted_info):
-    PaymentGatewayContract = Contract.get_contract(
+    PaymentGatewayContract = ContractUtils.get_contract(
         'PaymentGateway', payment_gateway['address'])
 
     # 1) 登録 from Invoker
@@ -33,7 +33,7 @@ def register_only_payment_account(invoker, payment_gateway, encrypted_info):
 
 # 決済口座の認可
 def approve_payment_account(invoker, payment_gateway):
-    PaymentGatewayContract = Contract.get_contract(
+    PaymentGatewayContract = ContractUtils.get_contract(
         'PaymentGateway', payment_gateway['address'])
     agent = eth_account['agent']
 
@@ -48,7 +48,7 @@ def approve_payment_account(invoker, payment_gateway):
 
 # 決済用銀行口座情報登録（認可まで）
 def register_payment_account(invoker, payment_gateway, encrypted_info):
-    PaymentGatewayContract = Contract.get_contract(
+    PaymentGatewayContract = ContractUtils.get_contract(
         'PaymentGateway', payment_gateway['address'])
 
     # 1) 登録 from Invoker
@@ -72,7 +72,7 @@ def register_payment_account(invoker, payment_gateway, encrypted_info):
 
 # PaymentGatewayの暗号化済情報を復号化して返す
 def get_payment_account_encrypted_info(payment_gateway, account_address, agent_address):
-    PaymentGatewayContract = Contract.get_contract(
+    PaymentGatewayContract = ContractUtils.get_contract(
         'PaymentGateway', payment_gateway['address'])
     payment_account = PaymentGatewayContract.functions.payment_accounts(
         to_checksum_address(account_address),

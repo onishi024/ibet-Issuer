@@ -10,7 +10,7 @@ from web3.middleware import geth_poa_middleware
 from eth_utils import to_checksum_address
 
 from config import Config
-from app.contracts import Contract
+from app.utils import ContractUtils
 from .account_config import eth_account
 
 web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
@@ -23,7 +23,7 @@ def register_personal_info(invoker, personal_info, encrypted_info):
     web3.personal.unlockAccount(invoker['account_address'],
                                 invoker['password'])
 
-    PersonalInfoContract = Contract.get_contract(
+    PersonalInfoContract = ContractUtils.get_contract(
         'PersonalInfo', personal_info['address'])
 
     issuer = eth_account['issuer']
@@ -34,7 +34,7 @@ def register_personal_info(invoker, personal_info, encrypted_info):
 # personalInfoの暗号済情報を復号化して返す
 def get_personal_encrypted_info(personal_info, account_address, token_owner):
     # personalinfo取得
-    PersonalInfoContract = Contract.get_contract(
+    PersonalInfoContract = ContractUtils.get_contract(
         'PersonalInfo', personal_info['address'])
     encrypted_info = PersonalInfoContract.functions.personal_info(
         to_checksum_address(account_address),

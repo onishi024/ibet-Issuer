@@ -12,7 +12,7 @@ sys.path.append(path)
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 from eth_utils import to_checksum_address
-from app.contracts import Contract
+from app.utils import ContractUtils
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
@@ -89,8 +89,8 @@ def issue_token(exchange_address, data_count, token_type):
 
     web3.eth.defaultAccount = ETH_ACCOUNT
     web3.personal.unlockAccount(ETH_ACCOUNT, ETH_ACCOUNT_PASSWORD)
-    _, bytecode, bytecode_runtime = Contract.get_contract_info(token_type)
-    contract_address, abi, tx_hash  = Contract.deploy_contract(token_type, arguments, ETH_ACCOUNT)
+    _, bytecode, bytecode_runtime = ContractUtils.get_contract_info(token_type)
+    contract_address, abi, tx_hash  = ContractUtils.deploy_contract(token_type, arguments, ETH_ACCOUNT)
 
     # db_session
     token = Token()
@@ -107,7 +107,7 @@ def issue_token(exchange_address, data_count, token_type):
 
 # トークンリスト登録
 def register_token_list(token_dict, token_type):
-    TokenListContract = Contract.get_contract('TokenList', TOKEN_LIST_CONTRACT_ADDRESS)
+    TokenListContract = ContractUtils.get_contract('TokenList', TOKEN_LIST_CONTRACT_ADDRESS)
     web3.eth.defaultAccount = ETH_ACCOUNT
     web3.personal.unlockAccount(ETH_ACCOUNT, ETH_ACCOUNT_PASSWORD)
     tx_hash = TokenListContract.functions.register(token_dict['address'], token_type).\
@@ -124,7 +124,7 @@ def offer_token(agent_address, exchange_address, token_dict, amount, token_type,
 def transfer_to_exchange(exchange_address, token_dict, amount, token_type):
     web3.eth.defaultAccount = ETH_ACCOUNT
     web3.personal.unlockAccount(ETH_ACCOUNT, ETH_ACCOUNT_PASSWORD)
-    TokenContract = Contract.get_contract(token_type, token_dict['address'])
+    TokenContract = ContractUtils.get_contract(token_type, token_dict['address'])
     tx_hash = TokenContract.functions.transfer(exchange_address, amount).\
         transact({'from':ETH_ACCOUNT, 'gas':4000000})
     tx = web3.eth.waitForTransactionReceipt(tx_hash)
@@ -160,7 +160,7 @@ def buy_bond_token(trader_address, ExchangeContract, order_id, amount):
 def register_personalinfo(invoker_address, encrypted_info):
     web3.eth.defaultAccount = invoker_address
     web3.personal.unlockAccount(invoker_address, 'password')
-    PersonalInfoContract = Contract.get_contract('PersonalInfo', PERSONAL_INFO_CONTRACT_ADDRESS)
+    PersonalInfoContract = ContractUtils.get_contract('PersonalInfo', PERSONAL_INFO_CONTRACT_ADDRESS)
 
     tx_hash = PersonalInfoContract.functions.register(ETH_ACCOUNT, encrypted_info).\
         transact({'from':invoker_address, 'gas':4000000})
@@ -170,7 +170,7 @@ def register_personalinfo(invoker_address, encrypted_info):
 
 # 決済用銀行口座情報登録（認可まで）
 def register_payment_account(invoker_address, invoker_password, encrypted_info, agent_address):
-    PaymentGatewayContract = Contract.get_contract('PaymentGateway', PAYMENT_GATEWAY_CONTRACT_ADDRESS)
+    PaymentGatewayContract = ContractUtils.get_contract('PaymentGateway', PAYMENT_GATEWAY_CONTRACT_ADDRESS)
 
     # 1) 登録 from Invoker
     web3.eth.defaultAccount = invoker_address
@@ -200,7 +200,7 @@ def main(data_count):
     print("agent_address: " + agent_address)
 
     # クーポンDEX情報を取得
-    ExchangeContract = Contract.get_contract('IbetCouponExchange', IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS)
+    ExchangeContract = ContractUtils.get_contract('IbetCouponExchange', IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS)
     exchange_address = IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS
     print("exchange_address: " + exchange_address)
 
@@ -229,7 +229,7 @@ def main(data_count):
     )
 
     # クーポンの消費
-    TokenContract = Contract.get_contract(token_type, token_dict['address'])
+    TokenContract = ContractUtils.get_contract(token_type, token_dict['address'])
     for count in range(0, data_count):
         web3.eth.defaultAccount = trader_address
         web3.personal.unlockAccount(trader_address, 'password', 10000)
