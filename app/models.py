@@ -142,6 +142,17 @@ class Bank(db.Model):
         return '<Bank %s>' % self.eth_account
 
 
+# 発行体情報
+class Issuer(db.Model):
+    __tablename__ = 'issuer'
+    id = db.Column(db.Integer, primary_key=True)
+    eth_account = db.Column(db.String(50), nullable=False)
+    issuer_name = db.Column(db.String(64), nullable=False)
+
+    def __repr__(self):
+        return '<Issuer %s>' % self.eth_account
+
+
 # 注文
 class Order(db.Model):
     __tablename__ = 'order'

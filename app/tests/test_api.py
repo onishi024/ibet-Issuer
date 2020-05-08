@@ -1,15 +1,16 @@
 # -*- coding:utf-8 -*-
-import json
 import base64
+import json
 from datetime import datetime
-from Crypto.PublicKey import RSA
-from Crypto.Cipher import PKCS1_OAEP
 
+from Crypto.Cipher import PKCS1_OAEP
+from Crypto.PublicKey import RSA
+
+from app.models import Token, HolderList, Issuer
 from config import Config
-from app.models import Token, HolderList
 from .conftest import TestBase
 from .utils.account_config import eth_account
-from .utils.contract_utils_common import processor_issue_event, clean_issue_event
+from .utils.contract_utils_common import processor_issue_event, clean_issue_event, index_transfer_event
 from .utils.contract_utils_payment_gateway import register_payment_account
 from .utils.contract_utils_personal_info import register_personal_info
 
@@ -19,7 +20,7 @@ class TestAPI(TestBase):
     url_bond_holders = 'api/bond/holders/'  # 保有者一覧(債券)
 
     # PersonalInfo情報の暗号化
-    personal_info_json = {
+    issuer_personal_info_json = {
         "name": "株式会社１",
         "address": {
             "postal_code": "1234567",
@@ -33,7 +34,23 @@ class TestAPI(TestBase):
     }
     key = RSA.importKey(open('data/rsa/public.pem').read())
     cipher = PKCS1_OAEP.new(key)
-    encrypted_info = base64.encodebytes(cipher.encrypt(json.dumps(personal_info_json).encode('utf-8')))
+    issuer_encrypted_info = base64.encodebytes(cipher.encrypt(json.dumps(issuer_personal_info_json).encode('utf-8')))
+
+    trader_personal_info_json = {
+        "name": "ﾀﾝﾀｲﾃｽﾄ",
+        "address": {
+            "postal_code": "1040053",
+            "prefecture": "東京都",
+            "city": "中央区",
+            # \uff0d: 「－」FULLWIDTH HYPHEN-MINUS。半角ハイフン変換対象。
+            # \u30fc: 「ー」KATAKANA-HIRAGANA PROLONGED SOUND MARK。半角ハイフン変換対象外。
+            "address1": "勝どき1丁目１\uff0d２\u30fc３",
+            "address2": ""
+        },
+        "email": "abcd1234@aaa.bbb.cc",
+        "birth": "20191102"
+    }
+    trader_encrypted_info = base64.encodebytes(cipher.encrypt(json.dumps(trader_personal_info_json).encode('utf-8')))
 
     #############################################################################
     # 前処理
@@ -51,15 +68,26 @@ class TestAPI(TestBase):
         register_personal_info(
             eth_account['issuer'],
             shared_contract['PersonalInfo'],
-            self.encrypted_info
+            self.issuer_encrypted_info
+        )
+        register_personal_info(
+            eth_account['trader'],
+            shared_contract['PersonalInfo'],
+            self.trader_encrypted_info
         )
 
         # 銀行口座情報登録
         register_payment_account(
             eth_account['issuer'],
             shared_contract['PaymentGateway'],
-            self.encrypted_info
+            self.issuer_encrypted_info
         )
+
+        # 発行体名義登録
+        issuer = Issuer()
+        issuer.eth_account = eth_account['issuer']['account_address']
+        issuer.issuer_name = '発行体１'
+        db.session.add(issuer)
 
         # 債券新規発行
         with self.client_with_admin_login(app) as client:
@@ -96,6 +124,27 @@ class TestAPI(TestBase):
             )
             # DB登録処理
             processor_issue_event(db)
+
+            token = Token.query.first()
+
+            # 保有者移転
+            client.post(
+                '/bond/transfer_ownership/' + token.token_address + '/' + eth_account['issuer']['account_address'],
+                data={
+                    'to_address': eth_account['trader']['account_address'],
+                    'amount': 10
+                }
+            )
+            # DB登録処理
+            # Transferイベント登録
+            index_transfer_event(
+                db,
+                '0xac22f75bae96f8e9f840f980dfefc1d497979341d3106aeb25e014483c3f414a',  # 仮のトランザクションハッシュ
+                token.token_address,
+                eth_account['issuer']['account_address'],
+                eth_account['trader']['account_address'],
+                10
+            )
 
     #############################################################################
     # 正常系
@@ -138,15 +187,20 @@ class TestAPI(TestBase):
             # CSVデータ
             ','.join([
                 'テスト債券', token.token_address, eth_account['issuer']['account_address'],
-                '1000000', '0', '1000000', '1000000000',
-                '株式会社１', '20190902', '1234567', '東京都中央区　日本橋11-1　東京マンション１０１', 'abcd1234@aaa.bbb.cc'
+                '999990', '0', '999990', '999990000',
+                '発行体１', '--', '--', '--', '--'
+            ]),
+            ','.join([
+                'テスト債券', token.token_address, eth_account['trader']['account_address'],
+                '10', '0', '10', '10000',
+                'ﾀﾝﾀｲﾃｽﾄ', '20191102', '1040053', '東京都中央区　勝どき1丁目１-２ー３', 'abcd1234@aaa.bbb.cc'
             ])
         ]) + '\n'
         assumed_binary_data = csv_data.encode('sjis', 'ignore')
 
+        assert rows[0].holder_list.decode('sjis') == csv_data
         # CSVデータが一致するレコードが1件のみ存在することを検証する
         assert len(list(filter(lambda row: row.holder_list == assumed_binary_data, rows))) == 1
-
 
     #############################################################################
     # エラー系
@@ -192,9 +246,10 @@ class TestAPI(TestBase):
             'status_code': 401
         }
 
-
     #############################################################################
     # 後処理
     #############################################################################
     def test_end(self, db):
         clean_issue_event(db)
+
+        Issuer.query.filter(Issuer.eth_account == Config.ETH_ACCOUNT).delete()

@@ -15,7 +15,7 @@ from flask_login import login_required
 from sqlalchemy import func
 
 from app import db
-from app.models import Token, Order, Agreement, AgreementStatus, CouponBulkTransfer, AddressType, ApplyFor, Transfer
+from app.models import Token, Order, Agreement, AgreementStatus, CouponBulkTransfer, AddressType, ApplyFor, Transfer, Issuer
 from app.utils import ContractUtils, TokenUtils
 from config import Config
 from . import coupon
@@ -1347,51 +1347,68 @@ def get_holders(token_address):
                 'address_type': address_type
             }
 
-            # 暗号化個人情報取得
-            try:
-                encrypted_info = PersonalInfoContract.functions.personal_info(account_address, token_owner).call()[2]
-            except Exception as e:
-                logger.warning(e)
-                encrypted_info = ''
-                pass
+            if address_type == AddressType.ISSUER.value:
+                issuer_info = Issuer.query.filter(Issuer.eth_account == account_address).first()
 
-            if encrypted_info == '' or cipher is None:  # 情報が空の場合、デフォルト値の設定
-                pass
-            else:
-                try:
-                    # 個人情報復号化
-                    ciphertext = base64.decodebytes(encrypted_info.encode('utf-8'))
-                    message = cipher.decrypt(ciphertext)
-                    personal_info_json = json.loads(message)
-                    name = personal_info_json['name'] if personal_info_json['name'] else "--"
-                    if personal_info_json['address']['prefecture'] and personal_info_json['address']['city'] and \
-                            personal_info_json['address']['address1']:
-                        address = personal_info_json['address']['prefecture'] + personal_info_json['address']['city']
-                        if personal_info_json['address']['address1'] != "":
-                            address = address + "　" + personal_info_json['address']['address1']
-                        if personal_info_json['address']['address2'] != "":
-                            address = address + "　" + personal_info_json['address']['address2']
-                    else:
-                        address = "--"
-                    postal_code = personal_info_json['address']['postal_code'] if personal_info_json['address'][
-                        'postal_code'] else "--"
-                    email = personal_info_json['email'] if personal_info_json['email'] else "--"
-                    birth_date = personal_info_json['birth'] if personal_info_json['birth'] else "--"
-                    # 保有者情報（個人情報あり）
+                if issuer_info is not None:
+                    # 保有者情報（発行体）
                     holder = {
                         'account_address': account_address,
-                        'name': name,
-                        'postal_code': postal_code,
-                        'email': email,
-                        'address': address,
-                        'birth_date': birth_date,
+                        'name': issuer_info.issuer_name or '--',
+                        'postal_code': '--',
+                        'email': '--',
+                        'address': '--',
+                        'birth_date': '--',
                         'balance': balance,
                         'used': used,
                         'address_type': address_type
                     }
+            else:
+                # 暗号化個人情報取得
+                try:
+                    encrypted_info = PersonalInfoContract.functions.personal_info(account_address, token_owner).call()[2]
                 except Exception as e:
                     logger.warning(e)
+                    encrypted_info = ''
                     pass
+
+                if encrypted_info == '' or cipher is None:  # 情報が空の場合、デフォルト値の設定
+                    pass
+                else:
+                    try:
+                        # 個人情報復号化
+                        ciphertext = base64.decodebytes(encrypted_info.encode('utf-8'))
+                        message = cipher.decrypt(ciphertext)
+                        personal_info_json = json.loads(message)
+                        name = personal_info_json['name'] if personal_info_json['name'] else "--"
+                        if personal_info_json['address']['prefecture'] and personal_info_json['address']['city'] and \
+                                personal_info_json['address']['address1']:
+                            address = personal_info_json['address']['prefecture'] + personal_info_json['address']['city']
+                            if personal_info_json['address']['address1'] != "":
+                                address = address + "　" + personal_info_json['address']['address1']
+                            if personal_info_json['address']['address2'] != "":
+                                address = address + "　" + personal_info_json['address']['address2']
+                        else:
+                            address = "--"
+                        postal_code = personal_info_json['address']['postal_code'] if personal_info_json['address'][
+                            'postal_code'] else "--"
+                        email = personal_info_json['email'] if personal_info_json['email'] else "--"
+                        birth_date = personal_info_json['birth'] if personal_info_json['birth'] else "--"
+                        # 保有者情報（個人情報あり）
+                        holder = {
+                            'account_address': account_address,
+                            'name': name,
+                            'postal_code': postal_code,
+                            'email': email,
+                            'address': address,
+                            'birth_date': birth_date,
+                            'balance': balance,
+                            'used': used,
+                            'address_type': address_type
+                        }
+                    except Exception as e:
+                        logger.warning(e)
+                        pass
 
             holders.append(holder)
 
