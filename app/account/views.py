@@ -340,7 +340,7 @@ def issuerinfo():
         if form.validate():
             # DB に発行体情報登録
             _register_issuer_info(form)
-            flash('登録処理を受付ました。登録完了まで数分かかることがあります。', 'success')
+            flash('登録処理を受け付けました。', 'success')
             return render_template('account/issuerinfo.html', form=form)
         else:
             flash_errors(form)
