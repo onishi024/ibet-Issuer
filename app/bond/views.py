@@ -1520,7 +1520,7 @@ def transfer_allotment(token_address, account_address):
                     buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                 ContractUtils.send_transaction(transaction=tx)
             except Exception as e:
-                logger.error(e)
+                logger.exception(e)
                 flash('処理に失敗しました。', 'error')
                 return render_template(
                     'bond/transfer_allotment.html',

@@ -20,7 +20,7 @@ from app.models import Token, Transfer, AddressType, ApplyFor, Issuer
 from app.utils import ContractUtils, TokenUtils
 from config import Config
 from . import share
-from .forms import IssueForm, SettingForm, AddSupplyForm, TransferOwnershipForm, TransferForm
+from .forms import IssueForm, SettingForm, AddSupplyForm, TransferOwnershipForm, TransferForm, AllotForm
 
 from web3 import Web3
 from eth_utils import to_checksum_address
@@ -733,12 +733,15 @@ def get_applications(token_address):
             except:
                 pass
         application_data = TokenContract.functions.applications(account_address).call()
+        balance = TokenContract.functions.balanceOf(to_checksum_address(account_address)).call()
         application = {
             'account_address': account_address,
             'account_name': account_name,
             'account_email_address': account_email_address,
             'requested_amount': application_data[0],
-            'data': application_data[1]
+            'allotted_amount': application_data[1],
+            'data': application_data[2],
+            'balance': balance
         }
         applications.append(application)
 
@@ -746,12 +749,74 @@ def get_applications(token_address):
 
 
 ####################################################
-# [株式]割当（募集申込）
+# [株式]割当登録
 ####################################################
-@share.route('/allocate/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
+@share.route('/allot/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
 @login_required
-def allocate(token_address, account_address):
-    logger.info('share/allocate')
+def allot(token_address, account_address):
+    logger.info('share/allot')
+
+    # アドレスのフォーマットチェック
+    if not Web3.isAddress(account_address) or not Web3.isAddress(token_address):
+        abort(404)
+
+    # Tokenコントラクト接続
+    token = Token.query.filter(Token.token_address == token_address).first()
+    if token is None:
+        abort(404)
+    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+    TokenContract = web3.eth.contract(address=token.token_address, abi=token_abi)
+
+    form = AllotForm()
+    form.token_address.data = token_address
+    form.to_address.data = account_address
+
+    if request.method == 'POST':
+        if form.validate():
+            # 割当処理
+            to_address = to_checksum_address(account_address)
+            try:
+                gas = TokenContract.estimateGas().allot(to_address, form.amount.data)
+                tx = TokenContract.functions.allot(to_address, form.amount.data). \
+                    buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
+                ContractUtils.send_transaction(transaction=tx)
+            except Exception as e:
+                logger.error(e)
+                flash('処理に失敗しました。', 'error')
+                return render_template(
+                    'share/allot.html',
+                    token_address=token_address,
+                    account_address=account_address,
+                    form=form
+                )
+            # NOTE: 募集申込一覧が非同期で更新されるため、5秒待つ
+            time.sleep(5)
+            flash('処理を受け付けました。', 'success')
+            return redirect(url_for('.applications', token_address=token_address))
+        else:
+            flash_errors(form)
+            return render_template(
+                'share/allot.html',
+                token_address=token_address,
+                account_address=account_address,
+                form=form
+            )
+    else:  # GET
+        return render_template(
+            'share/allot.html',
+            token_address=token_address,
+            account_address=account_address,
+            form=form
+        )
+
+
+####################################################
+# [株式]権利移転（募集申込）
+####################################################
+@share.route('/transfer_allotment/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
+@login_required
+def transfer_allotment(token_address, account_address):
+    logger.info('share/transfer_allotment')
 
     # アドレスのフォーマットチェック
     if not Web3.isAddress(account_address) or not Web3.isAddress(token_address):
@@ -765,9 +830,14 @@ def allocate(token_address, account_address):
         token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
     TokenContract = web3.eth.contract(address=token.token_address, abi=token_abi)
 
+    # 割当数量を取得
+    allotted_amount = TokenContract.functions.applications(account_address).call()[1]
+
     form = TransferForm()
     form.token_address.data = token_address
     form.to_address.data = account_address
+    form.amount.data = allotted_amount
+
     if request.method == 'POST':
         if form.validate():
             # 残高チェック
@@ -777,19 +847,29 @@ def allocate(token_address, account_address):
             if amount > balance:
                 flash('移転数量が残高を超えています。', 'error')
                 return render_template(
-                    'share/allocate.html',
+                    'share/transfer_allotment.html',
                     token_address=token_address,
                     account_address=account_address,
                     form=form
                 )
 
-            # 割当処理（発行体アドレス→指定アドレス）
+            # 移転処理
             from_address = Config.ETH_ACCOUNT
             to_address = to_checksum_address(account_address)
-            gas = TokenContract.estimateGas().transferFrom(from_address, to_address, amount)
-            tx = TokenContract.functions.transferFrom(from_address, to_address, amount). \
-                buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
-            ContractUtils.send_transaction(transaction=tx)
+            try:
+                gas = TokenContract.estimateGas().transferFrom(from_address, to_address, amount)
+                tx = TokenContract.functions.transferFrom(from_address, to_address, amount). \
+                    buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
+                ContractUtils.send_transaction(transaction=tx)
+            except Exception as e:
+                logger.exception(e)
+                flash('処理に失敗しました。', 'error')
+                return render_template(
+                    'share/transfer_allotment.html',
+                    token_address=token_address,
+                    account_address=account_address,
+                    form=form
+                )
             # NOTE: 募集申込一覧が非同期で更新されるため、5秒待つ
             time.sleep(5)
             flash('処理を受け付けました。割当完了までに数分程かかることがあります。', 'success')
@@ -797,14 +877,14 @@ def allocate(token_address, account_address):
         else:
             flash_errors(form)
             return render_template(
-                'share/allocate.html',
+                'share/transfer_allotment.html',
                 token_address=token_address,
                 account_address=account_address,
                 form=form
             )
     else:  # GET
         return render_template(
-            'share/allocate.html',
+            'share/transfer_allotment.html',
             token_address=token_address,
             account_address=account_address,
             form=form
