@@ -1,11 +1,13 @@
 # -*- coding:utf-8 -*-
 import time
 
+import pytest
+
 from config import Config
 from .conftest import TestBase
 from .utils.account_config import eth_account
 from .utils.contract_utils_personal_info import get_personal_encrypted_info
-from ..models import User
+from ..models import User, Issuer
 
 
 # 初期設定ユーザ
@@ -655,3 +657,109 @@ class TestBankInfo(TestBase):
         client = self.client_with_user_login(app)
         response = client.get(self.url_bankinfo)
         assert response.status_code == 403
+
+
+# 発行体情報登録
+class TestIssuerInfo(TestBase):
+    url_bankinfo = '/account/issuerinfo'
+
+    @pytest.fixture(scope='class', autouse=True)
+    def setup_config(self, shared_contract):
+        # config登録
+        Config.ETH_ACCOUNT = eth_account['issuer']['account_address']
+        Config.ETH_ACCOUNT_PASSWORD = eth_account['issuer']['password']
+        Config.AGENT_ADDRESS = eth_account['agent']['account_address']
+        Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS = shared_contract['IbetStraightBondExchange']['address']
+        Config.PAYMENT_GATEWAY_CONTRACT_ADDRESS = shared_contract['PaymentGateway']['address']
+        Config.TOKEN_LIST_CONTRACT_ADDRESS = shared_contract['TokenList']['address']
+        Config.PERSONAL_INFO_CONTRACT_ADDRESS = shared_contract['PersonalInfo']['address']
+
+    # ＜正常系1＞
+    # 通常参照（データなし）
+    def test_normal_1(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
+        response = client.get(self.url_bankinfo)
+        assert response.status_code == 200
+        assert '<title>発行体情報登録'.encode('utf-8') in response.data
+        assert '<input class="form-control" id="issuer_name" name="issuer_name" type="text" value="">'.encode(
+            'utf-8') in response.data
+
+    # ＜正常系2＞
+    # 登録　→　正常参照
+    def test_normal_2(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
+        response = client.post(
+            self.url_bankinfo,
+            data={
+                'issuer_name': '発行体名１２３４５６７８９０１２３４５６７８９０１２３４５６７８９０１２３４５６７８９０１２３４５６７８９０１２３４５６７８９０'
+            }
+        )
+        assert response.status_code == 200
+        assert '<title>発行体情報登録'.encode('utf-8') in response.data
+        assert '<input class="form-control" id="issuer_name" name="issuer_name" type="text" value="発行体名１２３４５６７８９０１２３４５６７８９０１２３４５６７８９０１２３４５６７８９０１２３４５６７８９０１２３４５６７８９０">'.encode(
+            'utf-8') in response.data
+
+    # ＜正常系3＞
+    # 通常参照（登録済）
+    def test_normal_3(self, app):
+        client = self.client_with_admin_login(app)
+        response = client.get(self.url_bankinfo)
+        assert response.status_code == 200
+        assert '<title>発行体情報登録'.encode('utf-8') in response.data
+
+    # ＜正常系4＞
+    # 上書き登録
+    def test_normal_4(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
+        response = client.post(
+            self.url_bankinfo,
+            data={
+                'issuer_name': 'ABC',
+            }
+        )
+        assert response.status_code == 200
+        assert '<title>発行体情報登録'.encode('utf-8') in response.data
+        assert '<input class="form-control" id="issuer_name" name="issuer_name" type="text" value="ABC">'.encode(
+            'utf-8') in response.data
+
+    # ＜正常系5＞
+    # 入力なし
+    def test_normal_5(self, app, shared_contract):
+        client = self.client_with_admin_login(app)
+        response = client.post(
+            self.url_bankinfo,
+            data={
+                'issuer_name': '',
+            }
+        )
+        assert response.status_code == 200
+        assert '<title>発行体情報登録'.encode('utf-8') in response.data
+        assert '<input class="form-control" id="issuer_name" name="issuer_name" type="text" value="">'.encode(
+            'utf-8') in response.data
+
+    # ＜エラー系1-1＞
+    # 桁数系(1文字オーバー)
+    def test_error_1_1(self, app):
+        client = self.client_with_admin_login(app)
+        response = client.post(
+            self.url_bankinfo,
+            data={
+                'issuer_name': 'あ' * 65
+            }
+        )
+        assert response.status_code == 200
+        assert '<title>発行体情報登録'.encode('utf-8') in response.data
+        assert '発行体名義は64文字までです。'.encode('utf-8') in response.data
+
+    # ＜エラー系2_1＞
+    # 権限なしエラー
+    def test_error_2_1(self, app):
+        client = self.client_with_user_login(app)
+        response = client.get(self.url_bankinfo)
+        assert response.status_code == 403
+
+    @pytest.fixture(scope='class', autouse=True)
+    def clean_db(self, db):
+        yield
+
+        Issuer.query.filter(Issuer.eth_account == Config.ETH_ACCOUNT).delete()

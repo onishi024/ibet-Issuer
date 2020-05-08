@@ -9,7 +9,7 @@ from Crypto.Cipher import PKCS1_OAEP
 from eth_utils import to_checksum_address
 
 from config import Config
-from app.models import Token
+from app.models import Token, Issuer
 from .conftest import TestBase
 from .utils.account_config import eth_account
 from .utils.contract_utils_common import processor_issue_event, index_transfer_event, clean_issue_event
@@ -88,7 +88,7 @@ class TestBond(TestBase):
     #############################################################################
 
     # ＜前処理＞
-    def test_normal_0(self, shared_contract):
+    def test_normal_0(self, shared_contract, db):
         Config.ETH_ACCOUNT = eth_account['issuer']['account_address']
         Config.ETH_ACCOUNT_PASSWORD = eth_account['issuer']['password']
         Config.AGENT_ADDRESS = eth_account['agent']['account_address']
@@ -118,6 +118,12 @@ class TestBond(TestBase):
             shared_contract['PaymentGateway'],
             self.issuer_encrypted_info
         )
+
+        # 発行体名義登録
+        issuer = Issuer()
+        issuer.eth_account = Config.ETH_ACCOUNT
+        issuer.issuer_name = '発行体１'
+        db.session.add(issuer)
 
     # ＜正常系1＞
     #   債券一覧の参照(0件)
@@ -403,11 +409,11 @@ class TestBond(TestBase):
 
         assert response.status_code == 200
         assert eth_account['issuer']['account_address'] == response_data[0]['account_address']
-        assert '株式会社１' == response_data[0]['name']
-        assert '1234567' == response_data[0]['postal_code']
-        assert '東京都中央区　日本橋11-1　東京マンション１０１' == response_data[0]['address']
-        assert 'abcd1234@aaa.bbb.cc' == response_data[0]['email']
-        assert '20190902' == response_data[0]['birth_date']
+        assert '発行体１' == response_data[0]['name']
+        assert '--' == response_data[0]['postal_code']
+        assert '--' == response_data[0]['address']
+        assert '--' == response_data[0]['email']
+        assert '--' == response_data[0]['birth_date']
         assert 1000000 == response_data[0]['balance']
         assert 0 == response_data[0]['commitment']
 
@@ -442,7 +448,7 @@ class TestBond(TestBase):
             ','.join([
                 'テスト債券', token.token_address, eth_account['issuer']['account_address'],
                 '1000000', '0', '1000000', '1000000000',
-                '株式会社１', '20190902', '1234567', '東京都中央区　日本橋11-1　東京マンション１０１', 'abcd1234@aaa.bbb.cc'
+                '発行体１', '--', '--', '--', '--'
             ])
         ]) + '\n'
 
@@ -687,11 +693,11 @@ class TestBond(TestBase):
         count = 0
         for response_data in response_data_list:
             if eth_account['issuer']['account_address'] == response_data['account_address']:  # issuer
-                assert '株式会社１' == response_data['name']
-                assert '1234567' == response_data['postal_code']
-                assert '東京都中央区　日本橋11-1　東京マンション１０１' == response_data['address']
-                assert 'abcd1234@aaa.bbb.cc' == response_data['email']
-                assert '20190902' == response_data['birth_date']
+                assert '発行体１' == response_data['name']
+                assert '--' == response_data['postal_code']
+                assert '--' == response_data['address']
+                assert '--' == response_data['email']
+                assert '--' == response_data['birth_date']
                 assert 999990 == response_data['balance']
                 assert 0 == response_data['commitment']
                 count += 1
@@ -1002,3 +1008,5 @@ class TestBond(TestBase):
     #############################################################################
     def test_end(self, db):
         clean_issue_event(db)
+
+        Issuer.query.filter(Issuer.eth_account == Config.ETH_ACCOUNT).delete()

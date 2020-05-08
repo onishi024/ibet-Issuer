@@ -15,11 +15,11 @@ from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 
 from . import account
-from .forms import RegistUserForm, EditUserAdminForm, EditUserForm, PasswordChangeForm, BankInfoForm
+from .forms import RegistUserForm, EditUserAdminForm, EditUserForm, PasswordChangeForm, BankInfoForm, IssuerInfoForm
 from config import Config
 from app import db
 from app.utils import ContractUtils
-from app.models import User, Role, Bank
+from app.models import User, Role, Bank, Issuer
 from app.decorators import admin_required
 
 from web3 import Web3
@@ -324,6 +324,52 @@ def bank_account_regist(form):
         bank.account_type = bank_account.account_type
         bank.account_number = bank_account.account_number
         bank.account_holder = bank_account.account_holder
+    db.session.commit()
+
+
+#################################################
+# 発行体情報の登録
+#################################################
+@account.route('/issuerinfo', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def issuerinfo():
+    logger.info('account/issuerinfo')
+    form = IssuerInfoForm()
+    if request.method == 'POST':
+        if form.validate():
+            # DB に発行体情報登録
+            _register_issuer_info(form)
+            flash('登録処理を受け付けました。', 'success')
+            return render_template('account/issuerinfo.html', form=form)
+        else:
+            flash_errors(form)
+            return render_template('account/issuerinfo.html', form=form)
+    else:  # GET
+        # 登録済情報を取得
+        issuer_info = Issuer.query.filter().filter(Issuer.eth_account == Config.ETH_ACCOUNT).first()
+
+        # 登録済みの場合は登録されている情報を取得
+        if issuer_info is not None:
+            form.issuer_name.data = issuer_info.issuer_name
+
+        return render_template('account/issuerinfo.html', form=form)
+
+
+def _register_issuer_info(form):
+    # 入力内容を格納
+    new_issuer_model = Issuer()
+    new_issuer_model.eth_account = Config.ETH_ACCOUNT
+    new_issuer_model.issuer_name = form.issuer_name.data
+
+    issuer = Issuer.query.filter().filter(Issuer.eth_account == Config.ETH_ACCOUNT).first()
+
+    # 入力された口座情報をDBに登録
+    if issuer is None:
+        db.session.add(new_issuer_model)
+    # 既に登録されている場合、更新
+    else:
+        issuer.issuer_name = new_issuer_model.issuer_name
     db.session.commit()
 
 

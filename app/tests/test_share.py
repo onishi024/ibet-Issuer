@@ -15,7 +15,7 @@ from .utils.contract_utils_common import processor_issue_event, index_transfer_e
 from .utils.contract_utils_personal_info import register_personal_info
 from .utils.contract_utils_share import create_order, get_latest_orderid, get_latest_agreementid, take_buy, \
     confirm_agreement, apply_for_offering
-from ..models import Token
+from ..models import Token, Issuer
 
 
 class TestShare(TestBase):
@@ -143,7 +143,7 @@ class TestShare(TestBase):
     }
 
     @pytest.fixture(scope='class', autouse=True)
-    def prepare_test_data(self, shared_contract):
+    def prepare_test_data(self, shared_contract, db):
         # shared_contract fixtureが必要な情報を設定する
         self.token_data1['tradableExchange'] = shared_contract['IbetShareExchange']['address']
         self.token_data1['personalInfoAddress'] = shared_contract['PersonalInfo']['address']
@@ -153,6 +153,12 @@ class TestShare(TestBase):
 
         self.token_data3['tradableExchange'] = '0x9ba26793217B1780Ee2cF3cAfEb8e0DB10Dda4De'
         self.token_data3['personalInfoAddress'] = '0x7297845b550eb326b31C9a89c1d46a8F78Ff31F5'
+
+        # 発行体名義登録
+        issuer = Issuer()
+        issuer.eth_account = Config.ETH_ACCOUNT
+        issuer.issuer_name = '発行体１'
+        db.session.add(issuer)
 
     @staticmethod
     def get_token(num):
@@ -207,6 +213,8 @@ class TestShare(TestBase):
 
         # 後処理
         clean_issue_event(db)
+
+        Issuer.query.filter(Issuer.eth_account == Config.ETH_ACCOUNT).delete()
 
     #############################################################################
     # テスト（正常系）
@@ -539,11 +547,11 @@ class TestShare(TestBase):
 
         assert response.status_code == 200
         assert eth_account['issuer']['account_address'] == response_data[0]['account_address']
-        assert '株式会社１' == response_data[0]['name']
-        assert '1234567' == response_data[0]['postal_code']
-        assert '東京都中央区　日本橋11-1　東京マンション１０１' == response_data[0]['address']
-        assert 'abcd1234@aaa.bbb.cc' == response_data[0]['email']
-        assert '20190902' == response_data[0]['birth_date']
+        assert '発行体１' == response_data[0]['name']
+        assert '--' == response_data[0]['postal_code']
+        assert '--' == response_data[0]['address']
+        assert '--' == response_data[0]['email']
+        assert '--' == response_data[0]['birth_date']
         assert 1000010 == response_data[0]['balance']
         assert 0 == response_data[0]['commitment']
 
@@ -599,11 +607,11 @@ class TestShare(TestBase):
 
         for response_data in response_data_list:
             if eth_account['issuer']['account_address'] == response_data['account_address']:  # issuer
-                assert '株式会社１' == response_data['name']
-                assert '1234567' == response_data['postal_code']
-                assert '東京都中央区　日本橋11-1　東京マンション１０１' == response_data['address']
-                assert 'abcd1234@aaa.bbb.cc' == response_data['email']
-                assert '20190902' == response_data['birth_date']
+                assert '発行体１' == response_data['name']
+                assert '--' == response_data['postal_code']
+                assert '--' == response_data['address']
+                assert '--' == response_data['email']
+                assert '--' == response_data['birth_date']
                 assert 999990 == response_data['balance']
                 assert 0 == response_data['commitment']
             elif eth_account['trader']['account_address'] == response_data['account_address']:  # trader
@@ -705,11 +713,11 @@ class TestShare(TestBase):
         assert len(response_data_list) == 2
         for response_data in response_data_list:
             if eth_account['issuer']['account_address'] == response_data['account_address']:  # issuer
-                assert '株式会社１' == response_data['name']
-                assert '1234567' == response_data['postal_code']
-                assert '東京都中央区　日本橋11-1　東京マンション１０１' == response_data['address']
-                assert 'abcd1234@aaa.bbb.cc' == response_data['email']
-                assert '20190902' == response_data['birth_date']
+                assert '発行体１' == response_data['name']
+                assert '--' == response_data['postal_code']
+                assert '--' == response_data['address']
+                assert '--' == response_data['email']
+                assert '--' == response_data['birth_date']
                 assert 999980 == response_data['balance']
                 assert 0 == response_data['commitment']
             elif eth_account['trader']['account_address'] == response_data['account_address']:  # trader
@@ -752,7 +760,7 @@ class TestShare(TestBase):
         csv_row_issuer = ','.join([
             self.token_data1['name'], token.token_address, eth_account['issuer']['account_address'],
             '999980', '0',
-            '株式会社１', '20190902', '1234567', '東京都中央区　日本橋11-1　東京マンション１０１', 'abcd1234@aaa.bbb.cc'
+            '発行体１', '--', '--', '--', '--'
         ])
         # CSVデータ（投資家）
         csv_row_trader = ','.join([
@@ -960,11 +968,11 @@ class TestShare(TestBase):
 
         # issuer
         assert issuer_address == response_data[0]['account_address']
-        assert '株式会社１' == response_data[0]['name']
-        assert '1234567' == response_data[0]['postal_code']
-        assert '東京都中央区　日本橋11-1　東京マンション１０１' == response_data[0]['address']
-        assert 'abcd1234@aaa.bbb.cc' == response_data[0]['email']
-        assert '20190902' == response_data[0]['birth_date']
+        assert '発行体１' == response_data[0]['name']
+        assert '--' == response_data[0]['postal_code']
+        assert '--' == response_data[0]['address']
+        assert '--' == response_data[0]['email']
+        assert '--' == response_data[0]['birth_date']
         assert 999970 == response_data[0]['balance']
         assert 0 == response_data[0]['commitment']
 

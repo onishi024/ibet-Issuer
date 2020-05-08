@@ -15,7 +15,7 @@ from .utils.contract_utils_common import processor_issue_event, index_transfer_e
 from .utils.contract_utils_membership import \
     get_latest_orderid, get_latest_agreementid, take_buy, confirm_agreement, apply_for_offering
 from .utils.contract_utils_personal_info import register_personal_info
-from ..models import Token
+from ..models import Token, Issuer
 
 
 class TestMembership(TestBase):
@@ -141,7 +141,7 @@ class TestMembership(TestBase):
     #############################################################################
 
     # ＜前処理＞
-    def test_normal_0(self, shared_contract):
+    def test_normal_0(self, shared_contract, db):
         # Config設定
         Config.ETH_ACCOUNT = eth_account['issuer']['account_address']
         Config.ETH_ACCOUNT_PASSWORD = eth_account['issuer']['password']
@@ -157,6 +157,12 @@ class TestMembership(TestBase):
             shared_contract['IbetMembershipExchange']['address']
         self.token_data3['tradableExchange'] = \
             shared_contract['PersonalInfo']['address']
+
+        # 発行体名義登録
+        issuer = Issuer()
+        issuer.eth_account = Config.ETH_ACCOUNT
+        issuer.issuer_name = '発行体１'
+        db.session.add(issuer)
 
     # ＜正常系1_1＞
     # ＜会員権の0件確認＞
@@ -629,11 +635,11 @@ class TestMembership(TestBase):
 
         assert response.status_code == 200
         assert eth_account['issuer']['account_address'] == response_data[0]['account_address']
-        assert '株式会社１' == response_data[0]['name']
-        assert '1234567' == response_data[0]['postal_code']
-        assert '東京都中央区　日本橋11-1　東京マンション１０１' == response_data[0]['address']
-        assert 'abcd1234@aaa.bbb.cc' == response_data[0]['email']
-        assert '20190902' == response_data[0]['birth_date']
+        assert '発行体１' == response_data[0]['name']
+        assert '--' == response_data[0]['postal_code']
+        assert '--' == response_data[0]['address']
+        assert '--' == response_data[0]['email']
+        assert '--' == response_data[0]['birth_date']
         assert 10 == response_data[0]['balance']
         assert 1000000 == response_data[0]['commitment']
 
@@ -677,11 +683,11 @@ class TestMembership(TestBase):
 
         for response_data in response_data_list:
             if eth_account['issuer']['account_address'] == response_data['account_address']:  # issuer
-                assert '株式会社１' == response_data['name']
-                assert '1234567' == response_data['postal_code']
-                assert '東京都中央区　日本橋11-1　東京マンション１０１' == response_data['address']
-                assert 'abcd1234@aaa.bbb.cc' == response_data['email']
-                assert '20190902' == response_data['birth_date']
+                assert '発行体１' == response_data['name']
+                assert '--' == response_data['postal_code']
+                assert '--' == response_data['address']
+                assert '--' == response_data['email']
+                assert '--' == response_data['birth_date']
                 assert 10 == response_data['balance']
                 assert 999980 == response_data['commitment']
             elif eth_account['trader']['account_address'] == response_data['account_address']:  # trader
@@ -772,11 +778,11 @@ class TestMembership(TestBase):
 
         for response_data in response_data_list:
             if eth_account['issuer']['account_address'] == response_data['account_address']:  # issuer
-                assert '株式会社１' == response_data['name']
-                assert '1234567' == response_data['postal_code']
-                assert '東京都中央区　日本橋11-1　東京マンション１０１' == response_data['address']
-                assert 'abcd1234@aaa.bbb.cc' == response_data['email']
-                assert '20190902' == response_data['birth_date']
+                assert '発行体１' == response_data['name']
+                assert '--' == response_data['postal_code']
+                assert '--' == response_data['address']
+                assert '--' == response_data['email']
+                assert '--' == response_data['birth_date']
                 assert 0 == response_data['balance']
                 assert 999980 == response_data['commitment']
             elif eth_account['trader']['account_address'] == response_data['account_address']:  # trader
@@ -972,11 +978,11 @@ class TestMembership(TestBase):
 
         # issuer
         assert issuer_address == response_data[0]['account_address']
-        assert '株式会社１' == response_data[0]['name']
-        assert '1234567' == response_data[0]['postal_code']
-        assert '東京都中央区　日本橋11-1　東京マンション１０１' == response_data[0]['address']
-        assert 'abcd1234@aaa.bbb.cc' == response_data[0]['email']
-        assert '20190902' == response_data[0]['birth_date']
+        assert '発行体１' == response_data[0]['name']
+        assert '--' == response_data[0]['postal_code']
+        assert '--' == response_data[0]['address']
+        assert '--' == response_data[0]['email']
+        assert '--' == response_data[0]['birth_date']
         assert 999970 == response_data[0]['balance']
         assert 0 == response_data[0]['commitment']
 
@@ -1229,3 +1235,5 @@ class TestMembership(TestBase):
     #############################################################################
     def test_end(self, db):
         clean_issue_event(db)
+
+        Issuer.query.filter(Issuer.eth_account == Config.ETH_ACCOUNT).delete()
