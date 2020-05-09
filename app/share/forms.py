@@ -392,3 +392,31 @@ class TransferForm(Form):
     def __init__(self, transfer_share=None, *args, **kwargs):
         super(TransferForm, self).__init__(*args, **kwargs)
         self.transfer_share = transfer_share
+
+
+# 募集申込割当
+class AllotForm(Form):
+    token_address = StringField(
+        "株式アドレス",
+        validators=[
+            DataRequired('株式アドレスは必須です。')
+        ]
+    )
+    to_address = StringField(
+        "割当先",
+        validators=[
+            DataRequired('割当先は必須です。')
+        ]
+    )
+    amount = IntegerField(
+        "割当数量",
+        validators=[
+            DataRequired('割当数量を入力してください。'),
+            NumberRange(min=1, max=100000000, message='割当数量は100,000,000が上限です。'),
+        ]
+    )
+    submit = SubmitField('割当')
+
+    def __init__(self, allot_bond=None, *args, **kwargs):
+        super(AllotForm, self).__init__(*args, **kwargs)
+        self.allot_bond = allot_bond

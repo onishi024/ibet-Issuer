@@ -35,7 +35,8 @@ class TestShare(TestBase):
     url_applications = '/share/applications/'  # 募集申込一覧
     url_applications_csv_download = '/share/applications_csv_download'  # 申込者リストCSVダウンロード
     url_get_applications = '/share/get_applications/'  # 申込一覧取得
-    url_allocate = '/share/allocate/'  # 割当（募集申込）
+    url_allot = '/share/allot/'  # 割当登録
+    url_transfer_allotment = '/share/transfer_allotment/'  # 割当（募集申込）
     url_holders = '/share/holders/'  # 保有者一覧
     url_holders_csv_download = '/share/holders_csv_download'  # 保有者リストCSVダウンロード
     url_get_holders = '/share/get_holders/'  # 保有者一覧取得
@@ -911,9 +912,9 @@ class TestShare(TestBase):
         assert assumed_csv.encode('sjis') == response.data
 
     # ＜正常系9_1＞
-    # ＜割当（募集申込）＞
+    # ＜割当登録＞
     #   ※8_2の続き
-    #   割当（募集申込）画面参照：GET
+    #   割当登録画面参照：GET
     #   ※Token_1が対象
     def test_normal_9_1(self, app):
         client = self.client_with_admin_login(app)
@@ -921,20 +922,56 @@ class TestShare(TestBase):
         token_address = token.token_address
         trader_address = eth_account['trader']['account_address']
 
-        # 割当（募集申込）
-        url = self.url_allocate + token_address + '/' + trader_address
+        # 割当登録
+        url = self.url_allot + token_address + '/' + trader_address
         response = client.get(url)
         assert response.status_code == 200
-        assert '株式割当'.encode('utf-8') in response.data
+        assert '割当登録'.encode('utf-8') in response.data
         assert token_address.encode('utf-8') in response.data
         assert trader_address.encode('utf-8') in response.data
 
     # ＜正常系9_2＞
-    # ＜割当（募集申込）＞
-    #   ※6_2, 8_2の後に実施
+    # ＜割当登録＞
+    #   ※8_2の後に実施
     #   割当（募集申込）処理　→　保有者一覧参照
     #   ※Token_1が対象
     def test_normal_9_2(self, db, app):
+        client = self.client_with_admin_login(app)
+        token = TestShare.get_token(0)
+        token_address = str(token.token_address)
+        trader_address = eth_account['trader']['account_address']
+
+        # 割当登録
+        url = self.url_allot + token_address + '/' + trader_address
+        response = client.post(url, data={'amount': 10})
+        assert response.status_code == 302
+
+    # ＜正常系10_1＞
+    # ＜割当（募集申込）＞
+    #   ※9_2の続き
+    #   割当（募集申込）画面参照：GET
+    #   ※Token_1が対象
+    def test_normal_10_1(self, app):
+        client = self.client_with_admin_login(app)
+        token = TestShare.get_token(0)
+        token_address = token.token_address
+        trader_address = eth_account['trader']['account_address']
+
+        # 割当（募集申込）
+        url = self.url_transfer_allotment + token_address + '/' + trader_address
+        response = client.get(url)
+        assert response.status_code == 200
+        assert '権利移転（募集申込）'.encode('utf-8') in response.data
+        assert token_address.encode('utf-8') in response.data
+        assert trader_address.encode('utf-8') in response.data
+        assert "10".encode('utf-8') in response.data  # NOTE:事前に登録した割当数量
+
+    # ＜正常系10_2＞
+    # ＜割当（募集申込）＞
+    #   ※9_2の後に実施
+    #   割当（募集申込）処理　→　保有者一覧参照
+    #   ※Token_1が対象
+    def test_normal_10_2(self, db, app):
         client = self.client_with_admin_login(app)
         token = TestShare.get_token(0)
         token_address = str(token.token_address)
@@ -942,8 +979,8 @@ class TestShare(TestBase):
         trader_address = eth_account['trader']['account_address']
 
         # 割当（募集申込）
-        url = self.url_allocate + token_address + '/' + trader_address
-        response = client.post(url, data={'amount': 10})
+        url = self.url_transfer_allotment + token_address + '/' + trader_address
+        response = client.post(url)
         assert response.status_code == 302
 
         # Transferイベント登録
@@ -1022,17 +1059,17 @@ class TestShare(TestBase):
     def test_error_1_2(self, app):
         client = self.client_with_admin_login(app)
         token = self.get_token(0)
-        url_allocate = self.url_allocate + token.token_address + '/' + \
-                       eth_account['trader']['account_address']
+        url_allot = self.url_allot + token.token_address + '/' + \
+                    eth_account['trader']['account_address']
         # 新規発行
         response = client.post(
-            url_allocate,
+            url_allot,
             data={
             }
         )
         assert response.status_code == 200
-        assert '<title>株式割当'.encode('utf-8') in response.data
-        assert '割当数量は必須です。'.encode('utf-8') in response.data
+        assert '<title>割当登録'.encode('utf-8') in response.data
+        assert '割当数量を入力してください。'.encode('utf-8') in response.data
 
     # ＜エラー系2_1＞
     # ＜入力値チェック＞
@@ -1076,13 +1113,12 @@ class TestShare(TestBase):
 
     # ＜エラー系2_3＞
     # ＜入力値チェック＞
-    #   割当画面（アドレス形式エラー）
+    #   割当登録画面（アドレス形式エラー）
     #     トークンアドレス形式がエラー
     def test_error_2_3(self, app):
         error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
         client = self.client_with_admin_login(app)
-        token = TestShare.get_token(0)
-        url_allocate = self.url_allocate + error_address + '/' + eth_account['trader']['account_address']
+        url_allocate = self.url_allot + error_address + '/' + eth_account['trader']['account_address']
         response = client.post(
             url_allocate,
             data={
@@ -1092,15 +1128,47 @@ class TestShare(TestBase):
 
     # ＜エラー系2_4＞
     # ＜入力値チェック＞
-    #   割当画面（アドレス形式エラー）
+    #   割当登録画面（アドレス形式エラー）
     #     割当先アドレス形式がエラー
     def test_error_2_4(self, app):
         error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
         client = self.client_with_admin_login(app)
         token = TestShare.get_token(0)
-        url_allocate = self.url_allocate + token.token_address + '/' + error_address
+        url_allocate = self.url_allot + token.token_address + '/' + error_address
         response = client.post(
             url_allocate,
+            data={
+            }
+        )
+        assert response.status_code == 404
+
+    # ＜エラー系2_5＞
+    # ＜入力値チェック＞
+    #   権利移転（募集申込）（アドレス形式エラー）
+    #     トークンアドレス形式がエラー
+    def test_error_2_5(self, app):
+        error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
+        client = self.client_with_admin_login(app)
+        url_transfer_allotment = self.url_transfer_allotment + error_address + '/' + eth_account['trader'][
+            'account_address']
+        response = client.post(
+            url_transfer_allotment,
+            data={
+            }
+        )
+        assert response.status_code == 404
+
+    # ＜エラー系2_6＞
+    # ＜入力値チェック＞
+    #   割当登録画面（アドレス形式エラー）
+    #     割当先アドレス形式がエラー
+    def test_error_2_6(self, app):
+        error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
+        client = self.client_with_admin_login(app)
+        token = TestShare.get_token(0)
+        url_transfer_allotment = self.url_transfer_allotment + token.token_address + '/' + error_address
+        response = client.post(
+            url_transfer_allotment,
             data={
             }
         )
@@ -1241,16 +1309,22 @@ class TestShare(TestBase):
         token = TestShare.get_token(0)
         issuer_address = \
             to_checksum_address(eth_account['issuer']['account_address'])
-        trader_address = \
-            to_checksum_address(eth_account['trader']['account_address'])
+
+        # 割当登録
+        url = self.url_allot + token.token_address + '/' + issuer_address
+        client.post(url, data={'amount': 999991})
 
         # 所有者移転
         response = client.post(
-            self.url_allocate + token.token_address + '/' + issuer_address,
-            data={
-                'to_address': trader_address,
-                'amount': 999991
-            }
+            self.url_transfer_allotment + token.token_address + '/' + issuer_address,
         )
         assert response.status_code == 200
         assert '移転数量が残高を超えています。'.encode('utf-8') in response.data
+
+    #############################################################################
+    # 後処理
+    #############################################################################
+    def test_end(self, db):
+        clean_issue_event(db)
+
+        Issuer.query.filter(Issuer.eth_account == Config.ETH_ACCOUNT).delete()
