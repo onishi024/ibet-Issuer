@@ -20,7 +20,7 @@ from app.models import Token, Transfer, AddressType, ApplyFor, Issuer
 from app.utils import ContractUtils, TokenUtils
 from config import Config
 from . import share
-from .forms import IssueForm, SettingForm, AddSupplyForm, TransferOwnershipForm, TransferForm
+from .forms import IssueForm, SettingForm, AddSupplyForm, TransferOwnershipForm, TransferForm, AllotForm
 
 from web3 import Web3
 from eth_utils import to_checksum_address
@@ -127,7 +127,7 @@ def issue():
                     TokenContract = web3.eth.contract(address=contract_address, abi=abi)
                     if form.referenceUrls_1.data != '':
                         gas = TokenContract.estimateGas().setReferenceUrls(0, form.referenceUrls_1.data)
-                        tx = TokenContract.functions.setReferenceUrls(0, form.referenceUrls_1.data).\
+                        tx = TokenContract.functions.setReferenceUrls(0, form.referenceUrls_1.data). \
                             buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                         ContractUtils.send_transaction(transaction=tx)
                     if form.referenceUrls_2.data != '':
@@ -678,27 +678,15 @@ def applications_csv_download():
 @share.route('/get_applications/<string:token_address>', methods=['GET'])
 @login_required
 def get_applications(token_address):
-    # RSA秘密鍵取得
-    cipher = None
-    try:
-        key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
-        cipher = PKCS1_OAEP.new(key)
-    except Exception as e:
-        logger.error(e)
-        pass
-
     # Tokenコントラクト接続
-    token = Token.query.filter(Token.token_address == token_address).first()
-    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
-    TokenContract = web3.eth.contract(address=token_address, abi=token_abi)
+    TokenContract = TokenUtils.get_contract(token_address)
 
-    # PersonalInfoコントラクト接続
+    # 株式トークンで指定された個人情報コントラクトのアドレスを取得
     try:
         personal_info_address = TokenContract.functions.personalInfoAddress().call()
     except Exception as e:
         logger.exception(e)
         personal_info_address = ZERO_ADDRESS
-    PersonalInfoContract = ContractUtils.get_contract('PersonalInfo', personal_info_address)
 
     # 申込（ApplyFor）イベントを検索
     apply_for_events = ApplyFor.query. \
@@ -710,35 +698,27 @@ def get_applications(token_address):
     for event in apply_for_events:
         account_list.append(event.account_address)
 
-    token_owner = TokenContract.functions.owner().call()
     applications = []
     for account_address in account_list:
-        # 個人情報参照
-        encrypted_info = PersonalInfoContract.functions. \
-            personal_info(account_address, token_owner).call()[2]
+        # 個人情報取得
+        personal_info = TokenUtils.get_holder(token_address, account_address, personal_info_address)
         account_name = ''
         account_email_address = ''
-        if encrypted_info == '' or cipher is None:
-            pass
-        else:
-            try:
-                # 個人情報を復号
-                ciphertext = base64.decodebytes(encrypted_info.encode('utf-8'))
-                message = cipher.decrypt(ciphertext)
-                personal_info_json = json.loads(message)
-                if 'name' in personal_info_json:
-                    account_name = personal_info_json['name']
-                if 'email' in personal_info_json:
-                    account_email_address = personal_info_json['email']
-            except:
-                pass
+        if 'name' in personal_info:
+            account_name = personal_info['name']
+        if 'email' in personal_info:
+            account_email_address = personal_info['email']
+
         application_data = TokenContract.functions.applications(account_address).call()
+        balance = TokenContract.functions.balanceOf(to_checksum_address(account_address)).call()
         application = {
             'account_address': account_address,
             'account_name': account_name,
             'account_email_address': account_email_address,
             'requested_amount': application_data[0],
-            'data': application_data[1]
+            'allotted_amount': application_data[1],
+            'data': application_data[2],
+            'balance': balance
         }
         applications.append(application)
 
@@ -746,69 +726,131 @@ def get_applications(token_address):
 
 
 ####################################################
-# [株式]割当（募集申込）
+# [株式]割当登録
 ####################################################
-@share.route('/allocate/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
+@share.route('/allot/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
 @login_required
-def allocate(token_address, account_address):
-    logger.info('share/allocate')
+def allot(token_address, account_address):
+    """
+    募集申込割当登録
+
+    :param token_address: トークンアドレス
+    :param account_address: 割当対象のアカウントアドレス
+    """
+    logger.info('share/allot')
 
     # アドレスのフォーマットチェック
     if not Web3.isAddress(account_address) or not Web3.isAddress(token_address):
         abort(404)
 
     # Tokenコントラクト接続
-    token = Token.query.filter(Token.token_address == token_address).first()
-    if token is None:
+    TokenContract = TokenUtils.get_contract(token_address)
+
+    form = AllotForm()
+    form.token_address.data = token_address
+    form.to_address.data = account_address
+
+    if request.method == 'POST':
+        if form.validate():
+            # 割当処理
+            to_address = to_checksum_address(account_address)
+            try:
+                gas = TokenContract.estimateGas().allot(to_address, form.amount.data)
+                tx = TokenContract.functions.allot(to_address, form.amount.data). \
+                    buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
+                ContractUtils.send_transaction(transaction=tx)
+                # NOTE: 募集申込一覧が非同期で更新されるため、5秒待つ
+                time.sleep(5)
+                flash('処理を受け付けました。', 'success')
+                return redirect(url_for('.applications', token_address=token_address))
+            except Exception as e:
+                logger.exception(e)
+                flash('処理に失敗しました。', 'error')
+                return _render_allot(token_address, account_address, form)
+        else:
+            flash_errors(form)
+
+    return _render_allot(token_address, account_address, form)
+
+
+# 割当登録画面
+def _render_allot(token_address: str, account_address: str, form: AllotForm):
+    return render_template(
+        'share/allot.html',
+        token_address=token_address,
+        account_address=account_address,
+        form=form
+    )
+
+
+####################################################
+# [株式]権利移転（募集申込）
+####################################################
+@share.route('/transfer_allotment/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
+@login_required
+def transfer_allotment(token_address, account_address):
+    """
+    募集申込割当登録
+
+    :param token_address: トークンアドレス
+    :param account_address: 移転先のアカウントアドレス
+    """
+    logger.info('share/transfer_allotment')
+
+    # アドレスのフォーマットチェック
+    if not Web3.isAddress(account_address) or not Web3.isAddress(token_address):
         abort(404)
-    token_abi = json.loads(
-        token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
-    TokenContract = web3.eth.contract(address=token.token_address, abi=token_abi)
+
+    # Tokenコントラクト接続
+    TokenContract = TokenUtils.get_contract(token_address)
+
+    # 割当数量を取得
+    allotted_amount = TokenContract.functions.applications(account_address).call()[1]
 
     form = TransferForm()
     form.token_address.data = token_address
     form.to_address.data = account_address
+    form.amount.data = allotted_amount
+
     if request.method == 'POST':
         if form.validate():
-            # 残高チェック
+            # 残高チェック：割当数量が残高を超過している場合はエラー
             amount = int(form.amount.data)
-            balance = TokenContract.functions. \
-                balanceOf(to_checksum_address(Config.ETH_ACCOUNT)).call()
+            balance = TokenContract.functions.balanceOf(to_checksum_address(Config.ETH_ACCOUNT)).call()
             if amount > balance:
                 flash('移転数量が残高を超えています。', 'error')
-                return render_template(
-                    'share/allocate.html',
-                    token_address=token_address,
-                    account_address=account_address,
-                    form=form
-                )
+                return _render_transfer_allotment(token_address, account_address, form)
 
-            # 割当処理（発行体アドレス→指定アドレス）
             from_address = Config.ETH_ACCOUNT
             to_address = to_checksum_address(account_address)
-            gas = TokenContract.estimateGas().transferFrom(from_address, to_address, amount)
-            tx = TokenContract.functions.transferFrom(from_address, to_address, amount). \
-                buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
-            ContractUtils.send_transaction(transaction=tx)
-            # NOTE: 募集申込一覧が非同期で更新されるため、5秒待つ
-            time.sleep(5)
-            flash('処理を受け付けました。割当完了までに数分程かかることがあります。', 'success')
-            return redirect(url_for('.applications', token_address=token_address))
+            try:
+                # 強制移転
+                gas = TokenContract.estimateGas().transferFrom(from_address, to_address, amount)
+                tx = TokenContract.functions.transferFrom(from_address, to_address, amount). \
+                    buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
+                ContractUtils.send_transaction(transaction=tx)
+                # NOTE: 募集申込一覧が非同期で更新されるため、5秒待つ
+                time.sleep(5)
+                flash('処理を受け付けました。割当完了までに数分程かかることがあります。', 'success')
+                return redirect(url_for('.applications', token_address=token_address))
+            except Exception as e:
+                logger.exception(e)
+                flash('処理に失敗しました。', 'error')
+                return _render_transfer_allotment(token_address, account_address, form)
         else:
             flash_errors(form)
-            return render_template(
-                'share/allocate.html',
-                token_address=token_address,
-                account_address=account_address,
-                form=form
-            )
-    else:  # GET
-        return render_template(
-            'share/allocate.html',
-            token_address=token_address,
-            account_address=account_address,
-            form=form
-        )
+
+    return _render_transfer_allotment(token_address, account_address, form)
+
+
+# 権利移転（募集申込）
+def _render_transfer_allotment(token_address: str, account_address: str, form: TransferForm):
+    return render_template(
+        'share/transfer_allotment.html',
+        token_address=token_address,
+        account_address=account_address,
+        form=form
+    )
 
 
 ####################################################
@@ -1138,7 +1180,8 @@ def holder(token_address, account_address):
         logger.exception(e)
         personal_info_address = ZERO_ADDRESS
 
-    personal_info = TokenUtils.get_holder(token_address, account_address, custom_personal_info_address=personal_info_address)
+    personal_info = TokenUtils.get_holder(token_address, account_address,
+                                          custom_personal_info_address=personal_info_address)
     return render_template(
         'share/holder.html',
         personal_info=personal_info,

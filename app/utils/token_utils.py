@@ -22,14 +22,29 @@ web3.middleware_stack.inject(geth_poa_middleware, layer=0)
 class TokenUtils:
 
     @staticmethod
-    def get_holder(token_address, account_address, custom_personal_info_address=None):
+    def get_contract(token_address: str):
         """
-        トークン保有者のPersonalInfoを返す
+        トークンコントラクト取得
+
+        :param token_address: トークンアドレス
+        :return: コントラクト
+        """
+        token = Token.query.filter(Token.token_address == token_address).first()
+        if token is None:
+            abort(404)
+        token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+        return web3.eth.contract(address=token.token_address, abi=token_abi)
+
+    @staticmethod
+    def get_holder(token_address: str, account_address: str, custom_personal_info_address=None):
+        """
+        トークン保有者の個人情報取得
+
         :param token_address: トークンのアドレス
         :param account_address: トークン保有者のアドレス
         :param custom_personal_info_address: 個人情報を格納している個人情報コントラクトのアドレス。
             未指定の場合はシステムデフォルトの個人情報コントラクトアドレスを使用する。
-        :return: PersonalInfo
+        :return: 個人情報（PersonalInfo）
         """
         if not Web3.isAddress(account_address):
             abort(404)
