@@ -22,21 +22,34 @@ web3.middleware_stack.inject(geth_poa_middleware, layer=0)
 class TokenUtils:
 
     @staticmethod
-    def get_contract(token_address: str):
+    def get_contract(token_address: str, template_id: int = None):
         """
         トークンコントラクト取得
 
         :param token_address: トークンアドレス
+        :param template_id:
+            （任意項目）　テンプレートID（例 :py:attr:`.Config.TEMPLATE_ID_SB` ）。
+            トークンの種類を限定したいときに設定する。たとえば、債券専用の処理にクライアントが誤って
+            会員権のトークンアドレスを送信し、そのまま間違った処理が実行されることを防ぎたい場合に設定する。
+            テンプレートID指定するとトークンアドレスとテンプレートIDの組み合わせが正しくない場合にエラーとなる。
         :return: コントラクト
+        :raises HTTPException:
+            トークンアドレスが未登録の場合、
+            トークンアドレスとテンプレートIDの組み合わせが正しくない場合（テンプレートID指定時のみ）、
+            HTTPステータス404で例外を発生させる。
         """
-        token = Token.query.filter(Token.token_address == token_address).first()
+        token_query = Token.query.filter(Token.token_address == token_address)
+        if template_id is not None:
+            token_query = token_query.filter(Token.template_id == template_id)
+        token = token_query.first()
+
         if token is None:
             abort(404)
         token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
         return web3.eth.contract(address=token.token_address, abi=token_abi)
 
     @staticmethod
-    def get_holder(token_address: str, account_address: str, custom_personal_info_address=None):
+    def get_holder(token_address: str, account_address: str, custom_personal_info_address=None, default_value='--'):
         """
         トークン保有者の個人情報取得
 
@@ -44,6 +57,7 @@ class TokenUtils:
         :param account_address: トークン保有者のアドレス
         :param custom_personal_info_address: 個人情報を格納している個人情報コントラクトのアドレス。
             未指定の場合はシステムデフォルトの個人情報コントラクトアドレスを使用する。
+        :param default_value: 値が未設定の項目に設定する初期値。(未指定時: '--')
         :return: 個人情報（PersonalInfo）
         """
         if not Web3.isAddress(account_address):
@@ -75,16 +89,16 @@ class TokenUtils:
 
         # デフォルト値
         personal_info = {
-            "name": "--",
+            "name": default_value,
             "address": {
-                "postal_code": "--",
-                "prefecture": "--",
-                "city": "--",
-                "address1": "--",
-                "address2": "--"
+                "postal_code": default_value,
+                "prefecture": default_value,
+                "city": default_value,
+                "address1": default_value,
+                "address2": default_value
             },
-            "email": "--",
-            "birth": "--"
+            "email": default_value,
+            "birth": default_value
         }
 
         # 個人情報取得
