@@ -215,11 +215,10 @@ class TestAPIShareHolders(TestBase):
             self.url_share_holders + '0x0000000000000000000000000000000000000111',  # 存在しないトークンアドレス
             headers={'Authorization': 'JWT ' + jwt}
         )
-        assert response.status_code == 400
+        assert response.status_code == 404
         assert json.loads(response.data.decode('utf-8')) == {
-            'description': 'Invalid token_address',
-            'error': 'Bad Request',
-            'status_code': 400
+            'error': 'Not Found',
+            'status_code': 404
         }
 
     # ＜エラー系2＞
@@ -380,11 +379,10 @@ class TestAPIBondHolders(TestBase):
             self.url_bond_holders + '0x0000000000000000000000000000000000000111',  # 存在しないトークンアドレス
             headers={'Authorization': 'JWT ' + jwt}
         )
-        assert response.status_code == 400
+        assert response.status_code == 404
         assert json.loads(response.data.decode('utf-8')) == {
-            'description': 'Invalid token_address',
-            'error': 'Bad Request',
-            'status_code': 400
+            'error': 'Not Found',
+            'status_code': 404
         }
 
     # ＜エラー系2＞
@@ -533,11 +531,10 @@ class TestAPIMembershipHolders(TestBase):
             self.url_membership_holders + '0x0000000000000000000000000000000000000111',  # 存在しないトークンアドレス
             headers={'Authorization': 'JWT ' + jwt}
         )
-        assert response.status_code == 400
+        assert response.status_code == 404
         assert json.loads(response.data.decode('utf-8')) == {
-            'description': 'Invalid token_address',
-            'error': 'Bad Request',
-            'status_code': 400
+            'error': 'Not Found',
+            'status_code': 404
         }
 
     # ＜エラー系2＞

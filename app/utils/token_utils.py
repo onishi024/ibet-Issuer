@@ -22,14 +22,23 @@ web3.middleware_stack.inject(geth_poa_middleware, layer=0)
 class TokenUtils:
 
     @staticmethod
-    def get_contract(token_address: str):
+    def get_contract(token_address: str, template_id: int = None):
         """
         トークンコントラクト取得
 
         :param token_address: トークンアドレス
+        :param template_id: テンプレートID（例 :py:attr:`.Config.TEMPLATE_ID_SB` ）
         :return: コントラクト
+        :raises HTTPException:
+            トークンアドレスが未登録の場合、
+            トークンアドレスとテンプレートIDの組み合わせが正しくない場合（テンプレートID指定時のみ）、
+            HTTPステータス404で例外を発生させる。
         """
-        token = Token.query.filter(Token.token_address == token_address).first()
+        token_query = Token.query.filter(Token.token_address == token_address)
+        if template_id is not None:
+            token_query = token_query.filter(Token.template_id == template_id)
+        token = token_query.first()
+
         if token is None:
             abort(404)
         token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
