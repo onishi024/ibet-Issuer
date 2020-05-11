@@ -27,7 +27,11 @@ class TokenUtils:
         トークンコントラクト取得
 
         :param token_address: トークンアドレス
-        :param template_id: テンプレートID（例 :py:attr:`.Config.TEMPLATE_ID_SB` ）
+        :param template_id:
+            （任意項目）　テンプレートID（例 :py:attr:`.Config.TEMPLATE_ID_SB` ）。
+            トークンの種類を限定したいときに設定する。たとえば、債券専用の処理にクライアントが誤って
+            会員権のトークンアドレスを送信し、そのまま間違った処理が実行されることを防ぎたい場合に設定する。
+            テンプレートID指定するとトークンアドレスとテンプレートIDの組み合わせが正しくない場合にエラーとなる。
         :return: コントラクト
         :raises HTTPException:
             トークンアドレスが未登録の場合、
