@@ -36,7 +36,7 @@ class TokenUtils:
         return web3.eth.contract(address=token.token_address, abi=token_abi)
 
     @staticmethod
-    def get_holder(token_address: str, account_address: str, custom_personal_info_address=None):
+    def get_holder(token_address: str, account_address: str, custom_personal_info_address=None, default_value='--'):
         """
         トークン保有者の個人情報取得
 
@@ -44,6 +44,7 @@ class TokenUtils:
         :param account_address: トークン保有者のアドレス
         :param custom_personal_info_address: 個人情報を格納している個人情報コントラクトのアドレス。
             未指定の場合はシステムデフォルトの個人情報コントラクトアドレスを使用する。
+        :param default_value: 値が未設定の項目に設定する初期値。(未指定時: '--')
         :return: 個人情報（PersonalInfo）
         """
         if not Web3.isAddress(account_address):
@@ -75,16 +76,16 @@ class TokenUtils:
 
         # デフォルト値
         personal_info = {
-            "name": "--",
+            "name": default_value,
             "address": {
-                "postal_code": "--",
-                "prefecture": "--",
-                "city": "--",
-                "address1": "--",
-                "address2": "--"
+                "postal_code": default_value,
+                "prefecture": default_value,
+                "city": default_value,
+                "address1": default_value,
+                "address2": default_value
             },
-            "email": "--",
-            "birth": "--"
+            "email": default_value,
+            "birth": default_value
         }
 
         # 個人情報取得

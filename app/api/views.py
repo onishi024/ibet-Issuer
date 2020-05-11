@@ -1,5 +1,4 @@
 # -*- coding:utf-8 -*-
-import base64
 import json
 import re
 from http import HTTPStatus
@@ -10,16 +9,13 @@ from web3.middleware import geth_poa_middleware
 
 from app import db
 from app.models import Token, Transfer, HolderList, Issuer
-from app.utils import ContractUtils
+from app.utils import ContractUtils, TokenUtils
 from config import Config
 from . import api
 from .errors import bad_request, internal_server_error
 
 web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
 web3.middleware_stack.inject(geth_poa_middleware, layer=0)
-
-from Crypto.PublicKey import RSA
-from Crypto.Cipher import PKCS1_OAEP
 
 from logging import getLogger
 
@@ -36,15 +32,6 @@ def share_holders(token_address):
     logger.info('api/share/holders')
 
     try:
-        # RSA秘密鍵の取得
-        cipher = None
-        try:
-            key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
-            cipher = PKCS1_OAEP.new(key)
-        except Exception as e:
-            logger.exception(e)
-            pass
-
         # Token情報取得
         token = Token.query. \
             filter(Token.template_id == Config.TEMPLATE_ID_SHARE). \
@@ -71,9 +58,6 @@ def share_holders(token_address):
 
         # OTC取引コントラクト接続
         ExchangeContract = ContractUtils.get_contract('IbetOTCExchange', tradable_exchange)
-
-        # 個人情報コントラクト接続
-        PersonalInfoContract = ContractUtils.get_contract('PersonalInfo', personal_info_address)
 
         # Transferイベントを検索
         transfer_events = Transfer.query. \
@@ -132,57 +116,42 @@ def share_holders(token_address):
                             'commitment': commitment
                         }
                 else:
-                    # 暗号化個人情報取得
-                    try:
-                        encrypted_info = \
-                            PersonalInfoContract.functions.personal_info(account_address, token_owner).call()[2]
-                    except Exception as e:
-                        logger.warning(e)
-                        encrypted_info = ''
-                        pass
+                    # 保有者が発行体以外の場合、個人情報コントラクトからトークン保有者の個人情報を取得する
+                    personal_info = TokenUtils.get_holder(
+                        token_address,
+                        account_address,
+                        custom_personal_info_address=personal_info_address,
+                        default_value=''
+                    )
 
-                    if encrypted_info == '' or cipher is None:  # 情報が空の場合、デフォルト値を設定
-                        pass
+                    name = personal_info['name'] if personal_info['name'] else "--"
+                    if personal_info['address']['prefecture'] and personal_info['address']['city'] and \
+                            personal_info['address']['address1']:
+                        address = personal_info['address']['prefecture'] + personal_info['address']['city']
+                        if personal_info['address']['address1'] != "":
+                            address = address + "　" + personal_info['address']['address1']
+                        if personal_info['address']['address2'] != "":
+                            address = address + "　" + personal_info['address']['address2']
+                        # Unicodeの各種ハイフン文字を半角ハイフン（U+002D）に変換する
+                        address = re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', address)
                     else:
-                        try:
-                            # 個人情報復号化
-                            ciphertext = base64.decodebytes(encrypted_info.encode('utf-8'))
-                            message = cipher.decrypt(ciphertext)
-                            personal_info_json = json.loads(message)
+                        address = "--"
+                    postal_code = personal_info['address']['postal_code'] if personal_info['address'][
+                        'postal_code'] else "--"
+                    email = personal_info['email'] if personal_info['email'] else "--"
+                    birth_date = personal_info['birth'] if personal_info['birth'] else "--"
 
-                            name = personal_info_json['name'] if personal_info_json['name'] else "--"
-                            if personal_info_json['address']['prefecture'] and personal_info_json['address']['city'] and \
-                                    personal_info_json['address']['address1']:
-                                address = personal_info_json['address']['prefecture'] + personal_info_json['address'][
-                                    'city']
-                                if personal_info_json['address']['address1'] != "":
-                                    address = address + "　" + personal_info_json['address']['address1']
-                                if personal_info_json['address']['address2'] != "":
-                                    address = address + "　" + personal_info_json['address']['address2']
-                                # Unicodeの各種ハイフン文字を半角ハイフン（U+002D）に変換する
-                                address = re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-',
-                                                 address)
-                            else:
-                                address = "--"
-                            postal_code = personal_info_json['address']['postal_code'] if personal_info_json['address'][
-                                'postal_code'] else "--"
-                            email = personal_info_json['email'] if personal_info_json['email'] else "--"
-                            birth_date = personal_info_json['birth'] if personal_info_json['birth'] else "--"
-
-                            # 保有者情報（個人情報あり）
-                            holder = {
-                                'account_address': account_address,
-                                'name': name,
-                                'postal_code': postal_code,
-                                'email': email,
-                                'address': address,
-                                'birth_date': birth_date,
-                                'balance': balance,
-                                'commitment': commitment
-                            }
-                        except Exception as e:  # 復号化処理でエラーが発生した場合、デフォルト値を設定
-                            logger.exception(e)
-                            pass
+                    # 保有者情報（個人情報あり）
+                    holder = {
+                        'account_address': account_address,
+                        'name': name,
+                        'postal_code': postal_code,
+                        'email': email,
+                        'address': address,
+                        'birth_date': birth_date,
+                        'balance': balance,
+                        'commitment': commitment
+                    }
 
                 # CSV出力用にトークンに関する情報を追加
                 holder['token_name'] = token_name
@@ -231,15 +200,6 @@ def bond_holders(token_address):
     logger.info('api/bond/holders')
 
     try:
-        # RSA秘密鍵の取得
-        cipher = None
-        try:
-            key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
-            cipher = PKCS1_OAEP.new(key)
-        except Exception as e:
-            logger.exception(e)
-            pass
-
         # Token情報取得
         token = Token.query. \
             filter(Token.template_id == Config.TEMPLATE_ID_SB). \
@@ -268,9 +228,6 @@ def bond_holders(token_address):
 
         # 債券取引コントラクト接続
         ExchangeContract = ContractUtils.get_contract('IbetStraightBondExchange', tradable_exchange)
-
-        # 個人情報コントラクト接続
-        PersonalInfoContract = ContractUtils.get_contract('PersonalInfo', personal_info_address)
 
         # Transferイベントを検索
         transfer_events = Transfer.query. \
@@ -329,52 +286,42 @@ def bond_holders(token_address):
                             'commitment': commitment
                         }
                 else:
-                    # 暗号化個人情報取得
-                    try:
-                        encrypted_info = PersonalInfoContract.functions.personal_info(account_address, token_owner).call()[2]
-                    except Exception as e:
-                        logger.warning(e)
-                        encrypted_info = ''
-                        pass
+                    # 保有者が発行体以外の場合、個人情報コントラクトからトークン保有者の個人情報を取得する
+                    personal_info = TokenUtils.get_holder(
+                        token_address,
+                        account_address,
+                        custom_personal_info_address=personal_info_address,
+                        default_value=''
+                    )
 
-                    if encrypted_info == '' or cipher is None:  # 情報が空の場合、デフォルト値を設定
-                        pass
+                    name = personal_info['name'] if personal_info['name'] else "--"
+                    if personal_info['address']['prefecture'] and personal_info['address']['city'] and \
+                            personal_info['address']['address1']:
+                        address = personal_info['address']['prefecture'] + personal_info['address']['city']
+                        if personal_info['address']['address1'] != "":
+                            address = address + "　" + personal_info['address']['address1']
+                        if personal_info['address']['address2'] != "":
+                            address = address + "　" + personal_info['address']['address2']
+                        # Unicodeの各種ハイフン文字を半角ハイフン（U+002D）に変換する
+                        address = re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', address)
                     else:
-                        try:
-                            # 個人情報復号化
-                            ciphertext = base64.decodebytes(encrypted_info.encode('utf-8'))
-                            message = cipher.decrypt(ciphertext)
-                            personal_info_json = json.loads(message)
+                        address = "--"
+                    postal_code = personal_info['address']['postal_code'] if personal_info['address'][
+                        'postal_code'] else "--"
+                    email = personal_info['email'] if personal_info['email'] else "--"
+                    birth_date = personal_info['birth'] if personal_info['birth'] else "--"
 
-                            name = personal_info_json['name'] if personal_info_json['name'] else "--"
-                            if personal_info_json['address']['prefecture'] and personal_info_json['address']['city'] and personal_info_json['address']['address1']:
-                                address = personal_info_json['address']['prefecture'] + personal_info_json['address']['city']
-                                if personal_info_json['address']['address1'] != "":
-                                    address = address + "　" + personal_info_json['address']['address1']
-                                if personal_info_json['address']['address2'] != "":
-                                    address = address + "　" + personal_info_json['address']['address2']
-                                # Unicodeの各種ハイフン文字を半角ハイフン（U+002D）に変換する
-                                address = re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', address)
-                            else:
-                                address = "--"
-                            postal_code = personal_info_json['address']['postal_code'] if personal_info_json['address']['postal_code'] else "--"
-                            email = personal_info_json['email'] if personal_info_json['email'] else "--"
-                            birth_date = personal_info_json['birth'] if personal_info_json['birth'] else "--"
-
-                            # 保有者情報（個人情報あり）
-                            holder = {
-                                'account_address': account_address,
-                                'name': name,
-                                'postal_code': postal_code,
-                                'email': email,
-                                'address': address,
-                                'birth_date': birth_date,
-                                'balance': balance,
-                                'commitment': commitment
-                            }
-                        except Exception as e:  # 復号化処理でエラーが発生した場合、デフォルト値を設定
-                            logger.exception(e)
-                            pass
+                    # 保有者情報（個人情報あり）
+                    holder = {
+                        'account_address': account_address,
+                        'name': name,
+                        'postal_code': postal_code,
+                        'email': email,
+                        'address': address,
+                        'birth_date': birth_date,
+                        'balance': balance,
+                        'commitment': commitment
+                    }
 
                 # CSV出力用にトークンに関する情報を追加
                 holder['token_name'] = token_name
@@ -428,15 +375,6 @@ def membership_holders(token_address):
     logger.info('api/membership/holders')
 
     try:
-        # RSA秘密鍵の取得
-        cipher = None
-        try:
-            key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
-            cipher = PKCS1_OAEP.new(key)
-        except Exception as e:
-            logger.exception(e)
-            pass
-
         # Token情報取得
         token = Token.query. \
             filter(Token.template_id == Config.TEMPLATE_ID_MEMBERSHIP). \
@@ -461,10 +399,6 @@ def membership_holders(token_address):
 
         # 会員権取引コントラクト接続
         ExchangeContract = ContractUtils.get_contract('IbetMembershipExchange', tradable_exchange)
-
-        # 個人情報コントラクト接続
-        personal_info_address = Config.PERSONAL_INFO_CONTRACT_ADDRESS
-        PersonalInfoContract = ContractUtils.get_contract('PersonalInfo', personal_info_address)
 
         # Transferイベントを検索
         transfer_events = Transfer.query. \
@@ -523,57 +457,41 @@ def membership_holders(token_address):
                             'commitment': commitment
                         }
                 else:
-                    # 暗号化個人情報取得
-                    try:
-                        encrypted_info = \
-                            PersonalInfoContract.functions.personal_info(account_address, token_owner).call()[2]
-                    except Exception as e:
-                        logger.warning(e)
-                        encrypted_info = ''
-                        pass
+                    # 保有者が発行体以外の場合、個人情報コントラクトからトークン保有者の個人情報を取得する
+                    personal_info = TokenUtils.get_holder(
+                        token_address,
+                        account_address,
+                        default_value=''
+                    )
 
-                    if encrypted_info == '' or cipher is None:  # 情報が空の場合、デフォルト値を設定
-                        pass
+                    name = personal_info['name'] if personal_info['name'] else "--"
+                    if personal_info['address']['prefecture'] and personal_info['address']['city'] and \
+                            personal_info['address']['address1']:
+                        address = personal_info['address']['prefecture'] + personal_info['address']['city']
+                        if personal_info['address']['address1'] != "":
+                            address = address + "　" + personal_info['address']['address1']
+                        if personal_info['address']['address2'] != "":
+                            address = address + "　" + personal_info['address']['address2']
+                        # Unicodeの各種ハイフン文字を半角ハイフン（U+002D）に変換する
+                        address = re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', address)
                     else:
-                        try:
-                            # 個人情報復号化
-                            ciphertext = base64.decodebytes(encrypted_info.encode('utf-8'))
-                            message = cipher.decrypt(ciphertext)
-                            personal_info_json = json.loads(message)
+                        address = "--"
+                    postal_code = personal_info['address']['postal_code'] if personal_info['address'][
+                        'postal_code'] else "--"
+                    email = personal_info['email'] if personal_info['email'] else "--"
+                    birth_date = personal_info['birth'] if personal_info['birth'] else "--"
 
-                            name = personal_info_json['name'] if personal_info_json['name'] else "--"
-                            if personal_info_json['address']['prefecture'] and personal_info_json['address']['city'] and \
-                                    personal_info_json['address']['address1']:
-                                address = personal_info_json['address']['prefecture'] + personal_info_json['address'][
-                                    'city']
-                                if personal_info_json['address']['address1'] != "":
-                                    address = address + "　" + personal_info_json['address']['address1']
-                                if personal_info_json['address']['address2'] != "":
-                                    address = address + "　" + personal_info_json['address']['address2']
-                                # Unicodeの各種ハイフン文字を半角ハイフン（U+002D）に変換する
-                                address = re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-',
-                                                 address)
-                            else:
-                                address = "--"
-                            postal_code = personal_info_json['address']['postal_code'] if personal_info_json['address'][
-                                'postal_code'] else "--"
-                            email = personal_info_json['email'] if personal_info_json['email'] else "--"
-                            birth_date = personal_info_json['birth'] if personal_info_json['birth'] else "--"
-
-                            # 保有者情報（個人情報あり）
-                            holder = {
-                                'account_address': account_address,
-                                'name': name,
-                                'postal_code': postal_code,
-                                'email': email,
-                                'address': address,
-                                'birth_date': birth_date,
-                                'balance': balance,
-                                'commitment': commitment
-                            }
-                        except Exception as e:  # 復号化処理でエラーが発生した場合、デフォルト値を設定
-                            logger.exception(e)
-                            pass
+                    # 保有者情報（個人情報あり）
+                    holder = {
+                        'account_address': account_address,
+                        'name': name,
+                        'postal_code': postal_code,
+                        'email': email,
+                        'address': address,
+                        'birth_date': birth_date,
+                        'balance': balance,
+                        'commitment': commitment
+                    }
 
                 # CSV出力用にトークンに関する情報を追加
                 holder['token_name'] = token_name
