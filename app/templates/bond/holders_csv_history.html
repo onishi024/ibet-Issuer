@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block head %}
+  {{ super() }}
+  <!-- DataTables -->
+  <link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
+  <!-- common.css -->
+  <link rel="stylesheet" href="/static/css/common.css">
+{% endblock %}
+{% set active_page = "bond_list" %}
+
+{% block title %}債券保有者リスト履歴 - {% endblock %}
+{% block page_header %}債券保有者リスト履歴 <span class="badge bg-secondary">債券</span>{% endblock %}
+{% block page_description %}{% endblock %}
+{% block breadcrumb %}
+    <li><a href="{{ url_for('index.index') }}">トップ</a></li>
+    <li><a href="{{ url_for('bond.list') }}">債券一覧</a></li>
+    <li><a href="{{ url_for('bond.holders', token_address=token_address) }}">債券保有者一覧</a></li>
+    <li class="active">債券保有者リスト履歴</li>
+{% endblock %}
+
+{% block page_content %}
+<section class="content">
+    <div class="box box-default">
+      <div class="box-header">
+        <h3 class="box-title" id="token_name"></h3>
+      </div>
+        <div class="box-body">
+          <form id="download-form" method="post" action="{{ url_for('bond.holders_csv_history_download') }}" enctype="multipart/form-data">
+            <input type="hidden" name="token_address" value="{{ token_address }}">
+            <input type="hidden" name="csv_id">
+            <table id="data_table" class="table table-bordered table-hover">
+                <thead>
+                <tr>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+          </form>
+        </div>
+        <div class="box-footer">
+            <button type="button" class="btn btn-default" onclick="location.href='{{ url_for("bond.holders", token_address=token_address) }}'">保有者一覧に戻る</button>
+        </div>
+        <div class="overlay">
+            <i class="fa fa-refresh fa-spin"></i>
+        </div>
+  </div>
+</div>
+</section>
+{% endblock %}
+
+{% block required_js %}
+{{ super() }}
+<!-- DataTables -->
+<script src="/static/adminlte/bower_components/datatables.net/js/jquery.dataTables.min.js"></script>
+<script src="/static/adminlte/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+<!-- SlimScroll -->
+<script src="/static/adminlte/bower_components/jquery-slimscroll/jquery.slimscroll.min.js"></script>
+<!-- FastClick -->
+<script src="/static/adminlte/bower_components/fastclick/lib/fastclick.js"></script>
+<script>
+token_address = {{ token_address | tojson }};
+token_name_url = '{{ url_for("bond.get_token_name", token_address=token_address) }}';
+get_holders_csv_history_url = '{{ url_for("bond.get_holders_csv_history", token_address=token_address) }}';
+$(function () {
+    $('#data_table').DataTable({
+        columns: [
+        {
+            data: "created",
+            orderable: true,
+            title: "作成日時"
+        }, {
+            data: "file_name",
+            orderable: true,
+            title: "ファイル名"
+        }, {
+            data: "csv_id",
+            orderable: false,
+            className: "text-center",
+            render: function (data) {
+                return `<button type="button" class="csv-download btn btn-default btn-sm" data-csv-id="${data}"/>ダウンロード`;
+            }
+        }],
+        ajax: {
+            url: get_holders_csv_history_url,
+            dataSrc : function (json) {
+                returnJson = [];
+                for(index in json){
+                    returnJsonRaw = {
+                        created: json[index]['created'] || '--',
+                        file_name: json[index]['file_name'] || '--',
+                        csv_id: json[index]['id']
+                    };
+                    returnJson.push(returnJsonRaw)
+                }
+                if (json) {
+                    $("div.overlay").remove();
+                }
+                return returnJson;
+            }
+        },
+        'paging': true,
+        'lengthChange': true,
+        'searching': true,
+        'info': true,
+        'autoWidth': true,
+        'pagingType': "full_numbers",
+        'order': [0, 'desc'],
+        'language': {
+            'info': "_TOTAL_ 件中 _START_ 〜 _END_ 件目",
+            'lengthMenu': "表示件数 _MENU_ 件",
+            'search': "検索:",
+            'paginate': {
+            'first': "最初へ",
+            'previous': "前へ",
+            'next': "次へ",
+            'last': "最後へ"
+            },
+            "emptyTable": "データが存在しません",
+            "sInfoEmpty": " 0 件中 0 から 0 まで表示"
+        }
+    })
+
+    function getTokenName() {
+        $.ajax({
+            type: 'GET',
+            url: token_name_url,
+            dataType: 'json',
+            contentType: 'application/json'
+        }).then(function (res) {
+            document.getElementById('token_name').innerHTML = res + '　<small>' + token_address + '</small>';
+        },
+        function () {
+            alert('データ取得に失敗しました');
+        });
+    }
+    getTokenName()
+
+    $(document.body).on('click', '.csv-download', function() {
+        $('[name="csv_id"]').val($(this).data('csv-id'));
+        $('#download-form').submit();
+    })
+})
+</script>
+{% endblock %}

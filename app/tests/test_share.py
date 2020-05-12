@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 import base64
 import json
+from datetime import datetime, timezone
 
 import pytest
 import time
@@ -15,7 +16,7 @@ from .utils.contract_utils_common import processor_issue_event, index_transfer_e
 from .utils.contract_utils_personal_info import register_personal_info
 from .utils.contract_utils_share import create_order, get_latest_orderid, get_latest_agreementid, take_buy, \
     confirm_agreement, apply_for_offering
-from ..models import Token, Issuer
+from ..models import Token, Issuer, HolderList
 
 
 class TestShare(TestBase):
@@ -42,6 +43,9 @@ class TestShare(TestBase):
     url_get_holders = '/share/get_holders/'  # 保有者一覧取得
     url_transfer_ownership = '/share/transfer_ownership/'  # 保有者移転
     url_holder = '/share/holder/'  # 保有者詳細
+    url_holders_csv_history = 'share/holders_csv_history/'  # 保有者リスト履歴
+    url_get_holders_csv_history = 'share/get_holders_csv_history/'  # 保有者リスト履歴（API）
+    url_holders_csv_history_download = 'share/holders_csv_history_download'  # 保有者リストCSVダウンロード
 
     #############################################################################
     # PersonalInfo情報の暗号化
@@ -1029,6 +1033,83 @@ class TestShare(TestBase):
         assert response.status_code == 200
         assert self.token_data1['name'] == response_data
 
+    # ＜正常系11-1＞
+    #   債券保有者リスト履歴
+    def test_normal_11_1(self, app):
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SHARE).all()
+        token = tokens[0]
+        client = self.client_with_admin_login(app)
+
+        # 保有者一覧の参照
+        response = client.get(self.url_holders_csv_history + token.token_address)
+        assert response.status_code == 200
+        assert '<title>株式保有者リスト履歴'.encode('utf-8') in response.data
+        assert token.token_address.encode('utf-8') in response.data
+
+    # ＜正常系11-2＞
+    #   債券保有者リスト履歴（API）
+    #   0件：保有者リスト履歴
+    def test_normal_11_2(self, app):
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SHARE).all()
+        token = tokens[0]
+        client = self.client_with_admin_login(app)
+
+        # 保有者一覧（API）の参照
+        response = client.get(self.url_get_holders_csv_history + token.token_address)
+        response_data = json.loads(response.data)
+
+        assert response.status_code == 200
+        assert len(response_data) == 0
+
+    # ＜正常系11-3＞
+    #   債券保有者リスト履歴（API）
+    #   1件：保有者リスト履歴
+    def test_normal_11_3(self, app, db):
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SHARE).all()
+        token = tokens[0]
+        client = self.client_with_admin_login(app)
+
+        # 保有者リスト履歴を作成
+        holderList = HolderList()
+        holderList.token_address = tokens[0].token_address
+        holderList.created = datetime(2020, 2, 29, 12, 59, 59, 1234, tzinfo=timezone.utc)
+        holderList.holder_list = b'dummy csv share test_normal_11_3'
+        db.session.add(holderList)
+
+        # 保有者一覧（API）の参照
+        response = client.get(self.url_get_holders_csv_history + token.token_address)
+        response_data = json.loads(response.data)
+
+        assert response.status_code == 200
+        assert len(response_data) == 1
+        assert token.token_address == response_data[0]['token_address']
+        assert '2020/02/29 21:59:59 +0900' == response_data[0]['created']
+        assert '20200229215959share_holders_list.csv' == response_data[0]['file_name']
+
+    # ＜正常系11-4＞
+    #   保有者リストCSVダウンロード
+    #   ※11-3の続き
+    def test_normal_11_4(self, app, db):
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SHARE).all()
+        token = tokens[0]
+
+        holder_list = HolderList.query.filter_by(token_address=token.token_address).first()
+        csv_id = holder_list.id
+
+        client = self.client_with_admin_login(app)
+
+        # 保有者一覧（API）の参照
+        response = client.post(
+            self.url_holders_csv_history_download,
+            data={
+                'token_address': token.token_address,
+                'csv_id': csv_id
+             }
+        )
+
+        assert response.status_code == 200
+        assert response.data == b'dummy csv share test_normal_11_3'
+
     #############################################################################
     # テスト（エラー系）
     #############################################################################
@@ -1170,6 +1251,40 @@ class TestShare(TestBase):
         response = client.post(
             url_transfer_allotment,
             data={
+            }
+        )
+        assert response.status_code == 404
+
+    # ＜エラー系2_7＞
+    # ＜入力値チェック＞
+    #   保有者リスト履歴（アドレスのフォーマットエラー）
+    def test_error_2_7(self, app):
+        error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
+
+        client = self.client_with_admin_login(app)
+        response = client.get(self.url_holders_csv_history + error_address)
+        assert response.status_code == 404
+
+    # ＜エラー系2_8＞
+    #   保有者リスト履歴（API）（アドレスのフォーマットエラー）
+    def test_error_2_8(self, app):
+        error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
+
+        client = self.client_with_admin_login(app)
+        response = client.get(self.url_get_holders_csv_history + error_address)
+        assert response.status_code == 404
+
+    # ＜エラー系2_9＞
+    #   保有者リストCSVダウンロード（アドレスのフォーマットエラー）
+    def test_error_2_9(self, app):
+        error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
+
+        client = self.client_with_admin_login(app)
+        response = client.post(
+            self.url_holders_csv_history_download,
+            data={
+                'token_address': error_address,
+                'csv_id': 1
             }
         )
         assert response.status_code == 404
