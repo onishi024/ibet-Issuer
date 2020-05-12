@@ -26,6 +26,7 @@
           <input type="text" name="token_address" style="display:none;" value="{{ token_address }}">
           <div class="pull-right box-tools">
             <button id="csv_download" type="submit" class="btn btn-default" disabled>保有者リストダウンロード</button>
+            <a href="{{ url_for('share.holders_csv_history', token_address=token_address) }}" class="btn btn-default">履歴</a>
           </div>
         </form>
       </div>

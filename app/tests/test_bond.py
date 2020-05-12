@@ -1,4 +1,6 @@
 # -*- coding:utf-8 -*-
+from datetime import datetime, timezone
+
 import time
 import pytest
 import json
@@ -9,7 +11,7 @@ from Crypto.Cipher import PKCS1_OAEP
 from eth_utils import to_checksum_address
 
 from config import Config
-from app.models import Token, Issuer
+from app.models import Token, Issuer, HolderList
 from .conftest import TestBase
 from .utils.account_config import eth_account
 from .utils.contract_utils_common import processor_issue_event, index_transfer_event, clean_issue_event
@@ -42,6 +44,9 @@ class TestBond(TestBase):
     url_applications = 'bond/applications/'  # 募集申込一覧
     url_get_applications = 'bond/get_applications/'  # 募集申込一覧
     url_transfer_allotment = 'bond/transfer_allotment'  # 割当（募集申込）
+    url_holders_csv_history = 'bond/holders_csv_history/'  # 保有者リスト履歴
+    url_get_holders_csv_history = 'bond/get_holders_csv_history/'  # 保有者リスト履歴（API）
+    url_holders_csv_history_download = 'bond/holders_csv_history_download'  # 保有者リストCSVダウンロード
 
     #############################################################################
     # PersonalInfo情報の暗号化
@@ -720,6 +725,83 @@ class TestBond(TestBase):
         assert response.status_code == 200
         assert 'テスト債券' == response_data
 
+    # ＜正常系18-1＞
+    #   債券保有者リスト履歴
+    def test_normal_18_1(self, app):
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
+        token = tokens[0]
+        client = self.client_with_admin_login(app)
+
+        # 保有者一覧の参照
+        response = client.get(self.url_holders_csv_history + token.token_address)
+        assert response.status_code == 200
+        assert '<title>債券保有者リスト履歴'.encode('utf-8') in response.data
+        assert token.token_address.encode('utf-8') in response.data
+
+    # ＜正常系18-2＞
+    #   債券保有者リスト履歴（API）
+    #   0件：保有者リスト履歴
+    def test_normal_18_2(self, app):
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
+        token = tokens[0]
+        client = self.client_with_admin_login(app)
+
+        # 保有者一覧（API）の参照
+        response = client.get(self.url_get_holders_csv_history + token.token_address)
+        response_data = json.loads(response.data)
+
+        assert response.status_code == 200
+        assert len(response_data) == 0
+
+    # ＜正常系18-3＞
+    #   債券保有者リスト履歴（API）
+    #   1件：保有者リスト履歴
+    def test_normal_18_3(self, app, db):
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
+        token = tokens[0]
+        client = self.client_with_admin_login(app)
+
+        # 保有者リスト履歴を作成
+        holderList = HolderList()
+        holderList.token_address = tokens[0].token_address
+        holderList.created = datetime(2020, 2, 29, 12, 59, 59, 1234, tzinfo=timezone.utc)
+        holderList.holder_list = b'dummy csv bond test_normal_18_3'
+        db.session.add(holderList)
+
+        # 保有者一覧（API）の参照
+        response = client.get(self.url_get_holders_csv_history + token.token_address)
+        response_data = json.loads(response.data)
+
+        assert response.status_code == 200
+        assert len(response_data) == 1
+        assert token.token_address == response_data[0]['token_address']
+        assert '2020/02/29 21:59:59 +0900' == response_data[0]['created']
+        assert '20200229215959bond_holders_list.csv' == response_data[0]['file_name']
+
+    # ＜正常系18-4＞
+    #   保有者リストCSVダウンロード
+    #   ※18-3の続き
+    def test_normal_18_4(self, app, db):
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
+        token = tokens[0]
+
+        holder_list = HolderList.query.filter_by(token_address=token.token_address).first()
+        csv_id = holder_list.id
+
+        client = self.client_with_admin_login(app)
+
+        # 保有者一覧（API）の参照
+        response = client.post(
+            self.url_holders_csv_history_download,
+            data={
+                'token_address': token.token_address,
+                'csv_id': csv_id
+             }
+        )
+
+        assert response.status_code == 200
+        assert response.data == b'dummy csv bond test_normal_18_3'
+
     #############################################################################
     # テスト（エラー系）
     #############################################################################
@@ -801,6 +883,39 @@ class TestBond(TestBase):
         assert response.status_code == 200
         assert '<title>債券詳細設定'.encode('utf-8') in response.data
         assert 'DEXアドレスは有効なアドレスではありません。'.encode('utf-8') in response.data
+
+    # ＜エラー系1＞
+    #   保有者リスト履歴（アドレスのフォーマットエラー）
+    def test_error_1_4(self, app):
+        error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
+
+        client = self.client_with_admin_login(app)
+        response = client.get(self.url_holders_csv_history + error_address)
+        assert response.status_code == 404
+
+    # ＜エラー系1＞
+    #   保有者リスト履歴（API）（アドレスのフォーマットエラー）
+    def test_error_1_5(self, app):
+        error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
+
+        client = self.client_with_admin_login(app)
+        response = client.get(self.url_get_holders_csv_history + error_address)
+        assert response.status_code == 404
+
+    # ＜エラー系1＞
+    #   保有者リストCSVダウンロード（アドレスのフォーマットエラー）
+    def test_error_1_6(self, app):
+        error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
+
+        client = self.client_with_admin_login(app)
+        response = client.post(
+            self.url_holders_csv_history_download,
+            data={
+                'token_address': error_address,
+                'csv_id': 1
+            }
+        )
+        assert response.status_code == 404
 
     # ＜エラー系2＞
     #   売出（必須エラー）

@@ -15,7 +15,7 @@ from flask_login import login_required
 from sqlalchemy import func, desc
 
 from app import db
-from app.models import Token, Certification, Order, Agreement, AgreementStatus, Transfer, AddressType, ApplyFor, Issuer
+from app.models import Token, Certification, Order, Agreement, AgreementStatus, Transfer, AddressType, ApplyFor, Issuer, HolderList
 from app.utils import ContractUtils, TokenUtils
 from config import Config
 from . import bond
@@ -501,6 +501,76 @@ def get_holders(token_address):
             holders.append(holder)
 
     return jsonify(holders)
+
+
+####################################################
+# [債券]保有者リスト履歴
+####################################################
+@bond.route('/holders_csv_history/<string:token_address>', methods=['GET'])
+@login_required
+def holders_csv_history(token_address):
+    logger.info('bond/holders_csv_history')
+
+    # アドレスフォーマットのチェック
+    if not Web3.isAddress(token_address):
+        abort(404)
+
+    return render_template(
+        'bond/holders_csv_history.html',
+        token_address=token_address
+    )
+
+
+# 保有者リスト履歴（API）
+@bond.route('/get_holders_csv_history/<string:token_address>', methods=['GET'])
+@login_required
+def get_holders_csv_history(token_address):
+    logger.info('bond/get_holders_csv_history')
+
+    # アドレスフォーマットのチェック
+    if not Web3.isAddress(token_address):
+        abort(404)
+
+    holder_lists = HolderList.query.filter(HolderList.token_address == token_address). \
+        order_by(desc(HolderList.created)). \
+        all()
+
+    history = []
+    for row in holder_lists:
+        # utc→jst の変換
+        created_jst = row.created.replace(tzinfo=timezone.utc).astimezone(JST)
+        created_formatted = created_jst.strftime("%Y/%m/%d %H:%M:%S %z")
+        file_name = created_jst.strftime("%Y%m%d%H%M%S") + 'bond_holders_list.csv'
+        history.append({
+            'id': row.id,
+            'token_address': row.token_address,
+            'created': created_formatted,
+            'file_name': file_name
+        })
+
+    return jsonify(history)
+
+
+# 保有者リストCSVダウンロード
+@bond.route('/holders_csv_history_download', methods=['POST'])
+@login_required
+def holders_csv_history_download():
+    logger.info('bond/holders_csv_history_download')
+
+    token_address = request.form.get('token_address')
+    csv_id = request.form.get('csv_id')
+
+    holder_list = HolderList.query.filter(HolderList.id == csv_id, HolderList.token_address == token_address).first()
+    if holder_list is None:
+        abort(404)
+
+    created = holder_list.created.replace(tzinfo=timezone.utc).astimezone(JST)
+    res = make_response()
+    res.data = holder_list.holder_list
+    res.headers['Content-Type'] = 'text/plain'
+    res.headers['Content-Disposition'] = 'attachment; filename=' + created.strftime("%Y%m%d%H%M%S") \
+                                         + 'bond_holders_list.csv'
+    return res
 
 
 ####################################################
