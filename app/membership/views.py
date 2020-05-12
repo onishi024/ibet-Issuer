@@ -107,6 +107,47 @@ def list():
 
 
 ####################################################
+# [会員権]トークン追跡
+####################################################
+@membership.route('/token/track/<string:token_address>', methods=['GET'])
+@login_required
+def token_tracker(token_address):
+    logger.info('membership/token_tracker')
+
+    # アドレスフォーマットのチェック
+    if not Web3.isAddress(token_address):
+        abort(404)
+
+    tracks = Transfer.query.filter(Transfer.token_address == token_address). \
+        order_by(desc(Transfer.block_timestamp)). \
+        all()
+
+    track = []
+    for row in tracks:
+        try:
+            # utc→jst の変換
+            block_timestamp = row.block_timestamp.replace(tzinfo=timezone.utc).astimezone(JST). \
+                strftime("%Y/%m/%d %H:%M:%S %z")
+            track.append({
+                'id': row.id,
+                'transaction_hash': row.transaction_hash,
+                'token_address': row.token_address,
+                'account_address_from': row.account_address_from,
+                'account_address_to': row.account_address_to,
+                'transfer_amount': row.transfer_amount,
+                'block_timestamp': block_timestamp,
+            })
+        except Exception as e:
+            logger.exception(e)
+
+    return render_template(
+        'membership/token_tracker.html',
+        token_address=token_address,
+        track=track
+    )
+
+
+####################################################
 # [会員権]募集申込一覧
 ####################################################
 # 申込一覧画面
@@ -599,7 +640,6 @@ def holders_csv_history_download():
     res.headers['Content-Disposition'] = 'attachment; filename=' + created.strftime("%Y%m%d%H%M%S") \
                                          + 'membership_holders_list.csv'
     return res
-
 
 
 ####################################################
