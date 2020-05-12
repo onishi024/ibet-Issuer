@@ -1034,7 +1034,7 @@ class TestShare(TestBase):
         assert self.token_data1['name'] == response_data
 
     # ＜正常系11-1＞
-    #   債券保有者リスト履歴
+    #   保有者リスト履歴
     def test_normal_11_1(self, app):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SHARE).all()
         token = tokens[0]
@@ -1047,7 +1047,7 @@ class TestShare(TestBase):
         assert token.token_address.encode('utf-8') in response.data
 
     # ＜正常系11-2＞
-    #   債券保有者リスト履歴（API）
+    #   保有者リスト履歴（API）
     #   0件：保有者リスト履歴
     def test_normal_11_2(self, app):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SHARE).all()
@@ -1062,7 +1062,7 @@ class TestShare(TestBase):
         assert len(response_data) == 0
 
     # ＜正常系11-3＞
-    #   債券保有者リスト履歴（API）
+    #   保有者リスト履歴（API）
     #   1件：保有者リスト履歴
     def test_normal_11_3(self, app, db):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SHARE).all()
