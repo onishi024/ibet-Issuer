@@ -17,7 +17,7 @@ from .utils.contract_utils_common import processor_issue_event, index_transfer_e
 from .utils.contract_utils_membership import \
     get_latest_orderid, get_latest_agreementid, take_buy, confirm_agreement, apply_for_offering
 from .utils.contract_utils_personal_info import register_personal_info
-from ..models import Token, Issuer, HolderList
+from ..models import Token, Issuer, HolderList, Transfer
 
 
 class TestMembership(TestBase):
@@ -49,6 +49,7 @@ class TestMembership(TestBase):
     url_holders_csv_history = 'membership/holders_csv_history/'  # 保有者リスト履歴
     url_get_holders_csv_history = 'membership/get_holders_csv_history/'  # 保有者リスト履歴（API）
     url_holders_csv_history_download = 'membership/holders_csv_history_download'  # 保有者リストCSVダウンロード
+    url_token_tracker = 'membership/token/track/'  # トークン追跡
 
     #############################################################################
     # テスト用会員権トークン情報
@@ -968,7 +969,8 @@ class TestMembership(TestBase):
             token.token_address,
             issuer_address,
             trader_address,
-            10
+            10,
+            block_timestamp=datetime.utcnow()
         )
 
         # 保有者一覧の参照
@@ -1097,6 +1099,24 @@ class TestMembership(TestBase):
         assert response.status_code == 200
         assert response.data == b'dummy csv membership test_normal_12_3'
 
+    # ＜正常系13-1＞
+    #   トークン追跡
+    def test_normal_13_1(self, app, db):
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
+        token = tokens[0]
+        client = self.client_with_admin_login(app)
+
+        # 登録済みのトランザクションハッシュを取得
+        transfer_event =  Transfer.query.filter_by(token_address=token.token_address).first()
+        tx_hash = transfer_event.transaction_hash
+
+        # トークン追跡の参照
+        response = client.get(self.url_token_tracker + token.token_address)
+
+        assert response.status_code == 200
+        assert '<title>トークン追跡'.encode('utf-8') in response.data
+        assert tx_hash.encode('utf-8') in response.data
+
     #############################################################################
     # テスト（エラー系）
     #############################################################################
@@ -1217,6 +1237,15 @@ class TestMembership(TestBase):
                 'csv_id': 1
             }
         )
+        assert response.status_code == 404
+
+    # ＜エラー系2_6＞
+    #   トークン追跡（アドレスのフォーマットエラー）
+    def test_error_2_6(self, app):
+        error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
+
+        client = self.client_with_admin_login(app)
+        response = client.get(self.url_token_tracker + error_address)
         assert response.status_code == 404
 
     # ＜エラー系3_1＞
