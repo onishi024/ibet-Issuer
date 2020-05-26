@@ -111,3 +111,10 @@ python async/indexer_Transfer.py
 ```bash
 python ./app/tests/script/INSERT_coupon_consume.py 3
 ```
+
+上記を実行後に以下を実行する。
+
+```bash
+python async/indexer_Consume.py
+```
+
