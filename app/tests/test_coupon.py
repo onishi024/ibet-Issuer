@@ -1001,7 +1001,7 @@ class TestCoupon(TestBase):
         # 後処理
         db.session.delete(event)
 
-    # ＜正常系16_3＞
+    # ＜正常系16_4＞
     # ＜利用履歴CSVダウンロード＞
     #   クーポン利用履歴CSVが取得できること
     def test_normal_16_4(self, app, db):
