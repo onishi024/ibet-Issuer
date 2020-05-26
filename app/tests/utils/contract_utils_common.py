@@ -47,7 +47,8 @@ def clean_issue_event(db):
     db.session.execute("ALTER SEQUENCE tokens_id_seq RESTART WITH 1")
 
 
-def index_transfer_event(db, transaction_hash, token_address, account_address_from, account_address_to, amount):
+def index_transfer_event(db, transaction_hash, token_address, account_address_from, account_address_to, amount,
+                         block_timestamp=None):
     """
     任意のTransferイベントをDBに登録
     :param db: pytest fixture
@@ -56,6 +57,7 @@ def index_transfer_event(db, transaction_hash, token_address, account_address_fr
     :param account_address_from: Fromアカウントアドレス
     :param account_address_to: Toアカウントアドレス
     :param amount: 移転数量
+    :param block_timestamp: ブロックタイムスタンプ
     :return: なし
     """
     record = Transfer()
@@ -64,4 +66,5 @@ def index_transfer_event(db, transaction_hash, token_address, account_address_fr
     record.account_address_from = account_address_from
     record.account_address_to = account_address_to
     record.transfer_amount = amount
+    record.block_timestamp = block_timestamp
     db.session.add(record)

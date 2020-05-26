@@ -12,7 +12,7 @@ from app import db as _db
 from app.models import *
 from config import Config
 from app.tests.utils.account_config import eth_account
-from app.contracts import Contract
+from app.utils import ContractUtils
 
 
 # ---------------------------------------------------------------------------------------------
@@ -165,9 +165,10 @@ def payment_gateway_contract():
     web3.eth.defaultAccount = deployer['account_address']
     web3.personal.unlockAccount(deployer['account_address'], deployer['password'])
     contract_address, abi, _ = \
-        Contract.deploy_contract('PaymentGateway', [], deployer['account_address'])
+        ContractUtils.deploy_contract('PaymentGateway', [], deployer['account_address'])
 
-    contract = Contract.get_contract('PaymentGateway', contract_address)
+    print(contract_address)
+    contract = ContractUtils.get_contract('PaymentGateway', contract_address)
     tx_hash = contract.functions.addAgent(agent['account_address']).transact(
         {'from': deployer['account_address'], 'gas': 4000000}
     )
@@ -181,7 +182,7 @@ def personalinfo_contract():
     web3.eth.defaultAccount = deployer['account_address']
     web3.personal.unlockAccount(deployer['account_address'], deployer['password'])
 
-    contract_address, abi, _ = Contract.deploy_contract(
+    contract_address, abi, _ = ContractUtils.deploy_contract(
         'PersonalInfo', [], deployer['account_address'])
 
     return {'address': contract_address, 'abi': abi}
@@ -192,9 +193,9 @@ def exchange_regulator_service_contract():
     web3.eth.defaultAccount = deployer['account_address']
     web3.personal.unlockAccount(deployer['account_address'], deployer['password'])
 
-    contract_address, abi, _ = Contract.deploy_contract('ExchangeRegulatorService', [], deployer['account_address'])
+    contract_address, abi, _ = ContractUtils.deploy_contract('ExchangeRegulatorService', [], deployer['account_address'])
 
-    exchange_regulator_service = Contract.get_contract('ExchangeRegulatorService', contract_address)
+    exchange_regulator_service = ContractUtils.get_contract('ExchangeRegulatorService', contract_address)
     web3.eth.defaultAccount = deployer['account_address']
     exchange_regulator_service.functions.register(eth_account['issuer']['account_address'], False).\
         transact({'from': deployer['account_address'], 'gas': 4000000})
@@ -209,7 +210,7 @@ def tokenlist_contract():
     web3.eth.defaultAccount = deployer['account_address']
     web3.personal.unlockAccount(deployer['account_address'], deployer['password'])
 
-    contract_address, abi, _ = Contract.deploy_contract(
+    contract_address, abi, _ = ContractUtils.deploy_contract(
         'TokenList', [], deployer['account_address'])
 
     return {'address': contract_address, 'abi': abi}
@@ -229,7 +230,7 @@ def bond_exchange_contract(payment_gateway_address, personalinfo_address, exchan
     web3.eth.defaultAccount = trader['account_address']
     web3.personal.unlockAccount(trader['account_address'], trader['password'])
 
-    storage_address, _, _ = Contract.deploy_contract('ExchangeStorage', [], deployer['account_address'])
+    storage_address, _, _ = ContractUtils.deploy_contract('ExchangeStorage', [], deployer['account_address'])
 
     args = [
         payment_gateway_address,
@@ -238,17 +239,17 @@ def bond_exchange_contract(payment_gateway_address, personalinfo_address, exchan
         exchange_regulator_service_address
     ]
 
-    contract_address, abi, _ = Contract.deploy_contract(
+    contract_address, abi, _ = ContractUtils.deploy_contract(
         'IbetStraightBondExchange', args, deployer['account_address'])
 
-    storage = Contract.get_contract('ExchangeStorage', storage_address)
+    storage = ContractUtils.get_contract('ExchangeStorage', storage_address)
     storage.functions.upgradeVersion(contract_address).transact(
         {'from': deployer['account_address'], 'gas': 4000000}
     )
 
     # 取引参加者登録
     ExchangeRegulatorService = \
-        Contract.get_contract('ExchangeRegulatorService', exchange_regulator_service_address)
+        ContractUtils.get_contract('ExchangeRegulatorService', exchange_regulator_service_address)
     ExchangeRegulatorService.functions.register(issuer['account_address'], False). \
         transact({'from': deployer['account_address'], 'gas': 4000000})
     ExchangeRegulatorService.functions.register(trader['account_address'], False). \
@@ -263,7 +264,7 @@ def coupon_exchange_contract(payment_gateway_address):
     web3.eth.defaultAccount = deployer['account_address']
     web3.personal.unlockAccount(deployer['account_address'], deployer['password'])
 
-    storage_address, _, _ = Contract.deploy_contract(
+    storage_address, _, _ = ContractUtils.deploy_contract(
         'ExchangeStorage', [], deployer['account_address'])
 
     args = [
@@ -271,10 +272,10 @@ def coupon_exchange_contract(payment_gateway_address):
         storage_address
     ]
 
-    contract_address, abi, _ = Contract.deploy_contract(
+    contract_address, abi, _ = ContractUtils.deploy_contract(
         'IbetCouponExchange', args, deployer['account_address'])
 
-    storage = Contract.get_contract('ExchangeStorage', storage_address)
+    storage = ContractUtils.get_contract('ExchangeStorage', storage_address)
     storage.functions.upgradeVersion(contract_address).transact(
         {'from': deployer['account_address'], 'gas': 4000000}
     )
@@ -288,7 +289,7 @@ def membership_exchange_contract(payment_gateway_address):
     web3.eth.defaultAccount = deployer['account_address']
     web3.personal.unlockAccount(deployer['account_address'], deployer['password'])
 
-    storage_address, _, _ = Contract.deploy_contract(
+    storage_address, _, _ = ContractUtils.deploy_contract(
         'ExchangeStorage', [], deployer['account_address'])
 
     args = [
@@ -296,10 +297,10 @@ def membership_exchange_contract(payment_gateway_address):
         storage_address
     ]
 
-    contract_address, abi, _ = Contract.deploy_contract(
+    contract_address, abi, _ = ContractUtils.deploy_contract(
         'IbetMembershipExchange', args, deployer['account_address'])
 
-    storage = Contract.get_contract('ExchangeStorage', storage_address)
+    storage = ContractUtils.get_contract('ExchangeStorage', storage_address)
     storage.functions.upgradeVersion(contract_address).transact(
         {'from': deployer['account_address'], 'gas': 4000000}
     )
@@ -321,7 +322,7 @@ def otc_exchange_contract(payment_gateway_address, personalinfo_address, exchang
     web3.eth.defaultAccount = trader['account_address']
     web3.personal.unlockAccount(trader['account_address'], trader['password'])
 
-    storage_address, _, _ = Contract.deploy_contract('OTCExchangeStorage', [], deployer['account_address'])
+    storage_address, _, _ = ContractUtils.deploy_contract('OTCExchangeStorage', [], deployer['account_address'])
 
     args = [
         payment_gateway_address,
@@ -330,17 +331,17 @@ def otc_exchange_contract(payment_gateway_address, personalinfo_address, exchang
         exchange_regulator_service_address
     ]
 
-    contract_address, abi, _ = Contract.deploy_contract(
+    contract_address, abi, _ = ContractUtils.deploy_contract(
         'IbetOTCExchange', args, deployer['account_address'])
 
-    storage = Contract.get_contract('OTCExchangeStorage', storage_address)
+    storage = ContractUtils.get_contract('OTCExchangeStorage', storage_address)
     storage.functions.upgradeVersion(contract_address).transact(
         {'from': deployer['account_address'], 'gas': 4000000}
     )
 
     # 取引参加者登録
     ExchangeRegulatorService = \
-        Contract.get_contract('ExchangeRegulatorService', exchange_regulator_service_address)
+        ContractUtils.get_contract('ExchangeRegulatorService', exchange_regulator_service_address)
     ExchangeRegulatorService.functions.register(issuer['account_address'], False). \
         transact({'from': deployer['account_address'], 'gas': 4000000})
     ExchangeRegulatorService.functions.register(trader['account_address'], False). \

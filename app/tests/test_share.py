@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 import base64
 import json
+from datetime import datetime, timezone
 
 import pytest
 import time
@@ -15,7 +16,7 @@ from .utils.contract_utils_common import processor_issue_event, index_transfer_e
 from .utils.contract_utils_personal_info import register_personal_info
 from .utils.contract_utils_share import create_order, get_latest_orderid, get_latest_agreementid, take_buy, \
     confirm_agreement, apply_for_offering
-from ..models import Token
+from ..models import Token, Issuer, HolderList
 
 
 class TestShare(TestBase):
@@ -35,12 +36,16 @@ class TestShare(TestBase):
     url_applications = '/share/applications/'  # 募集申込一覧
     url_applications_csv_download = '/share/applications_csv_download'  # 申込者リストCSVダウンロード
     url_get_applications = '/share/get_applications/'  # 申込一覧取得
-    url_allocate = '/share/allocate/'  # 割当（募集申込）
+    url_allot = '/share/allot/'  # 割当登録
+    url_transfer_allotment = '/share/transfer_allotment/'  # 割当（募集申込）
     url_holders = '/share/holders/'  # 保有者一覧
     url_holders_csv_download = '/share/holders_csv_download'  # 保有者リストCSVダウンロード
     url_get_holders = '/share/get_holders/'  # 保有者一覧取得
     url_transfer_ownership = '/share/transfer_ownership/'  # 保有者移転
     url_holder = '/share/holder/'  # 保有者詳細
+    url_holders_csv_history = 'share/holders_csv_history/'  # 保有者リスト履歴
+    url_get_holders_csv_history = 'share/get_holders_csv_history/'  # 保有者リスト履歴（API）
+    url_holders_csv_history_download = 'share/holders_csv_history_download'  # 保有者リストCSVダウンロード
 
     #############################################################################
     # PersonalInfo情報の暗号化
@@ -93,7 +98,7 @@ class TestShare(TestBase):
         'symbol': 'SHARE',
         'totalSupply': 1000000,
         'issuePrice': 1000,
-        'dividends': 100,
+        'dividends': 100.25,
         'dividendRecordDate': '20200401',
         'dividendPaymentDate': '20200501',
         'cancellationDate': '20200601',
@@ -111,7 +116,7 @@ class TestShare(TestBase):
         'symbol': '2KENME',
         'totalSupply': 2000000,
         'issuePrice': 2000,
-        'dividends': 20,
+        'dividends': 20.50,
         'dividendRecordDate': '20220412',
         'dividendPaymentDate': '20220512',
         'cancellationDate': '',
@@ -129,7 +134,7 @@ class TestShare(TestBase):
         'symbol': '3KENME',
         'totalSupply': 3000000,
         'issuePrice': 3000,
-        'dividends': 30,
+        'dividends': 30.75,
         'dividendRecordDate': '20230412',
         'dividendPaymentDate': '20230512',
         'cancellationDate': '20230612',
@@ -143,7 +148,7 @@ class TestShare(TestBase):
     }
 
     @pytest.fixture(scope='class', autouse=True)
-    def prepare_test_data(self, shared_contract):
+    def prepare_test_data(self, shared_contract, db):
         # shared_contract fixtureが必要な情報を設定する
         self.token_data1['tradableExchange'] = shared_contract['IbetShareExchange']['address']
         self.token_data1['personalInfoAddress'] = shared_contract['PersonalInfo']['address']
@@ -153,6 +158,12 @@ class TestShare(TestBase):
 
         self.token_data3['tradableExchange'] = '0x9ba26793217B1780Ee2cF3cAfEb8e0DB10Dda4De'
         self.token_data3['personalInfoAddress'] = '0x7297845b550eb326b31C9a89c1d46a8F78Ff31F5'
+
+        # 発行体名義登録
+        issuer = Issuer()
+        issuer.eth_account = Config.ETH_ACCOUNT
+        issuer.issuer_name = '発行体１'
+        db.session.add(issuer)
 
     @staticmethod
     def get_token(num):
@@ -207,6 +218,8 @@ class TestShare(TestBase):
 
         # 後処理
         clean_issue_event(db)
+
+        Issuer.query.filter(Issuer.eth_account == Config.ETH_ACCOUNT).delete()
 
     #############################################################################
     # テスト（正常系）
@@ -539,11 +552,11 @@ class TestShare(TestBase):
 
         assert response.status_code == 200
         assert eth_account['issuer']['account_address'] == response_data[0]['account_address']
-        assert '株式会社１' == response_data[0]['name']
-        assert '1234567' == response_data[0]['postal_code']
-        assert '東京都中央区　日本橋11-1　東京マンション１０１' == response_data[0]['address']
-        assert 'abcd1234@aaa.bbb.cc' == response_data[0]['email']
-        assert '20190902' == response_data[0]['birth_date']
+        assert '発行体１' == response_data[0]['name']
+        assert '--' == response_data[0]['postal_code']
+        assert '--' == response_data[0]['address']
+        assert '--' == response_data[0]['email']
+        assert '--' == response_data[0]['birth_date']
         assert 1000010 == response_data[0]['balance']
         assert 0 == response_data[0]['commitment']
 
@@ -599,11 +612,11 @@ class TestShare(TestBase):
 
         for response_data in response_data_list:
             if eth_account['issuer']['account_address'] == response_data['account_address']:  # issuer
-                assert '株式会社１' == response_data['name']
-                assert '1234567' == response_data['postal_code']
-                assert '東京都中央区　日本橋11-1　東京マンション１０１' == response_data['address']
-                assert 'abcd1234@aaa.bbb.cc' == response_data['email']
-                assert '20190902' == response_data['birth_date']
+                assert '発行体１' == response_data['name']
+                assert '--' == response_data['postal_code']
+                assert '--' == response_data['address']
+                assert '--' == response_data['email']
+                assert '--' == response_data['birth_date']
                 assert 999990 == response_data['balance']
                 assert 0 == response_data['commitment']
             elif eth_account['trader']['account_address'] == response_data['account_address']:  # trader
@@ -705,11 +718,11 @@ class TestShare(TestBase):
         assert len(response_data_list) == 2
         for response_data in response_data_list:
             if eth_account['issuer']['account_address'] == response_data['account_address']:  # issuer
-                assert '株式会社１' == response_data['name']
-                assert '1234567' == response_data['postal_code']
-                assert '東京都中央区　日本橋11-1　東京マンション１０１' == response_data['address']
-                assert 'abcd1234@aaa.bbb.cc' == response_data['email']
-                assert '20190902' == response_data['birth_date']
+                assert '発行体１' == response_data['name']
+                assert '--' == response_data['postal_code']
+                assert '--' == response_data['address']
+                assert '--' == response_data['email']
+                assert '--' == response_data['birth_date']
                 assert 999980 == response_data['balance']
                 assert 0 == response_data['commitment']
             elif eth_account['trader']['account_address'] == response_data['account_address']:  # trader
@@ -752,7 +765,7 @@ class TestShare(TestBase):
         csv_row_issuer = ','.join([
             self.token_data1['name'], token.token_address, eth_account['issuer']['account_address'],
             '999980', '0',
-            '株式会社１', '20190902', '1234567', '東京都中央区　日本橋11-1　東京マンション１０１', 'abcd1234@aaa.bbb.cc'
+            '発行体１', '--', '--', '--', '--'
         ])
         # CSVデータ（投資家）
         csv_row_trader = ','.join([
@@ -903,9 +916,9 @@ class TestShare(TestBase):
         assert assumed_csv.encode('sjis') == response.data
 
     # ＜正常系9_1＞
-    # ＜割当（募集申込）＞
+    # ＜割当登録＞
     #   ※8_2の続き
-    #   割当（募集申込）画面参照：GET
+    #   割当登録画面参照：GET
     #   ※Token_1が対象
     def test_normal_9_1(self, app):
         client = self.client_with_admin_login(app)
@@ -913,20 +926,56 @@ class TestShare(TestBase):
         token_address = token.token_address
         trader_address = eth_account['trader']['account_address']
 
-        # 割当（募集申込）
-        url = self.url_allocate + token_address + '/' + trader_address
+        # 割当登録
+        url = self.url_allot + token_address + '/' + trader_address
         response = client.get(url)
         assert response.status_code == 200
-        assert '株式割当'.encode('utf-8') in response.data
+        assert '割当登録'.encode('utf-8') in response.data
         assert token_address.encode('utf-8') in response.data
         assert trader_address.encode('utf-8') in response.data
 
     # ＜正常系9_2＞
-    # ＜割当（募集申込）＞
-    #   ※6_2, 8_2の後に実施
+    # ＜割当登録＞
+    #   ※8_2の後に実施
     #   割当（募集申込）処理　→　保有者一覧参照
     #   ※Token_1が対象
     def test_normal_9_2(self, db, app):
+        client = self.client_with_admin_login(app)
+        token = TestShare.get_token(0)
+        token_address = str(token.token_address)
+        trader_address = eth_account['trader']['account_address']
+
+        # 割当登録
+        url = self.url_allot + token_address + '/' + trader_address
+        response = client.post(url, data={'amount': 10})
+        assert response.status_code == 302
+
+    # ＜正常系10_1＞
+    # ＜割当（募集申込）＞
+    #   ※9_2の続き
+    #   割当（募集申込）画面参照：GET
+    #   ※Token_1が対象
+    def test_normal_10_1(self, app):
+        client = self.client_with_admin_login(app)
+        token = TestShare.get_token(0)
+        token_address = token.token_address
+        trader_address = eth_account['trader']['account_address']
+
+        # 割当（募集申込）
+        url = self.url_transfer_allotment + token_address + '/' + trader_address
+        response = client.get(url)
+        assert response.status_code == 200
+        assert '権利移転（募集申込）'.encode('utf-8') in response.data
+        assert token_address.encode('utf-8') in response.data
+        assert trader_address.encode('utf-8') in response.data
+        assert "10".encode('utf-8') in response.data  # NOTE:事前に登録した割当数量
+
+    # ＜正常系10_2＞
+    # ＜割当（募集申込）＞
+    #   ※9_2の後に実施
+    #   割当（募集申込）処理　→　保有者一覧参照
+    #   ※Token_1が対象
+    def test_normal_10_2(self, db, app):
         client = self.client_with_admin_login(app)
         token = TestShare.get_token(0)
         token_address = str(token.token_address)
@@ -934,8 +983,8 @@ class TestShare(TestBase):
         trader_address = eth_account['trader']['account_address']
 
         # 割当（募集申込）
-        url = self.url_allocate + token_address + '/' + trader_address
-        response = client.post(url, data={'amount': 10})
+        url = self.url_transfer_allotment + token_address + '/' + trader_address
+        response = client.post(url)
         assert response.status_code == 302
 
         # Transferイベント登録
@@ -960,11 +1009,11 @@ class TestShare(TestBase):
 
         # issuer
         assert issuer_address == response_data[0]['account_address']
-        assert '株式会社１' == response_data[0]['name']
-        assert '1234567' == response_data[0]['postal_code']
-        assert '東京都中央区　日本橋11-1　東京マンション１０１' == response_data[0]['address']
-        assert 'abcd1234@aaa.bbb.cc' == response_data[0]['email']
-        assert '20190902' == response_data[0]['birth_date']
+        assert '発行体１' == response_data[0]['name']
+        assert '--' == response_data[0]['postal_code']
+        assert '--' == response_data[0]['address']
+        assert '--' == response_data[0]['email']
+        assert '--' == response_data[0]['birth_date']
         assert 999970 == response_data[0]['balance']
         assert 0 == response_data[0]['commitment']
 
@@ -983,6 +1032,83 @@ class TestShare(TestBase):
         response_data = json.loads(response.data)
         assert response.status_code == 200
         assert self.token_data1['name'] == response_data
+
+    # ＜正常系11-1＞
+    #   保有者リスト履歴
+    def test_normal_11_1(self, app):
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SHARE).all()
+        token = tokens[0]
+        client = self.client_with_admin_login(app)
+
+        # 保有者一覧の参照
+        response = client.get(self.url_holders_csv_history + token.token_address)
+        assert response.status_code == 200
+        assert '<title>株式保有者リスト履歴'.encode('utf-8') in response.data
+        assert token.token_address.encode('utf-8') in response.data
+
+    # ＜正常系11-2＞
+    #   保有者リスト履歴（API）
+    #   0件：保有者リスト履歴
+    def test_normal_11_2(self, app):
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SHARE).all()
+        token = tokens[0]
+        client = self.client_with_admin_login(app)
+
+        # 保有者一覧（API）の参照
+        response = client.get(self.url_get_holders_csv_history + token.token_address)
+        response_data = json.loads(response.data)
+
+        assert response.status_code == 200
+        assert len(response_data) == 0
+
+    # ＜正常系11-3＞
+    #   保有者リスト履歴（API）
+    #   1件：保有者リスト履歴
+    def test_normal_11_3(self, app, db):
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SHARE).all()
+        token = tokens[0]
+        client = self.client_with_admin_login(app)
+
+        # 保有者リスト履歴を作成
+        holderList = HolderList()
+        holderList.token_address = tokens[0].token_address
+        holderList.created = datetime(2020, 2, 29, 12, 59, 59, 1234, tzinfo=timezone.utc)
+        holderList.holder_list = b'dummy csv share test_normal_11_3'
+        db.session.add(holderList)
+
+        # 保有者一覧（API）の参照
+        response = client.get(self.url_get_holders_csv_history + token.token_address)
+        response_data = json.loads(response.data)
+
+        assert response.status_code == 200
+        assert len(response_data) == 1
+        assert token.token_address == response_data[0]['token_address']
+        assert '2020/02/29 21:59:59 +0900' == response_data[0]['created']
+        assert '20200229215959share_holders_list.csv' == response_data[0]['file_name']
+
+    # ＜正常系11-4＞
+    #   保有者リストCSVダウンロード
+    #   ※11-3の続き
+    def test_normal_11_4(self, app, db):
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SHARE).all()
+        token = tokens[0]
+
+        holder_list = HolderList.query.filter_by(token_address=token.token_address).first()
+        csv_id = holder_list.id
+
+        client = self.client_with_admin_login(app)
+
+        # 保有者一覧（API）の参照
+        response = client.post(
+            self.url_holders_csv_history_download,
+            data={
+                'token_address': token.token_address,
+                'csv_id': csv_id
+             }
+        )
+
+        assert response.status_code == 200
+        assert response.data == b'dummy csv share test_normal_11_3'
 
     #############################################################################
     # テスト（エラー系）
@@ -1014,17 +1140,17 @@ class TestShare(TestBase):
     def test_error_1_2(self, app):
         client = self.client_with_admin_login(app)
         token = self.get_token(0)
-        url_allocate = self.url_allocate + token.token_address + '/' + \
-                       eth_account['trader']['account_address']
+        url_allot = self.url_allot + token.token_address + '/' + \
+                    eth_account['trader']['account_address']
         # 新規発行
         response = client.post(
-            url_allocate,
+            url_allot,
             data={
             }
         )
         assert response.status_code == 200
-        assert '<title>株式割当'.encode('utf-8') in response.data
-        assert '割当数量は必須です。'.encode('utf-8') in response.data
+        assert '<title>割当登録'.encode('utf-8') in response.data
+        assert '割当数量を入力してください。'.encode('utf-8') in response.data
 
     # ＜エラー系2_1＞
     # ＜入力値チェック＞
@@ -1068,13 +1194,12 @@ class TestShare(TestBase):
 
     # ＜エラー系2_3＞
     # ＜入力値チェック＞
-    #   割当画面（アドレス形式エラー）
+    #   割当登録画面（アドレス形式エラー）
     #     トークンアドレス形式がエラー
     def test_error_2_3(self, app):
         error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
         client = self.client_with_admin_login(app)
-        token = TestShare.get_token(0)
-        url_allocate = self.url_allocate + error_address + '/' + eth_account['trader']['account_address']
+        url_allocate = self.url_allot + error_address + '/' + eth_account['trader']['account_address']
         response = client.post(
             url_allocate,
             data={
@@ -1084,16 +1209,82 @@ class TestShare(TestBase):
 
     # ＜エラー系2_4＞
     # ＜入力値チェック＞
-    #   割当画面（アドレス形式エラー）
+    #   割当登録画面（アドレス形式エラー）
     #     割当先アドレス形式がエラー
     def test_error_2_4(self, app):
         error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
         client = self.client_with_admin_login(app)
         token = TestShare.get_token(0)
-        url_allocate = self.url_allocate + token.token_address + '/' + error_address
+        url_allocate = self.url_allot + token.token_address + '/' + error_address
         response = client.post(
             url_allocate,
             data={
+            }
+        )
+        assert response.status_code == 404
+
+    # ＜エラー系2_5＞
+    # ＜入力値チェック＞
+    #   権利移転（募集申込）（アドレス形式エラー）
+    #     トークンアドレス形式がエラー
+    def test_error_2_5(self, app):
+        error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
+        client = self.client_with_admin_login(app)
+        url_transfer_allotment = self.url_transfer_allotment + error_address + '/' + eth_account['trader'][
+            'account_address']
+        response = client.post(
+            url_transfer_allotment,
+            data={
+            }
+        )
+        assert response.status_code == 404
+
+    # ＜エラー系2_6＞
+    # ＜入力値チェック＞
+    #   割当登録画面（アドレス形式エラー）
+    #     割当先アドレス形式がエラー
+    def test_error_2_6(self, app):
+        error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
+        client = self.client_with_admin_login(app)
+        token = TestShare.get_token(0)
+        url_transfer_allotment = self.url_transfer_allotment + token.token_address + '/' + error_address
+        response = client.post(
+            url_transfer_allotment,
+            data={
+            }
+        )
+        assert response.status_code == 404
+
+    # ＜エラー系2_7＞
+    # ＜入力値チェック＞
+    #   保有者リスト履歴（アドレスのフォーマットエラー）
+    def test_error_2_7(self, app):
+        error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
+
+        client = self.client_with_admin_login(app)
+        response = client.get(self.url_holders_csv_history + error_address)
+        assert response.status_code == 404
+
+    # ＜エラー系2_8＞
+    #   保有者リスト履歴（API）（アドレスのフォーマットエラー）
+    def test_error_2_8(self, app):
+        error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
+
+        client = self.client_with_admin_login(app)
+        response = client.get(self.url_get_holders_csv_history + error_address)
+        assert response.status_code == 404
+
+    # ＜エラー系2_9＞
+    #   保有者リストCSVダウンロード（アドレスのフォーマットエラー）
+    def test_error_2_9(self, app):
+        error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
+
+        client = self.client_with_admin_login(app)
+        response = client.post(
+            self.url_holders_csv_history_download,
+            data={
+                'token_address': error_address,
+                'csv_id': 1
             }
         )
         assert response.status_code == 404
@@ -1233,16 +1424,22 @@ class TestShare(TestBase):
         token = TestShare.get_token(0)
         issuer_address = \
             to_checksum_address(eth_account['issuer']['account_address'])
-        trader_address = \
-            to_checksum_address(eth_account['trader']['account_address'])
+
+        # 割当登録
+        url = self.url_allot + token.token_address + '/' + issuer_address
+        client.post(url, data={'amount': 999991})
 
         # 所有者移転
         response = client.post(
-            self.url_allocate + token.token_address + '/' + issuer_address,
-            data={
-                'to_address': trader_address,
-                'amount': 999991
-            }
+            self.url_transfer_allotment + token.token_address + '/' + issuer_address,
         )
         assert response.status_code == 200
         assert '移転数量が残高を超えています。'.encode('utf-8') in response.data
+
+    #############################################################################
+    # 後処理
+    #############################################################################
+    def test_end(self, db):
+        clean_issue_event(db)
+
+        Issuer.query.filter(Issuer.eth_account == Config.ETH_ACCOUNT).delete()

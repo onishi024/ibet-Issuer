@@ -1,4 +1,6 @@
 # -*- coding:utf-8 -*-
+from datetime import datetime, timezone
+
 import time
 import pytest
 import json
@@ -15,7 +17,7 @@ from .utils.contract_utils_common import processor_issue_event, index_transfer_e
 from .utils.contract_utils_membership import \
     get_latest_orderid, get_latest_agreementid, take_buy, confirm_agreement, apply_for_offering
 from .utils.contract_utils_personal_info import register_personal_info
-from ..models import Token
+from ..models import Token, Issuer, HolderList, Transfer
 
 
 class TestMembership(TestBase):
@@ -44,6 +46,10 @@ class TestMembership(TestBase):
     url_get_token_name = 'membership/get_token_name/'  # トークン名取得（API）
     url_holder = 'membership/holder/'  # 保有者詳細
     url_transfer_ownership = 'membership/transfer_ownership/'  # 所有者移転
+    url_holders_csv_history = 'membership/holders_csv_history/'  # 保有者リスト履歴
+    url_get_holders_csv_history = 'membership/get_holders_csv_history/'  # 保有者リスト履歴（API）
+    url_holders_csv_history_download = 'membership/holders_csv_history_download'  # 保有者リストCSVダウンロード
+    url_token_tracker = 'membership/token/track/'  # トークン追跡
 
     #############################################################################
     # テスト用会員権トークン情報
@@ -141,7 +147,7 @@ class TestMembership(TestBase):
     #############################################################################
 
     # ＜前処理＞
-    def test_normal_0(self, shared_contract):
+    def test_normal_0(self, shared_contract, db):
         # Config設定
         Config.ETH_ACCOUNT = eth_account['issuer']['account_address']
         Config.ETH_ACCOUNT_PASSWORD = eth_account['issuer']['password']
@@ -157,6 +163,12 @@ class TestMembership(TestBase):
             shared_contract['IbetMembershipExchange']['address']
         self.token_data3['tradableExchange'] = \
             shared_contract['PersonalInfo']['address']
+
+        # 発行体名義登録
+        issuer = Issuer()
+        issuer.eth_account = Config.ETH_ACCOUNT
+        issuer.issuer_name = '発行体１'
+        db.session.add(issuer)
 
     # ＜正常系1_1＞
     # ＜会員権の0件確認＞
@@ -629,11 +641,11 @@ class TestMembership(TestBase):
 
         assert response.status_code == 200
         assert eth_account['issuer']['account_address'] == response_data[0]['account_address']
-        assert '株式会社１' == response_data[0]['name']
-        assert '1234567' == response_data[0]['postal_code']
-        assert '東京都中央区　日本橋11-1　東京マンション１０１' == response_data[0]['address']
-        assert 'abcd1234@aaa.bbb.cc' == response_data[0]['email']
-        assert '20190902' == response_data[0]['birth_date']
+        assert '発行体１' == response_data[0]['name']
+        assert '--' == response_data[0]['postal_code']
+        assert '--' == response_data[0]['address']
+        assert '--' == response_data[0]['email']
+        assert '--' == response_data[0]['birth_date']
         assert 10 == response_data[0]['balance']
         assert 1000000 == response_data[0]['commitment']
 
@@ -677,11 +689,11 @@ class TestMembership(TestBase):
 
         for response_data in response_data_list:
             if eth_account['issuer']['account_address'] == response_data['account_address']:  # issuer
-                assert '株式会社１' == response_data['name']
-                assert '1234567' == response_data['postal_code']
-                assert '東京都中央区　日本橋11-1　東京マンション１０１' == response_data['address']
-                assert 'abcd1234@aaa.bbb.cc' == response_data['email']
-                assert '20190902' == response_data['birth_date']
+                assert '発行体１' == response_data['name']
+                assert '--' == response_data['postal_code']
+                assert '--' == response_data['address']
+                assert '--' == response_data['email']
+                assert '--' == response_data['birth_date']
                 assert 10 == response_data['balance']
                 assert 999980 == response_data['commitment']
             elif eth_account['trader']['account_address'] == response_data['account_address']:  # trader
@@ -772,11 +784,11 @@ class TestMembership(TestBase):
 
         for response_data in response_data_list:
             if eth_account['issuer']['account_address'] == response_data['account_address']:  # issuer
-                assert '株式会社１' == response_data['name']
-                assert '1234567' == response_data['postal_code']
-                assert '東京都中央区　日本橋11-1　東京マンション１０１' == response_data['address']
-                assert 'abcd1234@aaa.bbb.cc' == response_data['email']
-                assert '20190902' == response_data['birth_date']
+                assert '発行体１' == response_data['name']
+                assert '--' == response_data['postal_code']
+                assert '--' == response_data['address']
+                assert '--' == response_data['email']
+                assert '--' == response_data['birth_date']
                 assert 0 == response_data['balance']
                 assert 999980 == response_data['commitment']
             elif eth_account['trader']['account_address'] == response_data['account_address']:  # trader
@@ -957,7 +969,8 @@ class TestMembership(TestBase):
             token.token_address,
             issuer_address,
             trader_address,
-            10
+            10,
+            block_timestamp=datetime.utcnow()
         )
 
         # 保有者一覧の参照
@@ -972,11 +985,11 @@ class TestMembership(TestBase):
 
         # issuer
         assert issuer_address == response_data[0]['account_address']
-        assert '株式会社１' == response_data[0]['name']
-        assert '1234567' == response_data[0]['postal_code']
-        assert '東京都中央区　日本橋11-1　東京マンション１０１' == response_data[0]['address']
-        assert 'abcd1234@aaa.bbb.cc' == response_data[0]['email']
-        assert '20190902' == response_data[0]['birth_date']
+        assert '発行体１' == response_data[0]['name']
+        assert '--' == response_data[0]['postal_code']
+        assert '--' == response_data[0]['address']
+        assert '--' == response_data[0]['email']
+        assert '--' == response_data[0]['birth_date']
         assert 999970 == response_data[0]['balance']
         assert 0 == response_data[0]['commitment']
 
@@ -1008,6 +1021,101 @@ class TestMembership(TestBase):
         url = self.url_holders_csv_download
         response = client.post(url, data={'token_address': token_address})
         assert response.status_code == 200
+
+    # ＜正常系12-1＞
+    #   保有者リスト履歴
+    def test_normal_12_1(self, app):
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
+        token = tokens[0]
+        client = self.client_with_admin_login(app)
+
+        # 保有者一覧の参照
+        response = client.get(self.url_holders_csv_history + token.token_address)
+        assert response.status_code == 200
+        assert '<title>保有者リスト履歴'.encode('utf-8') in response.data
+        assert token.token_address.encode('utf-8') in response.data
+
+    # ＜正常系12-2＞
+    #   保有者リスト履歴（API）
+    #   0件：保有者リスト履歴
+    def test_normal_12_2(self, app):
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
+        token = tokens[0]
+        client = self.client_with_admin_login(app)
+
+        # 保有者一覧（API）の参照
+        response = client.get(self.url_get_holders_csv_history + token.token_address)
+        response_data = json.loads(response.data)
+
+        assert response.status_code == 200
+        assert len(response_data) == 0
+
+    # ＜正常系12-3＞
+    #   保有者リスト履歴（API）
+    #   1件：保有者リスト履歴
+    def test_normal_12_3(self, app, db):
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
+        token = tokens[0]
+        client = self.client_with_admin_login(app)
+
+        # 保有者リスト履歴を作成
+        holderList = HolderList()
+        holderList.token_address = tokens[0].token_address
+        holderList.created = datetime(2020, 2, 29, 12, 59, 59, 1234, tzinfo=timezone.utc)
+        holderList.holder_list = b'dummy csv membership test_normal_12_3'
+        db.session.add(holderList)
+
+        # 保有者一覧（API）の参照
+        response = client.get(self.url_get_holders_csv_history + token.token_address)
+        response_data = json.loads(response.data)
+
+        assert response.status_code == 200
+        assert len(response_data) == 1
+        assert token.token_address == response_data[0]['token_address']
+        assert '2020/02/29 21:59:59 +0900' == response_data[0]['created']
+        assert '20200229215959membership_holders_list.csv' == response_data[0]['file_name']
+
+    # ＜正常系12-4＞
+    #   保有者リストCSVダウンロード
+    #   ※12-3の続き
+    def test_normal_12_4(self, app, db):
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
+        token = tokens[0]
+
+        holder_list = HolderList.query.filter_by(token_address=token.token_address).first()
+        csv_id = holder_list.id
+
+        client = self.client_with_admin_login(app)
+
+        # 保有者一覧（API）の参照
+        response = client.post(
+            self.url_holders_csv_history_download,
+            data={
+                'token_address': token.token_address,
+                'csv_id': csv_id
+             }
+        )
+
+        assert response.status_code == 200
+        assert response.data == b'dummy csv membership test_normal_12_3'
+
+    # ＜正常系13-1＞
+    #   トークン追跡
+    def test_normal_13_1(self, app, db):
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
+        token = tokens[0]
+        client = self.client_with_admin_login(app)
+
+        # 登録済みのトランザクションハッシュを取得
+        transfer_event =  Transfer.query.filter_by(token_address=token.token_address).first()
+        tx_hash = transfer_event.transaction_hash
+
+        # トークン追跡の参照
+        response = client.get(self.url_token_tracker + token.token_address)
+
+        assert response.status_code == 200
+        assert '<title>トークン追跡'.encode('utf-8') in response.data
+        assert tx_hash.encode('utf-8') in response.data
 
     #############################################################################
     # テスト（エラー系）
@@ -1096,6 +1204,49 @@ class TestMembership(TestBase):
         )
         assert response.status_code == 200
         assert 'DEXアドレスは有効なアドレスではありません。'.encode('utf-8') in response.data
+
+    # ＜エラー系2_3＞
+    # ＜入力値チェック＞
+    #   保有者リスト履歴（アドレスのフォーマットエラー）
+    def test_error_2_3(self, app):
+        error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
+
+        client = self.client_with_admin_login(app)
+        response = client.get(self.url_holders_csv_history + error_address)
+        assert response.status_code == 404
+
+    # ＜エラー系2_4＞
+    #   保有者リスト履歴（API）（アドレスのフォーマットエラー）
+    def test_error_2_4(self, app):
+        error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
+
+        client = self.client_with_admin_login(app)
+        response = client.get(self.url_get_holders_csv_history + error_address)
+        assert response.status_code == 404
+
+    # ＜エラー系2_5＞
+    #   保有者リストCSVダウンロード（アドレスのフォーマットエラー）
+    def test_error_2_5(self, app):
+        error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
+
+        client = self.client_with_admin_login(app)
+        response = client.post(
+            self.url_holders_csv_history_download,
+            data={
+                'token_address': error_address,
+                'csv_id': 1
+            }
+        )
+        assert response.status_code == 404
+
+    # ＜エラー系2_6＞
+    #   トークン追跡（アドレスのフォーマットエラー）
+    def test_error_2_6(self, app):
+        error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
+
+        client = self.client_with_admin_login(app)
+        response = client.get(self.url_token_tracker + error_address)
+        assert response.status_code == 404
 
     # ＜エラー系3_1＞
     # ＜所有者移転＞
@@ -1229,3 +1380,5 @@ class TestMembership(TestBase):
     #############################################################################
     def test_end(self, db):
         clean_issue_event(db)
+
+        Issuer.query.filter(Issuer.eth_account == Config.ETH_ACCOUNT).delete()

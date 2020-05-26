@@ -278,7 +278,8 @@ class IssueForm(Form):
             'privacy_policy': '商品に関するプライバシーポリシーを入力してください。',
         }
 
-    def check_decimal_places(self, places, field):
+    @staticmethod
+    def check_decimal_places(places, field):
         """
         有効小数点桁数チェック
         :param places: 小数点以下有効桁数：整数

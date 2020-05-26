@@ -78,6 +78,7 @@ class Config:
         ('account', 'glyphicon glyphicon-cog', 'Settings', [
             ('account_list', 'fa fa-circle-o', 'アカウント管理', 'account.list'),
             ('account_bank_info', 'fa fa-circle-o', '銀行口座情報', 'account.bankinfo'),
+            ('account_issuer_info', 'fa fa-circle-o', '発行体情報', 'account.issuerinfo'),
         ]),
     ]
 

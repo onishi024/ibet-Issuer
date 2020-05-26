@@ -1,6 +1,8 @@
 # -*- coding:utf-8 -*-
+import json
+import base64
 import secrets
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta, timezone
 from base64 import b64encode
 
 import requests
@@ -9,38 +11,43 @@ from flask import request, redirect, url_for, flash, render_template
 from flask import Markup
 from flask_login import login_required, current_user
 
+from Crypto.PublicKey import RSA
+from Crypto.Cipher import PKCS1_OAEP
+
 from . import account
-from .. import db
-from .forms import *
-from ..util import *
-from ..decorators import admin_required
+from .forms import RegistUserForm, EditUserAdminForm, EditUserForm, PasswordChangeForm, BankInfoForm, IssuerInfoForm
 from config import Config
-from app.contracts import Contract
-from ..models import Bank
+from app import db
+from app.utils import ContractUtils
+from app.models import User, Role, Bank, Issuer
+from app.decorators import admin_required
 
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
+
 web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
 web3.middleware_stack.inject(geth_poa_middleware, layer=0)
 from eth_utils import to_checksum_address
 
 from logging import getLogger
-logger = getLogger('api')
 
+logger = getLogger('api')
 
 JST = timezone(timedelta(hours=+9), 'JST')
 
-#+++++++++++++++++++++++++++++++
+
+# +++++++++++++++++++++++++++++++
 # Utils
-#+++++++++++++++++++++++++++++++
+# +++++++++++++++++++++++++++++++
 def flash_errors(form):
     for field, errors in form.errors.items():
         for error in errors:
             flash(error, 'error')
 
-#+++++++++++++++++++++++++++++++
+
+# +++++++++++++++++++++++++++++++
 # Views
-#+++++++++++++++++++++++++++++++
+# +++++++++++++++++++++++++++++++
 @account.route('/list', methods=['GET'])
 @login_required
 @admin_required
@@ -50,13 +57,13 @@ def list():
 
     for user in users:
         if user.created:
-            user.formatted_created = user.created.replace(tzinfo=timezone.utc).astimezone(JST)\
+            user.formatted_created = user.created.replace(tzinfo=timezone.utc).astimezone(JST) \
                 .strftime("%Y/%m/%d %H:%M:%S %z")
         else:
             user.formatted_created = ''
 
         if user.modified:
-            user.formatted_modified = user.modified.replace(tzinfo=timezone.utc).astimezone(JST)\
+            user.formatted_modified = user.modified.replace(tzinfo=timezone.utc).astimezone(JST) \
                 .strftime("%Y/%m/%d %H:%M:%S %z")
         else:
             user.formatted_modified = ''
@@ -89,12 +96,13 @@ def edit(id):
         else:
             flash_errors(form)
             return render_template('account/edit_admin.html', form=form, user=user)
-    else: # GET
+    else:  # GET
         form.login_id.data = user.login_id
         form.user_name.data = user.user_name
         form.icon.data = user.icon
         form.role.data = user.role.id
         return render_template('account/edit_admin.html', form=form, user=user)
+
 
 @account.route('/edit_current', methods=['GET', 'POST'])
 @login_required
@@ -119,11 +127,12 @@ def edit_current():
         else:
             flash_errors(form)
             return render_template('account/edit.html', form=form, user=current_user, next_url=request.args.get('next'))
-    else: # GET
+    else:  # GET
         form.login_id.data = current_user.login_id
         form.user_name.data = current_user.user_name
         form.icon.data = current_user.icon
         return render_template('account/edit.html', form=form, user=current_user, next_url=request.args.get('next'))
+
 
 @account.route('/pwdchg', methods=['GET', 'POST'])
 @login_required
@@ -137,6 +146,7 @@ def pwdchg():
     flash_errors(form)
     return render_template('account/pwdchg.html', form=form, user=current_user, next_url=request.args.get('next'))
 
+
 @account.route('/pwdinit', methods=['POST'])
 @login_required
 @admin_required
@@ -146,9 +156,10 @@ def pwdinit():
     token = secrets.token_urlsafe(6)
     user.password = token
     db.session.add(user)
-    msg =  Markup('%s さんのパスワードを初期化しました。<h3>%s</h3>' % (user.user_name, token))
+    msg = Markup('%s さんのパスワードを初期化しました。<h3>%s</h3>' % (user.user_name, token))
     flash(msg, 'confirm')
     return redirect(url_for('.edit', id=u_id))
+
 
 @account.route('/regist', methods=['GET', 'POST'])
 @login_required
@@ -172,8 +183,9 @@ def regist():
         else:
             flash_errors(form)
             return render_template('account/regist.html', form=form)
-    else: # GET
+    else:  # GET
         return render_template('account/regist.html', form=form)
+
 
 @account.route('/delete', methods=['POST'])
 @login_required
@@ -184,6 +196,7 @@ def delete():
     db.session.delete(user)
     flash('%s さんの情報を削除しました。' % (user.user_name), 'success')
     return redirect(url_for('.list'))
+
 
 #################################################
 # 銀行口座情報の登録
@@ -196,20 +209,16 @@ def bankinfo():
     form = BankInfoForm()
     if request.method == 'POST':
         if form.validate():
-            eth_unlock_account()
-            # PersonalInfoコントラクトに情報登録
-            personalinfo_regist(form)
             # PaymentGatewayコントラクトに情報登録
             payment_account_regist(form)
             # DB に銀行口座情報登録
             bank_account_regist(form)
-
             flash('登録処理を受付ました。登録完了まで数分かかることがあります。', 'success')
             return render_template('account/bankinfo.html', form=form)
         else:
             flash_errors(form)
             return render_template('account/bankinfo.html', form=form)
-    else: # GET
+    else:  # GET
         form.bank_name.data = ''
         form.bank_code.data = ''
         form.branch_name.data = ''
@@ -218,17 +227,11 @@ def bankinfo():
         form.account_number.data = ''
         form.account_holder.data = ''
 
-        PersonalInfoContract = Contract.get_contract(
-            'PersonalInfo',
-            to_checksum_address(Config.PERSONAL_INFO_CONTRACT_ADDRESS)
-        )
-
         # PersonalInfoコントラクトへの登録状態を取得
         bank = Bank.query.filter().filter(Bank.eth_account == Config.ETH_ACCOUNT).first()
 
         if bank is not None:
             # 登録済みの場合は登録されている情報を取得
-            
             try:
                 # 銀行口座情報の取得
                 form.bank_name.data = bank.bank_name
@@ -243,43 +246,14 @@ def bankinfo():
 
         return render_template('account/bankinfo.html', form=form)
 
-def personalinfo_regist(form):
-    # ローカルに保存されている発行体のRSA公開鍵を取得
-    key = RSA.importKey(open('data/rsa/public.pem').read())
-    cipher = PKCS1_OAEP.new(key)
-
-    personal_info_json = {
-        "name": "",
-        "address":{
-            "postal_code":"",
-            "prefecture":"",
-            "city":"",
-            "address1":"",
-            "address2":""
-        },
-        "email":""
-    }
-
-    # 銀行口座情報の暗号化
-    personal_info_ciphertext = base64.encodebytes(cipher.encrypt(json.dumps(personal_info_json).encode('utf-8')))
-
-    # PersonalInfo登録
-    PersonalInfoContract = Contract.get_contract(
-        'PersonalInfo',
-        to_checksum_address(Config.PERSONAL_INFO_CONTRACT_ADDRESS)
-    )
-    p_gas = PersonalInfoContract.estimateGas().\
-        register(Config.ETH_ACCOUNT, personal_info_ciphertext)
-    p_txid = PersonalInfoContract.functions.\
-        register(Config.ETH_ACCOUNT, personal_info_ciphertext).\
-        transact({'from':Config.ETH_ACCOUNT, 'gas':p_gas})
 
 def payment_account_regist(form):
-    # 収納代行業者のアドレス
+    # 収納代行業者のアドレスを取得
     agent_address = to_checksum_address(Config.AGENT_ADDRESS)
 
     # 収納代行業者のRSA公開鍵を取得
-    if Config.APP_ENV == 'production':
+    key_bank = None
+    if Config.APP_ENV == 'production':  # Production環境の場合
         company_list = []
         isExist = False
         try:
@@ -289,11 +263,11 @@ def payment_account_regist(form):
         for company_info in company_list:
             if to_checksum_address(company_info['address']) == agent_address:
                 isExist = True
-                key_bank = RSA.importKey(company_info['rsa_publickey'].replace('\\n',''))
-        if isExist == False:
+                key_bank = RSA.importKey(company_info['rsa_publickey'].replace('\\n', ''))
+        if not isExist:
             flash('決済代行業者の情報を取得できません。決済代行業者のアドレスが正しいか確認してください。', 'error')
             return render_template('account/bankinfo.html', form=form)
-    else:
+    else:  # Production環境以外の場合
         # ローカルのRSA公開鍵を取得
         # NOTE: 収納代行業者のものではなく、発行体自身の公開鍵である
         key_bank = RSA.importKey(open('data/rsa/public.pem').read())
@@ -301,7 +275,7 @@ def payment_account_regist(form):
     cipher = PKCS1_OAEP.new(key_bank)
 
     payment_account_json = {
-        "bank_account":{
+        "bank_account": {
             "bank_name": form.bank_name.data,
             "bank_code": form.bank_code.data,
             "branch_office": form.branch_name.data,
@@ -314,18 +288,15 @@ def payment_account_regist(form):
     payment_account_message_string = json.dumps(payment_account_json)
 
     # 銀行口座情報の暗号化
-    payment_account_ciphertext = \
-        base64.encodestring(
-            cipher.encrypt(payment_account_message_string.encode('utf-8')))
+    payment_account_ciphertext = base64.encodebytes(cipher.encrypt(payment_account_message_string.encode('utf-8')))
 
     # WhiteList登録
     payment_gateway_address = to_checksum_address(Config.PAYMENT_GATEWAY_CONTRACT_ADDRESS)
-    PaymentGatewayContract = Contract.get_contract('PaymentGateway', payment_gateway_address)
-    w_gas = PaymentGatewayContract.estimateGas().\
-        register(agent_address, payment_account_ciphertext)
-    w_txid = PaymentGatewayContract.functions.\
-        register(agent_address, payment_account_ciphertext).\
-        transact({'from':Config.ETH_ACCOUNT, 'gas':w_gas})
+    PaymentGatewayContract = ContractUtils.get_contract('PaymentGateway', payment_gateway_address)
+    gas = PaymentGatewayContract.estimateGas().register(agent_address, payment_account_ciphertext)
+    tx = PaymentGatewayContract.functions.register(agent_address, payment_account_ciphertext).\
+        buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
+    ContractUtils.send_transaction(transaction=tx)
 
 def bank_account_regist(form):
     # 入力内容を格納
@@ -345,7 +316,7 @@ def bank_account_regist(form):
     if bank is None:
         db.session.add(bank_account)
     # 既に登録されている場合、更新
-    else :
+    else:
         bank.bank_name = bank_account.bank_name
         bank.bank_code = bank_account.bank_code
         bank.branch_name = bank_account.branch_name
@@ -354,11 +325,57 @@ def bank_account_regist(form):
         bank.account_number = bank_account.account_number
         bank.account_holder = bank_account.account_holder
     db.session.commit()
-        
 
-#+++++++++++++++++++++++++++++++
+
+#################################################
+# 発行体情報の登録
+#################################################
+@account.route('/issuerinfo', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def issuerinfo():
+    logger.info('account/issuerinfo')
+    form = IssuerInfoForm()
+    if request.method == 'POST':
+        if form.validate():
+            # DB に発行体情報登録
+            _register_issuer_info(form)
+            flash('登録処理を受け付けました。', 'success')
+            return render_template('account/issuerinfo.html', form=form)
+        else:
+            flash_errors(form)
+            return render_template('account/issuerinfo.html', form=form)
+    else:  # GET
+        # 登録済情報を取得
+        issuer_info = Issuer.query.filter().filter(Issuer.eth_account == Config.ETH_ACCOUNT).first()
+
+        # 登録済みの場合は登録されている情報を取得
+        if issuer_info is not None:
+            form.issuer_name.data = issuer_info.issuer_name
+
+        return render_template('account/issuerinfo.html', form=form)
+
+
+def _register_issuer_info(form):
+    # 入力内容を格納
+    new_issuer_model = Issuer()
+    new_issuer_model.eth_account = Config.ETH_ACCOUNT
+    new_issuer_model.issuer_name = form.issuer_name.data
+
+    issuer = Issuer.query.filter().filter(Issuer.eth_account == Config.ETH_ACCOUNT).first()
+
+    # 入力された口座情報をDBに登録
+    if issuer is None:
+        db.session.add(new_issuer_model)
+    # 既に登録されている場合、更新
+    else:
+        issuer.issuer_name = new_issuer_model.issuer_name
+    db.session.commit()
+
+
+# +++++++++++++++++++++++++++++++
 # Custom Filter
-#+++++++++++++++++++++++++++++++
+# +++++++++++++++++++++++++++++++
 
 @account.app_template_filter()
 def img_convert(icon):

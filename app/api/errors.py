@@ -1,7 +1,12 @@
+from http import HTTPStatus
+from logging import getLogger
+
 from flask import jsonify
+from werkzeug.exceptions import InternalServerError
+
 from app.exceptions import ValidationError
 from . import api
-from logging import getLogger
+
 logger = getLogger('api')
 
 
@@ -50,11 +55,32 @@ def forbidden(message):
     return response
 
 
-def internal_server_error():
+@api.errorhandler(HTTPStatus.NOT_FOUND)
+def not_found_error(e):
     """
-    内部エラー（500）
+    未検出エラー（404）を処理する
+    :param e: Exception
     :return: HTTPレスポンス
     """
+    response = jsonify({
+        'error': 'Not Found',
+        'status_code': 404
+    })
+    response.status_code = 404
+    return response
+
+
+@api.errorhandler(InternalServerError)
+def internal_server_error(e):
+    """
+    内部エラー（500）を処理する
+    :param e: Exception
+    :return: HTTPレスポンス
+    """
+    # InternalServerErrorの発生原因となったエラーをログに出力する
+    original_exception = getattr(e, "original_exception", e)
+    logger.error(original_exception)
+
     response = jsonify({
         'error': 'Internal Server Error',
         'status_code': 500
@@ -66,7 +92,7 @@ def internal_server_error():
 @api.errorhandler(ValidationError)
 def validation_error(e):
     """
-    バリデーションエラー
+    バリデーションエラーを処理する
     :param e: Exception
     :return: HTTPレスポンス
     """
