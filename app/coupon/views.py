@@ -15,7 +15,8 @@ from flask_login import login_required
 from sqlalchemy import func
 
 from app import db
-from app.models import Token, Order, Agreement, AgreementStatus, CouponBulkTransfer, AddressType, ApplyFor, Transfer, Issuer
+from app.models import Token, Order, Agreement, AgreementStatus, CouponBulkTransfer, AddressType, ApplyFor, Transfer, \
+    Issuer, Consume
 from app.utils import ContractUtils, TokenUtils
 from config import Config
 from . import coupon
@@ -1088,39 +1089,16 @@ def usage_history(token_address):
 @coupon.route('/get_usage_history_coupon/<string:token_address>', methods=['GET'])
 @login_required
 def get_usage_history(token_address):
-    # Coupon Token Contract
-    # Note: token_addressに対して、Couponトークンのものであるかはチェックしていない。
-    token = Token.query.filter(Token.token_address == token_address).first()
-    if token is None:
-        abort(404)
-
-    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
-    CouponContract = web3.eth.contract(
-        address=token_address, abi=token_abi)
-
     # クーポントークンの消費イベント（Consume）を検索
-    try:
-        event_filter = CouponContract.eventFilter(
-            'Consume', {
-                'filter': {},
-                'fromBlock': 'earliest'
-            }
-        )
-        entries = event_filter.get_all_entries()
-        web3.eth.uninstallFilter(event_filter.filter_id)
-    except Exception as e:
-        logger.error(e)
-        entries = []
-        pass
+    # Note: token_addressに対して、Couponトークンのものであるかはチェックしていない。
+    entries = Consume.query.filter(Consume.token_address == token_address).all()
 
     usage_list = []
     for entry in entries:
         usage = {
-            'block_timestamp': datetime.fromtimestamp(
-                web3.eth.getBlock(entry['blockNumber'])['timestamp'], JST
-            ).strftime("%Y/%m/%d %H:%M:%S %z"),
-            'consumer': entry['args']['consumer'],
-            'value': int(entry['args']['value'])
+            'block_timestamp': entry.block_timestamp.replace(tzinfo=timezone.utc).astimezone(JST).strftime("%Y/%m/%d %H:%M:%S %z"),
+            'consumer': entry.consumer_address,
+            'value': entry.used_amount
         }
         usage_list.append(usage)
 
@@ -1136,39 +1114,16 @@ def used_csv_download():
     token_address = request.form.get('token_address')
     token_name = json.loads(get_token_name(token_address).data)
 
-    # ABI参照
-    token = Token.query.filter(Token.token_address == token_address).first()
-    if token is None:
-        abort(404)
-    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
-
-    # トークンコントラクト接続
-    CouponContract = web3.eth.contract(address=token_address, abi=token_abi)
-
     # クーポントークンの消費イベント（Consume）を検索
-    try:
-        event_filter = CouponContract.eventFilter(
-            'Consume', {
-                'filter': {},
-                'fromBlock': 'earliest'
-            }
-        )
-        entries = event_filter.get_all_entries()
-        web3.eth.uninstallFilter(event_filter.filter_id)
-    except Exception as e:
-        logger.error(e)
-        entries = []
-        pass
+    entries = Consume.query.filter(Consume.token_address == token_address).all()
 
     # リスト作成
     usage_list = []
     for entry in entries:
         usage = {
-            'block_timestamp': datetime.fromtimestamp(
-                web3.eth.getBlock(entry['blockNumber'])['timestamp'], JST
-            ).strftime("%Y/%m/%d %H:%M:%S %z"),
-            'consumer': entry['args']['consumer'],
-            'value': int(entry['args']['value'])
+            'block_timestamp': entry.block_timestamp.replace(tzinfo=timezone.utc).astimezone(JST).strftime("%Y/%m/%d %H:%M:%S %z"),
+            'consumer': entry.consumer_address,
+            'value': entry.used_amount
         }
         usage_list.append(usage)
 
