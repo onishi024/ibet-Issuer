@@ -94,3 +94,15 @@ class BankInfoForm(Form):
         super(BankInfoForm, self).__init__(*args, **kwargs)
         self.account_type.choices = [('1', '普通'), ('2', '当座'), ('4', '貯蓄預金'), ('9', 'その他')]
         self.bank_info = bank_info
+
+
+# 発行体情報登録用フォーム
+class IssuerInfoForm(Form):
+    issuer_name = StringField('発行体名義', validators=[
+        Length(max=64, message='発行体名義は64文字までです。')
+    ])
+    submit = SubmitField('登録')
+
+    def __init__(self, issuer_info=None, *args, **kwargs):
+        super(IssuerInfoForm, self).__init__(*args, **kwargs)
+        self.issuer_info = issuer_info

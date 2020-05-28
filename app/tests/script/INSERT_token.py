@@ -12,7 +12,7 @@ sys.path.append(path)
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 from eth_utils import to_checksum_address
-from app.contracts import Contract
+from app.utils import ContractUtils
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
@@ -125,8 +125,8 @@ def issue_token(exchange_address, data_count, token_type):
 
     web3.eth.defaultAccount = ETH_ACCOUNT
     web3.personal.unlockAccount(ETH_ACCOUNT, ETH_ACCOUNT_PASSWORD)
-    _, bytecode, bytecode_runtime = Contract.get_contract_info(token_type)
-    contract_address, abi, tx_hash = Contract.deploy_contract(token_type, arguments, ETH_ACCOUNT)
+    _, bytecode, bytecode_runtime = ContractUtils.get_contract_info(token_type)
+    contract_address, abi, tx_hash = ContractUtils.deploy_contract(token_type, arguments, ETH_ACCOUNT)
 
     # db_session
     token = Token()
@@ -143,7 +143,7 @@ def issue_token(exchange_address, data_count, token_type):
 
 # トークンリスト登録
 def register_token_list(token_dict, token_type):
-    TokenListContract = Contract.get_contract('TokenList', TOKEN_LIST_CONTRACT_ADDRESS)
+    TokenListContract = ContractUtils.get_contract('TokenList', TOKEN_LIST_CONTRACT_ADDRESS)
     web3.eth.defaultAccount = ETH_ACCOUNT
     web3.personal.unlockAccount(ETH_ACCOUNT, ETH_ACCOUNT_PASSWORD)
     tx_hash = TokenListContract.functions.register(token_dict['address'], token_type).\

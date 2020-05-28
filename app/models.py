@@ -142,6 +142,17 @@ class Bank(db.Model):
         return '<Bank %s>' % self.eth_account
 
 
+# 発行体情報
+class Issuer(db.Model):
+    __tablename__ = 'issuer'
+    id = db.Column(db.Integer, primary_key=True)
+    eth_account = db.Column(db.String(50), nullable=False)
+    issuer_name = db.Column(db.String(64), nullable=False)
+
+    def __repr__(self):
+        return '<Issuer %s>' % self.eth_account
+
+
 # 注文
 class Order(db.Model):
     __tablename__ = 'order'
@@ -233,6 +244,35 @@ class ApplyFor(db.Model):
     @classmethod
     def get_id(cls):
         return ApplyFor.id
+
+
+class Consume(db.Model):
+    """トークン消費（Event）"""
+    __tablename__ = 'consume'
+    # トランザクションハッシュ
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    # トークンアドレス
+    transaction_hash = db.Column(db.String(66), index=True)
+    # トークン消費者アドレス
+    token_address = db.Column(db.String(42), index=True)
+    # 消費者の保有トークン残高
+    consumer_address = db.Column(db.String(42), index=True)
+    # 消費者の保有トークン残高
+    balance = db.Column(db.Integer)
+    # 消費者の累計消費トークン数量
+    total_used_amount = db.Column(db.Integer)
+    # この消費イベントでの消費トークン数量
+    used_amount = db.Column(db.Integer)
+    # ブロックタイムスタンプ
+    block_timestamp = db.Column(db.DateTime)
+
+    def __repr__(self):
+        return "<Consume('transaction_hash'='%s', 'token_address'='%s')>" % \
+               (self.transaction_hash, self.token_address)
+
+    @classmethod
+    def get_id(cls):
+        return Transfer.id
 
 
 # アドレスタイプ

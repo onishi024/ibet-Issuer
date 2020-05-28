@@ -12,7 +12,7 @@ sys.path.append(path)
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 from eth_utils import to_checksum_address
-from app.contracts import Contract
+from app.utils import ContractUtils
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
@@ -89,8 +89,8 @@ def issue_token(exchange_address, data_count, token_type):
 
     web3.eth.defaultAccount = ETH_ACCOUNT
     web3.personal.unlockAccount(ETH_ACCOUNT, ETH_ACCOUNT_PASSWORD)
-    _, bytecode, bytecode_runtime = Contract.get_contract_info(token_type)
-    contract_address, abi, tx_hash  = Contract.deploy_contract(token_type, arguments, ETH_ACCOUNT)
+    _, bytecode, bytecode_runtime = ContractUtils.get_contract_info(token_type)
+    contract_address, abi, tx_hash  = ContractUtils.deploy_contract(token_type, arguments, ETH_ACCOUNT)
 
     # db_session
     token = Token()
@@ -107,7 +107,7 @@ def issue_token(exchange_address, data_count, token_type):
 
 # トークンリスト登録
 def register_token_list(token_dict, token_type):
-    TokenListContract = Contract.get_contract('TokenList', TOKEN_LIST_CONTRACT_ADDRESS)
+    TokenListContract = ContractUtils.get_contract('TokenList', TOKEN_LIST_CONTRACT_ADDRESS)
     web3.eth.defaultAccount = ETH_ACCOUNT
     web3.personal.unlockAccount(ETH_ACCOUNT, ETH_ACCOUNT_PASSWORD)
     tx_hash = TokenListContract.functions.register(token_dict['address'], token_type).\
@@ -118,21 +118,22 @@ def register_token_list(token_dict, token_type):
 # トークン売出(売り)
 def offer_token(agent_address, exchange_address, token_dict, amount, token_type, ExchangeContract):
     transfer_to_exchange(exchange_address, token_dict, amount, token_type)
-    make_sell_token(agent_address, exchange_address, token_dict, amount, ExchangeContract)
+    make_sell_token(agent_address, token_dict, amount, ExchangeContract)
 
 # 取引コントラクトにトークンをチャージ
 def transfer_to_exchange(exchange_address, token_dict, amount, token_type):
     web3.eth.defaultAccount = ETH_ACCOUNT
     web3.personal.unlockAccount(ETH_ACCOUNT, ETH_ACCOUNT_PASSWORD)
-    TokenContract = Contract.get_contract(token_type, token_dict['address'])
+    TokenContract = ContractUtils.get_contract(token_type, token_dict['address'])
     tx_hash = TokenContract.functions.transfer(exchange_address, amount).\
         transact({'from':ETH_ACCOUNT, 'gas':4000000})
     tx = web3.eth.waitForTransactionReceipt(tx_hash)
     print("transfer_to_exchange:balanceOf exchange_address:" + \
           str(TokenContract.functions.balanceOf(exchange_address).call()))
 
+
 # トークンの売りMake注文
-def make_sell_token(agent_address, exchange_address, token_dict, amount, ExchangeContract):
+def make_sell_token(agent_address, token_dict, amount, ExchangeContract):
     web3.eth.defaultAccount = ETH_ACCOUNT
     web3.personal.unlockAccount(ETH_ACCOUNT, ETH_ACCOUNT_PASSWORD)
     gas = ExchangeContract.estimateGas().\
@@ -147,6 +148,13 @@ def get_latest_orderid(ExchangeContract):
     latest_orderid = ExchangeContract.functions.latestOrderId().call()
     return latest_orderid
 
+
+# 直近約定IDを取得
+def get_latest_agreement_id(ExchangeContract, order_id):
+    latest_agreement_id = ExchangeContract.functions.latestAgreementId(order_id).call()
+    return latest_agreement_id
+
+
 # トークンの買いTake注文
 def buy_bond_token(trader_address, ExchangeContract, order_id, amount):
     web3.eth.defaultAccount = trader_address
@@ -160,7 +168,7 @@ def buy_bond_token(trader_address, ExchangeContract, order_id, amount):
 def register_personalinfo(invoker_address, encrypted_info):
     web3.eth.defaultAccount = invoker_address
     web3.personal.unlockAccount(invoker_address, 'password')
-    PersonalInfoContract = Contract.get_contract('PersonalInfo', PERSONAL_INFO_CONTRACT_ADDRESS)
+    PersonalInfoContract = ContractUtils.get_contract('PersonalInfo', PERSONAL_INFO_CONTRACT_ADDRESS)
 
     tx_hash = PersonalInfoContract.functions.register(ETH_ACCOUNT, encrypted_info).\
         transact({'from':invoker_address, 'gas':4000000})
@@ -168,9 +176,17 @@ def register_personalinfo(invoker_address, encrypted_info):
     print("register_personalinfo:" + \
           str(PersonalInfoContract.functions.isRegistered(invoker_address, ETH_ACCOUNT).call()))
 
+
+# 収納代行業者をPaymentGatewayに登録
+def add_agent_to_payment_gateway(agent_address):
+    PaymentGatewayContract = ContractUtils.get_contract('PaymentGateway', PAYMENT_GATEWAY_CONTRACT_ADDRESS)
+    tx_hash = PaymentGatewayContract.functions.addAgent(agent_address).transact({'from': ETH_ACCOUNT, 'gas': 4000000})
+    web3.eth.waitForTransactionReceipt(tx_hash)
+
+
 # 決済用銀行口座情報登録（認可まで）
 def register_payment_account(invoker_address, invoker_password, encrypted_info, agent_address):
-    PaymentGatewayContract = Contract.get_contract('PaymentGateway', PAYMENT_GATEWAY_CONTRACT_ADDRESS)
+    PaymentGatewayContract = ContractUtils.get_contract('PaymentGateway', PAYMENT_GATEWAY_CONTRACT_ADDRESS)
 
     # 1) 登録 from Invoker
     web3.eth.defaultAccount = invoker_address
@@ -199,8 +215,11 @@ def main(data_count):
     register_payment_account(ETH_ACCOUNT, ETH_ACCOUNT_PASSWORD, issuer_encrypted_info, agent_address)
     print("agent_address: " + agent_address)
 
+    # 収納代行業者をPaymentGatewayに追加
+    add_agent_to_payment_gateway(agent_address)
+
     # クーポンDEX情報を取得
-    ExchangeContract = Contract.get_contract('IbetCouponExchange', IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS)
+    ExchangeContract = ContractUtils.get_contract('IbetCouponExchange', IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS)
     exchange_address = IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS
     print("exchange_address: " + exchange_address)
 
@@ -219,17 +238,18 @@ def main(data_count):
 
     # 約定を入れる(全部買う)：投資家
     buy_bond_token(trader_address, ExchangeContract, order_id, data_count)
+    agreement_id = get_latest_agreement_id(ExchangeContract, order_id)
 
     # 決済承認：収納代行
     web3.eth.defaultAccount = agent_address
     web3.personal.unlockAccount(agent_address, 'password', 10000)
-    gas = ExchangeContract.estimateGas().confirmAgreement(order_id, 0)
-    ExchangeContract.functions.confirmAgreement(order_id, 0).transact(
+    gas = ExchangeContract.estimateGas({'from': agent_address}).confirmAgreement(order_id, agreement_id)
+    ExchangeContract.functions.confirmAgreement(order_id, agreement_id).transact(
         {'from':agent_address, 'gas':gas}
     )
 
     # クーポンの消費
-    TokenContract = Contract.get_contract(token_type, token_dict['address'])
+    TokenContract = ContractUtils.get_contract(token_type, token_dict['address'])
     for count in range(0, data_count):
         web3.eth.defaultAccount = trader_address
         web3.personal.unlockAccount(trader_address, 'password', 10000)
