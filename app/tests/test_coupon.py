@@ -1033,7 +1033,7 @@ class TestCoupon(TestBase):
             }
         )
         assumed_csv = \
-            'token_name,token_address,timestamp,amount\n' + \
+            'token_name,token_address,timestamp,account_address,amount\n' + \
             f'テストクーポン,{token.token_address},2020/05/31 09:59:59 +0900,{trader_account},{used_amount}\n'
 
         assert response.status_code == 200

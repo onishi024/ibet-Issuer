@@ -1135,16 +1135,20 @@ def used_csv_download():
         'token_name,' + \
         'token_address,' + \
         'timestamp,' + \
+        'account_address,' + \
         'amount\n'
     f.write(data_header)
 
     for usage in usage_list:
         # データ行
         data_row = \
-            token_name + ',' + token_address + ',' + str(usage["block_timestamp"]) + ',' + str(
-                usage["consumer"]) + ',' \
-            + str(usage["value"]) + '\n'
+            token_name + ',' + \
+            token_address + ',' + \
+            str(usage["block_timestamp"]) + ',' + \
+            str(usage["consumer"]) + ','  + \
+            str(usage["value"]) + '\n'
         f.write(data_row)
+
     now = datetime.fromtimestamp(datetime.utcnow().timestamp(), JST)
     res = make_response()
     csvdata = f.getvalue()
