@@ -1,5 +1,7 @@
 # -*- coding:utf-8 -*-
 import time
+from datetime import datetime
+
 import pytest
 import json
 import base64
@@ -10,6 +12,7 @@ from eth_utils import to_checksum_address
 
 from config import Config
 from .conftest import TestBase
+from .utils import contract_utils_common
 from .utils.account_config import eth_account
 from .utils.contract_utils_common import processor_issue_event, index_transfer_event, clean_issue_event
 from .utils.contract_utils_coupon import apply_for_offering
@@ -945,8 +948,8 @@ class TestCoupon(TestBase):
         assert response.status_code == 200
 
     # ＜正常系16_2＞
-    # ＜クーポン利用履歴＞
-    #   クーポン利用履歴が取得できること
+    # ＜クーポン利用履歴（API）＞
+    #   クーポン利用履歴が取得できること（0件）
     def test_normal_16_2(self, app):
         client = self.client_with_admin_login(app)
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
@@ -956,7 +959,88 @@ class TestCoupon(TestBase):
 
         url = self.url_get_usage_history_coupon + token_address
         response = client.get(url)
+        response_data = json.loads(response.data)
         assert response.status_code == 200
+        assert len(response_data) == 0
+
+    # ＜正常系16_3＞
+    # ＜クーポン利用履歴（API）＞
+    #   クーポン利用履歴が取得できること（1件）
+    def test_normal_16_3(self, app, db):
+        client = self.client_with_admin_login(app)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        token = tokens[0]
+        trader_account = eth_account['trader']['account_address']
+        balance = 7
+        total_used_amont = 2
+        used_amount = 1
+
+        event = contract_utils_common.index_consume_event(
+            db,
+            '0xac22f75bae96f8e9f840f980dfefc1d497979341d3106aeb25e014483c3f414a',  # 仮のトランザクションハッシュ
+            token.token_address,
+            trader_account,
+            balance,
+            total_used_amont,
+            used_amount,
+            datetime(2020, 5, 31, 0, 59, 59, 123)
+        )
+
+        token_address = str(token.token_address)
+
+        url = self.url_get_usage_history_coupon + token_address
+        response = client.get(url)
+        response_data = json.loads(response.data)
+
+        assert response.status_code == 200
+        assert len(response_data) == 1
+        assert response_data[0]['block_timestamp'] == '2020/05/31 09:59:59 +0900'
+        assert response_data[0]['consumer'] == trader_account
+        assert response_data[0]['value'] == used_amount
+
+        # 後処理
+        db.session.delete(event)
+
+    # ＜正常系16_4＞
+    # ＜利用履歴CSVダウンロード＞
+    #   クーポン利用履歴CSVが取得できること
+    def test_normal_16_4(self, app, db):
+        client = self.client_with_admin_login(app)
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        token = tokens[0]
+        trader_account = eth_account['trader']['account_address']
+        balance = 7
+        total_used_amount = 2
+        used_amount = 1
+
+        event = contract_utils_common.index_consume_event(
+            db,
+            '0xac22f75bae96f8e9f840f980dfefc1d497979341d3106aeb25e014483c3f414a',  # 仮のトランザクションハッシュ
+            token.token_address,
+            trader_account,
+            balance,
+            total_used_amount,
+            used_amount,
+            datetime(2020, 5, 31, 0, 59, 59, 123)
+        )
+
+        token_address = str(token.token_address)
+
+        response = client.post(
+            self.url_used_csv_download,
+            data={
+                'token_address': token_address
+            }
+        )
+        assumed_csv = \
+            'token_name,token_address,timestamp,amount\n' + \
+            f'テストクーポン,{token.token_address},2020/05/31 09:59:59 +0900,{trader_account},{used_amount}\n'
+
+        assert response.status_code == 200
+        assert assumed_csv == response.data.decode('sjis')
+
+        # 後処理
+        db.session.delete(event)
 
     #############################################################################
     # テスト（エラー系）
