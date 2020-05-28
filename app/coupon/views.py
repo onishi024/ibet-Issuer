@@ -1096,8 +1096,7 @@ def get_usage_history(token_address):
     usage_list = []
     for entry in entries:
         usage = {
-            'block_timestamp': entry.block_timestamp.replace(tzinfo=timezone.utc).astimezone(JST)
-                .strftime("%Y/%m/%d %H:%M:%S %z"),
+            'block_timestamp': entry.block_timestamp.replace(tzinfo=timezone.utc).astimezone(JST).strftime("%Y/%m/%d %H:%M:%S %z"),
             'consumer': entry.consumer_address,
             'value': entry.used_amount
         }
@@ -1122,8 +1121,7 @@ def used_csv_download():
     usage_list = []
     for entry in entries:
         usage = {
-            'block_timestamp': entry.block_timestamp.replace(tzinfo=timezone.utc).astimezone(JST)
-                .strftime("%Y/%m/%d %H:%M:%S %z"),
+            'block_timestamp': entry.block_timestamp.replace(tzinfo=timezone.utc).astimezone(JST).strftime("%Y/%m/%d %H:%M:%S %z"),
             'consumer': entry.consumer_address,
             'value': entry.used_amount
         }
