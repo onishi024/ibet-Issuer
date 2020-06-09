@@ -18,16 +18,17 @@ class ContractUtils:
 
     @staticmethod
     def get_contract_info(contract_name):
-        contracts = json.load(open('data/contracts.json', 'r'))
-        return contracts[contract_name]['abi'], contracts[contract_name]['bytecode'], contracts[contract_name][
-            'bytecode_runtime']
+        contract_file = f"contracts/{contract_name}.json"
+        contract_json = json.load(open(contract_file, "r"))
+        return contract_json["abi"], contract_json["bytecode"], contract_json["deployedBytecode"]
 
     @staticmethod
     def get_contract(contract_name, address):
-        contracts = json.load(open('data/contracts.json', 'r'))
+        contract_file = f"contracts/{contract_name}.json"
+        contract_json = json.load(open(contract_file, "r"))
         contract = web3.eth.contract(
             address=to_checksum_address(address),
-            abi=contracts[contract_name]['abi'],
+            abi=contract_json['abi'],
         )
         return contract
 
@@ -40,11 +41,13 @@ class ContractUtils:
         :param deployer: デプロイ実行者
         :return: contract address, ABI, transaction hash
         """
-        contracts = json.load(open('data/contracts.json', 'r'))
+        contract_file = f"contracts/{contract_name}.json"
+        contract_json = json.load(open(contract_file, "r"))
+
         contract = web3.eth.contract(
-            abi=contracts[contract_name]['abi'],
-            bytecode=contracts[contract_name]['bytecode'],
-            bytecode_runtime=contracts[contract_name]['bytecode_runtime'],
+            abi=contract_json["abi"],
+            bytecode=contract_json["bytecode"],
+            bytecode_runtime=contract_json["deployedBytecode"],
         )
 
         tx = contract.constructor(*args).buildTransaction(transaction={'from': deployer, 'gas': 6000000})
@@ -56,7 +59,7 @@ class ContractUtils:
             if 'contractAddress' in txn_receipt.keys():
                 contract_address = txn_receipt['contractAddress']
 
-        return contract_address, contracts[contract_name]['abi'], tx_hash
+        return contract_address, contract_json['abi'], tx_hash
 
     @staticmethod
     def send_transaction(invoker=None, transaction=None):
