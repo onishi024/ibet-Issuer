@@ -834,6 +834,14 @@ def transfer():
             token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
             TokenContract = web3.eth.contract(address=token.token_address, abi=token_abi)
 
+            # 残高チェック
+            amount = form.amount.data
+            balance = TokenContract.functions. \
+                balanceOf(to_checksum_address(Config.ETH_ACCOUNT)).call()
+            if amount > balance:
+                flash('割当数量が残高を超えています。', 'error')
+                return render_template('coupon/transfer.html', form=form)
+
             # 割当処理（発行体アドレス→指定アドレス）
             from_address = Config.ETH_ACCOUNT
             to_address = to_checksum_address(form.to_address.data)
