@@ -831,6 +831,9 @@ def transfer():
 
             # Tokenコントラクト接続
             token = Token.query.filter(Token.token_address == form.token_address.data).first()
+            if token is None or token.template_id != Config.TEMPLATE_ID_COUPON:
+                flash('無効なクーポンアドレスです。', 'error')
+                return render_template('coupon/transfer.html', form=form)
             token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
             TokenContract = web3.eth.contract(address=token.token_address, abi=token_abi)
 

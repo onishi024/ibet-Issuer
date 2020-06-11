@@ -1466,6 +1466,22 @@ class TestCoupon(TestBase):
         assert '<title>クーポン割当'.encode('utf-8') in response.data
         assert '割当数量が残高を超えています。'.encode('utf-8') in response.data
 
+    # ＜エラー系5_5＞
+    #   割当（クーポンアドレスが無効）
+    def test_error_5_5(self, app):
+        client = self.client_with_admin_login(app)
+        response = client.post(
+            self.url_transfer,
+            data={
+                'token_address': '0xd05029ed7f520ddaf0851f55d72ac8f28ec31823',  # コントラクトが登録されていないアドレス
+                'to_address': eth_account['trader']['account_address'],
+                'amount': 1
+            }
+        )
+        assert response.status_code == 200
+        assert '<title>クーポン割当'.encode('utf-8') in response.data
+        assert '無効なクーポンアドレスです。'.encode('utf-8') in response.data
+
     #############################################################################
     # 後処理
     #############################################################################
