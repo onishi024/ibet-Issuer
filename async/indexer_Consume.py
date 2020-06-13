@@ -183,4 +183,4 @@ processor = Processor(web3, sink, db_session)
 processor.initial_sync()
 while True:
     processor.sync_new_logs()
-    time.sleep(1)
+    time.sleep(60)
