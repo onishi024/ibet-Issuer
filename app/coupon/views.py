@@ -831,8 +831,19 @@ def transfer():
 
             # Tokenコントラクト接続
             token = Token.query.filter(Token.token_address == form.token_address.data).first()
+            if token is None or token.template_id != Config.TEMPLATE_ID_COUPON:
+                flash('無効なクーポンアドレスです。', 'error')
+                return render_template('coupon/transfer.html', form=form)
             token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
             TokenContract = web3.eth.contract(address=token.token_address, abi=token_abi)
+
+            # 残高チェック
+            amount = form.amount.data
+            balance = TokenContract.functions. \
+                balanceOf(to_checksum_address(Config.ETH_ACCOUNT)).call()
+            if amount > balance:
+                flash('割当数量が残高を超えています。', 'error')
+                return render_template('coupon/transfer.html', form=form)
 
             # 割当処理（発行体アドレス→指定アドレス）
             from_address = Config.ETH_ACCOUNT
@@ -873,6 +884,8 @@ def bulk_transfer():
                 transfer_set = "error"
                 return render_template('coupon/bulk_transfer.html', form=form, transfer_set=transfer_set)
 
+            # トークン別に残高を保持するdict
+            remaining_balance_dict = {}
             # transfer_rowの構成：[coupon_address, to_address, amount]
             for transfer_row in transfer_set:
                 # Addressフォーマットチェック（token_address）
@@ -890,11 +903,40 @@ def bulk_transfer():
                     return render_template('coupon/bulk_transfer.html', form=form)
 
                 # amountチェック
-                if 100000000 < int(transfer_row[2]):
+                if not transfer_row[2].isdecimal() \
+                        or (int(transfer_row[2]) <= 0 or 100000000 < int(transfer_row[2])):
                     flash('割当量が適切ではありません。', 'error')
                     message = '割当量が適切ではありません' + transfer_row[2]
                     logger.warning(message)
                     return render_template('coupon/bulk_transfer.html', form=form)
+
+                # 残高チェック
+                amount = int(transfer_row[2])
+                if transfer_row[0] in remaining_balance_dict:
+                    balance = remaining_balance_dict[transfer_row[0]]
+                else:
+                    # Tokenコントラクト接続
+                    token = Token.query.filter(Token.token_address == transfer_row[0]).first()
+                    if token is None or token.template_id != Config.TEMPLATE_ID_COUPON:
+                        flash('無効なクーポンアドレスが含まれています。', 'error')
+                        message = '無効なクーポンアドレスが含まれています。' + transfer_row[0]
+                        logger.warning(message)
+                        return render_template('coupon/bulk_transfer.html', form=form)
+                    token_abi = json.loads(
+                        token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+                    TokenContract = web3.eth.contract(address=token.token_address, abi=token_abi)
+                    balance = TokenContract.functions.balanceOf(to_checksum_address(Config.ETH_ACCOUNT)).call()
+                if amount > balance:
+                    flash('割当数量が残高を超えています。', 'error')
+                    message = '割当数量が残高を超えています' + transfer_row[2] + ', 残高=' + str(balance)
+                    logger.warning(message)
+                    return render_template('coupon/bulk_transfer.html', form=form)
+                # 同一CSV内での複数回割当を考慮して割当数量を減らした残高を保持する
+                if to_checksum_address(transfer_row[1]) != to_checksum_address(Config.ETH_ACCOUNT):
+                    remaining_balance_dict[transfer_row[0]] = balance - amount
+                else:
+                    # 割当先が発行体自身の場合、残高は変化なし
+                    remaining_balance_dict[transfer_row[0]] = balance
 
                 # DB登録処理
                 csvtransfer = CouponBulkTransfer()
