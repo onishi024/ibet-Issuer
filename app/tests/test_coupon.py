@@ -1092,7 +1092,7 @@ class TestCoupon(TestBase):
         assert '割当先アドレスは必須です。'.encode('utf-8') in response.data
         assert '割当数量は必須です。'.encode('utf-8') in response.data
 
-    # ＜エラー系1_2＞
+    # ＜エラー系1_4＞
     # ＜入力値チェック＞
     #   売出（必須エラー）
     def test_error_1_4(self, app):
@@ -1393,6 +1393,94 @@ class TestCoupon(TestBase):
         url = self.url_allocate + '/' + "0x6666" + '/' + trader_address  # 不正なアドレス
         response = client.get(url)
         assert response.status_code == 404  # abortされる
+
+    # ＜エラー系5_1＞
+    #   割当（トークンアドレス形式エラー）
+    def test_error_5_1(self, app):
+        client = self.client_with_admin_login(app)
+        response = client.post(
+            self.url_transfer,
+            data={
+                'token_address': "0x1111",  # 不正なアドレス
+                'to_address': eth_account['trader']['account_address'],
+                'amount': 1
+            }
+        )
+        assert response.status_code == 200
+        assert '<title>クーポン割当'.encode('utf-8') in response.data
+        assert 'クーポンアドレスは有効なアドレスではありません。'.encode('utf-8') in response.data
+
+    # ＜エラー系5_2＞
+    #   割当（割当先アドレス形式エラー）
+    def test_error_5_2(self, app):
+        token = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).first()
+
+        client = self.client_with_admin_login(app)
+        response = client.post(
+            self.url_transfer,
+            data={
+                'token_address': token.token_address,
+                'to_address': "0x2222",  # 不正なアドレス
+                'amount': 1
+            }
+        )
+        assert response.status_code == 200
+        assert '<title>クーポン割当'.encode('utf-8') in response.data
+        assert '割当先アドレスは有効なアドレスではありません。'.encode('utf-8') in response.data
+
+    # ＜エラー系5_3＞
+    #   割当（割当数量上限エラー）
+    def test_error_5_3(self, app):
+        token = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).first()
+
+        client = self.client_with_admin_login(app)
+        response = client.post(
+            self.url_transfer,
+            data={
+                'token_address': token.token_address,
+                'to_address': eth_account['trader']['account_address'],
+                'amount': 100_000_001
+            }
+        )
+        assert response.status_code == 200
+        assert '<title>クーポン割当'.encode('utf-8') in response.data
+        assert '割当数量は100,000,000が上限です。'.encode('utf-8') in response.data
+
+    # ＜エラー系5_4＞
+    #   割当（残高エラー）
+    def test_error_5_4(self, app):
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        token = tokens[1]
+        total_supply = 2000000
+
+        client = self.client_with_admin_login(app)
+        response = client.post(
+            self.url_transfer,
+            data={
+                'token_address': token.token_address,
+                'to_address': eth_account['trader']['account_address'],
+                'amount': total_supply + 1
+            }
+        )
+        assert response.status_code == 200
+        assert '<title>クーポン割当'.encode('utf-8') in response.data
+        assert '割当数量が残高を超えています。'.encode('utf-8') in response.data
+
+    # ＜エラー系5_5＞
+    #   割当（クーポンアドレスが無効）
+    def test_error_5_5(self, app):
+        client = self.client_with_admin_login(app)
+        response = client.post(
+            self.url_transfer,
+            data={
+                'token_address': '0xd05029ed7f520ddaf0851f55d72ac8f28ec31823',  # コントラクトが登録されていないアドレス
+                'to_address': eth_account['trader']['account_address'],
+                'amount': 1
+            }
+        )
+        assert response.status_code == 200
+        assert '<title>クーポン割当'.encode('utf-8') in response.data
+        assert '無効なクーポンアドレスです。'.encode('utf-8') in response.data
 
     #############################################################################
     # 後処理
