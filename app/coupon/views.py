@@ -877,7 +877,6 @@ def bulk_transfer():
                 csv_input = csv.reader(stream)
                 for row in csv_input:
                     transfer_set.append(row)
-
             except Exception as e:
                 logger.error(e)
                 flash('CSVアップロードでエラーが発生しました。', 'error')
@@ -888,74 +887,87 @@ def bulk_transfer():
             remaining_balance_dict = {}
             # transfer_rowの構成：[coupon_address, to_address, amount]
             for transfer_row in transfer_set:
+                # ファイルフォーマットチェック
+                try:
+                    token_address = transfer_row[0]
+                    send_address = transfer_row[1]
+                    transfer_amount = transfer_row[2]
+                except IndexError:
+                    flash('ファイルフォーマットが正しくありません。', 'error')
+                    db.session.rollback()
+                    return render_template('coupon/bulk_transfer.html', form=form)
+
                 # Addressフォーマットチェック（token_address）
-                if not Web3.isAddress(transfer_row[0]):
+                if not Web3.isAddress(token_address):
                     flash('無効なクーポンアドレスが含まれています。', 'error')
-                    message = '無効なクーポンアドレスが含まれています。' + transfer_row[0]
+                    message = f'無効なクーポンアドレスが含まれています: {token_address}'
                     logger.warning(message)
+                    db.session.rollback()
                     return render_template('coupon/bulk_transfer.html', form=form)
 
                 # Addressフォーマットチェック（send_address）
-                if not Web3.isAddress(transfer_row[1]):
+                if not Web3.isAddress(send_address):
                     flash('無効な割当先アドレスが含まれています。', 'error')
-                    message = '無効な割当先アドレスが含まれています' + transfer_row[1]
+                    message = f'無効な割当先アドレスが含まれています: {send_address}'
                     logger.warning(message)
+                    db.session.rollback()
                     return render_template('coupon/bulk_transfer.html', form=form)
 
                 # amountチェック
-                if not transfer_row[2].isdecimal() \
-                        or (int(transfer_row[2]) <= 0 or 100000000 < int(transfer_row[2])):
+                if not transfer_amount.isdecimal() or \
+                        (int(transfer_amount) <= 0 or 100000000 < int(transfer_amount)):
                     flash('割当量が適切ではありません。', 'error')
-                    message = '割当量が適切ではありません' + transfer_row[2]
+                    message = f'割当量が適切ではありません: {transfer_amount}'
                     logger.warning(message)
+                    db.session.rollback()
                     return render_template('coupon/bulk_transfer.html', form=form)
 
                 # 残高チェック
-                amount = int(transfer_row[2])
-                if transfer_row[0] in remaining_balance_dict:
-                    balance = remaining_balance_dict[transfer_row[0]]
+                amount = int(transfer_amount)
+                if token_address in remaining_balance_dict:
+                    balance = remaining_balance_dict[token_address]
                 else:
                     # Tokenコントラクト接続
-                    token = Token.query.filter(Token.token_address == transfer_row[0]).first()
+                    token = Token.query.filter(Token.token_address == token_address).first()
                     if token is None or token.template_id != Config.TEMPLATE_ID_COUPON:
                         flash('無効なクーポンアドレスが含まれています。', 'error')
-                        message = '無効なクーポンアドレスが含まれています。' + transfer_row[0]
+                        message = f'無効なクーポンアドレスが含まれています: {token_address}'
                         logger.warning(message)
+                        db.session.rollback()
                         return render_template('coupon/bulk_transfer.html', form=form)
                     token_abi = json.loads(
-                        token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+                        token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false')
+                    )
                     TokenContract = web3.eth.contract(address=token.token_address, abi=token_abi)
                     balance = TokenContract.functions.balanceOf(to_checksum_address(Config.ETH_ACCOUNT)).call()
                 if amount > balance:
                     flash('割当数量が残高を超えています。', 'error')
-                    message = '割当数量が残高を超えています' + transfer_row[2] + ', 残高=' + str(balance)
+                    message = f'割当数量が残高を超えています。 割当数量:{transfer_amount} / 残高:{balance}'
                     logger.warning(message)
+                    db.session.rollback()
                     return render_template('coupon/bulk_transfer.html', form=form)
                 # 同一CSV内での複数回割当を考慮して割当数量を減らした残高を保持する
-                if to_checksum_address(transfer_row[1]) != to_checksum_address(Config.ETH_ACCOUNT):
-                    remaining_balance_dict[transfer_row[0]] = balance - amount
+                if to_checksum_address(send_address) != to_checksum_address(Config.ETH_ACCOUNT):
+                    remaining_balance_dict[token_address] = balance - amount
                 else:
                     # 割当先が発行体自身の場合、残高は変化なし
-                    remaining_balance_dict[transfer_row[0]] = balance
+                    remaining_balance_dict[token_address] = balance
 
                 # DB登録処理
                 csvtransfer = CouponBulkTransfer()
-                csvtransfer.token_address = transfer_row[0]
-                csvtransfer.to_address = transfer_row[1]
-                csvtransfer.amount = transfer_row[2]
+                csvtransfer.token_address = token_address
+                csvtransfer.to_address = send_address
+                csvtransfer.amount = transfer_amount
                 csvtransfer.transferred = False
                 db.session.add(csvtransfer)
 
             # 全てのデータが正常処理されたらコミットを行う
             db.session.commit()
-
             flash('処理を受け付けました。割当完了までに数分程かかることがあります。', 'success')
             return render_template('coupon/bulk_transfer.html', form=form, transfer_set=transfer_set)
-
         else:
             flash_errors(form)
             return render_template('coupon/bulk_transfer.html', form=form, transfer_set=transfer_set)
-
     else:  # GET
         return render_template('coupon/bulk_transfer.html', form=form)
 
@@ -1187,7 +1199,7 @@ def used_csv_download():
             token_name + ',' + \
             token_address + ',' + \
             str(usage["block_timestamp"]) + ',' + \
-            str(usage["consumer"]) + ','  + \
+            str(usage["consumer"]) + ',' + \
             str(usage["value"]) + '\n'
         f.write(data_row)
 
