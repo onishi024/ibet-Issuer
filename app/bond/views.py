@@ -15,8 +15,10 @@ from flask_login import login_required
 from sqlalchemy import func, desc
 
 from app import db
-from app.models import Token, Certification, Order, Agreement, AgreementStatus, Transfer, AddressType, ApplyFor, Issuer, HolderList
+from app.models import Token, Certification, Order, Agreement, AgreementStatus, Transfer, AddressType, ApplyFor, Issuer, \
+    HolderList
 from app.utils import ContractUtils, TokenUtils
+from app.exceptions import EthRuntimeError
 from config import Config
 from . import bond
 from .forms import TransferOwnershipForm, SettingForm, RequestSignatureForm, IssueForm, SellTokenForm, CancelOrderForm, \
@@ -35,6 +37,8 @@ logger = getLogger('api')
 
 JST = timezone(timedelta(hours=+9), 'JST')
 
+ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
+
 
 ####################################################
 # 共通処理
@@ -43,6 +47,7 @@ def flash_errors(form):
     for field, errors in form.errors.items():
         for error in errors:
             flash(error, 'error')
+
 
 def map_interest_payment_date(form, interestPaymentDate):
     """
@@ -76,6 +81,7 @@ def map_interest_payment_date(form, interestPaymentDate):
     if 'interestPaymentDate12' in interestPaymentDate:
         form.interestPaymentDate12.data = interestPaymentDate['interestPaymentDate12']
 
+
 ####################################################
 # [債券]トークン名取得
 ####################################################
@@ -93,6 +99,7 @@ def get_token_name(token_address):
     token_name = TokenContract.functions.name().call()
 
     return jsonify(token_name)
+
 
 ####################################################
 # [債券]新規発行
@@ -188,12 +195,12 @@ def issue():
                         ContractUtils.send_transaction(transaction=tx)
                     if form.image_2.data != '':
                         gas = TokenContract.estimateGas().setImageURL(1, form.image_2.data)
-                        tx = TokenContract.functions.setImageURL(1, form.image_2.data).\
+                        tx = TokenContract.functions.setImageURL(1, form.image_2.data). \
                             buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                         ContractUtils.send_transaction(transaction=tx)
                     if form.image_3.data != '':
                         gas = TokenContract.estimateGas().setImageURL(2, form.image_3.data)
-                        tx = TokenContract.functions.setImageURL(2, form.image_3.data).\
+                        tx = TokenContract.functions.setImageURL(2, form.image_3.data). \
                             buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                         ContractUtils.send_transaction(transaction=tx)
 
@@ -454,7 +461,8 @@ def get_holders(token_address):
             else:
                 # 暗号化個人情報取得
                 try:
-                    encrypted_info = PersonalInfoContract.functions.personal_info(account_address, token_owner).call()[2]
+                    encrypted_info = PersonalInfoContract.functions.personal_info(account_address, token_owner).call()[
+                        2]
                 except Exception as e:
                     logger.warning(e)
                     encrypted_info = ''
@@ -471,7 +479,8 @@ def get_holders(token_address):
                         name = personal_info_json['name'] if personal_info_json['name'] else "--"
                         if personal_info_json['address']['prefecture'] and personal_info_json['address']['city'] and \
                                 personal_info_json['address']['address1']:
-                            address = personal_info_json['address']['prefecture'] + personal_info_json['address']['city']
+                            address = personal_info_json['address']['prefecture'] + personal_info_json['address'][
+                                'city']
                             if personal_info_json['address']['address1'] != "":
                                 address = address + "　" + personal_info_json['address']['address1']
                             if personal_info_json['address']['address2'] != "":
@@ -647,16 +656,70 @@ def transfer_ownership(token_address, account_address):
 ####################################################
 # [債券]保有者詳細
 ####################################################
-@bond.route('/holder/<string:token_address>/<string:account_address>', methods=['GET'])
+@bond.route('/holder/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
 @login_required
 def holder(token_address, account_address):
-    logger.info('bond/holder')
-    personal_info = TokenUtils.get_holder(token_address, account_address)
-    return render_template(
-        'bond/holder.html',
-        personal_info=personal_info,
-        token_address=token_address
+    # アドレスフォーマットのチェック
+    if not Web3.isAddress(token_address) or not Web3.isAddress(account_address):
+        abort(404)
+    token_address = to_checksum_address(token_address)
+    account_address = to_checksum_address(account_address)
+
+    # トークンで指定した個人情報コントラクトのアドレスを取得
+    TokenContract = TokenUtils.get_contract(
+        token_address=token_address,
+        template_id=Config.TEMPLATE_ID_SB
     )
+    try:
+        personal_info_address = TokenContract.functions.personalInfoAddress().call()
+    except Exception as err:
+        logger.exception(f"{err}")
+        personal_info_address = ZERO_ADDRESS
+
+    #########################
+    # GET：参照
+    #########################
+    if request.method == "GET":
+        logger.info('bond/holder(GET)')
+        personal_info = TokenUtils.get_holder(
+            token_address=token_address,
+            account_address=account_address,
+            custom_personal_info_address=personal_info_address
+        )
+        return render_template(
+            'bond/holder.html',
+            personal_info=personal_info,
+            token_address=token_address,
+            account_address=account_address
+        )
+
+    #########################
+    # POST：個人情報更新
+    #########################
+    if request.method == "POST":
+        if request.form.get('_method') == 'DELETE':  # 個人情報初期化
+            logger.info('bond/holder(DELETE)')
+            try:
+                TokenUtils.modify_personal_info(
+                    account_address=account_address,
+                    data={},
+                    custom_personal_info_address=personal_info_address
+                )
+                flash('個人情報の初期化に成功しました。', 'success')
+            except EthRuntimeError:
+                flash('個人情報の初期化に失敗しました。', 'error')
+
+            personal_info = TokenUtils.get_holder(
+                token_address=token_address,
+                account_address=account_address,
+                custom_personal_info_address=personal_info_address
+            )
+            return render_template(
+                'bond/holder.html',
+                personal_info=personal_info,
+                token_address=token_address,
+                account_address=account_address
+            )
 
 
 ####################################################
@@ -779,16 +842,16 @@ def setting(token_address):
 
             # DEXアドレス変更
             if form.tradableExchange.data != tradableExchange:
-                gas = TokenContract.estimateGas().\
+                gas = TokenContract.estimateGas(). \
                     setTradableExchange(to_checksum_address(form.tradableExchange.data))
-                tx = TokenContract.functions.\
+                tx = TokenContract.functions. \
                     setTradableExchange(to_checksum_address(form.tradableExchange.data)). \
                     buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                 ContractUtils.send_transaction(transaction=tx)
 
             # PersonalInfoコントラクトアドレス変更
             if form.personalInfoAddress.data != personalInfoAddress:
-                gas = TokenContract.estimateGas().\
+                gas = TokenContract.estimateGas(). \
                     setPersonalInfoAddress(to_checksum_address(form.personalInfoAddress.data))
                 tx = TokenContract.functions. \
                     setPersonalInfoAddress(to_checksum_address(form.personalInfoAddress.data)). \

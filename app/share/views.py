@@ -18,6 +18,7 @@ from sqlalchemy import desc
 from app import db
 from app.models import Token, Transfer, AddressType, ApplyFor, Issuer, HolderList
 from app.utils import ContractUtils, TokenUtils
+from app.exceptions import EthRuntimeError
 from config import Config
 from . import share
 from .forms import IssueForm, SettingForm, AddSupplyForm, TransferOwnershipForm, TransferForm, AllotForm
@@ -1226,38 +1227,70 @@ def transfer_ownership(token_address, account_address):
 ####################################################
 # [株式]保有者詳細
 ####################################################
-@share.route('/holder/<string:token_address>/<string:account_address>', methods=['GET'])
+@share.route('/holder/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
 @login_required
 def holder(token_address, account_address):
-    logger.info('share/holder')
-
-    # Token情報取得
-    token = Token.query.filter(Token.token_address == token_address).first()
-    if token is None:
+    # アドレスフォーマットのチェック
+    if not Web3.isAddress(token_address) or not Web3.isAddress(account_address):
         abort(404)
-    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+    token_address = to_checksum_address(token_address)
+    account_address = to_checksum_address(account_address)
 
-    # Tokenコントラクト接続
-    TokenContract = web3.eth.contract(
-        address=token_address,
-        abi=token_abi
+    # トークンで指定した個人情報コントラクトのアドレスを取得
+    TokenContract = TokenUtils.get_contract(
+        token_address=token_address,
+        template_id=Config.TEMPLATE_ID_SHARE
     )
-
-    # 個人情報コントラクトの情報取得
     try:
         personal_info_address = TokenContract.functions.personalInfoAddress().call()
     except Exception as e:
         logger.exception(e)
         personal_info_address = ZERO_ADDRESS
 
-    personal_info = TokenUtils.get_holder(token_address, account_address,
-                                          custom_personal_info_address=personal_info_address)
-    return render_template(
-        'share/holder.html',
-        personal_info=personal_info,
-        token_address=token_address
-    )
+    #########################
+    # GET：参照
+    #########################
+    if request.method == "GET":
+        logger.info('share/holder')
+        personal_info = TokenUtils.get_holder(
+            token_address=token_address,
+            account_address=account_address,
+            custom_personal_info_address=personal_info_address
+        )
+        return render_template(
+            'share/holder.html',
+            personal_info=personal_info,
+            token_address=token_address,
+            account_address=account_address
+        )
 
+    #########################
+    # POST：個人情報更新
+    #########################
+    if request.method == "POST":
+        if request.form.get('_method') == 'DELETE':  # 個人情報初期化
+            logger.info('share/holder(DELETE)')
+            try:
+                TokenUtils.modify_personal_info(
+                    account_address=account_address,
+                    data={},
+                    custom_personal_info_address=personal_info_address
+                )
+                flash('個人情報の初期化に成功しました。', 'success')
+            except EthRuntimeError:
+                flash('個人情報の初期化に失敗しました。', 'error')
+
+            personal_info = TokenUtils.get_holder(
+                token_address=token_address,
+                account_address=account_address,
+                custom_personal_info_address=personal_info_address
+            )
+            return render_template(
+                'share/holder.html',
+                personal_info=personal_info,
+                token_address=token_address,
+                account_address=account_address
+            )
 
 ####################################################
 # 権限エラー

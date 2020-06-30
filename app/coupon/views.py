@@ -18,6 +18,7 @@ from app import db
 from app.models import Token, Order, Agreement, AgreementStatus, CouponBulkTransfer, AddressType, ApplyFor, Transfer, \
     Issuer, Consume
 from app.utils import ContractUtils, TokenUtils
+from app.exceptions import EthRuntimeError
 from config import Config
 from . import coupon
 from .forms import IssueCouponForm, SellForm, CancelOrderForm, TransferForm, BulkTransferForm, TransferOwnershipForm, \
@@ -1150,7 +1151,8 @@ def get_usage_history(token_address):
     usage_list = []
     for entry in entries:
         usage = {
-            'block_timestamp': entry.block_timestamp.replace(tzinfo=timezone.utc).astimezone(JST).strftime("%Y/%m/%d %H:%M:%S %z"),
+            'block_timestamp': entry.block_timestamp.replace(tzinfo=timezone.utc).astimezone(JST).strftime(
+                "%Y/%m/%d %H:%M:%S %z"),
             'consumer': entry.consumer_address,
             'value': entry.used_amount
         }
@@ -1175,7 +1177,8 @@ def used_csv_download():
     usage_list = []
     for entry in entries:
         usage = {
-            'block_timestamp': entry.block_timestamp.replace(tzinfo=timezone.utc).astimezone(JST).strftime("%Y/%m/%d %H:%M:%S %z"),
+            'block_timestamp': entry.block_timestamp.replace(tzinfo=timezone.utc).astimezone(JST).strftime(
+                "%Y/%m/%d %H:%M:%S %z"),
             'consumer': entry.consumer_address,
             'value': entry.used_amount
         }
@@ -1379,7 +1382,8 @@ def get_holders(token_address):
             else:
                 # 暗号化個人情報取得
                 try:
-                    encrypted_info = PersonalInfoContract.functions.personal_info(account_address, token_owner).call()[2]
+                    encrypted_info = PersonalInfoContract.functions.personal_info(account_address, token_owner).call()[
+                        2]
                 except Exception as e:
                     logger.warning(e)
                     encrypted_info = ''
@@ -1396,7 +1400,8 @@ def get_holders(token_address):
                         name = personal_info_json['name'] if personal_info_json['name'] else "--"
                         if personal_info_json['address']['prefecture'] and personal_info_json['address']['city'] and \
                                 personal_info_json['address']['address1']:
-                            address = personal_info_json['address']['prefecture'] + personal_info_json['address']['city']
+                            address = personal_info_json['address']['prefecture'] + personal_info_json['address'][
+                                'city']
                             if personal_info_json['address']['address1'] != "":
                                 address = address + "　" + personal_info_json['address']['address1']
                             if personal_info_json['address']['address2'] != "":
@@ -1445,16 +1450,53 @@ def get_token_name(token_address):
     return jsonify(token_name)
 
 
+####################################################
 # 保有者詳細
-@coupon.route('/holder/<string:token_address>/<string:account_address>', methods=['GET'])
+####################################################
+@coupon.route('/holder/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
 @login_required
 def holder(token_address, account_address):
-    logger.info('coupon/holder')
-    personal_info = TokenUtils.get_holder(token_address, account_address)
-    return render_template(
-        'coupon/holder.html',
-        personal_info=personal_info,
-        token_address=token_address)
+    # アドレスフォーマットのチェック
+    if not Web3.isAddress(token_address) or not Web3.isAddress(account_address):
+        abort(404)
+    token_address = to_checksum_address(token_address)
+    account_address = to_checksum_address(account_address)
+
+    #########################
+    # GET：参照
+    #########################
+    if request.method == "GET":
+        logger.info('coupon/holder(GET)')
+        personal_info = TokenUtils.get_holder(token_address, account_address)
+        return render_template(
+            'coupon/holder.html',
+            personal_info=personal_info,
+            token_address=token_address,
+            account_address=account_address
+        )
+
+    #########################
+    # POST：個人情報更新
+    #########################
+    if request.method == "POST":
+        if request.form.get('_method') == 'DELETE':  # 個人情報初期化
+            logger.info('coupon/holder(DELETE)')
+            try:
+                TokenUtils.modify_personal_info(
+                    account_address=account_address,
+                    data={}
+                )
+            except EthRuntimeError:
+                flash('個人情報の初期化に失敗しました。', 'error')
+
+            personal_info = TokenUtils.get_holder(token_address, account_address)
+            flash('個人情報の初期化に成功しました。', 'success')
+            return render_template(
+                'coupon/holder.html',
+                personal_info=personal_info,
+                token_address=token_address,
+                account_address=account_address
+            )
 
 
 ####################################################
