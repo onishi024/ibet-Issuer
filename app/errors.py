@@ -7,6 +7,12 @@ from logging import getLogger
 logger = getLogger('api')
 
 
+@index_blueprint.app_errorhandler(400)
+def bad_request(e):
+    response = jsonify({'error': 'bad request'})
+    response.status_code = 400
+    return response
+
 @index_blueprint.app_errorhandler(403)
 def forbidden(e):
     if request.accept_mimetypes.accept_json and not request.accept_mimetypes.accept_html:
