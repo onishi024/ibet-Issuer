@@ -21,26 +21,36 @@ class Config:
     # gunicornのworker数
     WORKER_COUNT = int(os.environ.get("WORKER_COUNT")) if os.environ.get("WORKER_COUNT") else 4
 
-    # Payment Agent List
+    # Company List
     APP_ENV = os.getenv('FLASK_CONFIG') or 'default'
+
+    if APP_ENV == 'production':
+        COMPANY_LIST_URL = 'https://s3-ap-northeast-1.amazonaws.com/ibet-company-list/company_list.json'
+    else:
+        COMPANY_LIST_URL = 'https://s3-ap-northeast-1.amazonaws.com/ibet-company-list-dev/company_list.json'
+
     if APP_ENV == 'production':
         PAYMENT_AGENT_LIST_URL = 'https://s3-ap-northeast-1.amazonaws.com/ibet-company-list/payment_agent_list.json'
     else:
         PAYMENT_AGENT_LIST_URL = 'https://s3-ap-northeast-1.amazonaws.com/ibet-company-list-dev/payment_agent_list.json'
 
+    # SSL
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'ZwiTDW52gQlxBQ8Sn34KYaLNQxA0mvpT2_RjYH5j-ZU='
     SSL_DISABLE = False
     PERMANENT_SESSION_LIFETIME = timedelta(minutes=30)
 
+    # JWT (JSON Web Token)
     JWT_AUTH_URL_RULE = '/api/auth'
     JWT_AUTH_USERNAME_KEY = 'login_id'
 
+    # Database / SQL Alchemy
     SQLALCHEMY_DATABASE_URI = \
         os.environ.get('DATABASE_URL') or 'postgresql://issueruser:issuerpass@localhost:5432/issuerdb'
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
     SQLALCHEMY_RECORD_QUERIES = True
     SQLALCHEMY_TRACK_MODIFICATIONS = True
 
+    # Navigation Menu
     NAVI_MENU = {
         'admin': [
             ('account', 'glyphicon glyphicon-user', 'アカウント管理', [
@@ -82,6 +92,7 @@ class Config:
         ]),
     ]
 
+    # Logging
     LOG_CONFIG = ({
         'version': 1,
         'formatters': {'default': {
@@ -102,10 +113,11 @@ class Config:
         }
     })
 
+    # Web3
     WEB3_HTTP_PROVIDER = os.environ.get('WEB3_HTTP_PROVIDER') or 'http://localhost:8545'
-
     web3 = Web3(Web3.HTTPProvider(WEB3_HTTP_PROVIDER))
 
+    # EOA (Ethereum Account)
     if os.environ.get('ETH_ACCOUNT') is not None:
         ETH_ACCOUNT = to_checksum_address(os.environ.get('ETH_ACCOUNT'))
     else:
@@ -158,6 +170,7 @@ class Config:
         IBET_SHARE_EXCHANGE_CONTRACT_ADDRESS = \
             to_checksum_address(os.environ.get('IBET_SHARE_EXCHANGE_CONTRACT_ADDRESS'))
 
+    # Payment Agent Address
     AGENT_ADDRESS = ''
     if os.environ.get('AGENT_ADDRESS') is not None:
         AGENT_ADDRESS = to_checksum_address(os.environ.get('AGENT_ADDRESS'))

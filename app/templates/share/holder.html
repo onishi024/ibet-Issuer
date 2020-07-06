@@ -18,6 +18,9 @@
   <div class="box box-default">
     <div class="box-header with-border">
       <h3 class="box-title">保有者情報： {{personal_info['name']}}</h3>
+      <div class="pull-right box-tools">
+        <button id="delete" class="btn btn-danger btn-sm" type="button">個人情報初期化</button>
+      </div>
     </div>
     <br>
     <div class=row>
@@ -103,4 +106,74 @@
     </div>
   </div>
 </section>
+{% endblock %}
+
+{% block required_js %}
+{{ super() }}
+<!-- プロンプトダイアログ -->
+<div class="modal" id="modal-prompt" tabindex="-1" role="dialog" aria-labelledby="staticModalLabel" aria-hidden="true"
+    data-show="true" data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="modal-action" id="modal-prompt-form" method="POST">
+                <input type="hidden" name="_method" value="DELETE">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                    <h4 id="modal-prompt-title">modal</h4>
+                </div>
+                <div class="modal-body">
+                    <p class="recipient" id="modal-prompt-text">modal</p>
+                    <!-- アドレスチェック -->
+                    <div class="form-group">
+                        <input type="text" class="form-control" autocomplete="off" id="prompt-form" name="account_address" />
+                        <input type="text" name="dummy" style="display:none;">
+                        <p class="text-danger" id="modal-prompt-validate">アドレスが一致しません。初期化対象のアカウントであることを確認してください。</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" id="modal-prompt-cancel" data-dismiss="modal">キャンセル</button>
+                    <button type="button" class="btn btn-danger" id="modal-prompt-ok" data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中">　 OK 　</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+$(document).ready(function() {
+    $('#modal-prompt-ok').click(function () {
+        $('#modal-prompt-cancel').prop('disabled', true);
+        var $this = $(this);
+        var account_address_confirm = $('#prompt-form').val();
+        if (account_address_confirm != null && account_address_confirm.length > 0) {
+            var account_address = "{{ account_address }}"
+            if (account_address === account_address_confirm) {
+                $this.parents('form').submit();
+                $this.button('loading');
+                setTimeout(function () {
+                    $this.button('reset');
+                }, 10000);
+            } else {
+                $('#modal-prompt-cancel').prop('disabled', false);
+                $('#modal-prompt-validate').show();
+            }
+        }
+    });
+    $('#delete').click(function(){
+        $('#modal-prompt-title').html('初期化時確認 <i class="fa fa-exclamation-triangle"></i>');
+        $('#modal-prompt-text').html('この操作は元に戻すことができません。<br>念のため、初期化を行うアカウントアドレスを入力してください。');
+        $('#modal-prompt-form').attr('action', "{{ url_for('share.holder', token_address=token_address, account_address=account_address) }}");
+        $('#modal-prompt-validate').hide();
+        $('#modal-prompt').modal();
+    });
+});
+</script>
+<script type="text/javascript">
+$('#load.btn').on('click', function() {
+    var $this = $(this);
+    $this.button('loading');
+    setTimeout(function() {
+        $this.button('reset');
+    }, 8000);
+});
+</script>
 {% endblock %}
