@@ -1,11 +1,14 @@
 import base64
 import json
+
+import requests
 from flask import abort
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 
 from app.models import Token
 from app.utils import ContractUtils
+from app.exceptions import EthRuntimeError
 from config import Config
 from logging import getLogger
 
@@ -60,7 +63,9 @@ class TokenUtils:
         :param default_value: 値が未設定の項目に設定する初期値。(未指定時: '--')
         :return: 個人情報（PersonalInfo）
         """
-        if not Web3.isAddress(account_address):
+
+        # アドレスフォーマットのチェック
+        if not Web3.isAddress(token_address) or not Web3.isAddress(account_address):
             abort(404)
 
         # RSA秘密鍵の取得
@@ -114,6 +119,77 @@ class TokenUtils:
                 logger.warning(e)
                 pass
         return personal_info
+
+    @staticmethod
+    def modify_personal_info(account_address: str, data: dict, custom_personal_info_address=None, default_value=""):
+        """
+        トークン保有者情報の修正
+
+        :param account_address: アカウントアドレス
+        :param data: 更新データ
+        :param custom_personal_info_address: 個人情報を格納している個人情報コントラクトのアドレス。
+            未指定の場合はシステムデフォルトの個人情報コントラクトアドレスを使用する。
+        :param default_value: 値が未設定の項目に設定する初期値。(未指定時: '--')
+        :return:
+        :raises HTTPException:
+            コンソーシアム企業一覧にETH_ACCOUNTが設定されていない場合、HTTPステータス400で例外を発生させる。
+        """
+
+        # アドレスフォーマットのチェック
+        if not Web3.isAddress(account_address):
+            abort(404)
+
+        # デフォルト値
+        personal_info_default = {
+            "name": default_value,
+            "address": {
+                "postal_code": default_value,
+                "prefecture": default_value,
+                "city": default_value,
+                "address1": default_value,
+                "address2": default_value
+            },
+            "email": default_value,
+            "birth": default_value
+        }
+        personal_info_data = json.dumps(TokenUtils.validateDictStruct(personal_info_default, data))
+
+        # 個人情報暗号化用RSA公開鍵の取得
+        rsa_public_key = None
+        if Config.APP_ENV == 'production':  # Production環境の場合
+            company_list = []
+            isExist = False
+            try:
+                company_list = requests.get(Config.COMPANY_LIST_URL).json()
+            except Exception as err:
+                logger.exception(f"{err}")
+                abort(500)
+            for company_info in company_list:
+                if to_checksum_address(company_info['address']) == Config.ETH_ACCOUNT:
+                    isExist = True
+                    rsa_public_key = RSA.importKey(company_info['rsa_publickey'].replace('\\n', ''))
+            if not isExist:  # RSA公開鍵が取得できなかった場合はエラーを返して以降の処理を実施しない
+                abort(400)
+        else:  # NOTE:Production環境以外の場合はローカルのRSA公開鍵を取得
+            rsa_public_key = RSA.importKey(open('data/rsa/public.pem').read())
+
+        cipher = PKCS1_OAEP.new(rsa_public_key)
+        ciphertext = base64.encodebytes(cipher.encrypt(personal_info_data.encode('utf-8')))
+
+        # PersonalInfo情報更新
+        if custom_personal_info_address is None:
+            personal_info_address = Config.PERSONAL_INFO_CONTRACT_ADDRESS
+        else:
+            personal_info_address = to_checksum_address(custom_personal_info_address)
+        PersonalInfoContract = ContractUtils.get_contract('PersonalInfo', personal_info_address)
+        try:
+            gas = PersonalInfoContract.estimateGas().modify(account_address, ciphertext)
+            tx = PersonalInfoContract.functions.modify(account_address, ciphertext). \
+                buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
+            ContractUtils.send_transaction(transaction=tx)
+        except Exception as err:
+            logger.exception(f"{err}")
+            raise EthRuntimeError()
 
     @staticmethod
     def validateDictStruct(madict, trdict):

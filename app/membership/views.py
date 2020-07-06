@@ -16,6 +16,7 @@ from sqlalchemy import func, desc
 from app import db
 from app.models import Token, Order, Agreement, AgreementStatus, AddressType, ApplyFor, Transfer, Issuer, HolderList
 from app.utils import ContractUtils, TokenUtils
+from app.exceptions import EthRuntimeError
 from config import Config
 from . import membership
 from .forms import TransferForm, TransferOwnershipForm, SettingForm, SellForm, IssueForm, CancelOrderForm, AddSupplyForm
@@ -60,7 +61,7 @@ def transfer_token(token_contract, from_address, to_address, amount):
 @membership.route('/list', methods=['GET'])
 @login_required
 def list():
-    logger.info('membership.list')
+    logger.info('membership/list')
 
     # 発行済トークンの情報をDBから取得する
     tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
@@ -507,7 +508,8 @@ def get_holders(token_address):
             else:
                 # 暗号化個人情報取得
                 try:
-                    encrypted_info = PersonalInfoContract.functions.personal_info(account_address, token_owner).call()[2]
+                    encrypted_info = PersonalInfoContract.functions.personal_info(account_address, token_owner).call()[
+                        2]
                 except Exception as e:
                     logger.warning(e)
                     encrypted_info = ''
@@ -524,7 +526,8 @@ def get_holders(token_address):
                         name = personal_info_json['name'] if personal_info_json['name'] else "--"
                         if personal_info_json['address']['prefecture'] and personal_info_json['address']['city'] and \
                                 personal_info_json['address']['address1']:
-                            address = personal_info_json['address']['prefecture'] + personal_info_json['address']['city']
+                            address = personal_info_json['address']['prefecture'] + personal_info_json['address'][
+                                'city']
                             if personal_info_json['address']['address1'] != "":
                                 address = address + "　" + personal_info_json['address']['address1']
                             if personal_info_json['address']['address2'] != "":
@@ -716,16 +719,50 @@ def transfer_ownership(token_address, account_address):
 ####################################################
 # [会員権]保有者詳細
 ####################################################
-@membership.route('/holder/<string:token_address>/<string:account_address>', methods=['GET'])
+@membership.route('/holder/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
 @login_required
 def holder(token_address, account_address):
-    logger.info('membership/holder')
-    personal_info = TokenUtils.get_holder(token_address, account_address)
-    return render_template(
-        'membership/holder.html',
-        personal_info=personal_info,
-        token_address=token_address
-    )
+    # アドレスフォーマットのチェック
+    if not Web3.isAddress(token_address) or not Web3.isAddress(account_address):
+        abort(404)
+    token_address = to_checksum_address(token_address)
+    account_address = to_checksum_address(account_address)
+
+    #########################
+    # GET：参照
+    #########################
+    if request.method == "GET":
+        logger.info('membership/holder(GET)')
+        personal_info = TokenUtils.get_holder(token_address, account_address)
+        return render_template(
+            'membership/holder.html',
+            personal_info=personal_info,
+            token_address=token_address,
+            account_address=account_address
+        )
+
+    #########################
+    # POST：個人情報更新
+    #########################
+    if request.method == "POST":
+        if request.form.get('_method') == 'DELETE':  # 個人情報初期化
+            logger.info('membership/holder(DELETE)')
+            try:
+                TokenUtils.modify_personal_info(
+                    account_address=account_address,
+                    data={}
+                )
+                flash('個人情報の初期化に成功しました。', 'success')
+            except EthRuntimeError:
+                flash('個人情報の初期化に失敗しました。', 'error')
+
+            personal_info = TokenUtils.get_holder(token_address, account_address)
+            return render_template(
+                'membership/holder.html',
+                personal_info=personal_info,
+                token_address=token_address,
+                account_address=account_address
+            )
 
 
 ####################################################
@@ -794,13 +831,13 @@ def setting(token_address):
             # トークン詳細変更
             if form.details.data != details:
                 gas = TokenContract.estimateGas().setDetails(form.details.data)
-                tx = TokenContract.functions.setDetails(form.details.data).\
+                tx = TokenContract.functions.setDetails(form.details.data). \
                     buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                 ContractUtils.send_transaction(transaction=tx)
             # 特典詳細変更
             if form.return_details.data != return_details:
                 gas = TokenContract.estimateGas().setReturnDetails(form.return_details.data)
-                tx = TokenContract.functions.setReturnDetails(form.return_details.data).\
+                tx = TokenContract.functions.setReturnDetails(form.return_details.data). \
                     buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                 ContractUtils.send_transaction(transaction=tx)
             # 有効期限変更
@@ -958,7 +995,8 @@ def issue():
                 form.privacy_policy.data
             ]
             _, bytecode, bytecode_runtime = ContractUtils.get_contract_info('IbetMembership')
-            contract_address, abi, tx_hash = ContractUtils.deploy_contract('IbetMembership', arguments, Config.ETH_ACCOUNT)
+            contract_address, abi, tx_hash = ContractUtils.deploy_contract('IbetMembership', arguments,
+                                                                           Config.ETH_ACCOUNT)
 
             # 発行情報をDBに登録
             token = Token()
@@ -977,17 +1015,17 @@ def issue():
                     TokenContract = web3.eth.contract(address=contract_address, abi=abi)
                     if form.image_1.data != '':
                         gas = TokenContract.estimateGas().setImageURL(0, form.image_1.data)
-                        tx = TokenContract.functions.setImageURL(0, form.image_1.data).\
+                        tx = TokenContract.functions.setImageURL(0, form.image_1.data). \
                             buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                         ContractUtils.send_transaction(transaction=tx)
                     if form.image_2.data != '':
                         gas = TokenContract.estimateGas().setImageURL(1, form.image_2.data)
-                        tx = TokenContract.functions.setImageURL(1, form.image_2.data).\
+                        tx = TokenContract.functions.setImageURL(1, form.image_2.data). \
                             buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                         ContractUtils.send_transaction(transaction=tx)
                     if form.image_3.data != '':
                         gas = TokenContract.estimateGas().setImageURL(2, form.image_3.data)
-                        tx = TokenContract.functions.setImageURL(2, form.image_3.data).\
+                        tx = TokenContract.functions.setImageURL(2, form.image_3.data). \
                             buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                         ContractUtils.send_transaction(transaction=tx)
 
@@ -1264,7 +1302,7 @@ def add_supply(token_address):
     if request.method == 'POST':
         if form.validate():
             gas = TokenContract.estimateGas().issue(form.addSupply.data)
-            tx = TokenContract.functions.issue(form.addSupply.data).\
+            tx = TokenContract.functions.issue(form.addSupply.data). \
                 buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
             ContractUtils.send_transaction(transaction=tx)
             flash('追加発行を受け付けました。発行完了までに数分程かかることがあります。', 'success')

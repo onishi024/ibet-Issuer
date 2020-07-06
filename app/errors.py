@@ -7,9 +7,14 @@ from logging import getLogger
 logger = getLogger('api')
 
 
+@index_blueprint.app_errorhandler(400)
+def bad_request(e):
+    response = jsonify({'error': 'bad request'})
+    response.status_code = 400
+    return response
+
 @index_blueprint.app_errorhandler(403)
 def forbidden(e):
-    logger.exception(e)
     if request.accept_mimetypes.accept_json and not request.accept_mimetypes.accept_html:
         response = jsonify({'error': 'forbidden'})
         response.status_code = 403
@@ -19,7 +24,6 @@ def forbidden(e):
 
 @index_blueprint.app_errorhandler(404)
 def page_not_found(e):
-    logger.exception(e)
     if request.accept_mimetypes.accept_json and not request.accept_mimetypes.accept_html:
         response = jsonify({'error': 'not found'})
         response.status_code = 404

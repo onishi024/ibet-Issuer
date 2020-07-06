@@ -18,6 +18,7 @@ from app import db
 from app.models import Token, Order, Agreement, AgreementStatus, CouponBulkTransfer, AddressType, ApplyFor, Transfer, \
     Issuer, Consume
 from app.utils import ContractUtils, TokenUtils
+from app.exceptions import EthRuntimeError
 from config import Config
 from . import coupon
 from .forms import IssueCouponForm, SellForm, CancelOrderForm, TransferForm, BulkTransferForm, TransferOwnershipForm, \
@@ -831,8 +832,19 @@ def transfer():
 
             # Tokenコントラクト接続
             token = Token.query.filter(Token.token_address == form.token_address.data).first()
+            if token is None or token.template_id != Config.TEMPLATE_ID_COUPON:
+                flash('無効なクーポンアドレスです。', 'error')
+                return render_template('coupon/transfer.html', form=form)
             token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
             TokenContract = web3.eth.contract(address=token.token_address, abi=token_abi)
+
+            # 残高チェック
+            amount = form.amount.data
+            balance = TokenContract.functions. \
+                balanceOf(to_checksum_address(Config.ETH_ACCOUNT)).call()
+            if amount > balance:
+                flash('割当数量が残高を超えています。', 'error')
+                return render_template('coupon/transfer.html', form=form)
 
             # 割当処理（発行体アドレス→指定アドレス）
             from_address = Config.ETH_ACCOUNT
@@ -866,54 +878,97 @@ def bulk_transfer():
                 csv_input = csv.reader(stream)
                 for row in csv_input:
                     transfer_set.append(row)
-
             except Exception as e:
                 logger.error(e)
                 flash('CSVアップロードでエラーが発生しました。', 'error')
                 transfer_set = "error"
                 return render_template('coupon/bulk_transfer.html', form=form, transfer_set=transfer_set)
 
+            # トークン別に残高を保持するdict
+            remaining_balance_dict = {}
             # transfer_rowの構成：[coupon_address, to_address, amount]
             for transfer_row in transfer_set:
+                # ファイルフォーマットチェック
+                try:
+                    token_address = transfer_row[0]
+                    send_address = transfer_row[1]
+                    transfer_amount = transfer_row[2]
+                except IndexError:
+                    flash('ファイルフォーマットが正しくありません。', 'error')
+                    db.session.rollback()
+                    return render_template('coupon/bulk_transfer.html', form=form)
+
                 # Addressフォーマットチェック（token_address）
-                if not Web3.isAddress(transfer_row[0]):
+                if not Web3.isAddress(token_address):
                     flash('無効なクーポンアドレスが含まれています。', 'error')
-                    message = '無効なクーポンアドレスが含まれています。' + transfer_row[0]
+                    message = f'無効なクーポンアドレスが含まれています: {token_address}'
                     logger.warning(message)
+                    db.session.rollback()
                     return render_template('coupon/bulk_transfer.html', form=form)
 
                 # Addressフォーマットチェック（send_address）
-                if not Web3.isAddress(transfer_row[1]):
+                if not Web3.isAddress(send_address):
                     flash('無効な割当先アドレスが含まれています。', 'error')
-                    message = '無効な割当先アドレスが含まれています' + transfer_row[1]
+                    message = f'無効な割当先アドレスが含まれています: {send_address}'
                     logger.warning(message)
+                    db.session.rollback()
                     return render_template('coupon/bulk_transfer.html', form=form)
 
                 # amountチェック
-                if 100000000 < int(transfer_row[2]):
+                if not transfer_amount.isdecimal() or \
+                        (int(transfer_amount) <= 0 or 100000000 < int(transfer_amount)):
                     flash('割当量が適切ではありません。', 'error')
-                    message = '割当量が適切ではありません' + transfer_row[2]
+                    message = f'割当量が適切ではありません: {transfer_amount}'
                     logger.warning(message)
+                    db.session.rollback()
                     return render_template('coupon/bulk_transfer.html', form=form)
+
+                # 残高チェック
+                amount = int(transfer_amount)
+                if token_address in remaining_balance_dict:
+                    balance = remaining_balance_dict[token_address]
+                else:
+                    # Tokenコントラクト接続
+                    token = Token.query.filter(Token.token_address == token_address).first()
+                    if token is None or token.template_id != Config.TEMPLATE_ID_COUPON:
+                        flash('無効なクーポンアドレスが含まれています。', 'error')
+                        message = f'無効なクーポンアドレスが含まれています: {token_address}'
+                        logger.warning(message)
+                        db.session.rollback()
+                        return render_template('coupon/bulk_transfer.html', form=form)
+                    token_abi = json.loads(
+                        token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false')
+                    )
+                    TokenContract = web3.eth.contract(address=token.token_address, abi=token_abi)
+                    balance = TokenContract.functions.balanceOf(to_checksum_address(Config.ETH_ACCOUNT)).call()
+                if amount > balance:
+                    flash('割当数量が残高を超えています。', 'error')
+                    message = f'割当数量が残高を超えています。 割当数量:{transfer_amount} / 残高:{balance}'
+                    logger.warning(message)
+                    db.session.rollback()
+                    return render_template('coupon/bulk_transfer.html', form=form)
+                # 同一CSV内での複数回割当を考慮して割当数量を減らした残高を保持する
+                if to_checksum_address(send_address) != to_checksum_address(Config.ETH_ACCOUNT):
+                    remaining_balance_dict[token_address] = balance - amount
+                else:
+                    # 割当先が発行体自身の場合、残高は変化なし
+                    remaining_balance_dict[token_address] = balance
 
                 # DB登録処理
                 csvtransfer = CouponBulkTransfer()
-                csvtransfer.token_address = transfer_row[0]
-                csvtransfer.to_address = transfer_row[1]
-                csvtransfer.amount = transfer_row[2]
+                csvtransfer.token_address = token_address
+                csvtransfer.to_address = send_address
+                csvtransfer.amount = transfer_amount
                 csvtransfer.transferred = False
                 db.session.add(csvtransfer)
 
             # 全てのデータが正常処理されたらコミットを行う
             db.session.commit()
-
             flash('処理を受け付けました。割当完了までに数分程かかることがあります。', 'success')
             return render_template('coupon/bulk_transfer.html', form=form, transfer_set=transfer_set)
-
         else:
             flash_errors(form)
             return render_template('coupon/bulk_transfer.html', form=form, transfer_set=transfer_set)
-
     else:  # GET
         return render_template('coupon/bulk_transfer.html', form=form)
 
@@ -1096,7 +1151,8 @@ def get_usage_history(token_address):
     usage_list = []
     for entry in entries:
         usage = {
-            'block_timestamp': entry.block_timestamp.replace(tzinfo=timezone.utc).astimezone(JST).strftime("%Y/%m/%d %H:%M:%S %z"),
+            'block_timestamp': entry.block_timestamp.replace(tzinfo=timezone.utc).astimezone(JST).strftime(
+                "%Y/%m/%d %H:%M:%S %z"),
             'consumer': entry.consumer_address,
             'value': entry.used_amount
         }
@@ -1121,7 +1177,8 @@ def used_csv_download():
     usage_list = []
     for entry in entries:
         usage = {
-            'block_timestamp': entry.block_timestamp.replace(tzinfo=timezone.utc).astimezone(JST).strftime("%Y/%m/%d %H:%M:%S %z"),
+            'block_timestamp': entry.block_timestamp.replace(tzinfo=timezone.utc).astimezone(JST).strftime(
+                "%Y/%m/%d %H:%M:%S %z"),
             'consumer': entry.consumer_address,
             'value': entry.used_amount
         }
@@ -1145,7 +1202,7 @@ def used_csv_download():
             token_name + ',' + \
             token_address + ',' + \
             str(usage["block_timestamp"]) + ',' + \
-            str(usage["consumer"]) + ','  + \
+            str(usage["consumer"]) + ',' + \
             str(usage["value"]) + '\n'
         f.write(data_row)
 
@@ -1325,7 +1382,8 @@ def get_holders(token_address):
             else:
                 # 暗号化個人情報取得
                 try:
-                    encrypted_info = PersonalInfoContract.functions.personal_info(account_address, token_owner).call()[2]
+                    encrypted_info = PersonalInfoContract.functions.personal_info(account_address, token_owner).call()[
+                        2]
                 except Exception as e:
                     logger.warning(e)
                     encrypted_info = ''
@@ -1342,7 +1400,8 @@ def get_holders(token_address):
                         name = personal_info_json['name'] if personal_info_json['name'] else "--"
                         if personal_info_json['address']['prefecture'] and personal_info_json['address']['city'] and \
                                 personal_info_json['address']['address1']:
-                            address = personal_info_json['address']['prefecture'] + personal_info_json['address']['city']
+                            address = personal_info_json['address']['prefecture'] + personal_info_json['address'][
+                                'city']
                             if personal_info_json['address']['address1'] != "":
                                 address = address + "　" + personal_info_json['address']['address1']
                             if personal_info_json['address']['address2'] != "":
@@ -1391,16 +1450,53 @@ def get_token_name(token_address):
     return jsonify(token_name)
 
 
+####################################################
 # 保有者詳細
-@coupon.route('/holder/<string:token_address>/<string:account_address>', methods=['GET'])
+####################################################
+@coupon.route('/holder/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
 @login_required
 def holder(token_address, account_address):
-    logger.info('coupon/holder')
-    personal_info = TokenUtils.get_holder(token_address, account_address)
-    return render_template(
-        'coupon/holder.html',
-        personal_info=personal_info,
-        token_address=token_address)
+    # アドレスフォーマットのチェック
+    if not Web3.isAddress(token_address) or not Web3.isAddress(account_address):
+        abort(404)
+    token_address = to_checksum_address(token_address)
+    account_address = to_checksum_address(account_address)
+
+    #########################
+    # GET：参照
+    #########################
+    if request.method == "GET":
+        logger.info('coupon/holder(GET)')
+        personal_info = TokenUtils.get_holder(token_address, account_address)
+        return render_template(
+            'coupon/holder.html',
+            personal_info=personal_info,
+            token_address=token_address,
+            account_address=account_address
+        )
+
+    #########################
+    # POST：個人情報更新
+    #########################
+    if request.method == "POST":
+        if request.form.get('_method') == 'DELETE':  # 個人情報初期化
+            logger.info('coupon/holder(DELETE)')
+            try:
+                TokenUtils.modify_personal_info(
+                    account_address=account_address,
+                    data={}
+                )
+            except EthRuntimeError:
+                flash('個人情報の初期化に失敗しました。', 'error')
+
+            personal_info = TokenUtils.get_holder(token_address, account_address)
+            flash('個人情報の初期化に成功しました。', 'success')
+            return render_template(
+                'coupon/holder.html',
+                personal_info=personal_info,
+                token_address=token_address,
+                account_address=account_address
+            )
 
 
 ####################################################
