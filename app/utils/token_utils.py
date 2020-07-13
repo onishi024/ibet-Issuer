@@ -113,11 +113,17 @@ class TokenUtils:
         else:
             try:
                 ciphertext = base64.decodebytes(encrypted_info.encode('utf-8'))
+                # NOTE:
+                # JavaScriptでRSA暗号化する際に、先頭が0x00の場合は00を削った状態でデータが連携される。
+                # そのままdecryptすると、ValueError（Ciphertext with incorrect length）になるため、
+                # 先頭に再度00を加えて、decryptを行う。
+                if len(ciphertext) == 1279:
+                    hex_fixed = "00" + ciphertext.hex()
+                    ciphertext = base64.b16decode(hex_fixed.upper())
                 message = cipher.decrypt(ciphertext)  # 復号化
                 personal_info = TokenUtils.validateDictStruct(personal_info, json.loads(message))
-            except Exception as e:
-                logger.warning(e)
-                pass
+            except Exception as err:
+                logger.error(f"Failed to decrypt: {err}")
         return personal_info
 
     @staticmethod
