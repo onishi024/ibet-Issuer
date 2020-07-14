@@ -1109,8 +1109,9 @@ def positions():
                     filter(Order.account_address == owner). \
                     filter(Order.is_buy == False). \
                     filter(Order.is_cancelled == False). \
+                    filter(Order.amount > 0). \
                     first()
-                if order is not None and order.amount != 0:
+                if order is not None:
                     on_sale = True
                     order_id = order.order_id
                     order_price = order.price
