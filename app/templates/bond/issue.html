@@ -168,6 +168,12 @@
                     </div>
                 </div>
                 <div class="form-group">
+                    {{ form.transferable.label(class="col-md-2 control-label") }}
+                    <div class="col-md-5">
+                        {{ form.transferable(class="form-control") }}
+                    </div>
+                </div>
+                <div class="form-group">
                     {{ form.image_1.label(class="col-md-2 control-label") }}
                     <div class="col-md-8">
                         {{ form.image_1(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：http://image.png", title=form_description['image_1'] )}}
