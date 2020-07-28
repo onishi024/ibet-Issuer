@@ -204,6 +204,16 @@ def issue():
                             buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                         ContractUtils.send_transaction(transaction=tx)
 
+            # 譲渡可否設定の登録処理
+            # NOTE:デフォルト設定は譲渡可能（True）なので、譲渡不可（False）の場合にのみ、更新処理を行う
+            if form.transferable.data == "False":
+                if contract_address is not None:
+                    TokenContract = web3.eth.contract(address=contract_address, abi=abi)
+                    gas = TokenContract.estimateGas().setTransferable(False)
+                    tx = TokenContract.functions.setTransferable(False). \
+                        buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
+                    ContractUtils.send_transaction(transaction=tx)
+
             flash('新規発行を受け付けました。発行完了までに数分程かかることがあります。', 'success')
             return redirect(url_for('.list'))
         else:
