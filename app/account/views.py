@@ -290,10 +290,11 @@ def payment_account_regist(form):
     # 銀行口座情報の暗号化
     payment_account_ciphertext = base64.encodebytes(cipher.encrypt(payment_account_message_string.encode('utf-8')))
 
-    # WhiteList登録
+    # 銀行口座情報の登録
     payment_gateway_address = to_checksum_address(Config.PAYMENT_GATEWAY_CONTRACT_ADDRESS)
     PaymentGatewayContract = ContractUtils.get_contract('PaymentGateway', payment_gateway_address)
-    gas = PaymentGatewayContract.estimateGas().register(agent_address, payment_account_ciphertext)
+    gas = PaymentGatewayContract.functions.register(agent_address, payment_account_ciphertext).\
+        estimateGas({'from': Config.ETH_ACCOUNT})
     tx = PaymentGatewayContract.functions.register(agent_address, payment_account_ciphertext).\
         buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
     ContractUtils.send_transaction(transaction=tx)
