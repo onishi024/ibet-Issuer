@@ -189,7 +189,8 @@ class TokenUtils:
             personal_info_address = to_checksum_address(custom_personal_info_address)
         PersonalInfoContract = ContractUtils.get_contract('PersonalInfo', personal_info_address)
         try:
-            gas = PersonalInfoContract.estimateGas().modify(account_address, ciphertext)
+            gas = PersonalInfoContract.functions.modify(account_address, ciphertext). \
+                estimateGas({'from': Config.ETH_ACCOUNT})
             tx = PersonalInfoContract.functions.modify(account_address, ciphertext). \
                 buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
             ContractUtils.send_transaction(transaction=tx)

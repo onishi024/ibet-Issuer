@@ -202,6 +202,12 @@ class IssueForm(Form):
         ]
     )
 
+    transferable = SelectField(
+        '譲渡制限',
+        choices=[(True, 'True'), (False, 'False')],
+        default='True'
+    )
+
     image_1 = StringField(
         "画像（１）URL",
         validators=[
@@ -277,6 +283,7 @@ class IssueForm(Form):
             'contact_information': '商品に関する問い合わせ先情報を入力してください。',
             'privacy_policy': '商品に関するプライバシーポリシーを入力してください。',
         }
+        self.transferable.choices = [('True', 'なし'), ('False', 'あり')]
 
     @staticmethod
     def check_decimal_places(places, field):

@@ -71,7 +71,8 @@ while True:
 
         try:
             # DEXコントラクトへデポジット（Transfer）
-            gas = TokenContract.estimateGas().transferFrom(from_address, to_address, amount)
+            gas = TokenContract.functions.transferFrom(from_address, to_address, amount). \
+                estimateGas({'from': Config.ETH_ACCOUNT})
             tx = TokenContract.functions.transferFrom(from_address, to_address, amount). \
                 buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
             ContractUtils.send_transaction(transaction=tx)

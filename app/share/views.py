@@ -127,17 +127,20 @@ def issue():
                 if contract_address is not None:
                     TokenContract = web3.eth.contract(address=contract_address, abi=abi)
                     if form.referenceUrls_1.data != '':
-                        gas = TokenContract.estimateGas().setReferenceUrls(0, form.referenceUrls_1.data)
+                        gas = TokenContract.functions.setReferenceUrls(0, form.referenceUrls_1.data).\
+                            estimateGas({'from': Config.ETH_ACCOUNT})
                         tx = TokenContract.functions.setReferenceUrls(0, form.referenceUrls_1.data). \
                             buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                         ContractUtils.send_transaction(transaction=tx)
                     if form.referenceUrls_2.data != '':
-                        gas = TokenContract.estimateGas().setReferenceUrls(1, form.referenceUrls_2.data)
+                        gas = TokenContract.functions.setReferenceUrls(1, form.referenceUrls_2.data).\
+                            estimateGas({'from': Config.ETH_ACCOUNT})
                         tx = TokenContract.functions.setReferenceUrls(1, form.referenceUrls_2.data). \
                             buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                         ContractUtils.send_transaction(transaction=tx)
                     if form.referenceUrls_3.data != '':
-                        gas = TokenContract.estimateGas().setReferenceUrls(2, form.referenceUrls_3.data)
+                        gas = TokenContract.functions.setReferenceUrls(2, form.referenceUrls_3.data).\
+                            estimateGas({'from': Config.ETH_ACCOUNT})
                         tx = TokenContract.functions.setReferenceUrls(2, form.referenceUrls_3.data). \
                             buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                         ContractUtils.send_transaction(transaction=tx)
@@ -280,11 +283,11 @@ def setting(token_address):
             if float(form.dividends.data) != dividends or \
                     form.dividendRecordDate.data != dividendRecordDate or \
                     form.dividendPaymentDate.data != dividendPaymentDate:
-                gas = TokenContract.estimateGas().setDividendInformation(
+                gas = TokenContract.functions.setDividendInformation(
                     int(form.dividends.data * 100),
                     form.dividendRecordDate.data,
                     form.dividendPaymentDate.data
-                )
+                ).estimateGas({'from': Config.ETH_ACCOUNT})
                 tx = TokenContract.functions.setDividendInformation(
                     int(form.dividends.data * 100),
                     form.dividendRecordDate.data,
@@ -294,14 +297,16 @@ def setting(token_address):
 
             # 消却日欄変更
             if form.cancellationDate.data != cancellationDate:
-                gas = TokenContract.estimateGas().setCancellationDate(form.cancellationDate.data)
+                gas = TokenContract.functions.setCancellationDate(form.cancellationDate.data).\
+                    estimateGas({'from': Config.ETH_ACCOUNT})
                 tx = TokenContract.functions.setCancellationDate(form.cancellationDate.data). \
                     buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                 ContractUtils.send_transaction(transaction=tx)
 
             # 補足情報欄変更
             if form.memo.data != memo:
-                gas = TokenContract.estimateGas().setMemo(form.memo.data)
+                gas = TokenContract.functions.setMemo(form.memo.data).\
+                    estimateGas({'from': Config.ETH_ACCOUNT})
                 tx = TokenContract.functions.setMemo(form.memo.data). \
                     buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                 ContractUtils.send_transaction(transaction=tx)
@@ -311,32 +316,37 @@ def setting(token_address):
                 transferable_bool = True
                 if form.transferable.data == 'False':
                     transferable_bool = False
-                gas = TokenContract.estimateGas().setTransferable(transferable_bool)
+                gas = TokenContract.functions.setTransferable(transferable_bool).\
+                    estimateGas({'from': Config.ETH_ACCOUNT})
                 tx = TokenContract.functions.setTransferable(transferable_bool). \
                     buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                 ContractUtils.send_transaction(transaction=tx)
 
             # 関連URL変更
             if form.referenceUrls_1.data != referenceUrls_1:
-                gas = TokenContract.estimateGas().setReferenceUrls(0, form.referenceUrls_1.data)
+                gas = TokenContract.functions.setReferenceUrls(0, form.referenceUrls_1.data).\
+                    estimateGas({'from': Config.ETH_ACCOUNT})
                 tx = TokenContract.functions.setReferenceUrls(0, form.referenceUrls_1.data). \
                     buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                 ContractUtils.send_transaction(transaction=tx)
             if form.referenceUrls_2.data != referenceUrls_2:
-                gas = TokenContract.estimateGas().setReferenceUrls(1, form.referenceUrls_2.data)
+                gas = TokenContract.functions.setReferenceUrls(1, form.referenceUrls_2.data).\
+                    estimateGas({'from': Config.ETH_ACCOUNT})
                 tx = TokenContract.functions.setReferenceUrls(1, form.referenceUrls_2.data). \
                     buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                 ContractUtils.send_transaction(transaction=tx)
             if form.referenceUrls_3.data != referenceUrls_3:
-                gas = TokenContract.estimateGas().setReferenceUrls(2, form.referenceUrls_3.data)
+                gas = TokenContract.functions.setReferenceUrls(2, form.referenceUrls_3.data).\
+                    estimateGas({'from': Config.ETH_ACCOUNT})
                 tx = TokenContract.functions.setReferenceUrls(2, form.referenceUrls_3.data). \
                     buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                 ContractUtils.send_transaction(transaction=tx)
 
             # DEXアドレス変更
             if form.tradableExchange.data != tradableExchange:
-                gas = TokenContract.estimateGas(). \
-                    setTradableExchange(to_checksum_address(form.tradableExchange.data))
+                gas = TokenContract.functions. \
+                    setTradableExchange(to_checksum_address(form.tradableExchange.data)).\
+                    estimateGas({'from': Config.ETH_ACCOUNT})
                 tx = TokenContract.functions. \
                     setTradableExchange(to_checksum_address(form.tradableExchange.data)). \
                     buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
@@ -344,8 +354,9 @@ def setting(token_address):
 
             # PersonalInfoコントラクトアドレス変更
             if form.personalInfoAddress.data != personalInfoAddress:
-                gas = TokenContract.estimateGas(). \
-                    setPersonalInfoAddress(to_checksum_address(form.personalInfoAddress.data))
+                gas = TokenContract.functions. \
+                    setPersonalInfoAddress(to_checksum_address(form.personalInfoAddress.data)).\
+                    estimateGas({'from': Config.ETH_ACCOUNT})
                 tx = TokenContract.functions. \
                     setPersonalInfoAddress(to_checksum_address(form.personalInfoAddress.data)). \
                     buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
@@ -353,14 +364,16 @@ def setting(token_address):
 
             # 問い合わせ先変更
             if form.contact_information.data != contact_information:
-                gas = TokenContract.estimateGas().setContactInformation(form.contact_information.data)
+                gas = TokenContract.functions.setContactInformation(form.contact_information.data).\
+                    estimateGas({'from': Config.ETH_ACCOUNT})
                 tx = TokenContract.functions.setContactInformation(form.contact_information.data). \
                     buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                 ContractUtils.send_transaction(transaction=tx)
 
             # プライバシーポリシー変更
             if form.privacy_policy.data != privacy_policy:
-                gas = TokenContract.estimateGas().setPrivacyPolicy(form.privacy_policy.data)
+                gas = TokenContract.functions.setPrivacyPolicy(form.privacy_policy.data).\
+                    estimateGas({'from': Config.ETH_ACCOUNT})
                 tx = TokenContract.functions.setPrivacyPolicy(form.privacy_policy.data). \
                     buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                 ContractUtils.send_transaction(transaction=tx)
@@ -429,7 +442,8 @@ def release():
     list_contract_address = Config.TOKEN_LIST_CONTRACT_ADDRESS
     ListContract = ContractUtils.get_contract('TokenList', list_contract_address)
     try:
-        gas = ListContract.estimateGas().register(token_address, 'IbetShare')
+        gas = ListContract.functions.register(token_address, 'IbetShare').\
+            estimateGas({'from': Config.ETH_ACCOUNT})
         tx = ListContract.functions.register(token_address, 'IbetShare'). \
             buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
         ContractUtils.send_transaction(transaction=tx)
@@ -473,7 +487,8 @@ def _set_offering_status(token_address, status):
     token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
     TokenContract = web3.eth.contract(address=token.token_address, abi=token_abi)
     try:
-        gas = TokenContract.estimateGas().setOfferingStatus(status)
+        gas = TokenContract.functions.setOfferingStatus(status).\
+            estimateGas({'from': Config.ETH_ACCOUNT})
         tx = TokenContract.functions.setOfferingStatus(status). \
             buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
         ContractUtils.send_transaction(transaction=tx)
@@ -515,7 +530,8 @@ def _set_validity(token_address, isvalid):
     token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
     TokenContract = web3.eth.contract(address=token.token_address, abi=token_abi)
     try:
-        gas = TokenContract.estimateGas().setStatus(isvalid)
+        gas = TokenContract.functions.setStatus(isvalid).\
+            estimateGas({'from': Config.ETH_ACCOUNT})
         tx = TokenContract.functions.setStatus(isvalid). \
             buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
         ContractUtils.send_transaction(transaction=tx)
@@ -548,7 +564,8 @@ def add_supply(token_address):
     if request.method == 'POST':
         if form.validate():
             try:
-                gas = TokenContract.estimateGas().issueFrom(Config.ETH_ACCOUNT, ZERO_ADDRESS, form.amount.data)
+                gas = TokenContract.functions.issueFrom(Config.ETH_ACCOUNT, ZERO_ADDRESS, form.amount.data).\
+                    estimateGas({'from': Config.ETH_ACCOUNT})
                 tx = TokenContract.functions.issueFrom(Config.ETH_ACCOUNT, ZERO_ADDRESS, form.amount.data). \
                     buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                 ContractUtils.send_transaction(transaction=tx)
@@ -756,7 +773,8 @@ def allot(token_address, account_address):
             # 割当処理
             to_address = to_checksum_address(account_address)
             try:
-                gas = TokenContract.estimateGas().allot(to_address, form.amount.data)
+                gas = TokenContract.functions.allot(to_address, form.amount.data).\
+                    estimateGas({'from': Config.ETH_ACCOUNT})
                 tx = TokenContract.functions.allot(to_address, form.amount.data). \
                     buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                 ContractUtils.send_transaction(transaction=tx)
@@ -826,7 +844,8 @@ def transfer_allotment(token_address, account_address):
             to_address = to_checksum_address(account_address)
             try:
                 # 強制移転
-                gas = TokenContract.estimateGas().transferFrom(from_address, to_address, amount)
+                gas = TokenContract.functions.transferFrom(from_address, to_address, amount).\
+                    estimateGas({'from': Config.ETH_ACCOUNT})
                 tx = TokenContract.functions.transferFrom(from_address, to_address, amount). \
                     buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                 ContractUtils.send_transaction(transaction=tx)
@@ -1210,7 +1229,8 @@ def transfer_ownership(token_address, account_address):
                     account_address=account_address,
                     form=form
                 )
-            gas = TokenContract.estimateGas().transferFrom(from_address, to_address, amount)
+            gas = TokenContract.functions.transferFrom(from_address, to_address, amount).\
+                estimateGas({'from': Config.ETH_ACCOUNT})
             tx = TokenContract.functions.transferFrom(from_address, to_address, amount). \
                 buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
             ContractUtils.send_transaction(transaction=tx)
