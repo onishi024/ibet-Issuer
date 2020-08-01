@@ -48,7 +48,8 @@ def flash_errors(form):
 
 # 共通処理：トークン移転（強制移転）
 def transfer_token(token_contract, from_address, to_address, amount):
-    gas = token_contract.estimateGas().transferFrom(from_address, to_address, amount)
+    gas = token_contract.functions.transferFrom(from_address, to_address, amount). \
+        estimateGas({'from': Config.ETH_ACCOUNT})
     tx = token_contract.functions.transferFrom(from_address, to_address, amount). \
         buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
     tx_hash, txn_receipt = ContractUtils.send_transaction(transaction=tx)
@@ -205,27 +206,22 @@ def applications_csv_download():
 @membership.route('/get_applications/<string:token_address>', methods=['GET'])
 @login_required
 def get_applications(token_address):
+    # RSA秘密鍵取得
     cipher = None
     try:
         key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
         cipher = PKCS1_OAEP.new(key)
-    except Exception as e:
-        logger.error(e)
+    except Exception as err:
+        logger.error(f"Cannot open the private key: {err}")
 
+    # Tokenコントラクト接続
     token = Token.query.filter(Token.token_address == token_address).first()
-    token_abi = json.loads(
-        token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+    TokenContract = web3.eth.contract(address=token_address, abi=token_abi)
 
-    # 会員権Token
-    TokenContract = web3.eth.contract(
-        address=token_address,
-        abi=token_abi
-    )
-
-    # PersonalInfo
+    # PersonalInfoコントラクト接続
     personalinfo_address = Config.PERSONAL_INFO_CONTRACT_ADDRESS
-    PersonalInfoContract = \
-        ContractUtils.get_contract('PersonalInfo', personalinfo_address)
+    PersonalInfoContract = ContractUtils.get_contract('PersonalInfo', personalinfo_address)
 
     # 申込（ApplyFor）イベントを検索
     apply_for_events = ApplyFor.query. \
@@ -242,26 +238,34 @@ def get_applications(token_address):
     for account_address in account_list:
         encrypted_info = PersonalInfoContract.functions. \
             personal_info(account_address, token_owner).call()[2]
-
         account_name = ''
         account_email_address = ''
         if encrypted_info == '' or cipher is None:
             pass
         else:
             try:
+                # 個人情報を復号
                 ciphertext = base64.decodebytes(encrypted_info.encode('utf-8'))
+                # NOTE:
+                # JavaScriptでRSA暗号化する際に、先頭が0x00の場合は00を削った状態でデータが連携される。
+                # そのままdecryptすると、ValueError（Ciphertext with incorrect length）になるため、
+                # 先頭に再度00を加えて、decryptを行う。
+                if len(ciphertext) == 1279:
+                    hex_fixed = "00" + ciphertext.hex()
+                    ciphertext = base64.b16decode(hex_fixed.upper())
                 message = cipher.decrypt(ciphertext)
                 personal_info_json = json.loads(message)
+
+                # 氏名
                 if 'name' in personal_info_json:
                     account_name = personal_info_json['name']
+                # Eメールアドレス
                 if 'email' in personal_info_json:
                     account_email_address = personal_info_json['email']
-            except Exception as e:
-                logger.warning(e)
-                pass
+            except Exception as err:
+                logger.error(f"Failed to decrypt: {err}")
 
         data = TokenContract.functions.applications(account_address).call()
-
         application = {
             'account_address': account_address,
             'account_name': account_name,
@@ -412,26 +416,20 @@ def get_holders(token_address):
     try:
         key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
         cipher = PKCS1_OAEP.new(key)
-    except Exception as e:
-        logger.error(e)
-
-    # Token情報取得
-    token = Token.query.filter(Token.token_address == token_address).first()
-    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+    except Exception as err:
+        logger.error(f"Cannot open the private key: {err}")
 
     # Tokenコントラクト接続
-    TokenContract = web3.eth.contract(
-        address=token_address,
-        abi=token_abi
-    )
+    token = Token.query.filter(Token.token_address == token_address).first()
+    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+    TokenContract = web3.eth.contract(address=token_address, abi=token_abi)
 
     # 取引コントラクトの情報取得
     try:
         tradable_exchange = TokenContract.functions.tradableExchange().call()
-    except Exception as e:
-        logger.error(e)
+    except Exception as err:
+        logger.error(f"Failed to get token attributes: {err}")
         tradable_exchange = '0x0000000000000000000000000000000000000000'
-        pass
 
     # 取引コントラクト接続
     ExchangeContract = ContractUtils.get_contract('IbetMembershipExchange', tradable_exchange)
@@ -463,10 +461,10 @@ def get_holders(token_address):
         balance = TokenContract.functions.balanceOf(account_address).call()
         try:
             commitment = ExchangeContract.functions.commitmentOf(account_address, token_address).call()
-        except Exception as e:
-            logger.warning(e)
+        except Exception as err:
+            logger.warning(f"Failed to get commitment: {err}")
             commitment = 0
-            pass
+
         if balance > 0 or commitment > 0:  # 残高（balance）、または注文中の残高（commitment）が存在する情報を抽出
             # アドレス種別判定
             if account_address == token_owner:
@@ -508,12 +506,11 @@ def get_holders(token_address):
             else:
                 # 暗号化個人情報取得
                 try:
-                    encrypted_info = PersonalInfoContract.functions.personal_info(account_address, token_owner).call()[
-                        2]
-                except Exception as e:
-                    logger.warning(e)
+                    encrypted_info = PersonalInfoContract.functions. \
+                        personal_info(account_address, token_owner).call()[2]
+                except Exception as err:
+                    logger.warning(f"Failed to get personal information: {err}")
                     encrypted_info = ''
-                    pass
 
                 if encrypted_info == '' or cipher is None:  # 情報が空の場合、デフォルト値の設定
                     pass
@@ -521,23 +518,43 @@ def get_holders(token_address):
                     try:
                         # 個人情報復号化
                         ciphertext = base64.decodebytes(encrypted_info.encode('utf-8'))
+                        # NOTE:
+                        # JavaScriptでRSA暗号化する際に、先頭が0x00の場合は00を削った状態でデータが連携される。
+                        # そのままdecryptすると、ValueError（Ciphertext with incorrect length）になるため、
+                        # 先頭に再度00を加えて、decryptを行う。
+                        if len(ciphertext) == 1279:
+                            hex_fixed = "00" + ciphertext.hex()
+                            ciphertext = base64.b16decode(hex_fixed.upper())
                         message = cipher.decrypt(ciphertext)
                         personal_info_json = json.loads(message)
-                        name = personal_info_json['name'] if personal_info_json['name'] else "--"
-                        if personal_info_json['address']['prefecture'] and personal_info_json['address']['city'] and \
-                                personal_info_json['address']['address1']:
-                            address = personal_info_json['address']['prefecture'] + personal_info_json['address'][
-                                'city']
+
+                        # 氏名
+                        name = personal_info_json['name'] \
+                            if personal_info_json['name'] else "--"
+
+                        # 住所
+                        if personal_info_json['address']['prefecture'] \
+                                and personal_info_json['address']['city'] \
+                                and personal_info_json['address']['address1']:
+                            address = personal_info_json['address']['prefecture'] \
+                                      + personal_info_json['address']['city']
                             if personal_info_json['address']['address1'] != "":
                                 address = address + "　" + personal_info_json['address']['address1']
                             if personal_info_json['address']['address2'] != "":
                                 address = address + "　" + personal_info_json['address']['address2']
                         else:
                             address = "--"
-                        postal_code = personal_info_json['address']['postal_code'] if personal_info_json['address'][
-                            'postal_code'] else "--"
+
+                        # 郵便番号
+                        postal_code = personal_info_json['address']['postal_code'] \
+                            if personal_info_json['address']['postal_code'] else "--"
+
+                        # Eメールアドレス
                         email = personal_info_json['email'] if personal_info_json['email'] else "--"
+
+                        # 郵便番号
                         birth_date = personal_info_json['birth'] if personal_info_json['birth'] else "--"
+
                         # 保有者情報（個人情報あり）
                         holder = {
                             'account_address': account_address,
@@ -550,9 +567,8 @@ def get_holders(token_address):
                             'commitment': commitment,
                             'address_type': address_type
                         }
-                    except Exception as e:
-                        logger.warning(e)
-                        pass
+                    except Exception as err:  # 復号化処理でエラーが発生した場合、デフォルト値を設定
+                        logger.error(f"Failed to decrypt: {err}")
 
             holders.append(holder)
 
@@ -830,25 +846,29 @@ def setting(token_address):
                 )
             # トークン詳細変更
             if form.details.data != details:
-                gas = TokenContract.estimateGas().setDetails(form.details.data)
+                gas = TokenContract.functions.setDetails(form.details.data). \
+                    estimateGas({'from': Config.ETH_ACCOUNT})
                 tx = TokenContract.functions.setDetails(form.details.data). \
                     buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                 ContractUtils.send_transaction(transaction=tx)
             # 特典詳細変更
             if form.return_details.data != return_details:
-                gas = TokenContract.estimateGas().setReturnDetails(form.return_details.data)
+                gas = TokenContract.functions.setReturnDetails(form.return_details.data). \
+                    estimateGas({'from': Config.ETH_ACCOUNT})
                 tx = TokenContract.functions.setReturnDetails(form.return_details.data). \
                     buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                 ContractUtils.send_transaction(transaction=tx)
             # 有効期限変更
             if form.expirationDate.data != expirationDate:
-                gas = TokenContract.estimateGas().setExpirationDate(form.expirationDate.data)
+                gas = TokenContract.functions.setExpirationDate(form.expirationDate.data). \
+                    estimateGas({'from': Config.ETH_ACCOUNT})
                 tx = TokenContract.functions.setExpirationDate(form.expirationDate.data). \
                     buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                 ContractUtils.send_transaction(transaction=tx)
             # メモ欄変更
             if form.memo.data != memo:
-                gas = TokenContract.estimateGas().setMemo(form.memo.data)
+                gas = TokenContract.functions.setMemo(form.memo.data). \
+                    estimateGas({'from': Config.ETH_ACCOUNT})
                 tx = TokenContract.functions.setMemo(form.memo.data). \
                     buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                 ContractUtils.send_transaction(transaction=tx)
@@ -857,41 +877,48 @@ def setting(token_address):
                 tmpVal = True
                 if form.transferable.data == 'False':
                     tmpVal = False
-                gas = TokenContract.estimateGas().setTransferable(tmpVal)
+                gas = TokenContract.functions.setTransferable(tmpVal). \
+                    estimateGas({'from': Config.ETH_ACCOUNT})
                 tx = TokenContract.functions.setTransferable(tmpVal). \
                     buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                 ContractUtils.send_transaction(transaction=tx)
             # 画像変更
             if form.image_1.data != image_1:
-                gas = TokenContract.estimateGas().setImageURL(0, form.image_1.data)
+                gas = TokenContract.functions.setImageURL(0, form.image_1.data). \
+                    estimateGas({'from': Config.ETH_ACCOUNT})
                 tx = TokenContract.functions.setImageURL(0, form.image_1.data). \
                     buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                 ContractUtils.send_transaction(transaction=tx)
             if form.image_2.data != image_2:
-                gas = TokenContract.estimateGas().setImageURL(1, form.image_2.data)
+                gas = TokenContract.functions.setImageURL(1, form.image_2.data). \
+                    estimateGas({'from': Config.ETH_ACCOUNT})
                 tx = TokenContract.functions.setImageURL(1, form.image_2.data). \
                     buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                 ContractUtils.send_transaction(transaction=tx)
             if form.image_3.data != image_3:
-                gas = TokenContract.estimateGas().setImageURL(2, form.image_3.data)
+                gas = TokenContract.functions.setImageURL(2, form.image_3.data). \
+                    estimateGas({'from': Config.ETH_ACCOUNT})
                 tx = TokenContract.functions.setImageURL(2, form.image_3.data). \
                     buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                 ContractUtils.send_transaction(transaction=tx)
             # DEXアドレス変更
             if form.tradableExchange.data != tradableExchange:
-                gas = TokenContract.estimateGas().setTradableExchange(to_checksum_address(form.tradableExchange.data))
+                gas = TokenContract.functions.setTradableExchange(to_checksum_address(form.tradableExchange.data)). \
+                    estimateGas({'from': Config.ETH_ACCOUNT})
                 tx = TokenContract.functions.setTradableExchange(to_checksum_address(form.tradableExchange.data)). \
                     buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                 ContractUtils.send_transaction(transaction=tx)
             # 問い合わせ先変更
             if form.contact_information.data != contact_information:
-                gas = TokenContract.estimateGas().setContactInformation(form.contact_information.data)
+                gas = TokenContract.functions.setContactInformation(form.contact_information.data). \
+                    estimateGas({'from': Config.ETH_ACCOUNT})
                 tx = TokenContract.functions.setContactInformation(form.contact_information.data). \
                     buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                 ContractUtils.send_transaction(transaction=tx)
             # プライバシーポリシー変更
             if form.privacy_policy.data != privacy_policy:
-                gas = TokenContract.estimateGas().setPrivacyPolicy(form.privacy_policy.data)
+                gas = TokenContract.functions.setPrivacyPolicy(form.privacy_policy.data). \
+                    estimateGas({'from': Config.ETH_ACCOUNT})
                 tx = TokenContract.functions.setPrivacyPolicy(form.privacy_policy.data). \
                     buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                 ContractUtils.send_transaction(transaction=tx)
@@ -950,7 +977,8 @@ def release():
     list_contract_address = Config.TOKEN_LIST_CONTRACT_ADDRESS
     ListContract = ContractUtils.get_contract('TokenList', list_contract_address)
     try:
-        gas = ListContract.estimateGas().register(token_address, 'IbetMembership')
+        gas = ListContract.functions.register(token_address, 'IbetMembership'). \
+            estimateGas({'from': Config.ETH_ACCOUNT})
         tx = ListContract.functions.register(token_address, 'IbetMembership'). \
             buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
         ContractUtils.send_transaction(transaction=tx)
@@ -1014,17 +1042,20 @@ def issue():
                 if contract_address is not None:
                     TokenContract = web3.eth.contract(address=contract_address, abi=abi)
                     if form.image_1.data != '':
-                        gas = TokenContract.estimateGas().setImageURL(0, form.image_1.data)
+                        gas = TokenContract.functions.setImageURL(0, form.image_1.data). \
+                            estimateGas({'from': Config.ETH_ACCOUNT})
                         tx = TokenContract.functions.setImageURL(0, form.image_1.data). \
                             buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                         ContractUtils.send_transaction(transaction=tx)
                     if form.image_2.data != '':
-                        gas = TokenContract.estimateGas().setImageURL(1, form.image_2.data)
+                        gas = TokenContract.functions.setImageURL(1, form.image_2.data). \
+                            estimateGas({'from': Config.ETH_ACCOUNT})
                         tx = TokenContract.functions.setImageURL(1, form.image_2.data). \
                             buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                         ContractUtils.send_transaction(transaction=tx)
                     if form.image_3.data != '':
-                        gas = TokenContract.estimateGas().setImageURL(2, form.image_3.data)
+                        gas = TokenContract.functions.setImageURL(2, form.image_3.data). \
+                            estimateGas({'from': Config.ETH_ACCOUNT})
                         tx = TokenContract.functions.setImageURL(2, form.image_3.data). \
                             buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                         ContractUtils.send_transaction(transaction=tx)
@@ -1094,8 +1125,9 @@ def positions():
                     filter(Order.account_address == owner). \
                     filter(Order.is_buy == False). \
                     filter(Order.is_cancelled == False). \
+                    filter(Order.amount > 0). \
                     first()
-                if order is not None and order.amount != 0:
+                if order is not None:
                     on_sale = True
                     order_id = order.order_id
                     order_price = order.price
@@ -1174,15 +1206,17 @@ def sell(token_address):
             agent_address = Config.AGENT_ADDRESS
 
             # DEXに対してDeposit
-            gas = TokenContract.estimateGas().transfer(token_exchange_address, balance)
+            gas = TokenContract.functions.transfer(token_exchange_address, balance). \
+                estimateGas({'from': Config.ETH_ACCOUNT})
             tx = TokenContract.functions.transfer(token_exchange_address, balance). \
                 buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
             ContractUtils.send_transaction(transaction=tx)
 
             # 売注文実行
             ExchangeContract = ContractUtils.get_contract('IbetMembershipExchange', token_exchange_address)
-            gas = ExchangeContract.estimateGas(). \
-                createOrder(token_address, balance, form.sellPrice.data, False, agent_address)
+            gas = ExchangeContract.functions. \
+                createOrder(token_address, balance, form.sellPrice.data, False, agent_address). \
+                estimateGas({'from': Config.ETH_ACCOUNT})
             tx = ExchangeContract.functions. \
                 createOrder(token_address, balance, form.sellPrice.data, False, agent_address). \
                 buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
@@ -1255,7 +1289,8 @@ def cancel_order(token_address, order_id):
 
     if request.method == 'POST':
         if form.validate():
-            gas = ExchangeContract.estimateGas().cancelOrder(order_id)
+            gas = ExchangeContract.functions.cancelOrder(order_id). \
+                estimateGas({'from': Config.ETH_ACCOUNT})
             tx = ExchangeContract.functions.cancelOrder(order_id). \
                 buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
             ContractUtils.send_transaction(transaction=tx)
@@ -1301,7 +1336,8 @@ def add_supply(token_address):
 
     if request.method == 'POST':
         if form.validate():
-            gas = TokenContract.estimateGas().issue(form.addSupply.data)
+            gas = TokenContract.functions.issue(form.addSupply.data). \
+                estimateGas({'from': Config.ETH_ACCOUNT})
             tx = TokenContract.functions.issue(form.addSupply.data). \
                 buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
             ContractUtils.send_transaction(transaction=tx)
@@ -1357,7 +1393,8 @@ def _set_validity(token_address, isvalid):
 
     TokenContract = web3.eth.contract(address=token.token_address, abi=token_abi)
     try:
-        gas = TokenContract.estimateGas().setStatus(isvalid)
+        gas = TokenContract.functions.setStatus(isvalid). \
+            estimateGas({'from': Config.ETH_ACCOUNT})
         tx = TokenContract.functions.setStatus(isvalid). \
             buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
         ContractUtils.send_transaction(transaction=tx)
@@ -1399,7 +1436,8 @@ def _set_offering_status(token_address, status):
     token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
     TokenContract = web3.eth.contract(address=token.token_address, abi=token_abi)
     try:
-        gas = TokenContract.estimateGas().setInitialOfferingStatus(status)
+        gas = TokenContract.functions.setInitialOfferingStatus(status). \
+            estimateGas({'from': Config.ETH_ACCOUNT})
         tx = TokenContract.functions.setInitialOfferingStatus(status). \
             buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
         ContractUtils.send_transaction(transaction=tx)

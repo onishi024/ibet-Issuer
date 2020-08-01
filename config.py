@@ -13,10 +13,10 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 class Config:
     # Tokenテーブルのtemplate_id
-    TEMPLATE_ID_SB = 1 # 債券
-    TEMPLATE_ID_COUPON = 2 # クーポン
-    TEMPLATE_ID_MEMBERSHIP = 3 # 会員権
-    TEMPLATE_ID_SHARE = 4 # 株式
+    TEMPLATE_ID_SB = 1  # 債券
+    TEMPLATE_ID_COUPON = 2  # クーポン
+    TEMPLATE_ID_MEMBERSHIP = 3  # 会員権
+    TEMPLATE_ID_SHARE = 4  # 株式
 
     # gunicornのworker数
     WORKER_COUNT = int(os.environ.get("WORKER_COUNT")) if os.environ.get("WORKER_COUNT") else 4
@@ -128,6 +128,14 @@ class Config:
     img = qrcode.make(ETH_ACCOUNT)
     img.save('app/static/eth_address.png')
 
+    # Private Key Store
+    if os.environ.get('PRIVATE_KEYSTORE') is None or os.environ.get('PRIVATE_KEYSTORE') == 'GETH':
+        PRIVATE_KEYSTORE = 'GETH'
+    elif os.environ.get('PRIVATE_KEYSTORE') == 'AWS_SECRETS_MANAGER':
+        PRIVATE_KEYSTORE = 'AWS_SECRETS_MANAGER'
+        AWS_REGION_NAME = 'ap-northeast-1'  # NOTE:現状は固定で設定
+        AWS_SECRET_ID = os.environ.get('AWS_SECRET_ID')
+
     # TokenList-Contract
     TOKEN_LIST_CONTRACT_ADDRESS = ''
     if os.environ.get('TOKEN_LIST_CONTRACT_ADDRESS') is not None:
@@ -188,6 +196,7 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
+
 
 class TestingConfig(Config):
     TESTING = True

@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import json
 
+import boto3
+from eth_keyfile import decode_keyfile_json
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 from eth_utils import to_checksum_address
@@ -62,16 +64,30 @@ class ContractUtils:
         return contract_address, contract_json['abi'], tx_hash
 
     @staticmethod
-    def send_transaction(invoker=None, transaction=None):
+    def send_transaction(transaction=None):
         """
         トランザクション送信
-        :param invoker: 送信元アドレス
         :param transaction: transaction
         :return: transaction hash, transaction receipt
         """
-        if invoker is None:
+        tx_hash = None
+
+        if Config.PRIVATE_KEYSTORE == "GETH":  # keystoreとしてgethを利用する場合
             web3.personal.unlockAccount(Config.ETH_ACCOUNT, Config.ETH_ACCOUNT_PASSWORD, 60)
-        tx_hash = web3.eth.sendTransaction(transaction)
+            tx_hash = web3.eth.sendTransaction(transaction)
+        elif Config.PRIVATE_KEYSTORE == "AWS_SECRETS_MANAGER":  # keystoreとしてAWS Secrets Managerを利用する場合
+            nonce = web3.eth.getTransactionCount(Config.ETH_ACCOUNT)
+            transaction["nonce"] = nonce
+            client = boto3.client(
+                service_name="secretsmanager",
+                region_name=Config.AWS_REGION_NAME
+            )
+            keyfile = client.get_secret_value(SecretId=Config.AWS_SECRET_ID)
+            keyfile_json = json.loads(keyfile["SecretString"])
+            private_key = decode_keyfile_json(keyfile_json, Config.ETH_ACCOUNT_PASSWORD)
+            signed = web3.eth.account.signTransaction(transaction, private_key)
+            tx_hash = web3.eth.sendRawTransaction(signed.rawTransaction)
+
         txn_receipt = web3.eth.waitForTransactionReceipt(tx_hash)
         logger.debug("Send Transaction: tx_hash={}, txn_receipt={}".format(tx_hash.hex(), txn_receipt))
         return tx_hash.hex(), txn_receipt
