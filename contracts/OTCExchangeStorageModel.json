@@ -7,14 +7,14 @@
     "absolutePath": "contracts/OTCExchangeStorageModel.sol",
     "exportedSymbols": {
       "OTCExchangeStorageModel": [
-        11243
+        11835
       ]
     },
-    "id": 11244,
+    "id": 11836,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 11149,
+        "id": 11741,
         "literals": [
           "solidity",
           "^",
@@ -30,23 +30,23 @@
         "contractKind": "contract",
         "documentation": "@title OTCExchangeStorage\u306eModel",
         "fullyImplemented": true,
-        "id": 11243,
+        "id": 11835,
         "linearizedBaseContracts": [
-          11243
+          11835
         ],
         "name": "OTCExchangeStorageModel",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
             "canonicalName": "OTCExchangeStorageModel.OTCOrder",
-            "id": 11164,
+            "id": 11756,
             "members": [
               {
                 "constant": false,
-                "id": 11151,
+                "id": 11743,
                 "name": "owner",
                 "nodeType": "VariableDeclaration",
-                "scope": 11164,
+                "scope": 11756,
                 "src": "155:13:11",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -55,7 +55,7 @@
                   "typeString": "address"
                 },
                 "typeName": {
-                  "id": 11150,
+                  "id": 11742,
                   "name": "address",
                   "nodeType": "ElementaryTypeName",
                   "src": "155:7:11",
@@ -69,10 +69,10 @@
               },
               {
                 "constant": false,
-                "id": 11153,
+                "id": 11745,
                 "name": "counterpart",
                 "nodeType": "VariableDeclaration",
-                "scope": 11164,
+                "scope": 11756,
                 "src": "227:19:11",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -81,7 +81,7 @@
                   "typeString": "address"
                 },
                 "typeName": {
-                  "id": 11152,
+                  "id": 11744,
                   "name": "address",
                   "nodeType": "ElementaryTypeName",
                   "src": "227:7:11",
@@ -95,10 +95,10 @@
               },
               {
                 "constant": false,
-                "id": 11155,
+                "id": 11747,
                 "name": "token",
                 "nodeType": "VariableDeclaration",
-                "scope": 11164,
+                "scope": 11756,
                 "src": "284:13:11",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -107,7 +107,7 @@
                   "typeString": "address"
                 },
                 "typeName": {
-                  "id": 11154,
+                  "id": 11746,
                   "name": "address",
                   "nodeType": "ElementaryTypeName",
                   "src": "284:7:11",
@@ -121,10 +121,10 @@
               },
               {
                 "constant": false,
-                "id": 11157,
+                "id": 11749,
                 "name": "amount",
                 "nodeType": "VariableDeclaration",
-                "scope": 11164,
+                "scope": 11756,
                 "src": "335:14:11",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -133,7 +133,7 @@
                   "typeString": "uint256"
                 },
                 "typeName": {
-                  "id": 11156,
+                  "id": 11748,
                   "name": "uint256",
                   "nodeType": "ElementaryTypeName",
                   "src": "335:7:11",
@@ -147,10 +147,10 @@
               },
               {
                 "constant": false,
-                "id": 11159,
+                "id": 11751,
                 "name": "price",
                 "nodeType": "VariableDeclaration",
-                "scope": 11164,
+                "scope": 11756,
                 "src": "375:13:11",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -159,7 +159,7 @@
                   "typeString": "uint256"
                 },
                 "typeName": {
-                  "id": 11158,
+                  "id": 11750,
                   "name": "uint256",
                   "nodeType": "ElementaryTypeName",
                   "src": "375:7:11",
@@ -173,10 +173,10 @@
               },
               {
                 "constant": false,
-                "id": 11161,
+                "id": 11753,
                 "name": "agent",
                 "nodeType": "VariableDeclaration",
-                "scope": 11164,
+                "scope": 11756,
                 "src": "414:13:11",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -185,7 +185,7 @@
                   "typeString": "address"
                 },
                 "typeName": {
-                  "id": 11160,
+                  "id": 11752,
                   "name": "address",
                   "nodeType": "ElementaryTypeName",
                   "src": "414:7:11",
@@ -199,10 +199,10 @@
               },
               {
                 "constant": false,
-                "id": 11163,
+                "id": 11755,
                 "name": "canceled",
                 "nodeType": "VariableDeclaration",
-                "scope": 11164,
+                "scope": 11756,
                 "src": "471:13:11",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -211,7 +211,7 @@
                   "typeString": "bool"
                 },
                 "typeName": {
-                  "id": 11162,
+                  "id": 11754,
                   "name": "bool",
                   "nodeType": "ElementaryTypeName",
                   "src": "471:4:11",
@@ -226,20 +226,20 @@
             ],
             "name": "OTCOrder",
             "nodeType": "StructDefinition",
-            "scope": 11243,
+            "scope": 11835,
             "src": "129:387:11",
             "visibility": "public"
           },
           {
             "canonicalName": "OTCExchangeStorageModel.OTCAgreement",
-            "id": 11177,
+            "id": 11769,
             "members": [
               {
                 "constant": false,
-                "id": 11166,
+                "id": 11758,
                 "name": "counterpart",
                 "nodeType": "VariableDeclaration",
-                "scope": 11177,
+                "scope": 11769,
                 "src": "582:19:11",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -248,7 +248,7 @@
                   "typeString": "address"
                 },
                 "typeName": {
-                  "id": 11165,
+                  "id": 11757,
                   "name": "address",
                   "nodeType": "ElementaryTypeName",
                   "src": "582:7:11",
@@ -262,10 +262,10 @@
               },
               {
                 "constant": false,
-                "id": 11168,
+                "id": 11760,
                 "name": "amount",
                 "nodeType": "VariableDeclaration",
-                "scope": 11177,
+                "scope": 11769,
                 "src": "639:14:11",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -274,7 +274,7 @@
                   "typeString": "uint256"
                 },
                 "typeName": {
-                  "id": 11167,
+                  "id": 11759,
                   "name": "uint256",
                   "nodeType": "ElementaryTypeName",
                   "src": "639:7:11",
@@ -288,10 +288,10 @@
               },
               {
                 "constant": false,
-                "id": 11170,
+                "id": 11762,
                 "name": "price",
                 "nodeType": "VariableDeclaration",
-                "scope": 11177,
+                "scope": 11769,
                 "src": "679:13:11",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -300,7 +300,7 @@
                   "typeString": "uint256"
                 },
                 "typeName": {
-                  "id": 11169,
+                  "id": 11761,
                   "name": "uint256",
                   "nodeType": "ElementaryTypeName",
                   "src": "679:7:11",
@@ -314,10 +314,10 @@
               },
               {
                 "constant": false,
-                "id": 11172,
+                "id": 11764,
                 "name": "canceled",
                 "nodeType": "VariableDeclaration",
-                "scope": 11177,
+                "scope": 11769,
                 "src": "718:13:11",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -326,7 +326,7 @@
                   "typeString": "bool"
                 },
                 "typeName": {
-                  "id": 11171,
+                  "id": 11763,
                   "name": "bool",
                   "nodeType": "ElementaryTypeName",
                   "src": "718:4:11",
@@ -340,10 +340,10 @@
               },
               {
                 "constant": false,
-                "id": 11174,
+                "id": 11766,
                 "name": "paid",
                 "nodeType": "VariableDeclaration",
-                "scope": 11177,
+                "scope": 11769,
                 "src": "766:9:11",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -352,7 +352,7 @@
                   "typeString": "bool"
                 },
                 "typeName": {
-                  "id": 11173,
+                  "id": 11765,
                   "name": "bool",
                   "nodeType": "ElementaryTypeName",
                   "src": "766:4:11",
@@ -366,10 +366,10 @@
               },
               {
                 "constant": false,
-                "id": 11176,
+                "id": 11768,
                 "name": "expiry",
                 "nodeType": "VariableDeclaration",
-                "scope": 11177,
+                "scope": 11769,
                 "src": "804:14:11",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -378,7 +378,7 @@
                   "typeString": "uint256"
                 },
                 "typeName": {
-                  "id": 11175,
+                  "id": 11767,
                   "name": "uint256",
                   "nodeType": "ElementaryTypeName",
                   "src": "804:7:11",
@@ -393,43 +393,43 @@
             ],
             "name": "OTCAgreement",
             "nodeType": "StructDefinition",
-            "scope": 11243,
+            "scope": 11835,
             "src": "552:316:11",
             "visibility": "public"
           },
           {
             "body": {
-              "id": 11210,
+              "id": 11802,
               "nodeType": "Block",
               "src": "1543:139:11",
               "statements": [
                 {
                   "assignments": [
-                    11197
+                    11789
                   ],
                   "declarations": [
                     {
                       "constant": false,
-                      "id": 11197,
+                      "id": 11789,
                       "name": "_order",
                       "nodeType": "VariableDeclaration",
-                      "scope": 11211,
+                      "scope": 11803,
                       "src": "1553:22:11",
                       "stateVariable": false,
                       "storageLocation": "memory",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_struct$_OTCOrder_$11164_memory_ptr",
+                        "typeIdentifier": "t_struct$_OTCOrder_$11756_memory_ptr",
                         "typeString": "struct OTCExchangeStorageModel.OTCOrder"
                       },
                       "typeName": {
                         "contractScope": null,
-                        "id": 11196,
+                        "id": 11788,
                         "name": "OTCOrder",
                         "nodeType": "UserDefinedTypeName",
-                        "referencedDeclaration": 11164,
+                        "referencedDeclaration": 11756,
                         "src": "1553:8:11",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_struct$_OTCOrder_$11164_storage_ptr",
+                          "typeIdentifier": "t_struct$_OTCOrder_$11756_storage_ptr",
                           "typeString": "struct OTCExchangeStorageModel.OTCOrder"
                         }
                       },
@@ -437,17 +437,17 @@
                       "visibility": "internal"
                     }
                   ],
-                  "id": 11207,
+                  "id": 11799,
                   "initialValue": {
                     "argumentTypes": null,
                     "arguments": [
                       {
                         "argumentTypes": null,
-                        "id": 11199,
+                        "id": 11791,
                         "name": "_owner",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 11179,
+                        "referencedDeclaration": 11771,
                         "src": "1587:6:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_address",
@@ -456,11 +456,11 @@
                       },
                       {
                         "argumentTypes": null,
-                        "id": 11200,
+                        "id": 11792,
                         "name": "_counterpart",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 11181,
+                        "referencedDeclaration": 11773,
                         "src": "1595:12:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_address",
@@ -469,11 +469,11 @@
                       },
                       {
                         "argumentTypes": null,
-                        "id": 11201,
+                        "id": 11793,
                         "name": "_token",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 11183,
+                        "referencedDeclaration": 11775,
                         "src": "1609:6:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_address",
@@ -482,11 +482,11 @@
                       },
                       {
                         "argumentTypes": null,
-                        "id": 11202,
+                        "id": 11794,
                         "name": "_amount",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 11185,
+                        "referencedDeclaration": 11777,
                         "src": "1617:7:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_uint256",
@@ -495,11 +495,11 @@
                       },
                       {
                         "argumentTypes": null,
-                        "id": 11203,
+                        "id": 11795,
                         "name": "_price",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 11187,
+                        "referencedDeclaration": 11779,
                         "src": "1626:6:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_uint256",
@@ -508,11 +508,11 @@
                       },
                       {
                         "argumentTypes": null,
-                        "id": 11204,
+                        "id": 11796,
                         "name": "_agent",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 11189,
+                        "referencedDeclaration": 11781,
                         "src": "1634:6:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_address",
@@ -521,11 +521,11 @@
                       },
                       {
                         "argumentTypes": null,
-                        "id": 11205,
+                        "id": 11797,
                         "name": "_canceled",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 11191,
+                        "referencedDeclaration": 11783,
                         "src": "1642:9:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bool",
@@ -564,18 +564,18 @@
                           "typeString": "bool"
                         }
                       ],
-                      "id": 11198,
+                      "id": 11790,
                       "name": "OTCOrder",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 11164,
+                      "referencedDeclaration": 11756,
                       "src": "1578:8:11",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_type$_t_struct$_OTCOrder_$11164_storage_ptr_$",
+                        "typeIdentifier": "t_type$_t_struct$_OTCOrder_$11756_storage_ptr_$",
                         "typeString": "type(struct OTCExchangeStorageModel.OTCOrder storage pointer)"
                       }
                     },
-                    "id": 11206,
+                    "id": 11798,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -585,7 +585,7 @@
                     "nodeType": "FunctionCall",
                     "src": "1578:74:11",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_struct$_OTCOrder_$11164_memory",
+                      "typeIdentifier": "t_struct$_OTCOrder_$11756_memory",
                       "typeString": "struct OTCExchangeStorageModel.OTCOrder memory"
                     }
                   },
@@ -595,26 +595,26 @@
                 {
                   "expression": {
                     "argumentTypes": null,
-                    "id": 11208,
+                    "id": 11800,
                     "name": "_order",
                     "nodeType": "Identifier",
                     "overloadedDeclarations": [],
-                    "referencedDeclaration": 11197,
+                    "referencedDeclaration": 11789,
                     "src": "1669:6:11",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_struct$_OTCOrder_$11164_memory_ptr",
+                      "typeIdentifier": "t_struct$_OTCOrder_$11756_memory_ptr",
                       "typeString": "struct OTCExchangeStorageModel.OTCOrder memory"
                     }
                   },
-                  "functionReturnParameters": 11195,
-                  "id": 11209,
+                  "functionReturnParameters": 11787,
+                  "id": 11801,
                   "nodeType": "Return",
                   "src": "1662:13:11"
                 }
               ]
             },
             "documentation": "@dev OTC\u53d6\u5f15\u60c5\u5831\u306eMapper\n @param _owner \u53d6\u5f15\u5b9f\u884c\u8005\uff08\u58f2\u308a\u624b\uff09EOA\u30a2\u30c9\u30ec\u30b9\n @param _counterpart \u8cb7\u3044\u624bEOA\u30a2\u30c9\u30ec\u30b9\n @param _token \u30c8\u30fc\u30af\u30f3\u30a2\u30c9\u30ec\u30b9\n @param _amount \u58f2\u5374\u6570\u91cf\n @param _price \u58f2\u5374\u5358\u4fa1\n @param _agent \u6c7a\u6e08\u696d\u8005\u306eEOA\u30a2\u30c9\u30ec\u30b9\n @param _canceled \u30ad\u30e3\u30f3\u30bb\u30eb\u72b6\u614b\n @return OTCOrder \u53d6\u5f15\u60c5\u5831",
-            "id": 11211,
+            "id": 11803,
             "implemented": true,
             "isConstructor": false,
             "isDeclaredConst": false,
@@ -622,15 +622,15 @@
             "name": "mappingOTCOrder",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 11192,
+              "id": 11784,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 11179,
+                  "id": 11771,
                   "name": "_owner",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11211,
+                  "scope": 11803,
                   "src": "1323:14:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -639,7 +639,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 11178,
+                    "id": 11770,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1323:7:11",
@@ -653,10 +653,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 11181,
+                  "id": 11773,
                   "name": "_counterpart",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11211,
+                  "scope": 11803,
                   "src": "1347:20:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -665,7 +665,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 11180,
+                    "id": 11772,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1347:7:11",
@@ -679,10 +679,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 11183,
+                  "id": 11775,
                   "name": "_token",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11211,
+                  "scope": 11803,
                   "src": "1377:14:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -691,7 +691,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 11182,
+                    "id": 11774,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1377:7:11",
@@ -705,10 +705,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 11185,
+                  "id": 11777,
                   "name": "_amount",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11211,
+                  "scope": 11803,
                   "src": "1401:15:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -717,7 +717,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 11184,
+                    "id": 11776,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "1401:7:11",
@@ -731,10 +731,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 11187,
+                  "id": 11779,
                   "name": "_price",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11211,
+                  "scope": 11803,
                   "src": "1426:14:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -743,7 +743,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 11186,
+                    "id": 11778,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "1426:7:11",
@@ -757,10 +757,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 11189,
+                  "id": 11781,
                   "name": "_agent",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11211,
+                  "scope": 11803,
                   "src": "1450:14:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -769,7 +769,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 11188,
+                    "id": 11780,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1450:7:11",
@@ -783,10 +783,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 11191,
+                  "id": 11783,
                   "name": "_canceled",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11211,
+                  "scope": 11803,
                   "src": "1474:14:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -795,7 +795,7 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 11190,
+                    "id": 11782,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
                     "src": "1474:4:11",
@@ -812,31 +812,31 @@
             },
             "payable": false,
             "returnParameters": {
-              "id": 11195,
+              "id": 11787,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 11194,
+                  "id": 11786,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11211,
+                  "scope": 11803,
                   "src": "1529:8:11",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_struct$_OTCOrder_$11164_memory_ptr",
+                    "typeIdentifier": "t_struct$_OTCOrder_$11756_memory_ptr",
                     "typeString": "struct OTCExchangeStorageModel.OTCOrder"
                   },
                   "typeName": {
                     "contractScope": null,
-                    "id": 11193,
+                    "id": 11785,
                     "name": "OTCOrder",
                     "nodeType": "UserDefinedTypeName",
-                    "referencedDeclaration": 11164,
+                    "referencedDeclaration": 11756,
                     "src": "1529:8:11",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_struct$_OTCOrder_$11164_storage_ptr",
+                      "typeIdentifier": "t_struct$_OTCOrder_$11756_storage_ptr",
                       "typeString": "struct OTCExchangeStorageModel.OTCOrder"
                     }
                   },
@@ -846,7 +846,7 @@
               ],
               "src": "1528:10:11"
             },
-            "scope": 11243,
+            "scope": 11835,
             "src": "1289:393:11",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -854,37 +854,37 @@
           },
           {
             "body": {
-              "id": 11241,
+              "id": 11833,
               "nodeType": "Block",
               "src": "2259:147:11",
               "statements": [
                 {
                   "assignments": [
-                    11229
+                    11821
                   ],
                   "declarations": [
                     {
                       "constant": false,
-                      "id": 11229,
+                      "id": 11821,
                       "name": "_agreement",
                       "nodeType": "VariableDeclaration",
-                      "scope": 11242,
+                      "scope": 11834,
                       "src": "2269:30:11",
                       "stateVariable": false,
                       "storageLocation": "memory",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_struct$_OTCAgreement_$11177_memory_ptr",
+                        "typeIdentifier": "t_struct$_OTCAgreement_$11769_memory_ptr",
                         "typeString": "struct OTCExchangeStorageModel.OTCAgreement"
                       },
                       "typeName": {
                         "contractScope": null,
-                        "id": 11228,
+                        "id": 11820,
                         "name": "OTCAgreement",
                         "nodeType": "UserDefinedTypeName",
-                        "referencedDeclaration": 11177,
+                        "referencedDeclaration": 11769,
                         "src": "2269:12:11",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_struct$_OTCAgreement_$11177_storage_ptr",
+                          "typeIdentifier": "t_struct$_OTCAgreement_$11769_storage_ptr",
                           "typeString": "struct OTCExchangeStorageModel.OTCAgreement"
                         }
                       },
@@ -892,17 +892,17 @@
                       "visibility": "internal"
                     }
                   ],
-                  "id": 11238,
+                  "id": 11830,
                   "initialValue": {
                     "argumentTypes": null,
                     "arguments": [
                       {
                         "argumentTypes": null,
-                        "id": 11231,
+                        "id": 11823,
                         "name": "_counterpart",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 11213,
+                        "referencedDeclaration": 11805,
                         "src": "2315:12:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_address",
@@ -911,11 +911,11 @@
                       },
                       {
                         "argumentTypes": null,
-                        "id": 11232,
+                        "id": 11824,
                         "name": "_amount",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 11215,
+                        "referencedDeclaration": 11807,
                         "src": "2329:7:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_uint256",
@@ -924,11 +924,11 @@
                       },
                       {
                         "argumentTypes": null,
-                        "id": 11233,
+                        "id": 11825,
                         "name": "_price",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 11217,
+                        "referencedDeclaration": 11809,
                         "src": "2338:6:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_uint256",
@@ -937,11 +937,11 @@
                       },
                       {
                         "argumentTypes": null,
-                        "id": 11234,
+                        "id": 11826,
                         "name": "_canceled",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 11219,
+                        "referencedDeclaration": 11811,
                         "src": "2346:9:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bool",
@@ -950,11 +950,11 @@
                       },
                       {
                         "argumentTypes": null,
-                        "id": 11235,
+                        "id": 11827,
                         "name": "_paid",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 11221,
+                        "referencedDeclaration": 11813,
                         "src": "2357:5:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_bool",
@@ -963,11 +963,11 @@
                       },
                       {
                         "argumentTypes": null,
-                        "id": 11236,
+                        "id": 11828,
                         "name": "_expiry",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 11223,
+                        "referencedDeclaration": 11815,
                         "src": "2364:7:11",
                         "typeDescriptions": {
                           "typeIdentifier": "t_uint256",
@@ -1002,18 +1002,18 @@
                           "typeString": "uint256"
                         }
                       ],
-                      "id": 11230,
+                      "id": 11822,
                       "name": "OTCAgreement",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 11177,
+                      "referencedDeclaration": 11769,
                       "src": "2302:12:11",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_type$_t_struct$_OTCAgreement_$11177_storage_ptr_$",
+                        "typeIdentifier": "t_type$_t_struct$_OTCAgreement_$11769_storage_ptr_$",
                         "typeString": "type(struct OTCExchangeStorageModel.OTCAgreement storage pointer)"
                       }
                     },
-                    "id": 11237,
+                    "id": 11829,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -1023,7 +1023,7 @@
                     "nodeType": "FunctionCall",
                     "src": "2302:70:11",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_struct$_OTCAgreement_$11177_memory",
+                      "typeIdentifier": "t_struct$_OTCAgreement_$11769_memory",
                       "typeString": "struct OTCExchangeStorageModel.OTCAgreement memory"
                     }
                   },
@@ -1033,26 +1033,26 @@
                 {
                   "expression": {
                     "argumentTypes": null,
-                    "id": 11239,
+                    "id": 11831,
                     "name": "_agreement",
                     "nodeType": "Identifier",
                     "overloadedDeclarations": [],
-                    "referencedDeclaration": 11229,
+                    "referencedDeclaration": 11821,
                     "src": "2389:10:11",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_struct$_OTCAgreement_$11177_memory_ptr",
+                      "typeIdentifier": "t_struct$_OTCAgreement_$11769_memory_ptr",
                       "typeString": "struct OTCExchangeStorageModel.OTCAgreement memory"
                     }
                   },
-                  "functionReturnParameters": 11227,
-                  "id": 11240,
+                  "functionReturnParameters": 11819,
+                  "id": 11832,
                   "nodeType": "Return",
                   "src": "2382:17:11"
                 }
               ]
             },
             "documentation": "@dev OTC\u53d6\u5f15\u5408\u610f\u60c5\u5831\u306eMapper\n @param _counterpart \u58f2\u308a\u624bEOA\u30a2\u30c9\u30ec\u30b9\n @param _amount \u58f2\u5374\u6570\u91cf\n @param _price \u58f2\u5374\u5358\u4fa1\n @param _canceled \u30ad\u30e3\u30f3\u30bb\u30eb\u72b6\u614b\n @param _paid \u652f\u6255\u3044\u72b6\u614b\n @param _expiry \u6709\u52b9\u671f\u9650\n @return OTCAgreement \u53d6\u5f15\u5408\u610f\u60c5\u5831",
-            "id": 11242,
+            "id": 11834,
             "implemented": true,
             "isConstructor": false,
             "isDeclaredConst": false,
@@ -1060,15 +1060,15 @@
             "name": "mappingOTCAgreement",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 11224,
+              "id": 11816,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 11213,
+                  "id": 11805,
                   "name": "_counterpart",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11242,
+                  "scope": 11834,
                   "src": "2062:20:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1077,7 +1077,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 11212,
+                    "id": 11804,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "2062:7:11",
@@ -1091,10 +1091,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 11215,
+                  "id": 11807,
                   "name": "_amount",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11242,
+                  "scope": 11834,
                   "src": "2092:15:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1103,7 +1103,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 11214,
+                    "id": 11806,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "2092:7:11",
@@ -1117,10 +1117,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 11217,
+                  "id": 11809,
                   "name": "_price",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11242,
+                  "scope": 11834,
                   "src": "2117:14:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1129,7 +1129,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 11216,
+                    "id": 11808,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "2117:7:11",
@@ -1143,10 +1143,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 11219,
+                  "id": 11811,
                   "name": "_canceled",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11242,
+                  "scope": 11834,
                   "src": "2141:14:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1155,7 +1155,7 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 11218,
+                    "id": 11810,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
                     "src": "2141:4:11",
@@ -1169,10 +1169,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 11221,
+                  "id": 11813,
                   "name": "_paid",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11242,
+                  "scope": 11834,
                   "src": "2165:10:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1181,7 +1181,7 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 11220,
+                    "id": 11812,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
                     "src": "2165:4:11",
@@ -1195,10 +1195,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 11223,
+                  "id": 11815,
                   "name": "_expiry",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11242,
+                  "scope": 11834,
                   "src": "2185:15:11",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1207,7 +1207,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 11222,
+                    "id": 11814,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "2185:7:11",
@@ -1224,31 +1224,31 @@
             },
             "payable": false,
             "returnParameters": {
-              "id": 11227,
+              "id": 11819,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 11226,
+                  "id": 11818,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11242,
+                  "scope": 11834,
                   "src": "2241:12:11",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_struct$_OTCAgreement_$11177_memory_ptr",
+                    "typeIdentifier": "t_struct$_OTCAgreement_$11769_memory_ptr",
                     "typeString": "struct OTCExchangeStorageModel.OTCAgreement"
                   },
                   "typeName": {
                     "contractScope": null,
-                    "id": 11225,
+                    "id": 11817,
                     "name": "OTCAgreement",
                     "nodeType": "UserDefinedTypeName",
-                    "referencedDeclaration": 11177,
+                    "referencedDeclaration": 11769,
                     "src": "2241:12:11",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_struct$_OTCAgreement_$11177_storage_ptr",
+                      "typeIdentifier": "t_struct$_OTCAgreement_$11769_storage_ptr",
                       "typeString": "struct OTCExchangeStorageModel.OTCAgreement"
                     }
                   },
@@ -1258,14 +1258,14 @@
               ],
               "src": "2240:14:11"
             },
-            "scope": 11243,
+            "scope": 11835,
             "src": "2024:382:11",
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "internal"
           }
         ],
-        "scope": 11244,
+        "scope": 11836,
         "src": "65:2343:11"
       }
     ],
