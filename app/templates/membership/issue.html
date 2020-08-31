@@ -137,21 +137,26 @@
         todayBtn: true,
         forceParse: false
     });
+    function separateByComma(num) {
+        if (!/^[1-9]\d*(\.\d*)?$/.test(num)) {
+            return num;
+        }
+        var split = num.split(".");
+        var intPart = split[0].replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
+        if (split.length === 2) {
+            return intPart + "." + split[1];
+        } else {
+            return intPart;
+        }
+    }
     $(function () {
         // 数値項目3桁区切り考慮
         $('.comma-separate').each(function (index, element) {
-            var num = $(element).val();
-            if (!isNaN(num) && num >= 1) {
-                num = num.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
-            }
-            $(element).val(num);
+            // 初期表示
+            $(element).val(separateByComma($(element).val()));
             // フォーカスアウト
             $(element).on('blur', function () {
-                var num = $(this).val();
-                if (!isNaN(num) && num >= 1) {
-                    num = num.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
-                }
-                $(this).val(num);
+                $(this).val(separateByComma($(this).val()));
             });
             // フォーカス
             $(element).on('focus', function () {
