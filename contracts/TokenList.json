@@ -199,14 +199,14 @@
     "absolutePath": "contracts/TokenList.sol",
     "exportedSymbols": {
       "TokenList": [
-        12032
+        12824
       ]
     },
-    "id": 12033,
+    "id": 12825,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 11783,
+        "id": 12575,
         "literals": [
           "solidity",
           "^",
@@ -219,10 +219,10 @@
       {
         "absolutePath": "interfaces/IbetStandardTokenInterface.sol",
         "file": "../interfaces/IbetStandardTokenInterface.sol",
-        "id": 11784,
+        "id": 12576,
         "nodeType": "ImportDirective",
-        "scope": 12033,
-        "sourceUnit": 12213,
+        "scope": 12825,
+        "sourceUnit": 12907,
         "src": "26:54:17",
         "symbolAliases": [],
         "unitAlias": ""
@@ -230,10 +230,10 @@
       {
         "absolutePath": "contracts/Ownable.sol",
         "file": "./Ownable.sol",
-        "id": 11785,
+        "id": 12577,
         "nodeType": "ImportDirective",
-        "scope": 12033,
-        "sourceUnit": 11300,
+        "scope": 12825,
+        "sourceUnit": 11892,
         "src": "81:23:17",
         "symbolAliases": [],
         "unitAlias": ""
@@ -244,45 +244,45 @@
             "arguments": null,
             "baseName": {
               "contractScope": null,
-              "id": 11786,
+              "id": 12578,
               "name": "Ownable",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 11299,
+              "referencedDeclaration": 11891,
               "src": "155:7:17",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_Ownable_$11299",
+                "typeIdentifier": "t_contract$_Ownable_$11891",
                 "typeString": "contract Ownable"
               }
             },
-            "id": 11787,
+            "id": 12579,
             "nodeType": "InheritanceSpecifier",
             "src": "155:7:17"
           }
         ],
         "contractDependencies": [
-          11299
+          11891
         ],
         "contractKind": "contract",
         "documentation": "@title Token Registry",
         "fullyImplemented": true,
-        "id": 12032,
+        "id": 12824,
         "linearizedBaseContracts": [
-          12032,
-          11299
+          12824,
+          11891
         ],
         "name": "TokenList",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
             "canonicalName": "TokenList.Token",
-            "id": 11794,
+            "id": 12586,
             "members": [
               {
                 "constant": false,
-                "id": 11789,
+                "id": 12581,
                 "name": "token_address",
                 "nodeType": "VariableDeclaration",
-                "scope": 11794,
+                "scope": 12586,
                 "src": "220:21:17",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -291,7 +291,7 @@
                   "typeString": "address"
                 },
                 "typeName": {
-                  "id": 11788,
+                  "id": 12580,
                   "name": "address",
                   "nodeType": "ElementaryTypeName",
                   "src": "220:7:17",
@@ -305,10 +305,10 @@
               },
               {
                 "constant": false,
-                "id": 11791,
+                "id": 12583,
                 "name": "token_template",
                 "nodeType": "VariableDeclaration",
-                "scope": 11794,
+                "scope": 12586,
                 "src": "279:21:17",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -317,7 +317,7 @@
                   "typeString": "string"
                 },
                 "typeName": {
-                  "id": 11790,
+                  "id": 12582,
                   "name": "string",
                   "nodeType": "ElementaryTypeName",
                   "src": "279:6:17",
@@ -331,10 +331,10 @@
               },
               {
                 "constant": false,
-                "id": 11793,
+                "id": 12585,
                 "name": "owner_address",
                 "nodeType": "VariableDeclaration",
-                "scope": 11794,
+                "scope": 12586,
                 "src": "332:21:17",
                 "stateVariable": false,
                 "storageLocation": "default",
@@ -343,7 +343,7 @@
                   "typeString": "address"
                 },
                 "typeName": {
-                  "id": 11792,
+                  "id": 12584,
                   "name": "address",
                   "nodeType": "ElementaryTypeName",
                   "src": "332:7:17",
@@ -358,27 +358,27 @@
             ],
             "name": "Token",
             "nodeType": "StructDefinition",
-            "scope": 12032,
+            "scope": 12824,
             "src": "197:194:17",
             "visibility": "public"
           },
           {
             "constant": false,
-            "id": 11798,
+            "id": 12590,
             "name": "tokens",
             "nodeType": "VariableDeclaration",
-            "scope": 12032,
+            "scope": 12824,
             "src": "455:32:17",
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
-              "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Token_$11794_storage_$",
+              "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Token_$12586_storage_$",
               "typeString": "mapping(address => struct TokenList.Token)"
             },
             "typeName": {
-              "id": 11797,
+              "id": 12589,
               "keyType": {
-                "id": 11795,
+                "id": 12587,
                 "name": "address",
                 "nodeType": "ElementaryTypeName",
                 "src": "463:7:17",
@@ -390,18 +390,18 @@
               "nodeType": "Mapping",
               "src": "455:25:17",
               "typeDescriptions": {
-                "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Token_$11794_storage_$",
+                "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Token_$12586_storage_$",
                 "typeString": "mapping(address => struct TokenList.Token)"
               },
               "valueType": {
                 "contractScope": null,
-                "id": 11796,
+                "id": 12588,
                 "name": "Token",
                 "nodeType": "UserDefinedTypeName",
-                "referencedDeclaration": 11794,
+                "referencedDeclaration": 12586,
                 "src": "474:5:17",
                 "typeDescriptions": {
-                  "typeIdentifier": "t_struct$_Token_$11794_storage_ptr",
+                  "typeIdentifier": "t_struct$_Token_$12586_storage_ptr",
                   "typeString": "struct TokenList.Token"
                 }
               }
@@ -411,36 +411,36 @@
           },
           {
             "constant": false,
-            "id": 11801,
+            "id": 12593,
             "name": "token_list",
             "nodeType": "VariableDeclaration",
-            "scope": 12032,
+            "scope": 12824,
             "src": "524:18:17",
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
-              "typeIdentifier": "t_array$_t_struct$_Token_$11794_storage_$dyn_storage",
+              "typeIdentifier": "t_array$_t_struct$_Token_$12586_storage_$dyn_storage",
               "typeString": "struct TokenList.Token[]"
             },
             "typeName": {
               "baseType": {
                 "contractScope": null,
-                "id": 11799,
+                "id": 12591,
                 "name": "Token",
                 "nodeType": "UserDefinedTypeName",
-                "referencedDeclaration": 11794,
+                "referencedDeclaration": 12586,
                 "src": "524:5:17",
                 "typeDescriptions": {
-                  "typeIdentifier": "t_struct$_Token_$11794_storage_ptr",
+                  "typeIdentifier": "t_struct$_Token_$12586_storage_ptr",
                   "typeString": "struct TokenList.Token"
                 }
               },
-              "id": 11800,
+              "id": 12592,
               "length": null,
               "nodeType": "ArrayTypeName",
               "src": "524:7:17",
               "typeDescriptions": {
-                "typeIdentifier": "t_array$_t_struct$_Token_$11794_storage_$dyn_storage_ptr",
+                "typeIdentifier": "t_array$_t_struct$_Token_$12586_storage_$dyn_storage_ptr",
                 "typeString": "struct TokenList.Token[]"
               }
             },
@@ -450,20 +450,20 @@
           {
             "anonymous": false,
             "documentation": "\u30a4\u30d9\u30f3\u30c8\uff1a\u767b\u9332",
-            "id": 11809,
+            "id": 12601,
             "name": "Register",
             "nodeType": "EventDefinition",
             "parameters": {
-              "id": 11808,
+              "id": 12600,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 11803,
+                  "id": 12595,
                   "indexed": true,
                   "name": "token_address",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11809,
+                  "scope": 12601,
                   "src": "603:29:17",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -472,7 +472,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 11802,
+                    "id": 12594,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "603:7:17",
@@ -486,11 +486,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 11805,
+                  "id": 12597,
                   "indexed": false,
                   "name": "token_template",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11809,
+                  "scope": 12601,
                   "src": "642:21:17",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -499,7 +499,7 @@
                     "typeString": "string"
                   },
                   "typeName": {
-                    "id": 11804,
+                    "id": 12596,
                     "name": "string",
                     "nodeType": "ElementaryTypeName",
                     "src": "642:6:17",
@@ -513,11 +513,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 11807,
+                  "id": 12599,
                   "indexed": false,
                   "name": "owner_address",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11809,
+                  "scope": 12601,
                   "src": "673:21:17",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -526,7 +526,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 11806,
+                    "id": 12598,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "673:7:17",
@@ -545,7 +545,7 @@
           },
           {
             "body": {
-              "id": 11876,
+              "id": 12668,
               "nodeType": "Block",
               "src": "939:617:17",
               "statements": [
@@ -559,7 +559,7 @@
                           "typeIdentifier": "t_address",
                           "typeString": "address"
                         },
-                        "id": 11822,
+                        "id": 12614,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -570,25 +570,25 @@
                             "argumentTypes": null,
                             "baseExpression": {
                               "argumentTypes": null,
-                              "id": 11817,
+                              "id": 12609,
                               "name": "tokens",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 11798,
+                              "referencedDeclaration": 12590,
                               "src": "957:6:17",
                               "typeDescriptions": {
-                                "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Token_$11794_storage_$",
+                                "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Token_$12586_storage_$",
                                 "typeString": "mapping(address => struct TokenList.Token storage ref)"
                               }
                             },
-                            "id": 11819,
+                            "id": 12611,
                             "indexExpression": {
                               "argumentTypes": null,
-                              "id": 11818,
+                              "id": 12610,
                               "name": "_token_address",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 11811,
+                              "referencedDeclaration": 12603,
                               "src": "964:14:17",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_address",
@@ -602,18 +602,18 @@
                             "nodeType": "IndexAccess",
                             "src": "957:22:17",
                             "typeDescriptions": {
-                              "typeIdentifier": "t_struct$_Token_$11794_storage",
+                              "typeIdentifier": "t_struct$_Token_$12586_storage",
                               "typeString": "struct TokenList.Token storage ref"
                             }
                           },
-                          "id": 11820,
+                          "id": 12612,
                           "isConstant": false,
                           "isLValue": true,
                           "isPure": false,
                           "lValueRequested": false,
                           "memberName": "token_address",
                           "nodeType": "MemberAccess",
-                          "referencedDeclaration": 11789,
+                          "referencedDeclaration": 12581,
                           "src": "957:36:17",
                           "typeDescriptions": {
                             "typeIdentifier": "t_address",
@@ -625,7 +625,7 @@
                         "rightExpression": {
                           "argumentTypes": null,
                           "hexValue": "307830303030303030303030303030303030303030303030303030303030303030303030303030303030",
-                          "id": 11821,
+                          "id": 12613,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": true,
@@ -654,21 +654,21 @@
                           "typeString": "bool"
                         }
                       ],
-                      "id": 11816,
+                      "id": 12608,
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        12230,
-                        12231
+                        12924,
+                        12925
                       ],
-                      "referencedDeclaration": 12230,
+                      "referencedDeclaration": 12924,
                       "src": "949:7:17",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$returns$__$",
                         "typeString": "function (bool) pure"
                       }
                     },
-                    "id": 11823,
+                    "id": 12615,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -682,7 +682,7 @@
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 11824,
+                  "id": 12616,
                   "nodeType": "ExpressionStatement",
                   "src": "949:91:17"
                 },
@@ -696,7 +696,7 @@
                           "typeIdentifier": "t_address",
                           "typeString": "address"
                         },
-                        "id": 11833,
+                        "id": 12625,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -711,11 +711,11 @@
                               "arguments": [
                                 {
                                   "argumentTypes": null,
-                                  "id": 11827,
+                                  "id": 12619,
                                   "name": "_token_address",
                                   "nodeType": "Identifier",
                                   "overloadedDeclarations": [],
-                                  "referencedDeclaration": 11811,
+                                  "referencedDeclaration": 12603,
                                   "src": "1085:14:17",
                                   "typeDescriptions": {
                                     "typeIdentifier": "t_address",
@@ -730,18 +730,18 @@
                                     "typeString": "address"
                                   }
                                 ],
-                                "id": 11826,
+                                "id": 12618,
                                 "name": "IbetStandardTokenInterface",
                                 "nodeType": "Identifier",
                                 "overloadedDeclarations": [],
-                                "referencedDeclaration": 12212,
+                                "referencedDeclaration": 12906,
                                 "src": "1058:26:17",
                                 "typeDescriptions": {
-                                  "typeIdentifier": "t_type$_t_contract$_IbetStandardTokenInterface_$12212_$",
+                                  "typeIdentifier": "t_type$_t_contract$_IbetStandardTokenInterface_$12906_$",
                                   "typeString": "type(contract IbetStandardTokenInterface)"
                                 }
                               },
-                              "id": 11828,
+                              "id": 12620,
                               "isConstant": false,
                               "isLValue": false,
                               "isPure": false,
@@ -751,25 +751,25 @@
                               "nodeType": "FunctionCall",
                               "src": "1058:42:17",
                               "typeDescriptions": {
-                                "typeIdentifier": "t_contract$_IbetStandardTokenInterface_$12212",
+                                "typeIdentifier": "t_contract$_IbetStandardTokenInterface_$12906",
                                 "typeString": "contract IbetStandardTokenInterface"
                               }
                             },
-                            "id": 11829,
+                            "id": 12621,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": false,
                             "lValueRequested": false,
                             "memberName": "owner",
                             "nodeType": "MemberAccess",
-                            "referencedDeclaration": 12146,
+                            "referencedDeclaration": 12840,
                             "src": "1058:48:17",
                             "typeDescriptions": {
                               "typeIdentifier": "t_function_external_view$__$returns$_t_address_$",
                               "typeString": "function () view external returns (address)"
                             }
                           },
-                          "id": 11830,
+                          "id": 12622,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": false,
@@ -789,18 +789,18 @@
                           "argumentTypes": null,
                           "expression": {
                             "argumentTypes": null,
-                            "id": 11831,
+                            "id": 12623,
                             "name": "msg",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 12227,
+                            "referencedDeclaration": 12921,
                             "src": "1112:3:17",
                             "typeDescriptions": {
                               "typeIdentifier": "t_magic_message",
                               "typeString": "msg"
                             }
                           },
-                          "id": 11832,
+                          "id": 12624,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": false,
@@ -828,21 +828,21 @@
                           "typeString": "bool"
                         }
                       ],
-                      "id": 11825,
+                      "id": 12617,
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        12230,
-                        12231
+                        12924,
+                        12925
                       ],
-                      "referencedDeclaration": 12230,
+                      "referencedDeclaration": 12924,
                       "src": "1050:7:17",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$returns$__$",
                         "typeString": "function (bool) pure"
                       }
                     },
-                    "id": 11834,
+                    "id": 12626,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -856,14 +856,14 @@
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 11835,
+                  "id": 12627,
                   "nodeType": "ExpressionStatement",
                   "src": "1050:73:17"
                 },
                 {
                   "expression": {
                     "argumentTypes": null,
-                    "id": 11841,
+                    "id": 12633,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -874,25 +874,25 @@
                         "argumentTypes": null,
                         "baseExpression": {
                           "argumentTypes": null,
-                          "id": 11836,
+                          "id": 12628,
                           "name": "tokens",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 11798,
+                          "referencedDeclaration": 12590,
                           "src": "1133:6:17",
                           "typeDescriptions": {
-                            "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Token_$11794_storage_$",
+                            "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Token_$12586_storage_$",
                             "typeString": "mapping(address => struct TokenList.Token storage ref)"
                           }
                         },
-                        "id": 11838,
+                        "id": 12630,
                         "indexExpression": {
                           "argumentTypes": null,
-                          "id": 11837,
+                          "id": 12629,
                           "name": "_token_address",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 11811,
+                          "referencedDeclaration": 12603,
                           "src": "1140:14:17",
                           "typeDescriptions": {
                             "typeIdentifier": "t_address",
@@ -906,18 +906,18 @@
                         "nodeType": "IndexAccess",
                         "src": "1133:22:17",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_struct$_Token_$11794_storage",
+                          "typeIdentifier": "t_struct$_Token_$12586_storage",
                           "typeString": "struct TokenList.Token storage ref"
                         }
                       },
-                      "id": 11839,
+                      "id": 12631,
                       "isConstant": false,
                       "isLValue": true,
                       "isPure": false,
                       "lValueRequested": true,
                       "memberName": "token_address",
                       "nodeType": "MemberAccess",
-                      "referencedDeclaration": 11789,
+                      "referencedDeclaration": 12581,
                       "src": "1133:36:17",
                       "typeDescriptions": {
                         "typeIdentifier": "t_address",
@@ -928,11 +928,11 @@
                     "operator": "=",
                     "rightHandSide": {
                       "argumentTypes": null,
-                      "id": 11840,
+                      "id": 12632,
                       "name": "_token_address",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 11811,
+                      "referencedDeclaration": 12603,
                       "src": "1172:14:17",
                       "typeDescriptions": {
                         "typeIdentifier": "t_address",
@@ -945,14 +945,14 @@
                       "typeString": "address"
                     }
                   },
-                  "id": 11842,
+                  "id": 12634,
                   "nodeType": "ExpressionStatement",
                   "src": "1133:53:17"
                 },
                 {
                   "expression": {
                     "argumentTypes": null,
-                    "id": 11848,
+                    "id": 12640,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -963,25 +963,25 @@
                         "argumentTypes": null,
                         "baseExpression": {
                           "argumentTypes": null,
-                          "id": 11843,
+                          "id": 12635,
                           "name": "tokens",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 11798,
+                          "referencedDeclaration": 12590,
                           "src": "1196:6:17",
                           "typeDescriptions": {
-                            "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Token_$11794_storage_$",
+                            "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Token_$12586_storage_$",
                             "typeString": "mapping(address => struct TokenList.Token storage ref)"
                           }
                         },
-                        "id": 11845,
+                        "id": 12637,
                         "indexExpression": {
                           "argumentTypes": null,
-                          "id": 11844,
+                          "id": 12636,
                           "name": "_token_address",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 11811,
+                          "referencedDeclaration": 12603,
                           "src": "1203:14:17",
                           "typeDescriptions": {
                             "typeIdentifier": "t_address",
@@ -995,18 +995,18 @@
                         "nodeType": "IndexAccess",
                         "src": "1196:22:17",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_struct$_Token_$11794_storage",
+                          "typeIdentifier": "t_struct$_Token_$12586_storage",
                           "typeString": "struct TokenList.Token storage ref"
                         }
                       },
-                      "id": 11846,
+                      "id": 12638,
                       "isConstant": false,
                       "isLValue": true,
                       "isPure": false,
                       "lValueRequested": true,
                       "memberName": "token_template",
                       "nodeType": "MemberAccess",
-                      "referencedDeclaration": 11791,
+                      "referencedDeclaration": 12583,
                       "src": "1196:37:17",
                       "typeDescriptions": {
                         "typeIdentifier": "t_string_storage",
@@ -1017,11 +1017,11 @@
                     "operator": "=",
                     "rightHandSide": {
                       "argumentTypes": null,
-                      "id": 11847,
+                      "id": 12639,
                       "name": "_token_template",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 11813,
+                      "referencedDeclaration": 12605,
                       "src": "1236:15:17",
                       "typeDescriptions": {
                         "typeIdentifier": "t_string_memory_ptr",
@@ -1034,14 +1034,14 @@
                       "typeString": "string storage ref"
                     }
                   },
-                  "id": 11849,
+                  "id": 12641,
                   "nodeType": "ExpressionStatement",
                   "src": "1196:55:17"
                 },
                 {
                   "expression": {
                     "argumentTypes": null,
-                    "id": 11856,
+                    "id": 12648,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -1052,25 +1052,25 @@
                         "argumentTypes": null,
                         "baseExpression": {
                           "argumentTypes": null,
-                          "id": 11850,
+                          "id": 12642,
                           "name": "tokens",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 11798,
+                          "referencedDeclaration": 12590,
                           "src": "1261:6:17",
                           "typeDescriptions": {
-                            "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Token_$11794_storage_$",
+                            "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Token_$12586_storage_$",
                             "typeString": "mapping(address => struct TokenList.Token storage ref)"
                           }
                         },
-                        "id": 11852,
+                        "id": 12644,
                         "indexExpression": {
                           "argumentTypes": null,
-                          "id": 11851,
+                          "id": 12643,
                           "name": "_token_address",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 11811,
+                          "referencedDeclaration": 12603,
                           "src": "1268:14:17",
                           "typeDescriptions": {
                             "typeIdentifier": "t_address",
@@ -1084,18 +1084,18 @@
                         "nodeType": "IndexAccess",
                         "src": "1261:22:17",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_struct$_Token_$11794_storage",
+                          "typeIdentifier": "t_struct$_Token_$12586_storage",
                           "typeString": "struct TokenList.Token storage ref"
                         }
                       },
-                      "id": 11853,
+                      "id": 12645,
                       "isConstant": false,
                       "isLValue": true,
                       "isPure": false,
                       "lValueRequested": true,
                       "memberName": "owner_address",
                       "nodeType": "MemberAccess",
-                      "referencedDeclaration": 11793,
+                      "referencedDeclaration": 12585,
                       "src": "1261:36:17",
                       "typeDescriptions": {
                         "typeIdentifier": "t_address",
@@ -1108,18 +1108,18 @@
                       "argumentTypes": null,
                       "expression": {
                         "argumentTypes": null,
-                        "id": 11854,
+                        "id": 12646,
                         "name": "msg",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 12227,
+                        "referencedDeclaration": 12921,
                         "src": "1300:3:17",
                         "typeDescriptions": {
                           "typeIdentifier": "t_magic_message",
                           "typeString": "msg"
                         }
                       },
-                      "id": 11855,
+                      "id": 12647,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": false,
@@ -1139,7 +1139,7 @@
                       "typeString": "address"
                     }
                   },
-                  "id": 11857,
+                  "id": 12649,
                   "nodeType": "ExpressionStatement",
                   "src": "1261:49:17"
                 },
@@ -1152,11 +1152,11 @@
                         "arguments": [
                           {
                             "argumentTypes": null,
-                            "id": 11862,
+                            "id": 12654,
                             "name": "_token_address",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 11811,
+                            "referencedDeclaration": 12603,
                             "src": "1371:14:17",
                             "typeDescriptions": {
                               "typeIdentifier": "t_address",
@@ -1165,11 +1165,11 @@
                           },
                           {
                             "argumentTypes": null,
-                            "id": 11863,
+                            "id": 12655,
                             "name": "_token_template",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 11813,
+                            "referencedDeclaration": 12605,
                             "src": "1415:15:17",
                             "typeDescriptions": {
                               "typeIdentifier": "t_string_memory_ptr",
@@ -1180,18 +1180,18 @@
                             "argumentTypes": null,
                             "expression": {
                               "argumentTypes": null,
-                              "id": 11864,
+                              "id": 12656,
                               "name": "msg",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 12227,
+                              "referencedDeclaration": 12921,
                               "src": "1459:3:17",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_magic_message",
                                 "typeString": "msg"
                               }
                             },
-                            "id": 11865,
+                            "id": 12657,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": false,
@@ -1208,18 +1208,18 @@
                         ],
                         "expression": {
                           "argumentTypes": null,
-                          "id": 11861,
+                          "id": 12653,
                           "name": "Token",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 11794,
+                          "referencedDeclaration": 12586,
                           "src": "1336:5:17",
                           "typeDescriptions": {
-                            "typeIdentifier": "t_type$_t_struct$_Token_$11794_storage_ptr_$",
+                            "typeIdentifier": "t_type$_t_struct$_Token_$12586_storage_ptr_$",
                             "typeString": "type(struct TokenList.Token storage pointer)"
                           }
                         },
-                        "id": 11866,
+                        "id": 12658,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -1233,7 +1233,7 @@
                         "nodeType": "FunctionCall",
                         "src": "1336:144:17",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_struct$_Token_$11794_memory",
+                          "typeIdentifier": "t_struct$_Token_$12586_memory",
                           "typeString": "struct TokenList.Token memory"
                         }
                       }
@@ -1241,24 +1241,24 @@
                     "expression": {
                       "argumentTypes": [
                         {
-                          "typeIdentifier": "t_struct$_Token_$11794_memory",
+                          "typeIdentifier": "t_struct$_Token_$12586_memory",
                           "typeString": "struct TokenList.Token memory"
                         }
                       ],
                       "expression": {
                         "argumentTypes": null,
-                        "id": 11858,
+                        "id": 12650,
                         "name": "token_list",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 11801,
+                        "referencedDeclaration": 12593,
                         "src": "1320:10:17",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_array$_t_struct$_Token_$11794_storage_$dyn_storage",
+                          "typeIdentifier": "t_array$_t_struct$_Token_$12586_storage_$dyn_storage",
                           "typeString": "struct TokenList.Token storage ref[] storage ref"
                         }
                       },
-                      "id": 11860,
+                      "id": 12652,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": false,
@@ -1268,11 +1268,11 @@
                       "referencedDeclaration": null,
                       "src": "1320:15:17",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_function_arraypush_nonpayable$_t_struct$_Token_$11794_storage_$returns$_t_uint256_$",
+                        "typeIdentifier": "t_function_arraypush_nonpayable$_t_struct$_Token_$12586_storage_$returns$_t_uint256_$",
                         "typeString": "function (struct TokenList.Token storage ref) returns (uint256)"
                       }
                     },
-                    "id": 11867,
+                    "id": 12659,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -1286,7 +1286,7 @@
                       "typeString": "uint256"
                     }
                   },
-                  "id": 11868,
+                  "id": 12660,
                   "nodeType": "ExpressionStatement",
                   "src": "1320:161:17"
                 },
@@ -1296,11 +1296,11 @@
                     "arguments": [
                       {
                         "argumentTypes": null,
-                        "id": 11870,
+                        "id": 12662,
                         "name": "_token_address",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 11811,
+                        "referencedDeclaration": 12603,
                         "src": "1505:14:17",
                         "typeDescriptions": {
                           "typeIdentifier": "t_address",
@@ -1309,11 +1309,11 @@
                       },
                       {
                         "argumentTypes": null,
-                        "id": 11871,
+                        "id": 12663,
                         "name": "_token_template",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 11813,
+                        "referencedDeclaration": 12605,
                         "src": "1521:15:17",
                         "typeDescriptions": {
                           "typeIdentifier": "t_string_memory_ptr",
@@ -1324,18 +1324,18 @@
                         "argumentTypes": null,
                         "expression": {
                           "argumentTypes": null,
-                          "id": 11872,
+                          "id": 12664,
                           "name": "msg",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 12227,
+                          "referencedDeclaration": 12921,
                           "src": "1538:3:17",
                           "typeDescriptions": {
                             "typeIdentifier": "t_magic_message",
                             "typeString": "msg"
                           }
                         },
-                        "id": 11873,
+                        "id": 12665,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -1365,18 +1365,18 @@
                           "typeString": "address"
                         }
                       ],
-                      "id": 11869,
+                      "id": 12661,
                       "name": "Register",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 11809,
+                      "referencedDeclaration": 12601,
                       "src": "1496:8:17",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_event_nonpayable$_t_address_$_t_string_memory_ptr_$_t_address_$returns$__$",
                         "typeString": "function (address,string memory,address)"
                       }
                     },
-                    "id": 11874,
+                    "id": 12666,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -1390,14 +1390,14 @@
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 11875,
+                  "id": 12667,
                   "nodeType": "EmitStatement",
                   "src": "1491:58:17"
                 }
               ]
             },
             "documentation": "@notice \u30c8\u30fc\u30af\u30f3\u767b\u9332\n @param _token_address \u30c8\u30fc\u30af\u30f3\u30a2\u30c9\u30ec\u30b9\n @param _token_template \u30c8\u30fc\u30af\u30f3\u4ed5\u69d8",
-            "id": 11877,
+            "id": 12669,
             "implemented": true,
             "isConstructor": false,
             "isDeclaredConst": false,
@@ -1405,15 +1405,15 @@
             "name": "register",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 11814,
+              "id": 12606,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 11811,
+                  "id": 12603,
                   "name": "_token_address",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11877,
+                  "scope": 12669,
                   "src": "865:22:17",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1422,7 +1422,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 11810,
+                    "id": 12602,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "865:7:17",
@@ -1436,10 +1436,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 11813,
+                  "id": 12605,
                   "name": "_token_template",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11877,
+                  "scope": 12669,
                   "src": "889:29:17",
                   "stateVariable": false,
                   "storageLocation": "memory",
@@ -1448,7 +1448,7 @@
                     "typeString": "string"
                   },
                   "typeName": {
-                    "id": 11812,
+                    "id": 12604,
                     "name": "string",
                     "nodeType": "ElementaryTypeName",
                     "src": "889:6:17",
@@ -1465,12 +1465,12 @@
             },
             "payable": false,
             "returnParameters": {
-              "id": 11815,
+              "id": 12607,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "939:0:17"
             },
-            "scope": 12032,
+            "scope": 12824,
             "src": "847:709:17",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -1478,7 +1478,7 @@
           },
           {
             "body": {
-              "id": 11938,
+              "id": 12730,
               "nodeType": "Block",
               "src": "1818:454:17",
               "statements": [
@@ -1492,7 +1492,7 @@
                           "typeIdentifier": "t_address",
                           "typeString": "address"
                         },
-                        "id": 11890,
+                        "id": 12682,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -1503,25 +1503,25 @@
                             "argumentTypes": null,
                             "baseExpression": {
                               "argumentTypes": null,
-                              "id": 11885,
+                              "id": 12677,
                               "name": "tokens",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 11798,
+                              "referencedDeclaration": 12590,
                               "src": "1836:6:17",
                               "typeDescriptions": {
-                                "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Token_$11794_storage_$",
+                                "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Token_$12586_storage_$",
                                 "typeString": "mapping(address => struct TokenList.Token storage ref)"
                               }
                             },
-                            "id": 11887,
+                            "id": 12679,
                             "indexExpression": {
                               "argumentTypes": null,
-                              "id": 11886,
+                              "id": 12678,
                               "name": "_token_address",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 11879,
+                              "referencedDeclaration": 12671,
                               "src": "1843:14:17",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_address",
@@ -1535,18 +1535,18 @@
                             "nodeType": "IndexAccess",
                             "src": "1836:22:17",
                             "typeDescriptions": {
-                              "typeIdentifier": "t_struct$_Token_$11794_storage",
+                              "typeIdentifier": "t_struct$_Token_$12586_storage",
                               "typeString": "struct TokenList.Token storage ref"
                             }
                           },
-                          "id": 11888,
+                          "id": 12680,
                           "isConstant": false,
                           "isLValue": true,
                           "isPure": false,
                           "lValueRequested": false,
                           "memberName": "token_address",
                           "nodeType": "MemberAccess",
-                          "referencedDeclaration": 11789,
+                          "referencedDeclaration": 12581,
                           "src": "1836:36:17",
                           "typeDescriptions": {
                             "typeIdentifier": "t_address",
@@ -1558,7 +1558,7 @@
                         "rightExpression": {
                           "argumentTypes": null,
                           "hexValue": "307830303030303030303030303030303030303030303030303030303030303030303030303030303030",
-                          "id": 11889,
+                          "id": 12681,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": true,
@@ -1587,21 +1587,21 @@
                           "typeString": "bool"
                         }
                       ],
-                      "id": 11884,
+                      "id": 12676,
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        12230,
-                        12231
+                        12924,
+                        12925
                       ],
-                      "referencedDeclaration": 12230,
+                      "referencedDeclaration": 12924,
                       "src": "1828:7:17",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$returns$__$",
                         "typeString": "function (bool) pure"
                       }
                     },
-                    "id": 11891,
+                    "id": 12683,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -1615,7 +1615,7 @@
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 11892,
+                  "id": 12684,
                   "nodeType": "ExpressionStatement",
                   "src": "1828:91:17"
                 },
@@ -1629,7 +1629,7 @@
                           "typeIdentifier": "t_address",
                           "typeString": "address"
                         },
-                        "id": 11900,
+                        "id": 12692,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -1640,25 +1640,25 @@
                             "argumentTypes": null,
                             "baseExpression": {
                               "argumentTypes": null,
-                              "id": 11894,
+                              "id": 12686,
                               "name": "tokens",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 11798,
+                              "referencedDeclaration": 12590,
                               "src": "1937:6:17",
                               "typeDescriptions": {
-                                "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Token_$11794_storage_$",
+                                "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Token_$12586_storage_$",
                                 "typeString": "mapping(address => struct TokenList.Token storage ref)"
                               }
                             },
-                            "id": 11896,
+                            "id": 12688,
                             "indexExpression": {
                               "argumentTypes": null,
-                              "id": 11895,
+                              "id": 12687,
                               "name": "_token_address",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 11879,
+                              "referencedDeclaration": 12671,
                               "src": "1944:14:17",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_address",
@@ -1672,18 +1672,18 @@
                             "nodeType": "IndexAccess",
                             "src": "1937:22:17",
                             "typeDescriptions": {
-                              "typeIdentifier": "t_struct$_Token_$11794_storage",
+                              "typeIdentifier": "t_struct$_Token_$12586_storage",
                               "typeString": "struct TokenList.Token storage ref"
                             }
                           },
-                          "id": 11897,
+                          "id": 12689,
                           "isConstant": false,
                           "isLValue": true,
                           "isPure": false,
                           "lValueRequested": false,
                           "memberName": "owner_address",
                           "nodeType": "MemberAccess",
-                          "referencedDeclaration": 11793,
+                          "referencedDeclaration": 12585,
                           "src": "1937:36:17",
                           "typeDescriptions": {
                             "typeIdentifier": "t_address",
@@ -1696,18 +1696,18 @@
                           "argumentTypes": null,
                           "expression": {
                             "argumentTypes": null,
-                            "id": 11898,
+                            "id": 12690,
                             "name": "msg",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 12227,
+                            "referencedDeclaration": 12921,
                             "src": "1977:3:17",
                             "typeDescriptions": {
                               "typeIdentifier": "t_magic_message",
                               "typeString": "msg"
                             }
                           },
-                          "id": 11899,
+                          "id": 12691,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": false,
@@ -1735,21 +1735,21 @@
                           "typeString": "bool"
                         }
                       ],
-                      "id": 11893,
+                      "id": 12685,
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        12230,
-                        12231
+                        12924,
+                        12925
                       ],
-                      "referencedDeclaration": 12230,
+                      "referencedDeclaration": 12924,
                       "src": "1929:7:17",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$returns$__$",
                         "typeString": "function (bool) pure"
                       }
                     },
-                    "id": 11901,
+                    "id": 12693,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -1763,14 +1763,14 @@
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 11902,
+                  "id": 12694,
                   "nodeType": "ExpressionStatement",
                   "src": "1929:59:17"
                 },
                 {
                   "expression": {
                     "argumentTypes": null,
-                    "id": 11908,
+                    "id": 12700,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -1781,25 +1781,25 @@
                         "argumentTypes": null,
                         "baseExpression": {
                           "argumentTypes": null,
-                          "id": 11903,
+                          "id": 12695,
                           "name": "tokens",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 11798,
+                          "referencedDeclaration": 12590,
                           "src": "1998:6:17",
                           "typeDescriptions": {
-                            "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Token_$11794_storage_$",
+                            "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Token_$12586_storage_$",
                             "typeString": "mapping(address => struct TokenList.Token storage ref)"
                           }
                         },
-                        "id": 11905,
+                        "id": 12697,
                         "indexExpression": {
                           "argumentTypes": null,
-                          "id": 11904,
+                          "id": 12696,
                           "name": "_token_address",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 11879,
+                          "referencedDeclaration": 12671,
                           "src": "2005:14:17",
                           "typeDescriptions": {
                             "typeIdentifier": "t_address",
@@ -1813,18 +1813,18 @@
                         "nodeType": "IndexAccess",
                         "src": "1998:22:17",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_struct$_Token_$11794_storage",
+                          "typeIdentifier": "t_struct$_Token_$12586_storage",
                           "typeString": "struct TokenList.Token storage ref"
                         }
                       },
-                      "id": 11906,
+                      "id": 12698,
                       "isConstant": false,
                       "isLValue": true,
                       "isPure": false,
                       "lValueRequested": true,
                       "memberName": "owner_address",
                       "nodeType": "MemberAccess",
-                      "referencedDeclaration": 11793,
+                      "referencedDeclaration": 12585,
                       "src": "1998:36:17",
                       "typeDescriptions": {
                         "typeIdentifier": "t_address",
@@ -1835,11 +1835,11 @@
                     "operator": "=",
                     "rightHandSide": {
                       "argumentTypes": null,
-                      "id": 11907,
+                      "id": 12699,
                       "name": "_new_owner_address",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 11881,
+                      "referencedDeclaration": 12673,
                       "src": "2037:18:17",
                       "typeDescriptions": {
                         "typeIdentifier": "t_address",
@@ -1852,13 +1852,13 @@
                       "typeString": "address"
                     }
                   },
-                  "id": 11909,
+                  "id": 12701,
                   "nodeType": "ExpressionStatement",
                   "src": "1998:57:17"
                 },
                 {
                   "body": {
-                    "id": 11936,
+                    "id": 12728,
                     "nodeType": "Block",
                     "src": "2110:156:17",
                     "statements": [
@@ -1869,7 +1869,7 @@
                             "typeIdentifier": "t_address",
                             "typeString": "address"
                           },
-                          "id": 11926,
+                          "id": 12718,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": false,
@@ -1880,25 +1880,25 @@
                               "argumentTypes": null,
                               "baseExpression": {
                                 "argumentTypes": null,
-                                "id": 11921,
+                                "id": 12713,
                                 "name": "token_list",
                                 "nodeType": "Identifier",
                                 "overloadedDeclarations": [],
-                                "referencedDeclaration": 11801,
+                                "referencedDeclaration": 12593,
                                 "src": "2128:10:17",
                                 "typeDescriptions": {
-                                  "typeIdentifier": "t_array$_t_struct$_Token_$11794_storage_$dyn_storage",
+                                  "typeIdentifier": "t_array$_t_struct$_Token_$12586_storage_$dyn_storage",
                                   "typeString": "struct TokenList.Token storage ref[] storage ref"
                                 }
                               },
-                              "id": 11923,
+                              "id": 12715,
                               "indexExpression": {
                                 "argumentTypes": null,
-                                "id": 11922,
+                                "id": 12714,
                                 "name": "i",
                                 "nodeType": "Identifier",
                                 "overloadedDeclarations": [],
-                                "referencedDeclaration": 11911,
+                                "referencedDeclaration": 12703,
                                 "src": "2139:1:17",
                                 "typeDescriptions": {
                                   "typeIdentifier": "t_uint256",
@@ -1912,18 +1912,18 @@
                               "nodeType": "IndexAccess",
                               "src": "2128:13:17",
                               "typeDescriptions": {
-                                "typeIdentifier": "t_struct$_Token_$11794_storage",
+                                "typeIdentifier": "t_struct$_Token_$12586_storage",
                                 "typeString": "struct TokenList.Token storage ref"
                               }
                             },
-                            "id": 11924,
+                            "id": 12716,
                             "isConstant": false,
                             "isLValue": true,
                             "isPure": false,
                             "lValueRequested": false,
                             "memberName": "token_address",
                             "nodeType": "MemberAccess",
-                            "referencedDeclaration": 11789,
+                            "referencedDeclaration": 12581,
                             "src": "2128:27:17",
                             "typeDescriptions": {
                               "typeIdentifier": "t_address",
@@ -1934,11 +1934,11 @@
                           "operator": "==",
                           "rightExpression": {
                             "argumentTypes": null,
-                            "id": 11925,
+                            "id": 12717,
                             "name": "_token_address",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 11879,
+                            "referencedDeclaration": 12671,
                             "src": "2159:14:17",
                             "typeDescriptions": {
                               "typeIdentifier": "t_address",
@@ -1952,18 +1952,18 @@
                           }
                         },
                         "falseBody": null,
-                        "id": 11935,
+                        "id": 12727,
                         "nodeType": "IfStatement",
                         "src": "2124:132:17",
                         "trueBody": {
-                          "id": 11934,
+                          "id": 12726,
                           "nodeType": "Block",
                           "src": "2175:81:17",
                           "statements": [
                             {
                               "expression": {
                                 "argumentTypes": null,
-                                "id": 11932,
+                                "id": 12724,
                                 "isConstant": false,
                                 "isLValue": false,
                                 "isPure": false,
@@ -1974,25 +1974,25 @@
                                     "argumentTypes": null,
                                     "baseExpression": {
                                       "argumentTypes": null,
-                                      "id": 11927,
+                                      "id": 12719,
                                       "name": "token_list",
                                       "nodeType": "Identifier",
                                       "overloadedDeclarations": [],
-                                      "referencedDeclaration": 11801,
+                                      "referencedDeclaration": 12593,
                                       "src": "2193:10:17",
                                       "typeDescriptions": {
-                                        "typeIdentifier": "t_array$_t_struct$_Token_$11794_storage_$dyn_storage",
+                                        "typeIdentifier": "t_array$_t_struct$_Token_$12586_storage_$dyn_storage",
                                         "typeString": "struct TokenList.Token storage ref[] storage ref"
                                       }
                                     },
-                                    "id": 11929,
+                                    "id": 12721,
                                     "indexExpression": {
                                       "argumentTypes": null,
-                                      "id": 11928,
+                                      "id": 12720,
                                       "name": "i",
                                       "nodeType": "Identifier",
                                       "overloadedDeclarations": [],
-                                      "referencedDeclaration": 11911,
+                                      "referencedDeclaration": 12703,
                                       "src": "2204:1:17",
                                       "typeDescriptions": {
                                         "typeIdentifier": "t_uint256",
@@ -2006,18 +2006,18 @@
                                     "nodeType": "IndexAccess",
                                     "src": "2193:13:17",
                                     "typeDescriptions": {
-                                      "typeIdentifier": "t_struct$_Token_$11794_storage",
+                                      "typeIdentifier": "t_struct$_Token_$12586_storage",
                                       "typeString": "struct TokenList.Token storage ref"
                                     }
                                   },
-                                  "id": 11930,
+                                  "id": 12722,
                                   "isConstant": false,
                                   "isLValue": true,
                                   "isPure": false,
                                   "lValueRequested": true,
                                   "memberName": "owner_address",
                                   "nodeType": "MemberAccess",
-                                  "referencedDeclaration": 11793,
+                                  "referencedDeclaration": 12585,
                                   "src": "2193:27:17",
                                   "typeDescriptions": {
                                     "typeIdentifier": "t_address",
@@ -2028,11 +2028,11 @@
                                 "operator": "=",
                                 "rightHandSide": {
                                   "argumentTypes": null,
-                                  "id": 11931,
+                                  "id": 12723,
                                   "name": "_new_owner_address",
                                   "nodeType": "Identifier",
                                   "overloadedDeclarations": [],
-                                  "referencedDeclaration": 11881,
+                                  "referencedDeclaration": 12673,
                                   "src": "2223:18:17",
                                   "typeDescriptions": {
                                     "typeIdentifier": "t_address",
@@ -2045,7 +2045,7 @@
                                   "typeString": "address"
                                 }
                               },
-                              "id": 11933,
+                              "id": 12725,
                               "nodeType": "ExpressionStatement",
                               "src": "2193:48:17"
                             }
@@ -2060,18 +2060,18 @@
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
                     },
-                    "id": 11917,
+                    "id": 12709,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
                     "lValueRequested": false,
                     "leftExpression": {
                       "argumentTypes": null,
-                      "id": 11914,
+                      "id": 12706,
                       "name": "i",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 11911,
+                      "referencedDeclaration": 12703,
                       "src": "2082:1:17",
                       "typeDescriptions": {
                         "typeIdentifier": "t_uint256",
@@ -2084,18 +2084,18 @@
                       "argumentTypes": null,
                       "expression": {
                         "argumentTypes": null,
-                        "id": 11915,
+                        "id": 12707,
                         "name": "token_list",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 11801,
+                        "referencedDeclaration": 12593,
                         "src": "2086:10:17",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_array$_t_struct$_Token_$11794_storage_$dyn_storage",
+                          "typeIdentifier": "t_array$_t_struct$_Token_$12586_storage_$dyn_storage",
                           "typeString": "struct TokenList.Token storage ref[] storage ref"
                         }
                       },
-                      "id": 11916,
+                      "id": 12708,
                       "isConstant": false,
                       "isLValue": true,
                       "isPure": false,
@@ -2115,18 +2115,18 @@
                       "typeString": "bool"
                     }
                   },
-                  "id": 11937,
+                  "id": 12729,
                   "initializationExpression": {
                     "assignments": [
-                      11911
+                      12703
                     ],
                     "declarations": [
                       {
                         "constant": false,
-                        "id": 11911,
+                        "id": 12703,
                         "name": "i",
                         "nodeType": "VariableDeclaration",
-                        "scope": 11939,
+                        "scope": 12731,
                         "src": "2070:6:17",
                         "stateVariable": false,
                         "storageLocation": "default",
@@ -2135,7 +2135,7 @@
                           "typeString": "uint256"
                         },
                         "typeName": {
-                          "id": 11910,
+                          "id": 12702,
                           "name": "uint",
                           "nodeType": "ElementaryTypeName",
                           "src": "2070:4:17",
@@ -2148,11 +2148,11 @@
                         "visibility": "internal"
                       }
                     ],
-                    "id": 11913,
+                    "id": 12705,
                     "initialValue": {
                       "argumentTypes": null,
                       "hexValue": "30",
-                      "id": 11912,
+                      "id": 12704,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": true,
@@ -2173,7 +2173,7 @@
                   "loopExpression": {
                     "expression": {
                       "argumentTypes": null,
-                      "id": 11919,
+                      "id": 12711,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": false,
@@ -2184,11 +2184,11 @@
                       "src": "2105:3:17",
                       "subExpression": {
                         "argumentTypes": null,
-                        "id": 11918,
+                        "id": 12710,
                         "name": "i",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 11911,
+                        "referencedDeclaration": 12703,
                         "src": "2105:1:17",
                         "typeDescriptions": {
                           "typeIdentifier": "t_uint256",
@@ -2200,7 +2200,7 @@
                         "typeString": "uint256"
                       }
                     },
-                    "id": 11920,
+                    "id": 12712,
                     "nodeType": "ExpressionStatement",
                     "src": "2105:3:17"
                   },
@@ -2210,7 +2210,7 @@
               ]
             },
             "documentation": "@notice \u30aa\u30fc\u30ca\u30fc\u5909\u66f4\u767b\u9332\n @param _token_address \u30c8\u30fc\u30af\u30f3\u30a2\u30c9\u30ec\u30b9\n @param _new_owner_address \u65b0\u3057\u3044\u30aa\u30fc\u30ca\u30fc\u30a2\u30c9\u30ec\u30b9",
-            "id": 11939,
+            "id": 12731,
             "implemented": true,
             "isConstructor": false,
             "isDeclaredConst": false,
@@ -2218,15 +2218,15 @@
             "name": "changeOwner",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 11882,
+              "id": 12674,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 11879,
+                  "id": 12671,
                   "name": "_token_address",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11939,
+                  "scope": 12731,
                   "src": "1747:22:17",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -2235,7 +2235,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 11878,
+                    "id": 12670,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1747:7:17",
@@ -2249,10 +2249,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 11881,
+                  "id": 12673,
                   "name": "_new_owner_address",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11939,
+                  "scope": 12731,
                   "src": "1771:26:17",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -2261,7 +2261,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 11880,
+                    "id": 12672,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1771:7:17",
@@ -2278,12 +2278,12 @@
             },
             "payable": false,
             "returnParameters": {
-              "id": 11883,
+              "id": 12675,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1818:0:17"
             },
-            "scope": 12032,
+            "scope": 12824,
             "src": "1726:546:17",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -2291,25 +2291,25 @@
           },
           {
             "body": {
-              "id": 11953,
+              "id": 12745,
               "nodeType": "Block",
               "src": "2561:70:17",
               "statements": [
                 {
                   "expression": {
                     "argumentTypes": null,
-                    "id": 11951,
+                    "id": 12743,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
                     "lValueRequested": false,
                     "leftHandSide": {
                       "argumentTypes": null,
-                      "id": 11946,
+                      "id": 12738,
                       "name": "issuer_address",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 11944,
+                      "referencedDeclaration": 12736,
                       "src": "2571:14:17",
                       "typeDescriptions": {
                         "typeIdentifier": "t_address",
@@ -2324,25 +2324,25 @@
                         "argumentTypes": null,
                         "baseExpression": {
                           "argumentTypes": null,
-                          "id": 11947,
+                          "id": 12739,
                           "name": "tokens",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 11798,
+                          "referencedDeclaration": 12590,
                           "src": "2588:6:17",
                           "typeDescriptions": {
-                            "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Token_$11794_storage_$",
+                            "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Token_$12586_storage_$",
                             "typeString": "mapping(address => struct TokenList.Token storage ref)"
                           }
                         },
-                        "id": 11949,
+                        "id": 12741,
                         "indexExpression": {
                           "argumentTypes": null,
-                          "id": 11948,
+                          "id": 12740,
                           "name": "_token_address",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 11941,
+                          "referencedDeclaration": 12733,
                           "src": "2595:14:17",
                           "typeDescriptions": {
                             "typeIdentifier": "t_address",
@@ -2356,18 +2356,18 @@
                         "nodeType": "IndexAccess",
                         "src": "2588:22:17",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_struct$_Token_$11794_storage",
+                          "typeIdentifier": "t_struct$_Token_$12586_storage",
                           "typeString": "struct TokenList.Token storage ref"
                         }
                       },
-                      "id": 11950,
+                      "id": 12742,
                       "isConstant": false,
                       "isLValue": true,
                       "isPure": false,
                       "lValueRequested": false,
                       "memberName": "owner_address",
                       "nodeType": "MemberAccess",
-                      "referencedDeclaration": 11793,
+                      "referencedDeclaration": 12585,
                       "src": "2588:36:17",
                       "typeDescriptions": {
                         "typeIdentifier": "t_address",
@@ -2380,14 +2380,14 @@
                       "typeString": "address"
                     }
                   },
-                  "id": 11952,
+                  "id": 12744,
                   "nodeType": "ExpressionStatement",
                   "src": "2571:53:17"
                 }
               ]
             },
             "documentation": "@notice \u30aa\u30fc\u30ca\u30fc\u30a2\u30c9\u30ec\u30b9\u306e\u53c2\u7167\n @param _token_address \u30c8\u30fc\u30af\u30f3\u30a2\u30c9\u30ec\u30b9\n @return issuer_address \u30aa\u30fc\u30ca\u30fc\u30a2\u30c9\u30ec\u30b9",
-            "id": 11954,
+            "id": 12746,
             "implemented": true,
             "isConstructor": false,
             "isDeclaredConst": true,
@@ -2395,15 +2395,15 @@
             "name": "getOwnerAddress",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 11942,
+              "id": 12734,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 11941,
+                  "id": 12733,
                   "name": "_token_address",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11954,
+                  "scope": 12746,
                   "src": "2464:22:17",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -2412,7 +2412,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 11940,
+                    "id": 12732,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "2464:7:17",
@@ -2429,15 +2429,15 @@
             },
             "payable": false,
             "returnParameters": {
-              "id": 11945,
+              "id": 12737,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 11944,
+                  "id": 12736,
                   "name": "issuer_address",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11954,
+                  "scope": 12746,
                   "src": "2533:22:17",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -2446,7 +2446,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 11943,
+                    "id": 12735,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "2533:7:17",
@@ -2461,7 +2461,7 @@
               ],
               "src": "2532:24:17"
             },
-            "scope": 12032,
+            "scope": 12824,
             "src": "2439:192:17",
             "stateMutability": "view",
             "superFunction": null,
@@ -2469,25 +2469,25 @@
           },
           {
             "body": {
-              "id": 11964,
+              "id": 12756,
               "nodeType": "Block",
               "src": "2819:43:17",
               "statements": [
                 {
                   "expression": {
                     "argumentTypes": null,
-                    "id": 11962,
+                    "id": 12754,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
                     "lValueRequested": false,
                     "leftHandSide": {
                       "argumentTypes": null,
-                      "id": 11959,
+                      "id": 12751,
                       "name": "length",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 11957,
+                      "referencedDeclaration": 12749,
                       "src": "2829:6:17",
                       "typeDescriptions": {
                         "typeIdentifier": "t_uint256",
@@ -2500,18 +2500,18 @@
                       "argumentTypes": null,
                       "expression": {
                         "argumentTypes": null,
-                        "id": 11960,
+                        "id": 12752,
                         "name": "token_list",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 11801,
+                        "referencedDeclaration": 12593,
                         "src": "2838:10:17",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_array$_t_struct$_Token_$11794_storage_$dyn_storage",
+                          "typeIdentifier": "t_array$_t_struct$_Token_$12586_storage_$dyn_storage",
                           "typeString": "struct TokenList.Token storage ref[] storage ref"
                         }
                       },
-                      "id": 11961,
+                      "id": 12753,
                       "isConstant": false,
                       "isLValue": true,
                       "isPure": false,
@@ -2531,14 +2531,14 @@
                       "typeString": "uint256"
                     }
                   },
-                  "id": 11963,
+                  "id": 12755,
                   "nodeType": "ExpressionStatement",
                   "src": "2829:26:17"
                 }
               ]
             },
             "documentation": "@notice \u30c8\u30fc\u30af\u30f3\u30ea\u30b9\u30c8\u306e\u30ea\u30b9\u30c8\u9577\u53d6\u5f97\n @return length \u30ea\u30b9\u30c8\u9577",
-            "id": 11965,
+            "id": 12757,
             "implemented": true,
             "isConstructor": false,
             "isDeclaredConst": true,
@@ -2546,22 +2546,22 @@
             "name": "getListLength",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 11955,
+              "id": 12747,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "2754:2:17"
             },
             "payable": false,
             "returnParameters": {
-              "id": 11958,
+              "id": 12750,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 11957,
+                  "id": 12749,
                   "name": "length",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11965,
+                  "scope": 12757,
                   "src": "2802:11:17",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -2570,7 +2570,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 11956,
+                    "id": 12748,
                     "name": "uint",
                     "nodeType": "ElementaryTypeName",
                     "src": "2802:4:17",
@@ -2585,7 +2585,7 @@
               ],
               "src": "2801:13:17"
             },
-            "scope": 12032,
+            "scope": 12824,
             "src": "2732:130:17",
             "stateMutability": "view",
             "superFunction": null,
@@ -2593,25 +2593,25 @@
           },
           {
             "body": {
-              "id": 11997,
+              "id": 12789,
               "nodeType": "Block",
               "src": "3307:177:17",
               "statements": [
                 {
                   "expression": {
                     "argumentTypes": null,
-                    "id": 11981,
+                    "id": 12773,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
                     "lValueRequested": false,
                     "leftHandSide": {
                       "argumentTypes": null,
-                      "id": 11976,
+                      "id": 12768,
                       "name": "token_address",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 11970,
+                      "referencedDeclaration": 12762,
                       "src": "3317:13:17",
                       "typeDescriptions": {
                         "typeIdentifier": "t_address",
@@ -2626,25 +2626,25 @@
                         "argumentTypes": null,
                         "baseExpression": {
                           "argumentTypes": null,
-                          "id": 11977,
+                          "id": 12769,
                           "name": "token_list",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 11801,
+                          "referencedDeclaration": 12593,
                           "src": "3333:10:17",
                           "typeDescriptions": {
-                            "typeIdentifier": "t_array$_t_struct$_Token_$11794_storage_$dyn_storage",
+                            "typeIdentifier": "t_array$_t_struct$_Token_$12586_storage_$dyn_storage",
                             "typeString": "struct TokenList.Token storage ref[] storage ref"
                           }
                         },
-                        "id": 11979,
+                        "id": 12771,
                         "indexExpression": {
                           "argumentTypes": null,
-                          "id": 11978,
+                          "id": 12770,
                           "name": "_num",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 11967,
+                          "referencedDeclaration": 12759,
                           "src": "3344:4:17",
                           "typeDescriptions": {
                             "typeIdentifier": "t_uint256",
@@ -2658,18 +2658,18 @@
                         "nodeType": "IndexAccess",
                         "src": "3333:16:17",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_struct$_Token_$11794_storage",
+                          "typeIdentifier": "t_struct$_Token_$12586_storage",
                           "typeString": "struct TokenList.Token storage ref"
                         }
                       },
-                      "id": 11980,
+                      "id": 12772,
                       "isConstant": false,
                       "isLValue": true,
                       "isPure": false,
                       "lValueRequested": false,
                       "memberName": "token_address",
                       "nodeType": "MemberAccess",
-                      "referencedDeclaration": 11789,
+                      "referencedDeclaration": 12581,
                       "src": "3333:30:17",
                       "typeDescriptions": {
                         "typeIdentifier": "t_address",
@@ -2682,25 +2682,25 @@
                       "typeString": "address"
                     }
                   },
-                  "id": 11982,
+                  "id": 12774,
                   "nodeType": "ExpressionStatement",
                   "src": "3317:46:17"
                 },
                 {
                   "expression": {
                     "argumentTypes": null,
-                    "id": 11988,
+                    "id": 12780,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
                     "lValueRequested": false,
                     "leftHandSide": {
                       "argumentTypes": null,
-                      "id": 11983,
+                      "id": 12775,
                       "name": "token_template",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 11972,
+                      "referencedDeclaration": 12764,
                       "src": "3373:14:17",
                       "typeDescriptions": {
                         "typeIdentifier": "t_string_memory_ptr",
@@ -2715,25 +2715,25 @@
                         "argumentTypes": null,
                         "baseExpression": {
                           "argumentTypes": null,
-                          "id": 11984,
+                          "id": 12776,
                           "name": "token_list",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 11801,
+                          "referencedDeclaration": 12593,
                           "src": "3390:10:17",
                           "typeDescriptions": {
-                            "typeIdentifier": "t_array$_t_struct$_Token_$11794_storage_$dyn_storage",
+                            "typeIdentifier": "t_array$_t_struct$_Token_$12586_storage_$dyn_storage",
                             "typeString": "struct TokenList.Token storage ref[] storage ref"
                           }
                         },
-                        "id": 11986,
+                        "id": 12778,
                         "indexExpression": {
                           "argumentTypes": null,
-                          "id": 11985,
+                          "id": 12777,
                           "name": "_num",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 11967,
+                          "referencedDeclaration": 12759,
                           "src": "3401:4:17",
                           "typeDescriptions": {
                             "typeIdentifier": "t_uint256",
@@ -2747,18 +2747,18 @@
                         "nodeType": "IndexAccess",
                         "src": "3390:16:17",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_struct$_Token_$11794_storage",
+                          "typeIdentifier": "t_struct$_Token_$12586_storage",
                           "typeString": "struct TokenList.Token storage ref"
                         }
                       },
-                      "id": 11987,
+                      "id": 12779,
                       "isConstant": false,
                       "isLValue": true,
                       "isPure": false,
                       "lValueRequested": false,
                       "memberName": "token_template",
                       "nodeType": "MemberAccess",
-                      "referencedDeclaration": 11791,
+                      "referencedDeclaration": 12583,
                       "src": "3390:31:17",
                       "typeDescriptions": {
                         "typeIdentifier": "t_string_storage",
@@ -2771,25 +2771,25 @@
                       "typeString": "string memory"
                     }
                   },
-                  "id": 11989,
+                  "id": 12781,
                   "nodeType": "ExpressionStatement",
                   "src": "3373:48:17"
                 },
                 {
                   "expression": {
                     "argumentTypes": null,
-                    "id": 11995,
+                    "id": 12787,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
                     "lValueRequested": false,
                     "leftHandSide": {
                       "argumentTypes": null,
-                      "id": 11990,
+                      "id": 12782,
                       "name": "owner_address",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 11974,
+                      "referencedDeclaration": 12766,
                       "src": "3431:13:17",
                       "typeDescriptions": {
                         "typeIdentifier": "t_address",
@@ -2804,25 +2804,25 @@
                         "argumentTypes": null,
                         "baseExpression": {
                           "argumentTypes": null,
-                          "id": 11991,
+                          "id": 12783,
                           "name": "token_list",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 11801,
+                          "referencedDeclaration": 12593,
                           "src": "3447:10:17",
                           "typeDescriptions": {
-                            "typeIdentifier": "t_array$_t_struct$_Token_$11794_storage_$dyn_storage",
+                            "typeIdentifier": "t_array$_t_struct$_Token_$12586_storage_$dyn_storage",
                             "typeString": "struct TokenList.Token storage ref[] storage ref"
                           }
                         },
-                        "id": 11993,
+                        "id": 12785,
                         "indexExpression": {
                           "argumentTypes": null,
-                          "id": 11992,
+                          "id": 12784,
                           "name": "_num",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 11967,
+                          "referencedDeclaration": 12759,
                           "src": "3458:4:17",
                           "typeDescriptions": {
                             "typeIdentifier": "t_uint256",
@@ -2836,18 +2836,18 @@
                         "nodeType": "IndexAccess",
                         "src": "3447:16:17",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_struct$_Token_$11794_storage",
+                          "typeIdentifier": "t_struct$_Token_$12586_storage",
                           "typeString": "struct TokenList.Token storage ref"
                         }
                       },
-                      "id": 11994,
+                      "id": 12786,
                       "isConstant": false,
                       "isLValue": true,
                       "isPure": false,
                       "lValueRequested": false,
                       "memberName": "owner_address",
                       "nodeType": "MemberAccess",
-                      "referencedDeclaration": 11793,
+                      "referencedDeclaration": 12585,
                       "src": "3447:30:17",
                       "typeDescriptions": {
                         "typeIdentifier": "t_address",
@@ -2860,14 +2860,14 @@
                       "typeString": "address"
                     }
                   },
-                  "id": 11996,
+                  "id": 12788,
                   "nodeType": "ExpressionStatement",
                   "src": "3431:46:17"
                 }
               ]
             },
             "documentation": "@notice \u30ea\u30b9\u30c8\u756a\u53f7\u3092\u6307\u5b9a\u3057\u3066\u30c8\u30fc\u30af\u30f3\u60c5\u5831\u3092\u53d6\u5f97\n @return token_address \u30c8\u30fc\u30af\u30f3\u30a2\u30c9\u30ec\u30b9\n @return token_template \u30c8\u30fc\u30af\u30f3\u4ed5\u69d8\n @return owner_address \u30aa\u30fc\u30ca\u30fc\u30a2\u30c9\u30ec\u30b9",
-            "id": 11998,
+            "id": 12790,
             "implemented": true,
             "isConstructor": false,
             "isDeclaredConst": true,
@@ -2875,15 +2875,15 @@
             "name": "getTokenByNum",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 11968,
+              "id": 12760,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 11967,
+                  "id": 12759,
                   "name": "_num",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11998,
+                  "scope": 12790,
                   "src": "3125:9:17",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -2892,7 +2892,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 11966,
+                    "id": 12758,
                     "name": "uint",
                     "nodeType": "ElementaryTypeName",
                     "src": "3125:4:17",
@@ -2909,15 +2909,15 @@
             },
             "payable": false,
             "returnParameters": {
-              "id": 11975,
+              "id": 12767,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 11970,
+                  "id": 12762,
                   "name": "token_address",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11998,
+                  "scope": 12790,
                   "src": "3194:21:17",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -2926,7 +2926,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 11969,
+                    "id": 12761,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "3194:7:17",
@@ -2940,10 +2940,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 11972,
+                  "id": 12764,
                   "name": "token_template",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11998,
+                  "scope": 12790,
                   "src": "3229:28:17",
                   "stateVariable": false,
                   "storageLocation": "memory",
@@ -2952,7 +2952,7 @@
                     "typeString": "string"
                   },
                   "typeName": {
-                    "id": 11971,
+                    "id": 12763,
                     "name": "string",
                     "nodeType": "ElementaryTypeName",
                     "src": "3229:6:17",
@@ -2966,10 +2966,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 11974,
+                  "id": 12766,
                   "name": "owner_address",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11998,
+                  "scope": 12790,
                   "src": "3271:21:17",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -2978,7 +2978,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 11973,
+                    "id": 12765,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "3271:7:17",
@@ -2993,7 +2993,7 @@
               ],
               "src": "3180:122:17"
             },
-            "scope": 12032,
+            "scope": 12824,
             "src": "3102:382:17",
             "stateMutability": "view",
             "superFunction": null,
@@ -3001,25 +3001,25 @@
           },
           {
             "body": {
-              "id": 12030,
+              "id": 12822,
               "nodeType": "Block",
               "src": "3955:195:17",
               "statements": [
                 {
                   "expression": {
                     "argumentTypes": null,
-                    "id": 12014,
+                    "id": 12806,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
                     "lValueRequested": false,
                     "leftHandSide": {
                       "argumentTypes": null,
-                      "id": 12009,
+                      "id": 12801,
                       "name": "token_address",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 12003,
+                      "referencedDeclaration": 12795,
                       "src": "3965:13:17",
                       "typeDescriptions": {
                         "typeIdentifier": "t_address",
@@ -3034,25 +3034,25 @@
                         "argumentTypes": null,
                         "baseExpression": {
                           "argumentTypes": null,
-                          "id": 12010,
+                          "id": 12802,
                           "name": "tokens",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 11798,
+                          "referencedDeclaration": 12590,
                           "src": "3981:6:17",
                           "typeDescriptions": {
-                            "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Token_$11794_storage_$",
+                            "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Token_$12586_storage_$",
                             "typeString": "mapping(address => struct TokenList.Token storage ref)"
                           }
                         },
-                        "id": 12012,
+                        "id": 12804,
                         "indexExpression": {
                           "argumentTypes": null,
-                          "id": 12011,
+                          "id": 12803,
                           "name": "_token_address",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 12000,
+                          "referencedDeclaration": 12792,
                           "src": "3988:14:17",
                           "typeDescriptions": {
                             "typeIdentifier": "t_address",
@@ -3066,18 +3066,18 @@
                         "nodeType": "IndexAccess",
                         "src": "3981:22:17",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_struct$_Token_$11794_storage",
+                          "typeIdentifier": "t_struct$_Token_$12586_storage",
                           "typeString": "struct TokenList.Token storage ref"
                         }
                       },
-                      "id": 12013,
+                      "id": 12805,
                       "isConstant": false,
                       "isLValue": true,
                       "isPure": false,
                       "lValueRequested": false,
                       "memberName": "token_address",
                       "nodeType": "MemberAccess",
-                      "referencedDeclaration": 11789,
+                      "referencedDeclaration": 12581,
                       "src": "3981:36:17",
                       "typeDescriptions": {
                         "typeIdentifier": "t_address",
@@ -3090,25 +3090,25 @@
                       "typeString": "address"
                     }
                   },
-                  "id": 12015,
+                  "id": 12807,
                   "nodeType": "ExpressionStatement",
                   "src": "3965:52:17"
                 },
                 {
                   "expression": {
                     "argumentTypes": null,
-                    "id": 12021,
+                    "id": 12813,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
                     "lValueRequested": false,
                     "leftHandSide": {
                       "argumentTypes": null,
-                      "id": 12016,
+                      "id": 12808,
                       "name": "token_template",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 12005,
+                      "referencedDeclaration": 12797,
                       "src": "4027:14:17",
                       "typeDescriptions": {
                         "typeIdentifier": "t_string_memory_ptr",
@@ -3123,25 +3123,25 @@
                         "argumentTypes": null,
                         "baseExpression": {
                           "argumentTypes": null,
-                          "id": 12017,
+                          "id": 12809,
                           "name": "tokens",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 11798,
+                          "referencedDeclaration": 12590,
                           "src": "4044:6:17",
                           "typeDescriptions": {
-                            "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Token_$11794_storage_$",
+                            "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Token_$12586_storage_$",
                             "typeString": "mapping(address => struct TokenList.Token storage ref)"
                           }
                         },
-                        "id": 12019,
+                        "id": 12811,
                         "indexExpression": {
                           "argumentTypes": null,
-                          "id": 12018,
+                          "id": 12810,
                           "name": "_token_address",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 12000,
+                          "referencedDeclaration": 12792,
                           "src": "4051:14:17",
                           "typeDescriptions": {
                             "typeIdentifier": "t_address",
@@ -3155,18 +3155,18 @@
                         "nodeType": "IndexAccess",
                         "src": "4044:22:17",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_struct$_Token_$11794_storage",
+                          "typeIdentifier": "t_struct$_Token_$12586_storage",
                           "typeString": "struct TokenList.Token storage ref"
                         }
                       },
-                      "id": 12020,
+                      "id": 12812,
                       "isConstant": false,
                       "isLValue": true,
                       "isPure": false,
                       "lValueRequested": false,
                       "memberName": "token_template",
                       "nodeType": "MemberAccess",
-                      "referencedDeclaration": 11791,
+                      "referencedDeclaration": 12583,
                       "src": "4044:37:17",
                       "typeDescriptions": {
                         "typeIdentifier": "t_string_storage",
@@ -3179,25 +3179,25 @@
                       "typeString": "string memory"
                     }
                   },
-                  "id": 12022,
+                  "id": 12814,
                   "nodeType": "ExpressionStatement",
                   "src": "4027:54:17"
                 },
                 {
                   "expression": {
                     "argumentTypes": null,
-                    "id": 12028,
+                    "id": 12820,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
                     "lValueRequested": false,
                     "leftHandSide": {
                       "argumentTypes": null,
-                      "id": 12023,
+                      "id": 12815,
                       "name": "owner_address",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 12007,
+                      "referencedDeclaration": 12799,
                       "src": "4091:13:17",
                       "typeDescriptions": {
                         "typeIdentifier": "t_address",
@@ -3212,25 +3212,25 @@
                         "argumentTypes": null,
                         "baseExpression": {
                           "argumentTypes": null,
-                          "id": 12024,
+                          "id": 12816,
                           "name": "tokens",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 11798,
+                          "referencedDeclaration": 12590,
                           "src": "4107:6:17",
                           "typeDescriptions": {
-                            "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Token_$11794_storage_$",
+                            "typeIdentifier": "t_mapping$_t_address_$_t_struct$_Token_$12586_storage_$",
                             "typeString": "mapping(address => struct TokenList.Token storage ref)"
                           }
                         },
-                        "id": 12026,
+                        "id": 12818,
                         "indexExpression": {
                           "argumentTypes": null,
-                          "id": 12025,
+                          "id": 12817,
                           "name": "_token_address",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 12000,
+                          "referencedDeclaration": 12792,
                           "src": "4114:14:17",
                           "typeDescriptions": {
                             "typeIdentifier": "t_address",
@@ -3244,18 +3244,18 @@
                         "nodeType": "IndexAccess",
                         "src": "4107:22:17",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_struct$_Token_$11794_storage",
+                          "typeIdentifier": "t_struct$_Token_$12586_storage",
                           "typeString": "struct TokenList.Token storage ref"
                         }
                       },
-                      "id": 12027,
+                      "id": 12819,
                       "isConstant": false,
                       "isLValue": true,
                       "isPure": false,
                       "lValueRequested": false,
                       "memberName": "owner_address",
                       "nodeType": "MemberAccess",
-                      "referencedDeclaration": 11793,
+                      "referencedDeclaration": 12585,
                       "src": "4107:36:17",
                       "typeDescriptions": {
                         "typeIdentifier": "t_address",
@@ -3268,14 +3268,14 @@
                       "typeString": "address"
                     }
                   },
-                  "id": 12029,
+                  "id": 12821,
                   "nodeType": "ExpressionStatement",
                   "src": "4091:52:17"
                 }
               ]
             },
             "documentation": "@notice \u30c8\u30fc\u30af\u30f3\u30a2\u30c9\u30ec\u30b9\u3092\u6307\u5b9a\u3057\u3066\u30c8\u30fc\u30af\u30f3\u60c5\u5831\u3092\u53d6\u5f97\n @return token_address \u30c8\u30fc\u30af\u30f3\u30a2\u30c9\u30ec\u30b9\n @return token_template \u30c8\u30fc\u30af\u30f3\u4ed5\u69d8\n @return owner_address \u30aa\u30fc\u30ca\u30fc\u30a2\u30c9\u30ec\u30b9",
-            "id": 12031,
+            "id": 12823,
             "implemented": true,
             "isConstructor": false,
             "isDeclaredConst": true,
@@ -3283,15 +3283,15 @@
             "name": "getTokenByAddress",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 12001,
+              "id": 12793,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 12000,
+                  "id": 12792,
                   "name": "_token_address",
                   "nodeType": "VariableDeclaration",
-                  "scope": 12031,
+                  "scope": 12823,
                   "src": "3760:22:17",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -3300,7 +3300,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 11999,
+                    "id": 12791,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "3760:7:17",
@@ -3317,15 +3317,15 @@
             },
             "payable": false,
             "returnParameters": {
-              "id": 12008,
+              "id": 12800,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 12003,
+                  "id": 12795,
                   "name": "token_address",
                   "nodeType": "VariableDeclaration",
-                  "scope": 12031,
+                  "scope": 12823,
                   "src": "3842:21:17",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -3334,7 +3334,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 12002,
+                    "id": 12794,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "3842:7:17",
@@ -3348,10 +3348,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 12005,
+                  "id": 12797,
                   "name": "token_template",
                   "nodeType": "VariableDeclaration",
-                  "scope": 12031,
+                  "scope": 12823,
                   "src": "3877:28:17",
                   "stateVariable": false,
                   "storageLocation": "memory",
@@ -3360,7 +3360,7 @@
                     "typeString": "string"
                   },
                   "typeName": {
-                    "id": 12004,
+                    "id": 12796,
                     "name": "string",
                     "nodeType": "ElementaryTypeName",
                     "src": "3877:6:17",
@@ -3374,10 +3374,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 12007,
+                  "id": 12799,
                   "name": "owner_address",
                   "nodeType": "VariableDeclaration",
-                  "scope": 12031,
+                  "scope": 12823,
                   "src": "3919:21:17",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -3386,7 +3386,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 12006,
+                    "id": 12798,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "3919:7:17",
@@ -3401,14 +3401,14 @@
               ],
               "src": "3828:122:17"
             },
-            "scope": 12032,
+            "scope": 12824,
             "src": "3733:417:17",
             "stateMutability": "view",
             "superFunction": null,
             "visibility": "public"
           }
         ],
-        "scope": 12033,
+        "scope": 12825,
         "src": "133:4020:17"
       }
     ],
