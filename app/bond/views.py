@@ -49,11 +49,20 @@ def flash_errors(form):
             flash(error, 'error')
 
 
+def default_interest_payment_date():
+    """
+    利払日オブジェクトのデフォルト値
+    """
+    return {
+        f'interestPaymentDate{index}': '' for index in range(1, 13)
+    }
+
+
 def map_interest_payment_date(form, interestPaymentDate):
     """
     利払日オブジェクトのFormへのマッピング
     :param form: Form
-    :param interestPaymentDate: 利払日（JSONオブジェクト） 
+    :param interestPaymentDate: 利払日（JSONオブジェクト）
     :return: なし
     """
     if 'interestPaymentDate1' in interestPaymentDate:
@@ -155,19 +164,12 @@ def issue():
                 form.name.data,
                 form.symbol.data,
                 form.totalSupply.data,
-                to_checksum_address(form.tradableExchange.data),
                 form.faceValue.data,
-                int(form.interestRate.data * 10000),
-                interestPaymentDate_string,
                 form.redemptionDate.data,
                 redemption_value,
                 form.returnDate.data,
                 form.returnDetails.data,
                 form.purpose.data,
-                form.memo.data,
-                form.contact_information.data,
-                form.privacy_policy.data,
-                form.personalInfoAddress.data
             ]
             _, bytecode, bytecode_runtime = ContractUtils.get_contract_info('IbetStraightBond')
             contract_address, abi, tx_hash = \
@@ -184,10 +186,35 @@ def issue():
             token.bytecode_runtime = bytecode_runtime
             db.session.add(token)
 
-            # 商品画像URLの登録処理
-            if form.image_1.data != '' or form.image_2.data != '' or form.image_3.data != '':
-                if contract_address is not None:
-                    TokenContract = web3.eth.contract(address=contract_address, abi=abi)
+            if contract_address is not None:
+                TokenContract = web3.eth.contract(address=contract_address, abi=abi)
+
+                # 年利の登録処理
+                interestRate = int(form.interestRate.data * 10000)
+                if interestRate != 0:
+                    gas = TokenContract.functions.setInterestRate(interestRate). \
+                        estimateGas({'from': Config.ETH_ACCOUNT})
+                    tx = TokenContract.functions.setInterestRate(interestRate). \
+                        buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
+                    ContractUtils.send_transaction(transaction=tx)
+
+                # 利払日の登録処理
+                gas = TokenContract.functions.setInterestPaymentDate(interestPaymentDate_string). \
+                    estimateGas({'from': Config.ETH_ACCOUNT})
+                tx = TokenContract.functions.setInterestPaymentDate(interestPaymentDate_string). \
+                    buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
+                ContractUtils.send_transaction(transaction=tx)
+
+                # メモの登録処理
+                if form.memo.data:
+                    gas = TokenContract.functions.setMemo(form.memo.data). \
+                        estimateGas({'from': Config.ETH_ACCOUNT})
+                    tx = TokenContract.functions.setMemo(form.memo.data). \
+                        buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
+                    ContractUtils.send_transaction(transaction=tx)
+
+                # 商品画像URLの登録処理
+                if form.image_1.data != '' or form.image_2.data != '' or form.image_3.data != '':
                     if form.image_1.data != '':
                         gas = TokenContract.functions.setImageURL(0, form.image_1.data). \
                             estimateGas({'from': Config.ETH_ACCOUNT})
@@ -207,16 +234,46 @@ def issue():
                             buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                         ContractUtils.send_transaction(transaction=tx)
 
-            # 譲渡可否設定の登録処理
-            # NOTE:デフォルト設定は譲渡可能（True）なので、譲渡不可（False）の場合にのみ、更新処理を行う
-            if form.transferable.data == "False":
-                if contract_address is not None:
-                    TokenContract = web3.eth.contract(address=contract_address, abi=abi)
+                # 譲渡可否設定の登録処理
+                # NOTE:デフォルト設定は譲渡可能（True）なので、譲渡不可（False）の場合にのみ、更新処理を行う
+                if form.transferable.data == "False":
                     gas = TokenContract.functions.setTransferable(False). \
                         estimateGas({'from': Config.ETH_ACCOUNT})
                     tx = TokenContract.functions.setTransferable(False). \
                         buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                     ContractUtils.send_transaction(transaction=tx)
+
+                # 問い合わせ先の登録処理
+                if form.contact_information.data:
+                    gas = TokenContract.functions.setContactInformation(form.contact_information.data). \
+                        estimateGas({'from': Config.ETH_ACCOUNT})
+                    tx = TokenContract.functions.setContactInformation(form.contact_information.data). \
+                        buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
+                    ContractUtils.send_transaction(transaction=tx)
+
+                # プライバシーポリシーの登録処理
+                if form.privacy_policy.data:
+                    gas = TokenContract.functions.setPrivacyPolicy(form.privacy_policy.data). \
+                        estimateGas({'from': Config.ETH_ACCOUNT})
+                    tx = TokenContract.functions.setPrivacyPolicy(form.privacy_policy.data). \
+                        buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
+                    ContractUtils.send_transaction(transaction=tx)
+
+                # 個人情報コントラクトの登録処理
+                personal_info_address = form.personalInfoAddress.data
+                gas = TokenContract.functions.setPersonalInfoAddress(personal_info_address). \
+                    estimateGas({'from': Config.ETH_ACCOUNT})
+                tx = TokenContract.functions.setPersonalInfoAddress(personal_info_address). \
+                    buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
+                ContractUtils.send_transaction(transaction=tx)
+
+                # DEXアドレスの登録処理
+                tradable_exchange = to_checksum_address(form.tradableExchange.data)
+                gas = TokenContract.functions.setTradableExchange(tradable_exchange). \
+                    estimateGas({'from': Config.ETH_ACCOUNT})
+                tx = TokenContract.functions.setTradableExchange(tradable_exchange). \
+                    buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
+                ContractUtils.send_transaction(transaction=tx)
 
             flash('新規発行を受け付けました。発行完了までに数分程かかることがあります。', 'success')
             return redirect(url_for('.list'))
@@ -780,10 +837,12 @@ def setting(token_address):
     symbol = TokenContract.functions.symbol().call()
     totalSupply = TokenContract.functions.totalSupply().call()
     faceValue = TokenContract.functions.faceValue().call()
-    interestRate = TokenContract.functions.interestRate().call() * 0.0001
+    interestRate_int = TokenContract.functions.interestRate().call()
+    interestRate = interestRate_int * 0.0001
     interestPaymentDate_string = TokenContract.functions.interestPaymentDate().call()
     interestPaymentDate = json.loads(
-        interestPaymentDate_string.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+        interestPaymentDate_string.replace("'", '"').replace('True', 'true').replace('False', 'false')) \
+        if interestPaymentDate_string else default_interest_payment_date()
     redemptionDate = TokenContract.functions.redemptionDate().call()
     redemptionValue = TokenContract.functions.redemptionValue().call()
     returnDate = TokenContract.functions.returnDate().call()
@@ -812,36 +871,48 @@ def setting(token_address):
     form = SettingForm()
     if request.method == 'POST':
         if form.validate():  # Validationチェック
-            # Addressフォーマットチェック
-            if not Web3.isAddress(form.tradableExchange.data) or not Web3.isAddress(form.personalInfoAddress.data):
-                flash('DEXアドレスは有効なアドレスではありません。', 'error')
-                form.token_address.data = token.token_address
-                form.name.data = name
-                form.symbol.data = symbol
-                form.totalSupply.data = totalSupply
-                form.faceValue.data = faceValue
-                form.interestRate.data = interestRate
-                map_interest_payment_date(form, interestPaymentDate)
-                form.redemptionDate.data = redemptionDate
-                form.redemptionValue.data = redemptionValue
-                form.returnDate.data = returnDate
-                form.returnDetails.data = returnDetails
-                form.purpose.data = purpose
-                form.memo.data = memo
-                form.abi.data = token.abi
-                form.bytecode.data = token.bytecode
-                return render_template(
-                    'bond/setting.html',
-                    form=form, token_address=token_address,
-                    token_name=name, is_released=is_released, is_redeemed=is_redeemed,
-                    initial_offering_status=initial_offering_status
-                )
+            # 年利変更
+            formInterestRate = int(form.interestRate.data * 10000)
+            if formInterestRate != interestRate_int:
+                gas = TokenContract.functions.setInterestRate(formInterestRate). \
+                    estimateGas({'from': Config.ETH_ACCOUNT})
+                tx = TokenContract.functions.setInterestRate(formInterestRate). \
+                    buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
+                ContractUtils.send_transaction(transaction=tx)
+
+            # 利払い日変更
+            newInterestPaymentDate = {
+                'interestPaymentDate1': form.interestPaymentDate1.data,
+                'interestPaymentDate2': form.interestPaymentDate2.data,
+                'interestPaymentDate3': form.interestPaymentDate3.data,
+                'interestPaymentDate4': form.interestPaymentDate4.data,
+                'interestPaymentDate5': form.interestPaymentDate5.data,
+                'interestPaymentDate6': form.interestPaymentDate6.data,
+                'interestPaymentDate7': form.interestPaymentDate7.data,
+                'interestPaymentDate8': form.interestPaymentDate8.data,
+                'interestPaymentDate9': form.interestPaymentDate9.data,
+                'interestPaymentDate10': form.interestPaymentDate10.data,
+                'interestPaymentDate11': form.interestPaymentDate11.data,
+                'interestPaymentDate12': form.interestPaymentDate12.data
+            }
+            isInterestPaymentDateChanged = False
+            for date in newInterestPaymentDate.keys():
+                if interestPaymentDate.get(date, '') != newInterestPaymentDate[date]:
+                    isInterestPaymentDateChanged = True
+                    break
+            if isInterestPaymentDateChanged:
+                newInterestPaymentDate_string = json.dumps(newInterestPaymentDate)
+                gas = TokenContract.functions.setInterestPaymentDate(newInterestPaymentDate_string). \
+                    estimateGas({'from': Config.ETH_ACCOUNT})
+                tx = TokenContract.functions.setInterestPaymentDate(newInterestPaymentDate_string). \
+                    buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
+                ContractUtils.send_transaction(transaction=tx)
 
             # メモ欄変更
             if form.memo.data != memo:
-                gas = TokenContract.functions.updateMemo(form.memo.data). \
+                gas = TokenContract.functions.setMemo(form.memo.data). \
                     estimateGas({'from': Config.ETH_ACCOUNT})
-                tx = TokenContract.functions.updateMemo(form.memo.data). \
+                tx = TokenContract.functions.setMemo(form.memo.data). \
                     buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                 ContractUtils.send_transaction(transaction=tx)
 
@@ -921,14 +992,11 @@ def setting(token_address):
             form.symbol.data = symbol
             form.totalSupply.data = totalSupply
             form.faceValue.data = faceValue
-            form.interestRate.data = interestRate
-            map_interest_payment_date(form, interestPaymentDate)
             form.redemptionDate.data = redemptionDate
             form.redemptionValue.data = redemptionValue
             form.returnDate.data = returnDate
             form.returnDetails.data = returnDetails
             form.purpose.data = purpose
-            form.memo.data = memo
             form.abi.data = token.abi
             form.bytecode.data = token.bytecode
             return render_template(
@@ -1117,9 +1185,9 @@ def add_supply(token_address):
     if request.method == 'POST':
         if form.validate():
             try:
-                gas = TokenContract.functions.issue(form.amount.data). \
+                gas = TokenContract.functions.issueFrom(Config.ETH_ACCOUNT, ZERO_ADDRESS, form.amount.data). \
                     estimateGas({'from': Config.ETH_ACCOUNT})
-                tx = TokenContract.functions.issue(form.amount.data). \
+                tx = TokenContract.functions.issueFrom(Config.ETH_ACCOUNT, ZERO_ADDRESS, form.amount.data). \
                     buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
                 ContractUtils.send_transaction(transaction=tx)
             except Exception as e:
@@ -1276,7 +1344,8 @@ def sell(token_address):
     interestRate = TokenContract.functions.interestRate().call() * 0.0001
     interestPaymentDate_string = TokenContract.functions.interestPaymentDate().call()
     interestPaymentDate = \
-        json.loads(interestPaymentDate_string.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+        json.loads(interestPaymentDate_string.replace("'", '"').replace('True', 'true').replace('False', 'false')) \
+        if interestPaymentDate_string else default_interest_payment_date()
     redemptionDate = TokenContract.functions.redemptionDate().call()
     redemptionValue = TokenContract.functions.redemptionValue().call()
     returnDate = TokenContract.functions.returnDate().call()
