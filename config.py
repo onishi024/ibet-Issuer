@@ -22,17 +22,19 @@ class Config:
     WORKER_COUNT = int(os.environ.get("WORKER_COUNT")) if os.environ.get("WORKER_COUNT") else 4
 
     # Company List
+    NETWORK = os.environ.get("NETWORK") or "IBET"  # IBET or IBETFIN
     APP_ENV = os.getenv('FLASK_CONFIG') or 'default'
 
-    if APP_ENV == 'production':
-        COMPANY_LIST_URL = 'https://s3-ap-northeast-1.amazonaws.com/ibet-company-list/company_list.json'
-    else:
-        COMPANY_LIST_URL = 'https://s3-ap-northeast-1.amazonaws.com/ibet-company-list-dev/company_list.json'
-
-    if APP_ENV == 'production':
-        PAYMENT_AGENT_LIST_URL = 'https://s3-ap-northeast-1.amazonaws.com/ibet-company-list/payment_agent_list.json'
-    else:
-        PAYMENT_AGENT_LIST_URL = 'https://s3-ap-northeast-1.amazonaws.com/ibet-company-list-dev/payment_agent_list.json'
+    if NETWORK == "IBET":
+        if APP_ENV == "production":
+            COMPANY_LIST_URL = 'https://s3-ap-northeast-1.amazonaws.com/ibet-company-list/company_list.json'
+        else:
+            COMPANY_LIST_URL = 'https://s3-ap-northeast-1.amazonaws.com/ibet-company-list-dev/company_list.json'
+    elif NETWORK == "IBETFIN":
+        if APP_ENV == "production":
+            COMPANY_LIST_URL = 'https://s3-ap-northeast-1.amazonaws.com/ibet-fin-company-list/company_list.json'
+        else:
+            COMPANY_LIST_URL = 'https://s3-ap-northeast-1.amazonaws.com/ibet-fin-company-list-dev/company_list.json'
 
     # SSL
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'ZwiTDW52gQlxBQ8Sn34KYaLNQxA0mvpT2_RjYH5j-ZU='

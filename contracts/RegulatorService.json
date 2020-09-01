@@ -27,14 +27,14 @@
     "absolutePath": "contracts/RegulatorService.sol",
     "exportedSymbols": {
       "RegulatorService": [
-        11781
+        12475
       ]
     },
-    "id": 11782,
+    "id": 12476,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 11772,
+        "id": 12466,
         "literals": [
           "solidity",
           "^",
@@ -47,10 +47,10 @@
       {
         "absolutePath": "contracts/Ownable.sol",
         "file": "./Ownable.sol",
-        "id": 11773,
+        "id": 12467,
         "nodeType": "ImportDirective",
-        "scope": 11782,
-        "sourceUnit": 11300,
+        "scope": 12476,
+        "sourceUnit": 11892,
         "src": "26:23:15",
         "symbolAliases": [],
         "unitAlias": ""
@@ -61,9 +61,9 @@
         "contractKind": "contract",
         "documentation": "@title RegulatorService\u306e\u6a19\u6e96\u30a4\u30f3\u30bf\u30fc\u30d5\u30a7\u30fc\u30b9",
         "fullyImplemented": false,
-        "id": 11781,
+        "id": 12475,
         "linearizedBaseContracts": [
-          11781
+          12475
         ],
         "name": "RegulatorService",
         "nodeType": "ContractDefinition",
@@ -71,7 +71,7 @@
           {
             "body": null,
             "documentation": "@notice \u53d6\u5f15\u53ef\u5426\u30c1\u30a7\u30c3\u30af\n @param _participant \u53d6\u5f15\u53c2\u52a0\u8005\u306e\u30a2\u30c9\u30ec\u30b9\uff08EOA\uff09\n @return uint8 \u30ea\u30bf\u30fc\u30f3\u30b3\u30fc\u30c9\uff1a\u6210\u529f\uff080)",
-            "id": 11780,
+            "id": 12474,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": true,
@@ -79,15 +79,15 @@
             "name": "check",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 11776,
+              "id": 12470,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 11775,
+                  "id": 12469,
                   "name": "_participant",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11780,
+                  "scope": 12474,
                   "src": "328:20:15",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -96,7 +96,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 11774,
+                    "id": 12468,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "328:7:15",
@@ -113,15 +113,15 @@
             },
             "payable": false,
             "returnParameters": {
-              "id": 11779,
+              "id": 12473,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 11778,
+                  "id": 12472,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11780,
+                  "scope": 12474,
                   "src": "395:5:15",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -130,7 +130,7 @@
                     "typeString": "uint8"
                   },
                   "typeName": {
-                    "id": 11777,
+                    "id": 12471,
                     "name": "uint8",
                     "nodeType": "ElementaryTypeName",
                     "src": "395:5:15",
@@ -145,14 +145,14 @@
               ],
               "src": "394:7:15"
             },
-            "scope": 11781,
+            "scope": 12475,
             "src": "313:89:15",
             "stateMutability": "view",
             "superFunction": null,
             "visibility": "public"
           }
         ],
-        "scope": 11782,
+        "scope": 12476,
         "src": "113:292:15"
       }
     ],

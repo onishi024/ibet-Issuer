@@ -257,7 +257,7 @@ def payment_account_regist(form):
         company_list = []
         isExist = False
         try:
-            company_list = requests.get(Config.PAYMENT_AGENT_LIST_URL).json()
+            company_list = requests.get(Config.COMPANY_LIST_URL).json()
         except:
             pass
         for company_info in company_list:
