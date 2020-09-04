@@ -17,7 +17,7 @@ from .utils.account_config import eth_account
 from .utils.contract_utils_common import processor_issue_event, index_transfer_event, clean_issue_event
 from .utils.contract_utils_coupon import apply_for_offering
 from .utils.contract_utils_personal_info import register_personal_info
-from ..models import Token, Issuer
+from ..models import Token, Issuer, Transfer
 
 
 class TestCoupon(TestBase):
@@ -51,6 +51,7 @@ class TestCoupon(TestBase):
     url_usage_history = 'coupon/usage_history/'  # 利用履歴
     url_get_usage_history_coupon = 'coupon/get_usage_history_coupon/'  # 利用履歴
     url_used_csv_download = 'coupon/used_csv_download'  # 利用履歴CSVダウンロード
+    url_token_tracker = 'coupon/token/track/'  # トークン追跡
 
     #############################################################################
     # PersonalInfo情報の暗号化
@@ -880,7 +881,8 @@ class TestCoupon(TestBase):
             token.token_address,
             issuer_address,
             trader_address,
-            10
+            10,
+            block_timestamp=datetime.utcnow()
         )
 
         # 保有者一覧の参照
@@ -933,10 +935,28 @@ class TestCoupon(TestBase):
         response = client.post(url, data={'token_address': token_address})
         assert response.status_code == 200
 
-    # ＜正常系16_1＞
+    # ＜正常系16＞
+    #   トークン追跡
+    def test_normal_16(self, app):
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        token = tokens[0]
+        client = self.client_with_admin_login(app)
+
+        # 登録済みのトランザクションハッシュを取得
+        transfer_event = Transfer.query.filter_by(token_address=token.token_address).first()
+        tx_hash = transfer_event.transaction_hash
+
+        # トークン追跡の参照
+        response = client.get(self.url_token_tracker + token.token_address)
+
+        assert response.status_code == 200
+        assert '<title>トークン追跡'.encode('utf-8') in response.data
+        assert tx_hash.encode('utf-8') in response.data
+
+    # ＜正常系17_1＞
     # ＜クーポン利用履歴画面＞
     #   クーポン利用履歴画面が表示できること
-    def test_normal_16_1(self, app):
+    def test_normal_17_1(self, app):
         client = self.client_with_admin_login(app)
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
         token = tokens[0]
@@ -947,10 +967,10 @@ class TestCoupon(TestBase):
         response = client.get(url)
         assert response.status_code == 200
 
-    # ＜正常系16_2＞
+    # ＜正常系17_2＞
     # ＜クーポン利用履歴（API）＞
     #   クーポン利用履歴が取得できること（0件）
-    def test_normal_16_2(self, app):
+    def test_normal_17_2(self, app):
         client = self.client_with_admin_login(app)
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
         token = tokens[0]
@@ -963,10 +983,10 @@ class TestCoupon(TestBase):
         assert response.status_code == 200
         assert len(response_data) == 0
 
-    # ＜正常系16_3＞
+    # ＜正常系17_3＞
     # ＜クーポン利用履歴（API）＞
     #   クーポン利用履歴が取得できること（1件）
-    def test_normal_16_3(self, app, db):
+    def test_normal_17_3(self, app, db):
         client = self.client_with_admin_login(app)
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
         token = tokens[0]
@@ -1001,10 +1021,10 @@ class TestCoupon(TestBase):
         # 後処理
         db.session.delete(event)
 
-    # ＜正常系16_4＞
+    # ＜正常系17_4＞
     # ＜利用履歴CSVダウンロード＞
     #   クーポン利用履歴CSVが取得できること
-    def test_normal_16_4(self, app, db):
+    def test_normal_17_4(self, app, db):
         client = self.client_with_admin_login(app)
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
         token = tokens[0]
