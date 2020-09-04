@@ -12,7 +12,7 @@ from Crypto.Cipher import PKCS1_OAEP
 
 from flask import request, redirect, url_for, flash, make_response, render_template, abort, jsonify
 from flask_login import login_required
-from sqlalchemy import func
+from sqlalchemy import func, desc
 
 from app import db
 from app.models import Token, Order, Agreement, AgreementStatus, CouponBulkTransfer, AddressType, ApplyFor, Transfer, \
@@ -188,6 +188,47 @@ def list():
             pass
 
     return render_template('coupon/list.html', tokens=token_list)
+
+
+####################################################
+# [会員権]トークン追跡
+####################################################
+@coupon.route('/token/track/<string:token_address>', methods=['GET'])
+@login_required
+def token_tracker(token_address):
+    logger.info('coupon/token_tracker')
+
+    # アドレスフォーマットのチェック
+    if not Web3.isAddress(token_address):
+        abort(404)
+
+    tracks = Transfer.query.filter(Transfer.token_address == token_address). \
+        order_by(desc(Transfer.block_timestamp)). \
+        all()
+
+    track = []
+    for row in tracks:
+        try:
+            # utc→jst の変換
+            block_timestamp = row.block_timestamp.replace(tzinfo=timezone.utc).astimezone(JST). \
+                strftime("%Y/%m/%d %H:%M:%S %z")
+            track.append({
+                'id': row.id,
+                'transaction_hash': row.transaction_hash,
+                'token_address': row.token_address,
+                'account_address_from': row.account_address_from,
+                'account_address_to': row.account_address_to,
+                'transfer_amount': row.transfer_amount,
+                'block_timestamp': block_timestamp,
+            })
+        except Exception as e:
+            logger.exception(e)
+
+    return render_template(
+        'coupon/token_tracker.html',
+        token_address=token_address,
+        track=track
+    )
 
 
 ####################################################

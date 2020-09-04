@@ -26,12 +26,13 @@
   		  <tr>
             <th width="17%">名称</th>
             <th width="7%">略称</th>
-            <th width="20%">登録日時</th>
+            <th width="16%">登録日時</th>
             <th width="25%">アドレス</th>
             <th width="7%">取扱</th>
-            <th width="8%"></th>
-            <th width="8%"></th>
-            <th width="8%"></th>
+            <th width="7%"></th>
+            <th width="7%"></th>
+            <th width="7%"></th>
+            <th width="7%"></th>
           </tr>
   		</thead>
   		<tbody>
@@ -57,6 +58,11 @@
           <td align="center"><span class="badge">停止中</span></td>
           {% else %}
           <td align="center">{{ token.status }}</td>
+          {% endif %}
+          {% if token.token_address != None %}
+          <td align="center"><a href="{{ url_for('coupon.token_tracker', token_address=token.token_address) }}">追跡</a></td>
+          {% else %}
+          <td></td>
           {% endif %}
           {% if token.token_address != None %}
           <td align="center">
