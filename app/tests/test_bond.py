@@ -327,6 +327,19 @@ class TestBond(TestBase):
         response = client.post(
             url_setting,
             data={
+                'interestRate': "1.243",  # 初期データから変更登録
+                'interestPaymentDate1': '0111',  # 初期データから変更登録
+                'interestPaymentDate2': '0211',  # 初期データから変更登録
+                'interestPaymentDate3': '0311',  # 初期データから変更登録
+                'interestPaymentDate4': '0411',  # 初期データから変更登録
+                'interestPaymentDate5': '0511',  # 初期データから変更登録
+                'interestPaymentDate6': '0611',  # 初期データから変更登録
+                'interestPaymentDate7': '0711',  # 初期データから変更登録
+                'interestPaymentDate8': '0811',  # 初期データから変更登録
+                'interestPaymentDate9': '0911',  # 初期データから変更登録
+                'interestPaymentDate10': '1011',  # 初期データから変更登録
+                'interestPaymentDate11': '1111',  # 初期データから変更登録
+                'interestPaymentDate12': '1211',  # 初期データから変更登録
                 'transferable': 'False',  # 初期データから変更登録
                 'image_1': 'https://test.com/image_1.jpg',
                 'image_2': 'https://test.com/image_2.jpg',
@@ -343,6 +356,10 @@ class TestBond(TestBase):
         assert response.status_code == 200
         assert '<title>債券詳細設定'.encode('utf-8') in response.data
         assert 'テスト債券'.encode('utf-8') in response.data
+        assert '1.243'.encode('utf-8') in response.data
+        # interestPaymentDateの確認
+        for month in range(1, 13):
+            assert '{:02d}11'.format(month).encode('utf-8') in response.data
         assert '<option selected value="False">あり</option>'.encode('utf-8') in response.data
         assert 'https://test.com/image_1.jpg'.encode('utf-8') in response.data
         assert 'https://test.com/image_2.jpg'.encode('utf-8') in response.data
@@ -353,6 +370,19 @@ class TestBond(TestBase):
         response = client.post(
             url_setting,
             data={
+                'interestRate': 100,
+                'interestPaymentDate1': '0101',
+                'interestPaymentDate2': '0201',
+                'interestPaymentDate3': '0301',
+                'interestPaymentDate4': '0401',
+                'interestPaymentDate5': '0501',
+                'interestPaymentDate6': '0601',
+                'interestPaymentDate7': '0701',
+                'interestPaymentDate8': '0801',
+                'interestPaymentDate9': '0901',
+                'interestPaymentDate10': '1001',
+                'interestPaymentDate11': '1101',
+                'interestPaymentDate12': '1201',
                 'transferable': 'True',
                 'image_1': 'https://test.com/image_1.jpg',
                 'image_2': 'https://test.com/image_2.jpg',
@@ -821,11 +851,14 @@ class TestBond(TestBase):
         assert '名称は必須です。'.encode('utf-8') in response.data
         assert '略称は必須です。'.encode('utf-8') in response.data
         assert '総発行量は必須です。'.encode('utf-8') in response.data
+        assert '額面は必須です。'.encode('utf-8') in response.data
+        assert '年利は必須です。'.encode('utf-8') in response.data
         assert '発行目的は必須です。'.encode('utf-8') in response.data
         assert 'DEXアドレスは必須です。'.encode('utf-8') in response.data
+        assert '個人情報コントラクトアドレスは必須です。'.encode('utf-8') in response.data
 
     # ＜エラー系1＞
-    #   債券新規発行（DEXアドレスのフォーマットエラー）
+    #   債券新規発行（アドレスのフォーマットエラー）
     def test_error_1_2(self, app):
         error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
 
@@ -866,7 +899,7 @@ class TestBond(TestBase):
         assert 'DEXアドレスは有効なアドレスではありません。'.encode('utf-8') in response.data
 
     # ＜エラー系1＞
-    #   設定画面（DEXアドレスのフォーマットエラー）
+    #   設定画面（アドレスのフォーマットエラー）
     def test_error_1_3(self, app):
         error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
 
@@ -877,12 +910,15 @@ class TestBond(TestBase):
         response = client.post(
             url_setting,
             data={
-                'tradableExchange': error_address
+                'tradableExchange': error_address,
+                'personalInfoAddress': error_address,
+                'interestRate': 100
             }
         )
         assert response.status_code == 200
         assert '<title>債券詳細設定'.encode('utf-8') in response.data
         assert 'DEXアドレスは有効なアドレスではありません。'.encode('utf-8') in response.data
+        assert '個人情報コントラクトは有効なアドレスではありません。'.encode('utf-8') in response.data
 
     # ＜エラー系1＞
     #   保有者リスト履歴（アドレスのフォーマットエラー）

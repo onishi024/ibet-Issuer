@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
-import os
-import json
-import base64
 import argparse
-import time
+import os
 import sys
 
 path = os.path.join(os.path.dirname(__file__), "../../..")
@@ -43,6 +40,7 @@ engine = create_engine(URI, echo=False)
 db_session = scoped_session(sessionmaker())
 db_session.configure(bind=engine)
 
+
 # トークン発行
 def issue_token(exchange_address, data_count, token_type):
     attribute = {}
@@ -59,27 +57,18 @@ def issue_token(exchange_address, data_count, token_type):
 
     if token_type == 'IbetStraightBond':
         attribute['faceValue'] = 100
-        attribute['interestRate'] = 1
-        attribute['interestPaymentDate1'] = '20181010'
         attribute['redemptionDate'] = '20181010'
         attribute['redemptionValue'] = 100
         attribute['returnDate'] = '20181010'
         attribute['returnDetails'] = 'returnDetails'
         attribute['purpose'] = 'purpose'
-        interestPaymentDate = json.dumps({
-            'interestPaymentDate1':attribute['interestPaymentDate1']
-        })
-        attribute['personalInfoAddress'] = '0x0000000000000000000000000000000000000000'
 
         arguments = [
             attribute['name'], attribute['symbol'], attribute['totalSupply'],
-            attribute['tradableExchange'],
-            attribute['faceValue'], attribute['interestRate'], interestPaymentDate,
+            attribute['faceValue'],
             attribute['redemptionDate'], attribute['redemptionValue'],
             attribute['returnDate'], attribute['returnDetails'],
-            attribute['purpose'], attribute['memo'],
-            attribute['contactInformation'], attribute['privacyPolicy'],
-            attribute['personalInfoAddress']
+            attribute['purpose'],
         ]
         template_id = Config.TEMPLATE_ID_SB
     elif token_type == 'IbetMembership':
@@ -127,6 +116,12 @@ def issue_token(exchange_address, data_count, token_type):
     web3.personal.unlockAccount(ETH_ACCOUNT, ETH_ACCOUNT_PASSWORD)
     _, bytecode, bytecode_runtime = ContractUtils.get_contract_info(token_type)
     contract_address, abi, tx_hash = ContractUtils.deploy_contract(token_type, arguments, ETH_ACCOUNT)
+
+    if token_type == 'IbetStraightBond':
+        contract = ContractUtils.get_contract('IbetStraightBond', contract_address)
+        hash_SetTradableExchange = contract.functions.setTradableExchange(exchange_address). \
+            transact({'from': ETH_ACCOUNT})
+        web3.eth.waitForTransactionReceipt(hash_SetTradableExchange)
 
     # db_session
     token = Token()

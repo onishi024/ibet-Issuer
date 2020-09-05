@@ -5,7 +5,6 @@ import sys
 
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
-from eth_utils import to_checksum_address
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
@@ -47,19 +46,12 @@ def issue_token(token_type, amount):
             'TEST_TOKEN',  # 名称
             'TEST',  # 略称
             amount,  # 発行数量
-            '0x0000000000000000000000000000000000000000',  # DEXコントラクト
             100,  # 額面
-            1,  # 金利
-            "{'interestPaymentDate1': '20201231'}",  # 利払い日
             '20221231',  # 償還日
             100,  # 償還金額
             '20201231',  # 特典付与日
             '特典内容',  # 特典内容
             '発行目的',  # 発行目的
-            'メモ',  # メモ
-            '問い合わせ先',  # 問い合わせ先
-            'プライバシーポリシー',  # プライバシーポリシー
-            '0x0000000000000000000000000000000000000000'  # 個人情報コントラクト
         ]
         template_id = Config.TEMPLATE_ID_SB
     elif token_type == 'IbetMembership':
