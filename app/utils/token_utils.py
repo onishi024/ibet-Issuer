@@ -1,12 +1,13 @@
 import base64
 import json
+from typing import Optional
 
 import requests
 from flask import abort
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 
-from app.models import Token
+from app.models import Token, Issuer
 from app.utils import ContractUtils
 from app.exceptions import EthRuntimeError
 from config import Config
@@ -25,11 +26,13 @@ web3.middleware_stack.inject(geth_poa_middleware, layer=0)
 class TokenUtils:
 
     @staticmethod
-    def get_contract(token_address: str, template_id: int = None):
+    def get_contract(token_address: str, issuer_address: Optional[str], template_id: int = None):
         """
         トークンコントラクト取得
 
         :param token_address: トークンアドレス
+        :param issuer_address: トークン発行体アドレス。ログインユーザごとに参照できるトークンを制限するために使用する。
+            Indexer/processor等でログインユーザによる制限が不要な場合はNoneを指定する。
         :param template_id:
             （任意項目）　テンプレートID（例 :py:attr:`.Config.TEMPLATE_ID_SB` ）。
             トークンの種類を限定したいときに設定する。たとえば、債券専用の処理にクライアントが誤って
@@ -42,6 +45,9 @@ class TokenUtils:
             HTTPステータス404で例外を発生させる。
         """
         token_query = Token.query.filter(Token.token_address == token_address)
+        if issuer_address is not None:
+            # Tokenテーブルのadmin_addressはchecksumアドレスではないため小文字にして検索
+            token_query = token_query.filter(Token.admin_address == issuer_address.lower())
         if template_id is not None:
             token_query = token_query.filter(Token.template_id == template_id)
         token = token_query.first()
@@ -52,42 +58,32 @@ class TokenUtils:
         return web3.eth.contract(address=token.token_address, abi=token_abi)
 
     @staticmethod
-    def get_holder(token_address: str, account_address: str, custom_personal_info_address=None, default_value='--'):
+    def get_holder(account_address: str, issuer_address: str, custom_personal_info_address=None,
+                   default_value='--'):
         """
         トークン保有者の個人情報取得
 
-        :param token_address: トークンのアドレス
         :param account_address: トークン保有者のアドレス
+        :param issuer_address: 個人情報を取得する発行体アドレス
         :param custom_personal_info_address: 個人情報を格納している個人情報コントラクトのアドレス。
             未指定の場合はシステムデフォルトの個人情報コントラクトアドレスを使用する。
         :param default_value: 値が未設定の項目に設定する初期値。(未指定時: '--')
         :return: 個人情報（PersonalInfo）
         """
-
-        # アドレスフォーマットのチェック
-        if not Web3.isAddress(token_address) or not Web3.isAddress(account_address):
-            abort(404)
+        issuer = Issuer.query.filter(Issuer.eth_account == issuer_address).first()
 
         # RSA秘密鍵の取得
         cipher = None
         try:
-            key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
+            key = RSA.importKey(issuer.encrypted_rsa_private_key, Config.RSA_PASSWORD)
             cipher = PKCS1_OAEP.new(key)
         except Exception as e:
             logger.error(e)
             pass
 
-        # トークン発行体アドレス取得
-        token = Token.query.filter(Token.token_address == token_address).first()
-        if token is None:
-            abort(404)
-        token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
-        TokenContract = web3.eth.contract(address=token_address, abi=token_abi)
-        token_owner = TokenContract.functions.owner().call()
-
         # PersonalInfo Contract 接続
         if custom_personal_info_address is None:
-            personalinfo_address = Config.PERSONAL_INFO_CONTRACT_ADDRESS
+            personalinfo_address = issuer.personal_info_contract_address
         else:
             personalinfo_address = to_checksum_address(custom_personal_info_address)
         PersonalInfoContract = ContractUtils.get_contract('PersonalInfo', personalinfo_address)
@@ -107,7 +103,7 @@ class TokenUtils:
         }
 
         # 個人情報取得
-        encrypted_info = PersonalInfoContract.functions.personal_info(account_address, token_owner).call()[2]
+        encrypted_info = PersonalInfoContract.functions.personal_info(account_address, issuer.eth_account).call()[2]
         if encrypted_info == '' or cipher is None:
             pass
         else:
@@ -127,11 +123,13 @@ class TokenUtils:
         return personal_info
 
     @staticmethod
-    def modify_personal_info(account_address: str, data: dict, custom_personal_info_address=None, default_value=""):
+    def modify_personal_info(account_address: str, issuer_address: str, data: dict, custom_personal_info_address=None,
+                             default_value=""):
         """
         トークン保有者情報の修正
 
         :param account_address: アカウントアドレス
+        :param issuer_address: 発行体のアドレス
         :param data: 更新データ
         :param custom_personal_info_address: 個人情報を格納している個人情報コントラクトのアドレス。
             未指定の場合はシステムデフォルトの個人情報コントラクトアドレスを使用する。
@@ -171,7 +169,7 @@ class TokenUtils:
                 logger.exception(f"{err}")
                 abort(500)
             for company_info in company_list:
-                if to_checksum_address(company_info['address']) == Config.ETH_ACCOUNT:
+                if to_checksum_address(company_info['address']) == issuer_address:
                     isExist = True
                     rsa_public_key = RSA.importKey(company_info['rsa_publickey'].replace('\\n', ''))
             if not isExist:  # RSA公開鍵が取得できなかった場合はエラーを返して以降の処理を実施しない
@@ -184,16 +182,17 @@ class TokenUtils:
 
         # PersonalInfo情報更新
         if custom_personal_info_address is None:
-            personal_info_address = Config.PERSONAL_INFO_CONTRACT_ADDRESS
+            issuer = Issuer.query.filter(Issuer.eth_account == issuer_address).first()
+            personal_info_address = issuer.personal_info_contract_address
         else:
             personal_info_address = to_checksum_address(custom_personal_info_address)
         PersonalInfoContract = ContractUtils.get_contract('PersonalInfo', personal_info_address)
         try:
             gas = PersonalInfoContract.functions.modify(account_address, ciphertext). \
-                estimateGas({'from': Config.ETH_ACCOUNT})
+                estimateGas({'from': issuer_address})
             tx = PersonalInfoContract.functions.modify(account_address, ciphertext). \
-                buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
-            ContractUtils.send_transaction(transaction=tx)
+                buildTransaction({'from': issuer_address, 'gas': gas})
+            ContractUtils.send_transaction(transaction=tx, eth_account=issuer_address)
         except Exception as err:
             logger.exception(f"{err}")
             raise EthRuntimeError()

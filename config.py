@@ -3,10 +3,8 @@
 import os
 import sys
 from datetime import timedelta
-import qrcode
 
 from web3 import Web3
-from eth_utils import to_checksum_address
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -22,19 +20,15 @@ class Config:
     WORKER_COUNT = int(os.environ.get("WORKER_COUNT")) if os.environ.get("WORKER_COUNT") else 4
 
     # Company List
-    NETWORK = os.environ.get("NETWORK") or "IBET"  # IBET or IBETFIN
     APP_ENV = os.getenv('FLASK_CONFIG') or 'default'
 
-    if NETWORK == "IBET":
-        if APP_ENV == "production":
-            COMPANY_LIST_URL = 'https://s3-ap-northeast-1.amazonaws.com/ibet-company-list/company_list.json'
-        else:
-            COMPANY_LIST_URL = 'https://s3-ap-northeast-1.amazonaws.com/ibet-company-list-dev/company_list.json'
-    elif NETWORK == "IBETFIN":
-        if APP_ENV == "production":
-            COMPANY_LIST_URL = 'https://s3-ap-northeast-1.amazonaws.com/ibet-fin-company-list/company_list.json'
-        else:
-            COMPANY_LIST_URL = 'https://s3-ap-northeast-1.amazonaws.com/ibet-fin-company-list-dev/company_list.json'
+    COMPANY_LIST_URL = {}
+    if APP_ENV == "production":
+        COMPANY_LIST_URL['IBET'] = 'https://s3-ap-northeast-1.amazonaws.com/ibet-company-list/company_list.json'
+        COMPANY_LIST_URL['IBETFIN'] = 'https://s3-ap-northeast-1.amazonaws.com/ibet-fin-company-list/company_list.json'
+    else:
+        COMPANY_LIST_URL['IBET'] = 'https://s3-ap-northeast-1.amazonaws.com/ibet-company-list-dev/company_list.json'
+        COMPANY_LIST_URL['IBETFIN'] = 'https://s3-ap-northeast-1.amazonaws.com/ibet-fin-company-list-dev/company_list.json'
 
     # SSL
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'ZwiTDW52gQlxBQ8Sn34KYaLNQxA0mvpT2_RjYH5j-ZU='
@@ -119,77 +113,15 @@ class Config:
     WEB3_HTTP_PROVIDER = os.environ.get('WEB3_HTTP_PROVIDER') or 'http://localhost:8545'
     web3 = Web3(Web3.HTTPProvider(WEB3_HTTP_PROVIDER))
 
-    # EOA (Ethereum Account)
-    if os.environ.get('ETH_ACCOUNT') is not None:
-        ETH_ACCOUNT = to_checksum_address(os.environ.get('ETH_ACCOUNT'))
-    else:
-        ETH_ACCOUNT = web3.eth.accounts[0]
+    # DBカラムIssuer.encrypted_account_passwordの鍵
+    ETH_ACCOUNT_PASSWORD_SECRET_KEY = os.environ.get('ETH_ACCOUNT_PASSWORD_SECRET_KEY')
 
-    ETH_ACCOUNT_PASSWORD = os.environ.get('ETH_ACCOUNT_PASSWORD')
-
-    img = qrcode.make(ETH_ACCOUNT)
-    img.save('app/static/eth_address.png')
-
-    # Private Key Store
-    if os.environ.get('PRIVATE_KEYSTORE') is None or os.environ.get('PRIVATE_KEYSTORE') == 'GETH':
-        PRIVATE_KEYSTORE = 'GETH'
-    elif os.environ.get('PRIVATE_KEYSTORE') == 'AWS_SECRETS_MANAGER':
-        PRIVATE_KEYSTORE = 'AWS_SECRETS_MANAGER'
-        AWS_REGION_NAME = 'ap-northeast-1'  # NOTE:現状は固定で設定
-        AWS_SECRET_ID = os.environ.get('AWS_SECRET_ID')
-
-    # TokenList-Contract
-    TOKEN_LIST_CONTRACT_ADDRESS = ''
-    if os.environ.get('TOKEN_LIST_CONTRACT_ADDRESS') is not None:
-        TOKEN_LIST_CONTRACT_ADDRESS = \
-            to_checksum_address(os.environ.get('TOKEN_LIST_CONTRACT_ADDRESS'))
-
-    # PaymentGateway-Contract
-    PAYMENT_GATEWAY_CONTRACT_ADDRESS = ''
-    if os.environ.get('PAYMENT_GATEWAY_CONTRACT_ADDRESS') is not None:
-        PAYMENT_GATEWAY_CONTRACT_ADDRESS = \
-            to_checksum_address(os.environ.get('PAYMENT_GATEWAY_CONTRACT_ADDRESS'))
-
-    # PersonalInfo-Contract
-    PERSONAL_INFO_CONTRACT_ADDRESS = ''
-    if os.environ.get('PERSONAL_INFO_CONTRACT_ADDRESS') is not None:
-        PERSONAL_INFO_CONTRACT_ADDRESS = \
-            to_checksum_address(os.environ.get('PERSONAL_INFO_CONTRACT_ADDRESS'))
-
-    # IbetStraightBondExchange-Contract
-    IBET_SB_EXCHANGE_CONTRACT_ADDRESS = ''
-    if os.environ.get('IBET_SB_EXCHANGE_CONTRACT_ADDRESS') is not None:
-        IBET_SB_EXCHANGE_CONTRACT_ADDRESS = \
-            to_checksum_address(os.environ.get('IBET_SB_EXCHANGE_CONTRACT_ADDRESS'))
-
-    # IbetCouponExchange-Contract
-    IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS = ''
-    if os.environ.get('IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS') is not None:
-        IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS = \
-            to_checksum_address(os.environ.get('IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS'))
-
-    # IbetMembershipExchange-Contract
-    IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS = ''
-    if os.environ.get('IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS') is not None:
-        IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS = \
-            to_checksum_address(os.environ.get('IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS'))
-
-    # IbetShareExchange-Contract
-    IBET_SHARE_EXCHANGE_CONTRACT_ADDRESS = ''
-    if os.environ.get('IBET_SHARE_EXCHANGE_CONTRACT_ADDRESS') is not None:
-        IBET_SHARE_EXCHANGE_CONTRACT_ADDRESS = \
-            to_checksum_address(os.environ.get('IBET_SHARE_EXCHANGE_CONTRACT_ADDRESS'))
-
-    # Payment Agent Address
-    AGENT_ADDRESS = ''
-    if os.environ.get('AGENT_ADDRESS') is not None:
-        AGENT_ADDRESS = to_checksum_address(os.environ.get('AGENT_ADDRESS'))
+    # Private Key Store for AWS Secrets Manager
+    AWS_REGION_NAME = 'ap-northeast-1'  # NOTE:現状は固定で設定
+    AWS_SECRET_ID = os.environ.get('AWS_SECRET_ID')
 
     # RSA鍵ファイルのパスワード
     RSA_PASSWORD = os.environ.get('RSA_PASSWORD')
-
-    # 売出価格（単価）の上限値（円）
-    MAX_SELL_PRICE = os.environ.get('MAX_SELL_PRICE') or 100000000
 
     @staticmethod
     def init_app(app):
