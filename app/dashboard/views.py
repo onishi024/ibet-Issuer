@@ -1,16 +1,20 @@
 # -*- coding:utf-8 -*-
-from flask import render_template, jsonify
+import json
+
+from flask import render_template, jsonify, session
 from flask_login import login_required
 
 from . import dashboard
-from app.utils.token_utils import *
 from config import Config
 from app.utils import ContractUtils
 
 from logging import getLogger
 
+from ..models import Token
+
 logger = getLogger('api')
 
+from web3 import Web3
 from web3.middleware import geth_poa_middleware
 
 web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
@@ -31,7 +35,11 @@ def main():
 @dashboard.route('/token_list_share', methods=['GET'])
 @login_required
 def token_list_share():
-    tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SHARE).all()
+    tokens = Token.query.filter_by(
+        template_id=Config.TEMPLATE_ID_SHARE,
+        # Tokenテーブルのadmin_addressはchecksumアドレスではないため小文字にして検索
+        admin_address=session["eth_account"].lower()
+    ).all()
     token_list = []
     for row in tokens:
         try:
@@ -80,7 +88,11 @@ def token_list_share():
 @dashboard.route('/token_list_bond', methods=['GET'])
 @login_required
 def token_list_bond():
-    tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
+    tokens = Token.query.filter_by(
+        template_id=Config.TEMPLATE_ID_SB,
+        # Tokenテーブルのadmin_addressはchecksumアドレスではないため小文字にして検索
+        admin_address=session["eth_account"].lower()
+    ).all()
     token_list = []
     for row in tokens:
         try:
@@ -122,7 +134,11 @@ def token_list_bond():
 @dashboard.route('/token_list_membership', methods=['GET'])
 @login_required
 def token_list_membership():
-    tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
+    tokens = Token.query.filter_by(
+        template_id=Config.TEMPLATE_ID_MEMBERSHIP,
+        # Tokenテーブルのadmin_addressはchecksumアドレスではないため小文字にして検索
+        admin_address=session["eth_account"].lower()
+    ).all()
     token_list = []
     for row in tokens:
         try:
@@ -169,7 +185,11 @@ def token_list_membership():
 @dashboard.route('/token_list_coupon', methods=['GET'])
 @login_required
 def token_list_coupon():
-    tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+    tokens = Token.query.filter_by(
+        template_id=Config.TEMPLATE_ID_COUPON,
+        # Tokenテーブルのadmin_addressはchecksumアドレスではないため小文字にして検索
+        admin_address=session["eth_account"].lower()
+    ).all()
     token_list = []
     for row in tokens:
         try:
