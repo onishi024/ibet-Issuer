@@ -144,11 +144,12 @@ def token_list_membership():
                 name = TokenContract.functions.name().call()
                 symbol = TokenContract.functions.symbol().call()
                 total_supply = TokenContract.functions.totalSupply().call()
+                tradable_exchange = TokenContract.functions.tradableExchange().call()
 
                 # 現在値の取得
                 ExchangeContract = ContractUtils.get_contract(
                     'IbetMembershipExchange',
-                    Config.IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS
+                    tradable_exchange
                 )
                 last_price = ExchangeContract.functions.lastPrice(row.token_address).call()
 
@@ -190,11 +191,12 @@ def token_list_coupon():
                 name = TokenContract.functions.name().call()
                 symbol = TokenContract.functions.symbol().call()
                 total_supply = TokenContract.functions.totalSupply().call()
+                tradable_exchange = TokenContract.functions.tradableExchange().call()
 
                 # Exchange-Contractへの接続
                 ExchangeContract = ContractUtils.get_contract(
                     'IbetCouponExchange',
-                    Config.IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS
+                    tradable_exchange
                 )
 
                 # Token-Contractから情報を取得する
