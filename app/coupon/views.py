@@ -1044,6 +1044,7 @@ def bulk_transfer():
 
                 # DB登録処理
                 csvtransfer = CouponBulkTransfer()
+                csvtransfer.eth_account = session['eth_account']
                 csvtransfer.token_address = token_address
                 csvtransfer.to_address = send_address
                 csvtransfer.amount = transfer_amount
