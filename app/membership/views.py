@@ -65,7 +65,11 @@ def list():
     logger.info('membership/list')
 
     # 発行済トークンの情報をDBから取得する
-    tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
+    tokens = Token.query.filter_by(
+        template_id=Config.TEMPLATE_ID_MEMBERSHIP,
+        # Tokenテーブルのadmin_addressはchecksumアドレスではないため小文字にして検索
+        admin_address=session['eth_account'].lower()
+    ).all()
 
     token_list = []
     for row in tokens:
@@ -118,6 +122,14 @@ def token_tracker(token_address):
 
     # アドレスフォーマットのチェック
     if not Web3.isAddress(token_address):
+        abort(404)
+
+    # 発行体が管理するトークンかチェック
+    token = Token.query. \
+        filter(Token.token_address == token_address). \
+        filter(Token.admin_address == session['eth_account'].lower()). \
+        first()
+    if token is None:
         abort(404)
 
     tracks = Transfer.query.filter(Transfer.token_address == token_address). \
@@ -206,21 +218,20 @@ def applications_csv_download():
 @membership.route('/get_applications/<string:token_address>', methods=['GET'])
 @login_required
 def get_applications(token_address):
+    # Tokenコントラクト接続
+    TokenContract = TokenUtils.get_contract(token_address, session['eth_account'])
+
     # RSA秘密鍵取得
+    issuer = Issuer.query.get(session['issuer_id'])
     cipher = None
     try:
-        key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
+        key = RSA.importKey(issuer.encrypted_rsa_private_key, Config.RSA_PASSWORD)
         cipher = PKCS1_OAEP.new(key)
     except Exception as err:
         logger.error(f"Cannot open the private key: {err}")
 
-    # Tokenコントラクト接続
-    token = Token.query.filter(Token.token_address == token_address).first()
-    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
-    TokenContract = web3.eth.contract(address=token_address, abi=token_abi)
-
     # PersonalInfoコントラクト接続
-    personalinfo_address = Config.PERSONAL_INFO_CONTRACT_ADDRESS
+    personalinfo_address = issuer.personal_info_contract_address
     PersonalInfoContract = ContractUtils.get_contract('PersonalInfo', personalinfo_address)
 
     # 申込（ApplyFor）イベントを検索
@@ -233,11 +244,10 @@ def get_applications(token_address):
     for event in apply_for_events:
         account_list.append(event.account_address)
 
-    token_owner = TokenContract.functions.owner().call()
     applications = []
     for account_address in account_list:
         encrypted_info = PersonalInfoContract.functions. \
-            personal_info(account_address, token_owner).call()[2]
+            personal_info(account_address, session['eth_account']).call()[2]
         account_name = ''
         account_email_address = ''
         if encrypted_info == '' or cipher is None:
@@ -290,12 +300,7 @@ def allocate(token_address, account_address):
         abort(404)
 
     # Tokenコントラクト接続
-    token = Token.query.filter(Token.token_address == token_address).first()
-    if token is None:
-        abort(404)
-    token_abi = json.loads(
-        token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
-    TokenContract = web3.eth.contract(address=token.token_address, abi=token_abi)
+    TokenContract = TokenUtils.get_contract(token_address, session['eth_account'])
 
     form = TransferForm()
     form.token_address.data = token_address
@@ -411,18 +416,17 @@ def get_holders(token_address):
     """
     logger.info('membership/get_holders')
 
+    # Tokenコントラクト接続
+    TokenContract = TokenUtils.get_contract(token_address, session['eth_account'])
+
     # RSA秘密鍵の取得
+    issuer = Issuer.query.get(session['issuer_id'])
     cipher = None
     try:
-        key = RSA.importKey(open('data/rsa/private.pem').read(), Config.RSA_PASSWORD)
+        key = RSA.importKey(issuer.encrypted_rsa_private_key, Config.RSA_PASSWORD)
         cipher = PKCS1_OAEP.new(key)
     except Exception as err:
         logger.error(f"Cannot open the private key: {err}")
-
-    # Tokenコントラクト接続
-    token = Token.query.filter(Token.token_address == token_address).first()
-    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
-    TokenContract = web3.eth.contract(address=token_address, abi=token_abi)
 
     # 取引コントラクトの情報取得
     try:
@@ -435,7 +439,7 @@ def get_holders(token_address):
     ExchangeContract = ContractUtils.get_contract('IbetMembershipExchange', tradable_exchange)
 
     # 個人情報コントラクト接続
-    personalinfo_address = Config.PERSONAL_INFO_CONTRACT_ADDRESS
+    personalinfo_address = issuer.personal_info_contract_address
     PersonalInfoContract = ContractUtils.get_contract('PersonalInfo', personalinfo_address)
 
     # Transferイベントを検索
@@ -444,7 +448,7 @@ def get_holders(token_address):
         filter(Transfer.token_address == token_address).all()
 
     # 残高を保有している可能性のあるアドレスを抽出する
-    token_owner = TokenContract.functions.owner().call()  # トークン発行体アドレスを取得
+    token_owner = session['eth_account']
     holders_temp = [token_owner]  # 発行体アドレスをリストに追加
     for event in transfer_events:
         holders_temp.append(event.account_address_to)
@@ -578,14 +582,7 @@ def get_holders(token_address):
 @membership.route('/get_token_name/<string:token_address>', methods=['GET'])
 @login_required
 def get_token_name(token_address):
-    token = Token.query.filter(Token.token_address == token_address).first()
-    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
-
-    TokenContract = web3.eth.contract(
-        address=token_address,
-        abi=token_abi
-    )
-
+    TokenContract = TokenUtils.get_contract(token_address, session['eth_account'])
     token_name = TokenContract.functions.name().call()
 
     return jsonify(token_name)
@@ -619,6 +616,14 @@ def get_holders_csv_history(token_address):
     if not Web3.isAddress(token_address):
         abort(404)
 
+    # 発行体が管理するトークンかチェック
+    token = Token.query. \
+        filter(Token.token_address == token_address). \
+        filter(Token.admin_address == session['eth_account'].lower()). \
+        first()
+    if token is None:
+        abort(404)
+
     holder_lists = HolderList.query.filter(HolderList.token_address == token_address). \
         order_by(desc(HolderList.created)). \
         all()
@@ -648,6 +653,14 @@ def holders_csv_history_download():
     token_address = request.form.get('token_address')
     csv_id = request.form.get('csv_id')
 
+    # 発行体が管理するトークンかチェック
+    token = Token.query. \
+        filter(Token.token_address == token_address). \
+        filter(Token.admin_address == session['eth_account'].lower()). \
+        first()
+    if token is None:
+        abort(404)
+
     holder_list = HolderList.query.filter(HolderList.id == csv_id, HolderList.token_address == token_address).first()
     if holder_list is None:
         abort(404)
@@ -673,17 +686,8 @@ def transfer_ownership(token_address, account_address):
     if not Web3.isAddress(account_address) or not Web3.isAddress(token_address):
         abort(404)
 
-    # ABI参照
-    token = Token.query.filter(Token.token_address == token_address).first()
-    if token is None:
-        abort(404)
-    token_abi = json.loads(
-        token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
-
-    TokenContract = web3.eth.contract(
-        address=token.token_address,
-        abi=token_abi
-    )
+    # Tokenコントラクト接続
+    TokenContract = TokenUtils.get_contract(token_address, session['eth_account'])
 
     # 残高参照
     balance = TokenContract.functions. \
@@ -744,12 +748,20 @@ def holder(token_address, account_address):
     token_address = to_checksum_address(token_address)
     account_address = to_checksum_address(account_address)
 
+    # 発行体が管理するトークンかチェック
+    token = Token.query. \
+        filter(Token.token_address == token_address). \
+        filter(Token.admin_address == session['eth_account'].lower()). \
+        first()
+    if token is None:
+        abort(404)
+
     #########################
     # GET：参照
     #########################
     if request.method == "GET":
         logger.info('membership/holder(GET)')
-        personal_info = TokenUtils.get_holder(token_address, account_address)
+        personal_info = TokenUtils.get_holder(account_address, session['eth_account'])
         return render_template(
             'membership/holder.html',
             personal_info=personal_info,
@@ -766,13 +778,14 @@ def holder(token_address, account_address):
             try:
                 TokenUtils.modify_personal_info(
                     account_address=account_address,
+                    issuer_address=session['eth_account'],
                     data={}
                 )
                 flash('個人情報の初期化に成功しました。', 'success')
             except EthRuntimeError:
                 flash('個人情報の初期化に失敗しました。', 'error')
 
-            personal_info = TokenUtils.get_holder(token_address, account_address)
+            personal_info = TokenUtils.get_holder(account_address, session['eth_account'])
             return render_template(
                 'membership/holder.html',
                 personal_info=personal_info,
@@ -790,7 +803,10 @@ def setting(token_address):
     logger.info('membership.setting')
 
     # 指定したトークンが存在しない場合、エラーを返す
-    token = Token.query.filter(Token.token_address == token_address).first()
+    token = Token.query. \
+        filter(Token.token_address == token_address). \
+        filter(Token.admin_address == session['eth_account'].lower()). \
+        first()
     if token is None:
         abort(404)
 
@@ -820,7 +836,8 @@ def setting(token_address):
     initial_offering_status = TokenContract.functions.initialOfferingStatus().call()
 
     # TokenList登録状態取得
-    list_contract_address = Config.TOKEN_LIST_CONTRACT_ADDRESS
+    issuer = Issuer.query.get(session['issuer_id'])
+    list_contract_address = issuer.token_list_contract_address
     ListContract = ContractUtils.get_contract('TokenList', list_contract_address)
     token_struct = ListContract.functions.getTokenByAddress(token_address).call()
     isRelease = False
@@ -974,7 +991,17 @@ def setting(token_address):
 def release():
     logger.info('membership/release')
     token_address = request.form.get('token_address')
-    list_contract_address = Config.TOKEN_LIST_CONTRACT_ADDRESS
+
+    # 発行体が管理するトークンかチェック
+    token = Token.query. \
+        filter(Token.token_address == token_address). \
+        filter(Token.admin_address == session['eth_account'].lower()). \
+        first()
+    if token is None:
+        abort(404)
+
+    issuer = Issuer.query.get(session['issuer_id'])
+    list_contract_address = issuer.token_list_contract_address
     ListContract = ContractUtils.get_contract('TokenList', list_contract_address)
     try:
         gas = ListContract.functions.register(token_address, 'IbetMembership'). \
@@ -1030,7 +1057,7 @@ def issue():
             token = Token()
             token.template_id = Config.TEMPLATE_ID_MEMBERSHIP
             token.tx_hash = tx_hash
-            token.admin_address = None
+            token.admin_address = session['eth_account'].lower()
             token.token_address = None
             token.abi = str(abi)
             token.bytecode = bytecode
@@ -1066,7 +1093,8 @@ def issue():
             flash_errors(form)
             return render_template('membership/issue.html', form=form, form_description=form.description)
     else:  # GET
-        form.tradableExchange.data = Config.IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS
+        issuer = Issuer.query.get(session['issuer_id'])
+        form.tradableExchange.data = issuer.ibet_membership_exchange_contract_address
         return render_template('membership/issue.html', form=form, form_description=form.description)
 
 
@@ -1079,7 +1107,10 @@ def positions():
     logger.info('membership/positions')
 
     # 自社が発行したトークンの一覧を取得
-    tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
+    tokens = Token.query.filter_by(
+        template_id=Config.TEMPLATE_ID_MEMBERSHIP,
+        admin_address=session['eth_account'].lower()
+    ).all()
 
     position_list = []
     for row in tokens:
@@ -1177,7 +1208,10 @@ def sell(token_address):
     logger.info('membership/sell')
     form = SellForm()
 
-    token = Token.query.filter(Token.token_address == token_address).first()
+    token = Token.query. \
+        filter(Token.token_address == token_address). \
+        filter(Token.admin_address == session['eth_account'].lower()). \
+        first()
     if token is None:
         abort(404)
 
@@ -1202,18 +1236,18 @@ def sell(token_address):
 
     if request.method == 'POST':
         if form.validate():
-            token_exchange_address = Config.IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS
-            agent_address = Config.AGENT_ADDRESS
+            issuer = Issuer.query.get(session['issuer_id'])
+            agent_address = issuer.agent_address
 
             # DEXに対してDeposit
-            gas = TokenContract.functions.transfer(token_exchange_address, balance). \
+            gas = TokenContract.functions.transfer(tradableExchange, balance). \
                 estimateGas({'from': session['eth_account']})
-            tx = TokenContract.functions.transfer(token_exchange_address, balance). \
+            tx = TokenContract.functions.transfer(tradableExchange, balance). \
                 buildTransaction({'from': session['eth_account'], 'gas': gas})
             ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
 
             # 売注文実行
-            ExchangeContract = ContractUtils.get_contract('IbetMembershipExchange', token_exchange_address)
+            ExchangeContract = ContractUtils.get_contract('IbetMembershipExchange', tradableExchange)
             gas = ExchangeContract.functions. \
                 createOrder(token_address, balance, form.sellPrice.data, False, agent_address). \
                 estimateGas({'from': session['eth_account']})
@@ -1261,14 +1295,11 @@ def cancel_order(token_address, order_id):
     logger.info('membership/cancel_order')
     form = CancelOrderForm()
 
-    # トークンのABIを取得する
-    token = Token.query.filter(Token.token_address == token_address).first()
-    if token is None:
-        abort(404)
-    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+    # Tokenコントラクト接続
+    TokenContract = TokenUtils.get_contract(token_address, session['eth_account'])
 
     # Exchangeコントラクトに接続
-    token_exchange_address = Config.IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS
+    token_exchange_address = TokenContract.functions.tradableExchange().call()
     ExchangeContract = ContractUtils. \
         get_contract('IbetMembershipExchange', token_exchange_address)
 
@@ -1279,10 +1310,6 @@ def cancel_order(token_address, order_id):
     price = orderBook[3]
 
     # トークンの商品名、略称、総発行量を取得する
-    TokenContract = web3.eth.contract(
-        address=to_checksum_address(token_address),
-        abi=token_abi
-    )
     name = TokenContract.functions.name().call()
     symbol = TokenContract.functions.symbol().call()
     totalSupply = TokenContract.functions.totalSupply().call()
@@ -1319,17 +1346,11 @@ def cancel_order(token_address, order_id):
 def add_supply(token_address):
     logger.info('membership/add_supply')
 
-    token = Token.query.filter(Token.token_address == token_address).first()
-    if token is None:
-        abort(404)
+    # Tokenコントラクト接続
+    TokenContract = TokenUtils.get_contract(token_address, session['eth_account'])
 
-    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
-    TokenContract = web3.eth.contract(
-        address=token.token_address,
-        abi=token_abi
-    )
     form = AddSupplyForm()
-    form.token_address.data = token.token_address
+    form.token_address.data = token_address
     name = TokenContract.functions.name().call()
     form.name.data = name
     form.totalSupply.data = TokenContract.functions.totalSupply().call()
@@ -1388,10 +1409,9 @@ def _set_validity(token_address, isvalid):
     :param status: 変更後ステータス
     :return: なし
     """
-    token = Token.query.filter(Token.token_address == token_address).first()
-    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+    # Tokenコントラクト接続
+    TokenContract = TokenUtils.get_contract(token_address, session['eth_account'])
 
-    TokenContract = web3.eth.contract(address=token.token_address, abi=token_abi)
     try:
         gas = TokenContract.functions.setStatus(isvalid). \
             estimateGas({'from': session['eth_account']})
@@ -1432,9 +1452,9 @@ def _set_offering_status(token_address, status):
     :param status: 変更後ステータス
     :return: なし
     """
-    token = Token.query.filter(Token.token_address == token_address).first()
-    token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
-    TokenContract = web3.eth.contract(address=token.token_address, abi=token_abi)
+    # Tokenコントラクト接続
+    TokenContract = TokenUtils.get_contract(token_address, session['eth_account'])
+
     try:
         gas = TokenContract.functions.setInitialOfferingStatus(status). \
             estimateGas({'from': session['eth_account']})
