@@ -159,12 +159,13 @@ class TokenUtils:
         personal_info_data = json.dumps(TokenUtils.validateDictStruct(personal_info_default, data))
 
         # 個人情報暗号化用RSA公開鍵の取得
+        issuer = Issuer.query.filter(Issuer.eth_account == issuer_address).first()
         rsa_public_key = None
         if Config.APP_ENV == 'production':  # Production環境の場合
             company_list = []
             isExist = False
             try:
-                company_list = requests.get(Config.COMPANY_LIST_URL).json()
+                company_list = requests.get(Config.COMPANY_LIST_URL[issuer.network]).json()
             except Exception as err:
                 logger.exception(f"{err}")
                 abort(500)
