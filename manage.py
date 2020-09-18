@@ -1,17 +1,27 @@
 #!/usr/local/bin/python
 # -*- coding:utf-8 -*-
+import difflib
+import getpass
 import os
+import re
+import sys
+from collections import OrderedDict
+
 import pytest
+import yaml
+from cryptography.fernet import Fernet
+from eth_utils import to_checksum_address
+from web3 import Web3
 
 if os.path.exists('.env'):
-    print('Importing environment from .env...')
+    print('Importing environment from .env...', file=sys.stderr)
     for line in open('.env'):
         var = line.strip().split('=')
         if len(var) == 2:
             os.environ[var[0]] = var[1]
 
 from app import create_app, db
-from app.models import AlembicVersion, User, Role
+from app.models import AlembicVersion, User, Role, Issuer
 from flask_script import Manager, Shell, Command
 from flask_migrate import Migrate, MigrateCommand
 
@@ -57,6 +67,137 @@ manager.add_command("shell", Shell(make_context=make_shell_context))
 manager.add_command("db", MigrateCommand)
 manager.add_command("createuser", CreateInitUser())
 manager.add_command("resetdb", DropAlembicVersion())
+
+
+@manager.command
+def secretkey():
+    """Generates ETH_ACCOUNT_PASSWORD_SECRET_KEY"""
+    print(Fernet.generate_key().decode())
+
+
+def _represent_odict(dumper, instance):
+    return dumper.represent_mapping('tag:yaml.org,2002:map', instance.items())
+
+
+yaml.add_representer(OrderedDict, _represent_odict)
+
+
+def _issuer_to_text(issuer):
+    data = OrderedDict()
+    for column in vars(Issuer):
+        if column.startswith('_') or column == 'id':
+            continue
+        if column.startswith('encrypted_'):
+            continue
+        data[column] = issuer[column]
+    return yaml.dump(data, default_flow_style=False, allow_unicode=True)
+
+
+@manager.command
+def issuer_template():
+    """Shows issuer information with default values"""
+    default_values = {}
+    for column in vars(Issuer):
+        if column.startswith('_') or column == 'id':
+            continue
+        if column.startswith('encrypted_'):
+            continue
+        default = Issuer.__table__.columns[column].default
+        default_values[column] = default.arg if default is not None else ''
+    print(_issuer_to_text(default_values))
+
+
+@manager.option('eth_account', help='issuer address')
+def issuer_show(eth_account):
+    """Shows issuer information"""
+    issuer = Issuer.query.filter(Issuer.eth_account == eth_account).first()
+    if issuer is None:
+        print(f'ERROR: Issuer {eth_account} was not found', file=sys.stderr)
+        return
+    print(_issuer_to_text(issuer.__dict__))
+
+
+ADDRESS_COLUMNS = [
+    re.compile('eth_account'), re.compile('agent_address'), re.compile('.*_contract_address$')
+]
+
+
+@manager.option('issuer_file',
+                help='issuer information file, which can be create by `issuer_template` or `issuer_show`')
+@manager.option('--privatekey', help='specify private key file', required=False)
+@manager.option('--password', action="store_true", help='update password', default=False, required=False)
+def issuer_save(issuer_file, privatekey, password):
+    """Creates or updates issuer information"""
+    # parse issuer_file
+    with open(issuer_file) as f:
+        new_values = yaml.load(f)
+    for key, value in new_values.items():
+        for pattern in ADDRESS_COLUMNS:
+            if value and pattern.match(key) and not Web3.isChecksumAddress(value):
+                print(f'{key} is not a checksum address')
+                return
+
+    # load current issuer
+    eth_account = to_checksum_address(new_values['eth_account'])
+    current_issuer = Issuer.query.filter(Issuer.eth_account == eth_account).first()
+
+    # password
+    encrypted_password = None
+    if password:
+        password = getpass.getpass()
+        fernet = Fernet(os.environ['ETH_ACCOUNT_PASSWORD_SECRET_KEY'])
+        encrypted_password = fernet.encrypt(password.encode()).decode()
+
+    # private key
+    privatekey_file = None
+    if privatekey is not None:
+        with open(privatekey) as f:
+            privatekey_file = f.read()
+
+    # user confirmation of changes
+    print('\nChanges:')
+    if encrypted_password is not None:
+        print('password will be updated.')
+    if privatekey_file is not None:
+        print('private key will be updated.')
+
+    if current_issuer is None:
+        print(_issuer_to_text(new_values))
+        prompt = input('Do you really want to create? [yes/[no]] ')
+        if prompt.lower() != 'yes':
+            print('aborted.')
+            return
+
+        issuer = Issuer()
+        for key, value in new_values.items():
+            setattr(issuer, key, value)
+        if encrypted_password is not None:
+            issuer.encrypted_account_password = encrypted_password
+        if privatekey_file is not None:
+            issuer.encrypted_rsa_private_key = privatekey_file
+        db.session.add(issuer)
+
+    else:
+        diffs = difflib.ndiff(
+            _issuer_to_text(current_issuer.__dict__).splitlines(True),
+            _issuer_to_text(new_values).splitlines(True)
+        )
+        for x in diffs:
+            print(x, end='')
+        print('')
+        prompt = input('Do you really want to update? [yes/[no]] ')
+        if prompt.lower() != 'yes':
+            print('aborted.')
+            return
+
+        for key, value in new_values.items():
+            setattr(current_issuer, key, value)
+        if encrypted_password is not None:
+            current_issuer.encrypted_account_password = encrypted_password
+        if privatekey_file is not None:
+            current_issuer.encrypted_rsa_private_key = privatekey_file
+
+    db.session.commit()
 
 
 @manager.option('-v', dest='v_opt', action="store_true", help='pytest -v option add.', default=False, required=False)

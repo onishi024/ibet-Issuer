@@ -33,30 +33,55 @@ $ python manage.py db upgrade
 
 ### 事前準備
 
+* RSAキーペア生成
+```bash
+$ python rsa/create_rsakey.py password
+```
+
+* 秘密鍵暗号化パスワード生成
+```bash
+$ python manage.py secretkey
+```
+
+* 環境変数追加
+    * DATABASE_URL：postgresqlのissuerdbのURL
+    * WEB3_HTTP_PROVIDER：Blockchainノードのエンドポイント
+    * RSA_PASSWORD：RSAキーペアのパスワード
+    * ETH_ACCOUNT_PASSWORD_SECRET_KEY: 秘密鍵暗号化パスワード
+
 * 初期データの登録
 ```bash
 $ python manage.py shell
 >> （ibet-Issuer/app/tests/testdata.txt にあるコマンドをコピー＆ペースト）
 ```
 
-* RSAキーペア生成
+* 発行体の設定
 ```bash
-$ python rsa/create_rsakey.py password
+$ python manage.py issuer_template > data/issuer.yaml
 ```
 
-### 環境変数追加
-* ibet-SmartContractで定義したコントラクトをQuorumにデプロイした時に得られる、コントラクトアドレス等を環境変数に定義しておく
+ibet-SmartContractで定義したコントラクトをQuorumにデプロイした時に得られる、コントラクトアドレス等をdata/issuer.yamlに記載しておく
+```yaml
+eth_account: '{発行体アカウントアドレス}'
+issuer_name: ''
+private_keystore: GETH
+network: IBET
+max_sell_price: 100000000
+agent_address: ''
+payment_gateway_contract_address: '{PaymentGatewayコントラクト}'
+personal_info_contract_address: '{PersonalInfoコントラクト}'
+token_list_contract_address: '{TokenListコントラクト}'
+ibet_share_exchange_contract_address: '{IbetOTCExchangeコントラクト}'
+ibet_sb_exchange_contract_address: '{IbetStraightBondExchangeコントラクト}'
+ibet_membership_exchange_contract_address: '{IbetMembershipExchangeコントラクト}'
+ibet_coupon_exchange_contract_address: '{IbetCouponExchangeコントラクト}'
+```
 
-    * TOKEN_LIST_CONTRACT_ADDRESS：TokenListコントラクト
-    * PERSONAL_INFO_CONTRACT_ADDRESS：PersonalInfoコントラクト
-    * PAYMENT_GATEWAY_CONTRACT_ADDRESS：PaymentGatewayコントラクト
-    * IBET_SB_EXCHANGE_CONTRACT_ADDRESS：IbetStraightBondExchangeコントラクト
-    * IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS：IbetCouponExchangeコントラクト
-    * IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS：IbetMembershipExchangeコントラクト
-    * ETH_ACCOUNT_PASSWORD：利用アカウントの秘密鍵ファイルのパスワード
-    * DATABASE_URL：postgresqlのissuerdbのURL
-    * WEB3_HTTP_PROVIDER：Blockchainノードのエンドポイント
-    * RSA_PASSWORD：RSAキーペアのパスワード
+記載した内容をDBに登録する。
+パスワード入力を求められるのでGethの発行体アカウントパスワードを入力する。
+```bash
+$ python manage.py issuer_save data/issuer.yaml --password --privatekey data/rsa/private.pem
+```
 
 ###  サーバ起動
 ```bash
