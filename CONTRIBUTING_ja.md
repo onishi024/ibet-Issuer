@@ -38,16 +38,16 @@ $ python manage.py db upgrade
 $ python rsa/create_rsakey.py password
 ```
 
-* 秘密鍵暗号化パスワード生成
+* EOA keyfileパスワード保管用の鍵生成
 ```bash
-$ python manage.py secretkey
+$ python manage.py eth_account_password_secret_key
 ```
 
 * 環境変数追加
     * DATABASE_URL：postgresqlのissuerdbのURL
-    * WEB3_HTTP_PROVIDER：Blockchainノードのエンドポイント
+    * WEB3_HTTP_PROVIDER：Quorumノードのエンドポイント
     * RSA_PASSWORD：RSAキーペアのパスワード
-    * ETH_ACCOUNT_PASSWORD_SECRET_KEY: 秘密鍵暗号化パスワード
+    * ETH_ACCOUNT_PASSWORD_SECRET_KEY: EOA keyfileパスワード保管用の鍵
 
 * 初期データの登録
 ```bash
@@ -60,7 +60,7 @@ $ python manage.py shell
 $ python manage.py issuer_template > data/issuer.yaml
 ```
 
-ibet-SmartContractで定義したコントラクトをQuorumにデプロイした時に得られる、コントラクトアドレス等をdata/issuer.yamlに記載しておく
+事前に ibet-SmartContract をデプロイして得られるコントラクトアドレスを data/issuer.yaml に設定する。
 ```yaml
 eth_account: '{発行体アカウントアドレス}'
 issuer_name: ''
@@ -78,9 +78,9 @@ ibet_coupon_exchange_contract_address: '{IbetCouponExchangeコントラクト}'
 ```
 
 記載した内容をDBに登録する。
-パスワード入力を求められるのでGethの発行体アカウントパスワードを入力する。
+パスワード入力を求められるのでGethの発行体アカウントパスワード（keyfileパスワード）を入力する。
 ```bash
-$ python manage.py issuer_save data/issuer.yaml --password --privatekey data/rsa/private.pem
+$ python manage.py issuer_save data/issuer.yaml --eoa-keyfile-password --rsa-privatekey data/rsa/private.pem
 ```
 
 ###  サーバ起動

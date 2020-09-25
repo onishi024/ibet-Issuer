@@ -153,7 +153,7 @@ class Issuer(db.Model):
     ibet_membership_exchange_contract_address = db.Column(db.String(42))
     # クーポン取引コントラクトアドレス
     ibet_coupon_exchange_contract_address = db.Column(db.String(42))
-    # EOA秘密鍵保存先のパスワード（暗号化済）
+    # EOA keyfileのパスワード（暗号化済）
     # deferredで暗号化情報が必要なとき以外はDBから取得しないようにする
     encrypted_account_password = deferred(db.Column(db.String(2048)))
     # 個人情報復号化用RSA鍵ファイル（暗号化済）

@@ -70,9 +70,13 @@ manager.add_command("resetdb", DropAlembicVersion())
 
 
 @manager.command
-def secretkey():
-    """Generates ETH_ACCOUNT_PASSWORD_SECRET_KEY"""
-    print(Fernet.generate_key().decode())
+def eth_account_password_secret_key():
+    """
+    Generates ETH_ACCOUNT_PASSWORD_SECRET_KEY.
+    ETH_ACCOUNT_PASSWORD_SECRET_KEY is used to encrypt/decrypt the password of an EOA keyfile.
+    """
+    secret_key = Fernet.generate_key().decode()
+    print(f'ETH_ACCOUNT_PASSWORD_SECRET_KEY="{secret_key}"')
 
 
 def _represent_odict(dumper, instance):
@@ -124,9 +128,10 @@ ADDRESS_COLUMNS = [
 
 @manager.option('issuer_file',
                 help='issuer information file, which can be create by `issuer_template` or `issuer_show`')
-@manager.option('--privatekey', help='specify private key file', required=False)
-@manager.option('--password', action="store_true", help='update password', default=False, required=False)
-def issuer_save(issuer_file, privatekey, password):
+@manager.option('--rsa-privatekey', help='specify RSA private key file', required=False)
+@manager.option('--eoa-keyfile-password', action="store_true", help='update EOA keyfile password',
+                default=False, required=False)
+def issuer_save(issuer_file, rsa_privatekey, eoa_keyfile_password):
     """Creates or updates issuer information"""
     # parse issuer_file
     with open(issuer_file) as f:
@@ -141,25 +146,26 @@ def issuer_save(issuer_file, privatekey, password):
     eth_account = to_checksum_address(new_values['eth_account'])
     current_issuer = Issuer.query.filter(Issuer.eth_account == eth_account).first()
 
-    # password
-    encrypted_password = None
-    if password:
+    # EOA keyfile password
+    encrypted_eoa_keyfile_password = None
+    if eoa_keyfile_password:
+        print(f'Input the EOA keyfile password for {eth_account}')
         password = getpass.getpass()
         fernet = Fernet(os.environ['ETH_ACCOUNT_PASSWORD_SECRET_KEY'])
-        encrypted_password = fernet.encrypt(password.encode()).decode()
+        encrypted_eoa_keyfile_password = fernet.encrypt(password.encode()).decode()
 
-    # private key
-    privatekey_file = None
-    if privatekey is not None:
-        with open(privatekey) as f:
-            privatekey_file = f.read()
+    # RSA private key
+    rsa_privatekey_file = None
+    if rsa_privatekey is not None:
+        with open(rsa_privatekey) as f:
+            rsa_privatekey_file = f.read()
 
     # user confirmation of changes
     print('\nChanges:')
-    if encrypted_password is not None:
-        print('password will be updated.')
-    if privatekey_file is not None:
-        print('private key will be updated.')
+    if encrypted_eoa_keyfile_password is not None:
+        print('EOA keyfile password will be updated.')
+    if rsa_privatekey_file is not None:
+        print('RSA private key will be updated.')
 
     if current_issuer is None:
         print(_issuer_to_text(new_values))
@@ -171,10 +177,10 @@ def issuer_save(issuer_file, privatekey, password):
         issuer = Issuer()
         for key, value in new_values.items():
             setattr(issuer, key, value)
-        if encrypted_password is not None:
-            issuer.encrypted_account_password = encrypted_password
-        if privatekey_file is not None:
-            issuer.encrypted_rsa_private_key = privatekey_file
+        if encrypted_eoa_keyfile_password is not None:
+            issuer.encrypted_account_password = encrypted_eoa_keyfile_password
+        if rsa_privatekey_file is not None:
+            issuer.encrypted_rsa_private_key = rsa_privatekey_file
         db.session.add(issuer)
 
     else:
@@ -192,12 +198,13 @@ def issuer_save(issuer_file, privatekey, password):
 
         for key, value in new_values.items():
             setattr(current_issuer, key, value)
-        if encrypted_password is not None:
-            current_issuer.encrypted_account_password = encrypted_password
-        if privatekey_file is not None:
-            current_issuer.encrypted_rsa_private_key = privatekey_file
+        if encrypted_eoa_keyfile_password is not None:
+            current_issuer.encrypted_account_password = encrypted_eoa_keyfile_password
+        if rsa_privatekey_file is not None:
+            current_issuer.encrypted_rsa_private_key = rsa_privatekey_file
 
     db.session.commit()
+    print("Successfully updated.")
 
 
 @manager.option('-v', dest='v_opt', action="store_true", help='pytest -v option add.', default=False, required=False)

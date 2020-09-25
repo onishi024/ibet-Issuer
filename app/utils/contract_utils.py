@@ -84,7 +84,7 @@ class ContractUtils:
         query = Issuer.query if db_session is None else db_session.query(Issuer)
         issuer = query.filter(Issuer.eth_account == eth_account).first()
 
-        # EOA秘密鍵を取得するためのパスワードを復号
+        # EOA keyfileのパスワードを取得
         fernet = Fernet(Config.ETH_ACCOUNT_PASSWORD_SECRET_KEY)
         eth_account_password = fernet.decrypt(issuer.encrypted_account_password.encode()).decode()
 
