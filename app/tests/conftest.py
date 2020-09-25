@@ -1,9 +1,7 @@
 import json
 
 import pytest
-import os
 
-import yaml
 from cryptography.fernet import Fernet
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
@@ -188,33 +186,6 @@ class TestBase(object):
                 setattr(entity, key, value)
             param_db.session.add(entity)
         param_db.session.commit()
-
-    def db_init_exec(self, param_db, init_ptn=None):
-        param_db.session.commit()
-        param_db.drop_all()
-        param_db.create_all()
-        db_init_list = [
-            {"table_name": "Role", "start_row": 1, "end_row": 9999},
-            {"table_name": "User", "start_row": 1, "end_row": 9999}
-        ]
-        if self.data is None:
-            with open(os.path.abspath(os.path.join(os.path.dirname(__file__), 'data.yaml')), 'r',
-                      encoding='utf-8') as s:
-                try:
-                    self.data = yaml.load(s)
-                except yaml.YAMLError as ex:
-                    raise ex
-
-        if init_ptn is not None:
-            db_init_list.extend(init_ptn)
-
-        for cfg in db_init_list:
-            table_name = cfg["table_name"]
-            start_row = 'row_%04d' % cfg["start_row"]
-            end_row = 'row_%04d' % cfg["end_row"]
-            records = self.data[table_name]
-            data_rows = {k: v for k, v in records.items() if start_row <= k <= end_row}
-            self.add_data(param_db, table_name, data_rows)
 
     @staticmethod
     def client_with_user_login(param_app):
