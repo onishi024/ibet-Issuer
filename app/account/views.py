@@ -7,12 +7,13 @@ from base64 import b64encode
 
 import requests
 
-from flask import request, redirect, url_for, flash, render_template
+from flask import request, redirect, url_for, flash, render_template, session
 from flask import Markup
 from flask_login import login_required, current_user
 
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
+from werkzeug.exceptions import abort
 
 from . import account
 from .forms import RegistUserForm, EditUserAdminForm, EditUserForm, PasswordChangeForm, BankInfoForm, IssuerInfoForm
@@ -53,7 +54,7 @@ def flash_errors(form):
 @admin_required
 def list():
     logger.info('list')
-    users = User.query.all()
+    users = User.query.filter_by(eth_account=session['eth_account']).all()
 
     for user in users:
         if user.created:
@@ -76,6 +77,8 @@ def list():
 @admin_required
 def edit(id):
     user = User.query.get_or_404(id)
+    if user.eth_account != session['eth_account']:
+        abort(403)
     form = EditUserAdminForm(user=user)
     if request.method == 'POST':
         if form.validate():
@@ -153,6 +156,8 @@ def pwdchg():
 def pwdinit():
     u_id = request.form.get('id')
     user = User.query.get(int(u_id))
+    if user.eth_account != session['eth_account']:
+        abort(403)
     token = secrets.token_urlsafe(6)
     user.password = token
     db.session.add(user)
@@ -169,6 +174,7 @@ def regist():
     if request.method == 'POST':
         if form.validate():
             user = User()
+            user.eth_account = session['eth_account']
             user.login_id = form.login_id.data
             user.user_name = form.user_name.data
             if 'icon' in request.files:
@@ -193,6 +199,8 @@ def regist():
 def delete():
     login_id = request.form.get('login_id')
     user = User.query.filter_by(login_id=login_id).first()
+    if user.eth_account != session['eth_account']:
+        abort(403)
     db.session.delete(user)
     flash('%s さんの情報を削除しました。' % (user.user_name), 'success')
     return redirect(url_for('.list'))
@@ -228,7 +236,7 @@ def bankinfo():
         form.account_holder.data = ''
 
         # PersonalInfoコントラクトへの登録状態を取得
-        bank = Bank.query.filter().filter(Bank.eth_account == Config.ETH_ACCOUNT).first()
+        bank = Bank.query.filter().filter(Bank.eth_account == session['eth_account']).first()
 
         if bank is not None:
             # 登録済みの場合は登録されている情報を取得
@@ -248,8 +256,9 @@ def bankinfo():
 
 
 def payment_account_regist(form):
+    issuer = Issuer.query.get(session["issuer_id"])
     # 収納代行業者のアドレスを取得
-    agent_address = to_checksum_address(Config.AGENT_ADDRESS)
+    agent_address = issuer.agent_address
 
     # 収納代行業者のRSA公開鍵を取得
     key_bank = None
@@ -257,7 +266,7 @@ def payment_account_regist(form):
         company_list = []
         isExist = False
         try:
-            company_list = requests.get(Config.COMPANY_LIST_URL).json()
+            company_list = requests.get(Config.COMPANY_LIST_URL[issuer.network]).json()
         except:
             pass
         for company_info in company_list:
@@ -291,18 +300,19 @@ def payment_account_regist(form):
     payment_account_ciphertext = base64.encodebytes(cipher.encrypt(payment_account_message_string.encode('utf-8')))
 
     # 銀行口座情報の登録
-    payment_gateway_address = to_checksum_address(Config.PAYMENT_GATEWAY_CONTRACT_ADDRESS)
+    payment_gateway_address = issuer.payment_gateway_contract_address
     PaymentGatewayContract = ContractUtils.get_contract('PaymentGateway', payment_gateway_address)
     gas = PaymentGatewayContract.functions.register(agent_address, payment_account_ciphertext).\
-        estimateGas({'from': Config.ETH_ACCOUNT})
+        estimateGas({'from': session['eth_account']})
     tx = PaymentGatewayContract.functions.register(agent_address, payment_account_ciphertext).\
-        buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
-    ContractUtils.send_transaction(transaction=tx)
+        buildTransaction({'from': session['eth_account'], 'gas': gas})
+    ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
+
 
 def bank_account_regist(form):
     # 入力内容を格納
     bank_account = Bank()
-    bank_account.eth_account = Config.ETH_ACCOUNT
+    bank_account.eth_account = session['eth_account']
     bank_account.bank_name = form.bank_name.data
     bank_account.bank_code = form.bank_code.data
     bank_account.branch_name = form.branch_name.data
@@ -311,7 +321,7 @@ def bank_account_regist(form):
     bank_account.account_number = form.account_number.data
     bank_account.account_holder = form.account_holder.data
 
-    bank = Bank.query.filter().filter(Bank.eth_account == Config.ETH_ACCOUNT).first()
+    bank = Bank.query.filter().filter(Bank.eth_account == session['eth_account']).first()
 
     # 入力された口座情報をDBに登録
     if bank is None:
@@ -340,7 +350,7 @@ def issuerinfo():
     if request.method == 'POST':
         if form.validate():
             # DB に発行体情報登録
-            _register_issuer_info(form)
+            _update_issuer_name(form)
             flash('登録処理を受け付けました。', 'success')
             return render_template('account/issuerinfo.html', form=form)
         else:
@@ -348,29 +358,15 @@ def issuerinfo():
             return render_template('account/issuerinfo.html', form=form)
     else:  # GET
         # 登録済情報を取得
-        issuer_info = Issuer.query.filter().filter(Issuer.eth_account == Config.ETH_ACCOUNT).first()
-
-        # 登録済みの場合は登録されている情報を取得
-        if issuer_info is not None:
-            form.issuer_name.data = issuer_info.issuer_name
+        issuer = Issuer.query.get(session["issuer_id"])
+        form.issuer_name.data = issuer.issuer_name
 
         return render_template('account/issuerinfo.html', form=form)
 
 
-def _register_issuer_info(form):
-    # 入力内容を格納
-    new_issuer_model = Issuer()
-    new_issuer_model.eth_account = Config.ETH_ACCOUNT
-    new_issuer_model.issuer_name = form.issuer_name.data
-
-    issuer = Issuer.query.filter().filter(Issuer.eth_account == Config.ETH_ACCOUNT).first()
-
-    # 入力された口座情報をDBに登録
-    if issuer is None:
-        db.session.add(new_issuer_model)
-    # 既に登録されている場合、更新
-    else:
-        issuer.issuer_name = new_issuer_model.issuer_name
+def _update_issuer_name(form):
+    issuer = Issuer.query.get(session["issuer_id"])
+    issuer.issuer_name = form.issuer_name.data
     db.session.commit()
 
 

@@ -17,7 +17,7 @@ from .utils.contract_utils_common import processor_issue_event, index_transfer_e
 from .utils.contract_utils_membership import \
     get_latest_orderid, get_latest_agreementid, take_buy, confirm_agreement, apply_for_offering
 from .utils.contract_utils_personal_info import register_personal_info
-from ..models import Token, Issuer, HolderList, Transfer
+from ..models import Token, HolderList, Transfer
 
 
 class TestMembership(TestBase):
@@ -38,6 +38,7 @@ class TestMembership(TestBase):
     url_stop_initial_offering = 'membership/stop_initial_offering'  # 募集申込停止
     url_applications = 'membership/applications/'  # 募集申込一覧
     url_get_applications = 'membership/get_applications/'  # 募集申込一覧
+    url_applications_csv_download = 'membership/applications_csv_download'  # 申込者リストCSVダウンロード
     url_allocate = 'membership/allocate'  # 割当（募集申込）
     url_add_supply = 'membership/add_supply/'  # 追加発行
     url_holders = 'membership/holders/'  # 保有者一覧
@@ -99,7 +100,13 @@ class TestMembership(TestBase):
 
     @staticmethod
     def get_token(num):
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
+        tokens = Token.query. \
+            filter_by(
+                template_id=Config.TEMPLATE_ID_MEMBERSHIP,
+                admin_address=eth_account['issuer']['account_address'].lower()
+            ). \
+            order_by(Token.created). \
+            all()
         return tokens[num]
 
     #############################################################################
@@ -148,27 +155,12 @@ class TestMembership(TestBase):
 
     # ＜前処理＞
     def test_normal_0(self, shared_contract, db):
-        # Config設定
-        Config.ETH_ACCOUNT = eth_account['issuer']['account_address']
-        Config.ETH_ACCOUNT_PASSWORD = eth_account['issuer']['password']
-        Config.AGENT_ADDRESS = eth_account['agent']['account_address']
-        Config.TOKEN_LIST_CONTRACT_ADDRESS = shared_contract['TokenList']['address']
-        Config.IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS = \
-            shared_contract['IbetMembershipExchange']['address']
-        Config.PERSONAL_INFO_CONTRACT_ADDRESS = \
-            shared_contract['PersonalInfo']['address']
         self.token_data1['tradableExchange'] = \
             shared_contract['IbetMembershipExchange']['address']
         self.token_data2['tradableExchange'] = \
             shared_contract['IbetMembershipExchange']['address']
         self.token_data3['tradableExchange'] = \
             shared_contract['PersonalInfo']['address']
-
-        # 発行体名義登録
-        issuer = Issuer()
-        issuer.eth_account = Config.ETH_ACCOUNT
-        issuer.issuer_name = '発行体１'
-        db.session.add(issuer)
 
     # ＜正常系1_1＞
     # ＜会員権の0件確認＞
@@ -1025,8 +1017,7 @@ class TestMembership(TestBase):
     # ＜正常系12-1＞
     #   保有者リスト履歴
     def test_normal_12_1(self, app):
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
-        token = tokens[0]
+        token = TestMembership.get_token(0)
         client = self.client_with_admin_login(app)
 
         # 保有者一覧の参照
@@ -1039,8 +1030,7 @@ class TestMembership(TestBase):
     #   保有者リスト履歴（API）
     #   0件：保有者リスト履歴
     def test_normal_12_2(self, app):
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
-        token = tokens[0]
+        token = TestMembership.get_token(0)
         client = self.client_with_admin_login(app)
 
         # 保有者一覧（API）の参照
@@ -1054,13 +1044,12 @@ class TestMembership(TestBase):
     #   保有者リスト履歴（API）
     #   1件：保有者リスト履歴
     def test_normal_12_3(self, app, db):
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
-        token = tokens[0]
+        token = TestMembership.get_token(0)
         client = self.client_with_admin_login(app)
 
         # 保有者リスト履歴を作成
         holderList = HolderList()
-        holderList.token_address = tokens[0].token_address
+        holderList.token_address = token.token_address
         holderList.created = datetime(2020, 2, 29, 12, 59, 59, 1234, tzinfo=timezone.utc)
         holderList.holder_list = b'dummy csv membership test_normal_12_3'
         db.session.add(holderList)
@@ -1079,8 +1068,7 @@ class TestMembership(TestBase):
     #   保有者リストCSVダウンロード
     #   ※12-3の続き
     def test_normal_12_4(self, app, db):
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
-        token = tokens[0]
+        token = TestMembership.get_token(0)
 
         holder_list = HolderList.query.filter_by(token_address=token.token_address).first()
         csv_id = holder_list.id
@@ -1093,7 +1081,7 @@ class TestMembership(TestBase):
             data={
                 'token_address': token.token_address,
                 'csv_id': csv_id
-             }
+            }
         )
 
         assert response.status_code == 200
@@ -1102,12 +1090,11 @@ class TestMembership(TestBase):
     # ＜正常系13-1＞
     #   トークン追跡
     def test_normal_13_1(self, app, db):
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
-        token = tokens[0]
+        token = TestMembership.get_token(0)
         client = self.client_with_admin_login(app)
 
         # 登録済みのトランザクションハッシュを取得
-        transfer_event =  Transfer.query.filter_by(token_address=token.token_address).first()
+        transfer_event = Transfer.query.filter_by(token_address=token.token_address).first()
         tx_hash = transfer_event.transaction_hash
 
         # トークン追跡の参照
@@ -1143,8 +1130,7 @@ class TestMembership(TestBase):
     # ＜入力値チェック＞
     #   売出（必須エラー）
     def test_error_1_2(self, app):
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
-        token = tokens[0]
+        token = TestMembership.get_token(0)
         # 売出
         client = self.client_with_admin_login(app)
         response = client.post(
@@ -1193,8 +1179,7 @@ class TestMembership(TestBase):
     def test_error_2_2(self, app):
         dex_address_error = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
         client = self.client_with_admin_login(app)
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_MEMBERSHIP).all()
-        token = tokens[0]
+        token = TestMembership.get_token(0)
         url_setting = self.url_setting + token.token_address
         response = client.post(
             url_setting,
@@ -1375,10 +1360,443 @@ class TestMembership(TestBase):
         assert response.status_code == 200
         assert '移転数量が残高を超えています。'.encode('utf-8') in response.data
 
+    # ＜エラー系4_1＞
+    # ＜発行体相違＞
+    #   トークン追跡: 異なる発行体管理化のトークンアドレス
+    def test_error_4_1(self, app):
+        # 発行体1管理下のトークンアドレス
+        tokens = Token.query.filter_by(
+            template_id=Config.TEMPLATE_ID_MEMBERSHIP,
+            admin_address=eth_account['issuer']['account_address'].lower()
+        ).all()
+        token = tokens[0]
+
+        # 発行体2でログイン
+        client = self.client_with_admin_login(app, login_id='admin2')
+
+        response = client.get(self.url_token_tracker + token.token_address)
+        assert response.status_code == 404
+
+    # ＜エラー系4_2＞
+    # ＜発行体相違＞
+    #   申込者リストCSVダウンロード: 異なる発行体管理化のトークンアドレス
+    def test_error_4_2(self, app):
+        # 発行体1管理下のトークンアドレス
+        tokens = Token.query.filter_by(
+            template_id=Config.TEMPLATE_ID_MEMBERSHIP,
+            admin_address=eth_account['issuer']['account_address'].lower()
+        ).all()
+        token = tokens[0]
+
+        # 発行体2でログイン
+        client = self.client_with_admin_login(app, login_id='admin2')
+
+        response = client.post(
+            self.url_applications_csv_download,
+            data={
+                'token_address': token.token_address
+            }
+        )
+        assert response.status_code == 404
+
+    # ＜エラー系4_3＞
+    # ＜発行体相違＞
+    #   募集申込一覧取得（API）: 異なる発行体管理化のトークンアドレス
+    def test_error_4_3(self, app):
+        # 発行体1管理下のトークンアドレス
+        tokens = Token.query.filter_by(
+            template_id=Config.TEMPLATE_ID_MEMBERSHIP,
+            admin_address=eth_account['issuer']['account_address'].lower()
+        ).all()
+        token = tokens[0]
+
+        # 発行体2でログイン
+        client = self.client_with_admin_login(app, login_id='admin2')
+
+        response = client.get(self.url_get_applications + token.token_address)
+        assert response.status_code == 404
+
+    # ＜エラー系4_4＞
+    # ＜発行体相違＞
+    #   公開: 異なる発行体管理化のトークンアドレス
+    def test_error_4_4(self, app):
+        # 発行体1管理下のトークンアドレス
+        tokens = Token.query.filter_by(
+            template_id=Config.TEMPLATE_ID_MEMBERSHIP,
+            admin_address=eth_account['issuer']['account_address'].lower()
+        ).all()
+        token = tokens[0]
+
+        # 発行体2でログイン
+        client = self.client_with_admin_login(app, login_id='admin2')
+
+        response = client.post(
+            self.url_release,
+            data={
+                'token_address': token.token_address
+            }
+        )
+        assert response.status_code == 404
+
+    # ＜エラー系4_5＞
+    # ＜発行体相違＞
+    #   追加発行: 異なる発行体管理化のトークンアドレス
+    def test_error_4_5(self, app):
+        # 発行体1管理下のトークンアドレス
+        tokens = Token.query.filter_by(
+            template_id=Config.TEMPLATE_ID_MEMBERSHIP,
+            admin_address=eth_account['issuer']['account_address'].lower()
+        ).all()
+        token = tokens[0]
+
+        # 発行体2でログイン
+        client = self.client_with_admin_login(app, login_id='admin2')
+
+        response = client.get(self.url_add_supply + token.token_address)
+        assert response.status_code == 404
+
+        response = client.post(
+            self.url_add_supply + token.token_address,
+            data={
+                'addSupply': 1
+            }
+        )
+        assert response.status_code == 404
+
+    # ＜エラー系4_6＞
+    # ＜発行体相違＞
+    #   設定内容修正: 異なる発行体管理化のトークンアドレス
+    def test_error_4_6(self, app, shared_contract):
+        # 発行体1管理下のトークンアドレス
+        tokens = Token.query.filter_by(
+            template_id=Config.TEMPLATE_ID_MEMBERSHIP,
+            admin_address=eth_account['issuer']['account_address'].lower()
+        ).all()
+        token = tokens[0]
+
+        # 発行体2でログイン
+        client = self.client_with_admin_login(app, login_id='admin2')
+
+        response = client.get(self.url_setting + token.token_address)
+        assert response.status_code == 404
+
+        response = client.post(
+            self.url_setting + token.token_address,
+            data=self.token_data1
+        )
+        assert response.status_code == 404
+
+    # ＜エラー系4_7＞
+    # ＜発行体相違＞
+    #   売出: 異なる発行体管理化のトークンアドレス
+    def test_error_4_7(self, app):
+        # 発行体1管理下のトークンアドレス
+        tokens = Token.query.filter_by(
+            template_id=Config.TEMPLATE_ID_MEMBERSHIP,
+            admin_address=eth_account['issuer']['account_address'].lower()
+        ).all()
+        token = tokens[0]
+
+        # 発行体2でログイン
+        client = self.client_with_admin_login(app, login_id='admin2')
+
+        response = client.get(self.url_sell + token.token_address)
+        assert response.status_code == 404
+
+        response = client.post(
+            self.url_sell + token.token_address,
+            data={
+                'sellPrice': 1000
+            }
+        )
+        assert response.status_code == 404
+
+    # ＜エラー系4_8＞
+    # ＜発行体相違＞
+    #   売出停止: 異なる発行体管理化のトークンアドレス
+    def test_error_4_8(self, app):
+        # 発行体1管理下のトークンアドレス
+        tokens = Token.query.filter_by(
+            template_id=Config.TEMPLATE_ID_MEMBERSHIP,
+            admin_address=eth_account['issuer']['account_address'].lower()
+        ).all()
+        token = tokens[0]
+
+        # 発行体2でログイン
+        client = self.client_with_admin_login(app, login_id='admin2')
+
+        response = client.get(self.url_cancel_order + token.token_address + '/1')
+        assert response.status_code == 404
+
+        response = client.post(
+            self.url_cancel_order + token.token_address + '/1',
+            data={
+            }
+        )
+        assert response.status_code == 404
+
+    # ＜エラー系4_9＞
+    # ＜発行体相違＞
+    #   割当（募集申込）: 異なる発行体管理化のトークンアドレス
+    def test_error_4_9(self, app):
+        # 発行体1管理下のトークンアドレス
+        tokens = Token.query.filter_by(
+            template_id=Config.TEMPLATE_ID_MEMBERSHIP,
+            admin_address=eth_account['issuer']['account_address'].lower()
+        ).all()
+        token = tokens[0]
+
+        # 発行体2でログイン
+        client = self.client_with_admin_login(app, login_id='admin2')
+        account_address = eth_account['trader']['account_address']
+
+        response = client.get(self.url_allocate + token.token_address + '/' + account_address)
+        assert response.status_code == 404
+
+        response = client.post(
+            self.url_allocate + token.token_address + '/' + account_address,
+            data={
+                'amount': 1
+            }
+        )
+        assert response.status_code == 404
+
+    # ＜エラー系4_10＞
+    # ＜発行体相違＞
+    #   保有者移転: 異なる発行体管理化のトークンアドレス
+    def test_error_4_10(self, app):
+        # 発行体1管理下のトークンアドレス
+        tokens = Token.query.filter_by(
+            template_id=Config.TEMPLATE_ID_MEMBERSHIP,
+            admin_address=eth_account['issuer']['account_address'].lower()
+        ).all()
+        token = tokens[0]
+
+        # 発行体2でログイン
+        client = self.client_with_admin_login(app, login_id='admin2')
+        account_address = eth_account['trader']['account_address']
+
+        response = client.get(self.url_transfer_ownership + token.token_address + '/' + account_address)
+        assert response.status_code == 404
+
+        response = client.post(
+            self.url_transfer_ownership + token.token_address + '/' + account_address,
+            data={
+                'amount': 1
+            }
+        )
+        assert response.status_code == 404
+
+    # ＜エラー系4_11＞
+    # ＜発行体相違＞
+    #   保有者一覧取得（CSV）: 異なる発行体管理化のトークンアドレス
+    def test_error_4_11(self, app):
+        # 発行体1管理下のトークンアドレス
+        tokens = Token.query.filter_by(
+            template_id=Config.TEMPLATE_ID_MEMBERSHIP,
+            admin_address=eth_account['issuer']['account_address'].lower()
+        ).all()
+        token = tokens[0]
+
+        # 発行体2でログイン
+        client = self.client_with_admin_login(app, login_id='admin2')
+
+        response = client.post(
+            self.url_holders_csv_download,
+            data={
+                'token_address': token.token_address
+            }
+        )
+        assert response.status_code == 404
+
+    # ＜エラー系4_12＞
+    # ＜発行体相違＞
+    #   保有者一覧取得（API）: 異なる発行体管理化のトークンアドレス
+    def test_error_4_12(self, app):
+        # 発行体1管理下のトークンアドレス
+        tokens = Token.query.filter_by(
+            template_id=Config.TEMPLATE_ID_MEMBERSHIP,
+            admin_address=eth_account['issuer']['account_address'].lower()
+        ).all()
+        token = tokens[0]
+
+        # 発行体2でログイン
+        client = self.client_with_admin_login(app, login_id='admin2')
+
+        response = client.get(self.url_get_holders + token.token_address)
+        assert response.status_code == 404
+
+    # ＜エラー系4_13＞
+    # ＜発行体相違＞
+    #   トークン名称取得（API）: 異なる発行体管理化のトークンアドレス
+    def test_error_4_13(self, app):
+        # 発行体1管理下のトークンアドレス
+        tokens = Token.query.filter_by(
+            template_id=Config.TEMPLATE_ID_MEMBERSHIP,
+            admin_address=eth_account['issuer']['account_address'].lower()
+        ).all()
+        token = tokens[0]
+
+        # 発行体2でログイン
+        client = self.client_with_admin_login(app, login_id='admin2')
+
+        response = client.get(self.url_get_token_name + token.token_address)
+        assert response.status_code == 404
+
+    # ＜エラー系4_14＞
+    # ＜発行体相違＞
+    #   保有者詳細: 異なる発行体管理化のトークンアドレス
+    def test_error_4_14(self, app):
+        # 発行体1管理下のトークンアドレス
+        tokens = Token.query.filter_by(
+            template_id=Config.TEMPLATE_ID_MEMBERSHIP,
+            admin_address=eth_account['issuer']['account_address'].lower()
+        ).all()
+        token = tokens[0]
+
+        # 発行体2でログイン
+        client = self.client_with_admin_login(app, login_id='admin2')
+        account_address = eth_account['trader']['account_address']
+
+        response = client.get(self.url_holder + token.token_address + '/' + account_address)
+        assert response.status_code == 404
+
+        response = client.post(
+            self.url_holder + token.token_address + '/' + account_address,
+            data={
+            }
+        )
+        assert response.status_code == 404
+
+    # ＜エラー系4_15＞
+    # ＜発行体相違＞
+    #   有効化: 異なる発行体管理化のトークンアドレス
+    def test_error_4_15(self, app):
+        # 発行体1管理下のトークンアドレス
+        tokens = Token.query.filter_by(
+            template_id=Config.TEMPLATE_ID_MEMBERSHIP,
+            admin_address=eth_account['issuer']['account_address'].lower()
+        ).all()
+        token = tokens[0]
+
+        # 発行体2でログイン
+        client = self.client_with_admin_login(app, login_id='admin2')
+
+        response = client.post(
+            self.url_valid,
+            data={
+                'token_address': token.token_address
+            }
+        )
+        assert response.status_code == 404
+
+    # ＜エラー系4_16＞
+    # ＜発行体相違＞
+    #   無効化: 異なる発行体管理化のトークンアドレス
+    def test_error_4_16(self, app):
+        # 発行体1管理下のトークンアドレス
+        tokens = Token.query.filter_by(
+            template_id=Config.TEMPLATE_ID_MEMBERSHIP,
+            admin_address=eth_account['issuer']['account_address'].lower()
+        ).all()
+        token = tokens[0]
+
+        # 発行体2でログイン
+        client = self.client_with_admin_login(app, login_id='admin2')
+
+        response = client.post(
+            self.url_invalid,
+            data={
+                'token_address': token.token_address
+            }
+        )
+        assert response.status_code == 404
+
+    # ＜エラー系4_17＞
+    # ＜発行体相違＞
+    #   募集申込開始: 異なる発行体管理化のトークンアドレス
+    def test_error_4_17(self, app):
+        # 発行体1管理下のトークンアドレス
+        tokens = Token.query.filter_by(
+            template_id=Config.TEMPLATE_ID_MEMBERSHIP,
+            admin_address=eth_account['issuer']['account_address'].lower()
+        ).all()
+        token = tokens[0]
+
+        # 発行体2でログイン
+        client = self.client_with_admin_login(app, login_id='admin2')
+
+        response = client.post(
+            self.url_start_initial_offering,
+            data={
+                'token_address': token.token_address
+            }
+        )
+        assert response.status_code == 404
+
+    # ＜エラー系4_18＞
+    # ＜発行体相違＞
+    #   募集申込停止: 異なる発行体管理化のトークンアドレス
+    def test_error_4_18(self, app):
+        # 発行体1管理下のトークンアドレス
+        tokens = Token.query.filter_by(
+            template_id=Config.TEMPLATE_ID_MEMBERSHIP,
+            admin_address=eth_account['issuer']['account_address'].lower()
+        ).all()
+        token = tokens[0]
+
+        # 発行体2でログイン
+        client = self.client_with_admin_login(app, login_id='admin2')
+
+        response = client.post(
+            self.url_stop_initial_offering,
+            data={
+                'token_address': token.token_address
+            }
+        )
+        assert response.status_code == 404
+
+    # ＜エラー系4_19＞
+    # ＜発行体相違＞
+    #   保有者リストCSVダウンロード: 異なる発行体管理化のトークンアドレス
+    def test_error_4_19(self, app):
+        # 発行体1管理下のトークンアドレス
+        tokens = Token.query.filter_by(
+            template_id=Config.TEMPLATE_ID_MEMBERSHIP,
+            admin_address=eth_account['issuer']['account_address'].lower()
+        ).all()
+        token = tokens[0]
+
+        # 発行体2でログイン
+        client = self.client_with_admin_login(app, login_id='admin2')
+
+        response = client.post(
+            self.url_holders_csv_history,
+            data={
+                'token_address': token.token_address
+            }
+        )
+        assert response.status_code == 404
+
+    # ＜エラー系4_20＞
+    # ＜発行体相違＞
+    #   保有者リスト履歴（API）: 異なる発行体管理化のトークンアドレス
+    def test_error_4_20(self, app):
+        # 発行体1管理下のトークンアドレス
+        tokens = Token.query.filter_by(
+            template_id=Config.TEMPLATE_ID_MEMBERSHIP,
+            admin_address=eth_account['issuer']['account_address'].lower()
+        ).all()
+        token = tokens[0]
+
+        # 発行体2でログイン
+        client = self.client_with_admin_login(app, login_id='admin2')
+
+        response = client.get(self.url_get_holders_csv_history + '/' + token.token_address)
+        assert response.status_code == 404
+
     #############################################################################
     # 後処理
     #############################################################################
     def test_end(self, db):
         clean_issue_event(db)
-
-        Issuer.query.filter(Issuer.eth_account == Config.ETH_ACCOUNT).delete()

@@ -2,12 +2,12 @@
 import re
 from http import HTTPStatus
 
-from flask_jwt import jwt_required
+from flask_jwt import jwt_required, current_identity
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 
 from app import db
-from app.models import Transfer, HolderList, Issuer
+from app.models import Transfer, HolderList, Issuer, User
 from app.utils import ContractUtils, TokenUtils
 from config import Config
 from . import api
@@ -29,8 +29,13 @@ def share_holders(token_address):
     """
     logger.info('api/share/holders')
 
+    # API実行ユーザの取得
+    # LocalProxy (current_identity) のままSQLAlchemyに渡すとエラーになるためプロキシ先オブジェクトを取得する
+    user_id = current_identity._get_current_object()
+    user = User.query.get(user_id)
+
     # トークン情報の取得
-    TokenContract = TokenUtils.get_contract(token_address, template_id=Config.TEMPLATE_ID_SHARE)
+    TokenContract = TokenUtils.get_contract(token_address, user.eth_account, template_id=Config.TEMPLATE_ID_SHARE)
     try:
         token_name = TokenContract.functions.name().call()
         tradable_exchange = TokenContract.functions.tradableExchange().call()
@@ -104,8 +109,8 @@ def share_holders(token_address):
             else:
                 # 保有者が発行体以外の場合、個人情報コントラクトからトークン保有者の個人情報を取得する
                 personal_info = TokenUtils.get_holder(
-                    token_address,
                     account_address,
+                    user.eth_account,
                     custom_personal_info_address=personal_info_address,
                     default_value=''
                 )
@@ -181,8 +186,13 @@ def bond_holders(token_address):
     """
     logger.info('api/bond/holders')
 
+    # API実行ユーザの取得
+    # LocalProxy (current_identity) のままSQLAlchemyに渡すとエラーになるためプロキシ先オブジェクトを取得する
+    user_id = current_identity._get_current_object()
+    user = User.query.get(user_id)
+
     # トークン情報の取得
-    TokenContract = TokenUtils.get_contract(token_address, template_id=Config.TEMPLATE_ID_SB)
+    TokenContract = TokenUtils.get_contract(token_address, user.eth_account, template_id=Config.TEMPLATE_ID_SB)
     try:
         token_name = TokenContract.functions.name().call()
         face_value = TokenContract.functions.faceValue().call()
@@ -258,8 +268,8 @@ def bond_holders(token_address):
             else:
                 # 保有者が発行体以外の場合、個人情報コントラクトからトークン保有者の個人情報を取得する
                 personal_info = TokenUtils.get_holder(
-                    token_address,
                     account_address,
+                    user.eth_account,
                     custom_personal_info_address=personal_info_address,
                     default_value=''
                 )
@@ -340,8 +350,13 @@ def membership_holders(token_address):
     """
     logger.info('api/membership/holders')
 
+    # API実行ユーザの取得
+    # LocalProxy (current_identity) のままSQLAlchemyに渡すとエラーになるためプロキシ先オブジェクトを取得する
+    user_id = current_identity._get_current_object()
+    user = User.query.get(user_id)
+
     # トークン情報の取得
-    TokenContract = TokenUtils.get_contract(token_address, template_id=Config.TEMPLATE_ID_MEMBERSHIP)
+    TokenContract = TokenUtils.get_contract(token_address, user.eth_account, template_id=Config.TEMPLATE_ID_MEMBERSHIP)
     try:
         token_name = TokenContract.functions.name().call()
         tradable_exchange = TokenContract.functions.tradableExchange().call()
@@ -413,8 +428,8 @@ def membership_holders(token_address):
             else:
                 # 保有者が発行体以外の場合、個人情報コントラクトからトークン保有者の個人情報を取得する
                 personal_info = TokenUtils.get_holder(
-                    token_address,
                     account_address,
+                    user.eth_account,
                     default_value=''
                 )
 

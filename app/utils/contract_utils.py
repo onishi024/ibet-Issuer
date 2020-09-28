@@ -2,11 +2,13 @@
 import json
 
 import boto3
+from cryptography.fernet import Fernet
 from eth_keyfile import decode_keyfile_json
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 from eth_utils import to_checksum_address
 
+from app.models import Issuer
 from config import Config
 from logging import getLogger
 
@@ -35,12 +37,13 @@ class ContractUtils:
         return contract
 
     @staticmethod
-    def deploy_contract(contract_name, args, deployer):
+    def deploy_contract(contract_name, args, deployer, db_session=None):
         """
         コントラクトデプロイ
         :param contract_name: コントラクト名
         :param args: コンストラクタに与える引数
         :param deployer: デプロイ実行者
+        :param db_session: DBセッション。Flaskアプリ以外（Processor）の場合、必須。
         :return: contract address, ABI, transaction hash
         """
         contract_file = f"contracts/{contract_name}.json"
@@ -53,7 +56,11 @@ class ContractUtils:
         )
 
         tx = contract.constructor(*args).buildTransaction(transaction={'from': deployer, 'gas': 6000000})
-        tx_hash, txn_receipt = ContractUtils.send_transaction(transaction=tx)
+        tx_hash, txn_receipt = ContractUtils.send_transaction(
+            transaction=tx,
+            eth_account=deployer,
+            db_session=db_session
+        )
 
         contract_address = None
         if txn_receipt is not None:
@@ -64,19 +71,28 @@ class ContractUtils:
         return contract_address, contract_json['abi'], tx_hash
 
     @staticmethod
-    def send_transaction(transaction=None):
+    def send_transaction(*, transaction, eth_account, db_session=None):
         """
         トランザクション送信
         :param transaction: transaction
+        :param eth_account: トランザクションを送信する発行体アドレス
+        :param db_session: DBセッション。Flaskアプリ以外（Processor）の場合、必須。
         :return: transaction hash, transaction receipt
         """
         tx_hash = None
 
-        if Config.PRIVATE_KEYSTORE == "GETH":  # keystoreとしてgethを利用する場合
-            web3.personal.unlockAccount(Config.ETH_ACCOUNT, Config.ETH_ACCOUNT_PASSWORD, 60)
+        query = Issuer.query if db_session is None else db_session.query(Issuer)
+        issuer = query.filter(Issuer.eth_account == eth_account).first()
+
+        # EOA keyfileのパスワードを取得
+        fernet = Fernet(Config.ETH_ACCOUNT_PASSWORD_SECRET_KEY)
+        eth_account_password = fernet.decrypt(issuer.encrypted_account_password.encode()).decode()
+
+        if issuer.private_keystore == "GETH":  # keystoreとしてgethを利用する場合
+            web3.personal.unlockAccount(issuer.eth_account, eth_account_password, 60)
             tx_hash = web3.eth.sendTransaction(transaction)
-        elif Config.PRIVATE_KEYSTORE == "AWS_SECRETS_MANAGER":  # keystoreとしてAWS Secrets Managerを利用する場合
-            nonce = web3.eth.getTransactionCount(Config.ETH_ACCOUNT)
+        elif issuer.private_keystore == "AWS_SECRETS_MANAGER":  # keystoreとしてAWS Secrets Managerを利用する場合
+            nonce = web3.eth.getTransactionCount(issuer.eth_account)
             transaction["nonce"] = nonce
             client = boto3.client(
                 service_name="secretsmanager",
@@ -84,7 +100,7 @@ class ContractUtils:
             )
             keyfile = client.get_secret_value(SecretId=Config.AWS_SECRET_ID)
             keyfile_json = json.loads(keyfile["SecretString"])
-            private_key = decode_keyfile_json(keyfile_json, Config.ETH_ACCOUNT_PASSWORD)
+            private_key = decode_keyfile_json(keyfile_json, eth_account_password)
             signed = web3.eth.account.signTransaction(transaction, private_key)
             tx_hash = web3.eth.sendRawTransaction(signed.rawTransaction)
 

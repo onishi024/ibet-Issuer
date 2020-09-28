@@ -1,11 +1,15 @@
 # -*- coding:utf-8 -*-
+from logging import getLogger
+
 from flask import render_template, redirect, request, url_for, flash, session
 from flask_login import login_user, logout_user, login_required
 
 from . import auth
 from .forms import LoginForm
-from ..models import User
-from config import Config
+from ..models import User, Issuer
+
+
+logger = getLogger('api')
 
 
 def flash_errors(form):
@@ -22,8 +26,16 @@ def login():
         if user is not None and user.verify_password(form.password.data):
             login_user(user)
             session['login_id'] = user.login_id
-            session['eth_address'] = Config.ETH_ACCOUNT
-            return redirect(request.args.get('next') or url_for('index.index'))
+            session['eth_account'] = user.eth_account
+
+            issuer = Issuer.query.filter_by(eth_account=user.eth_account).first()
+            if issuer is not None:
+                session['issuer_id'] = issuer.id
+                return redirect(request.args.get('next') or url_for('index.index'))
+            else:
+                # ユーザに紐付く発行体情報がない場合。（DB不整合）
+                logger.warning(f'Issuer record was not found for {user}')
+                flash('ログインID又はパスワードが正しくありません。', 'error')
         else:
             flash('ログインID又はパスワードが正しくありません。', 'error')
     elif request.method == 'POST' and form.validate() is False:

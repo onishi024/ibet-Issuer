@@ -1,13 +1,10 @@
 # -*- coding:utf-8 -*-
+import pytest
 import time
 
-import pytest
-
-from config import Config
 from .conftest import TestBase
 from .utils.account_config import eth_account
-from .utils.contract_utils_personal_info import get_personal_encrypted_info
-from ..models import User, Issuer
+from ..models import User
 
 
 # 初期設定ユーザ
@@ -16,14 +13,23 @@ from ..models import User, Issuer
 #         'login_id': 'admin',
 #         'user_name': '管理者',
 #         'role_id': 1,
-#         'password': '1234'
+#         'password': '1234',
+#         'eth_account': eth_account['issuer']['account_address']
 #     },{
 #         'login_id': 'user',
 #         'user_name': 'ユーザ',
 #         'role_id': 2,
-#         'password': '1234'
-#     },
+#         'password': '1234',
+#         'eth_account': eth_account['issuer']['account_address']
+#     },{
+#         'login_id': 'admin2',
+#         'user_name': '管理者2',
+#         'role_id': 1,
+#         'password': '1234',
+#         'eth_account': eth_account['issuer2']['account_address']  # 発行体2のユーザ
+#     }
 # ]
+
 
 # ユーザ一覧
 class TestAccountList(TestBase):
@@ -39,6 +45,7 @@ class TestAccountList(TestBase):
         assert '<title>アカウント一覧'.encode('utf-8') in response.data
         assert '<td><a href="/account/edit/1">admin</a></td>'.encode('utf-8') in response.data
         assert '<td><a href="/account/edit/2">user</a></td>'.encode('utf-8') in response.data
+        assert 'admin2'.encode('utf-8') not in response.data
 
     # ＜エラー系１＞
     # 権限なしエラー
@@ -81,6 +88,13 @@ class TestAccountRegist(TestBase):
             }
         )
         assert response.status_code == 302
+
+        # 登録されたユーザは別発行体から参照不可
+        client = self.client_with_admin_login(app, 'admin2')
+        response = client.get('/account/list')
+        assert response.status_code == 200
+        assert '<title>アカウント一覧'.encode('utf-8') in response.data
+        assert 'test_normal'.encode('utf-8') not in response.data
 
     # ＜エラー系1-1＞
     # 権限エラー：管理者ロール以外での参照（GET）
@@ -281,6 +295,14 @@ class TestAccountEdit(TestBase):
         assert 'ユーザー名は必須です。'.encode('utf-8') in response.data
         assert 'Not a valid choice'.encode('utf-8') in response.data
 
+    # ＜エラー系２＞
+    #   登録：POST
+    #   発行体相違エラー
+    def test_error_2(self, app):
+        client = self.client_with_admin_login(app, 'admin2')
+        response = client.get(self.target_url + '1')
+        assert response.status_code == 403
+
 
 # ユーザ更新
 class TestAccountEditCurrent(TestBase):
@@ -411,6 +433,18 @@ class TestAccountPwdInit(TestBase):
         user = db.session.query(User).filter(User.id == 2).first()
         user.password = '1234'
 
+    # ＜エラー系1＞
+    # POST: 発行体相違
+    def test_error_1(self, db, app):
+        client = self.client_with_admin_login(app, 'admin2')
+        response = client.post(
+            self.target_url,
+            data={
+                'id': '2'
+            }
+        )
+        assert response.status_code == 403
+
 
 # ユーザ削除
 class TestAccountDelete(TestBase):
@@ -435,12 +469,25 @@ class TestAccountDelete(TestBase):
         user.user_name = 'ユーザ'
         user.role_id = 2
         user.password = '1234'
+        user.eth_account = eth_account['issuer']['account_address']
         db.session.add(user)
 
     # ＜エラー系1＞
     # 権限エラー
     def test_error_1(self, app):
         client = self.client_with_user_login(app)
+        response = client.post(
+            self.target_url,
+            data={
+                'login_id': 'user'
+            }
+        )
+        assert response.status_code == 403
+
+    # ＜エラー系2＞
+    # 発行体相違エラー
+    def test_error_2(self, app):
+        client = self.client_with_admin_login(app, 'admin2')
         response = client.post(
             self.target_url,
             data={
@@ -457,15 +504,6 @@ class TestBankInfo(TestBase):
     # ＜正常系1＞
     # 通常参照（データなし）
     def test_normal_1(self, app, shared_contract):
-        # config登録
-        Config.ETH_ACCOUNT = eth_account['issuer']['account_address']
-        Config.ETH_ACCOUNT_PASSWORD = eth_account['issuer']['password']
-        Config.AGENT_ADDRESS = eth_account['agent']['account_address']
-        Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS = shared_contract['IbetStraightBondExchange']['address']
-        Config.PAYMENT_GATEWAY_CONTRACT_ADDRESS = shared_contract['PaymentGateway']['address']
-        Config.TOKEN_LIST_CONTRACT_ADDRESS = shared_contract['TokenList']['address']
-        Config.PERSONAL_INFO_CONTRACT_ADDRESS = shared_contract['PersonalInfo']['address']
-
         client = self.client_with_admin_login(app)
         response = client.get(self.url_bankinfo)
         assert response.status_code == 200
@@ -663,26 +701,15 @@ class TestBankInfo(TestBase):
 class TestIssuerInfo(TestBase):
     url_bankinfo = '/account/issuerinfo'
 
-    @pytest.fixture(scope='class', autouse=True)
-    def setup_config(self, shared_contract):
-        # config登録
-        Config.ETH_ACCOUNT = eth_account['issuer']['account_address']
-        Config.ETH_ACCOUNT_PASSWORD = eth_account['issuer']['password']
-        Config.AGENT_ADDRESS = eth_account['agent']['account_address']
-        Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS = shared_contract['IbetStraightBondExchange']['address']
-        Config.PAYMENT_GATEWAY_CONTRACT_ADDRESS = shared_contract['PaymentGateway']['address']
-        Config.TOKEN_LIST_CONTRACT_ADDRESS = shared_contract['TokenList']['address']
-        Config.PERSONAL_INFO_CONTRACT_ADDRESS = shared_contract['PersonalInfo']['address']
-
     # ＜正常系1＞
-    # 通常参照（データなし）
-    def test_normal_1(self, app, shared_contract):
+    # 参照
+    def test_normal_1(self, app):
         client = self.client_with_admin_login(app)
         response = client.get(self.url_bankinfo)
         assert response.status_code == 200
         assert '<title>発行体情報登録'.encode('utf-8') in response.data
-        assert '<input class="form-control" id="issuer_name" name="issuer_name" type="text" value="">'.encode(
-            'utf-8') in response.data
+        assert '<input class="form-control" id="issuer_name" name="issuer_name" type="text" value="発行体１">'. \
+               encode('utf-8') in response.data
 
     # ＜正常系2＞
     # 登録　→　正常参照
@@ -700,31 +727,8 @@ class TestIssuerInfo(TestBase):
             'utf-8') in response.data
 
     # ＜正常系3＞
-    # 通常参照（登録済）
-    def test_normal_3(self, app):
-        client = self.client_with_admin_login(app)
-        response = client.get(self.url_bankinfo)
-        assert response.status_code == 200
-        assert '<title>発行体情報登録'.encode('utf-8') in response.data
-
-    # ＜正常系4＞
-    # 上書き登録
-    def test_normal_4(self, app, shared_contract):
-        client = self.client_with_admin_login(app)
-        response = client.post(
-            self.url_bankinfo,
-            data={
-                'issuer_name': 'ABC',
-            }
-        )
-        assert response.status_code == 200
-        assert '<title>発行体情報登録'.encode('utf-8') in response.data
-        assert '<input class="form-control" id="issuer_name" name="issuer_name" type="text" value="ABC">'.encode(
-            'utf-8') in response.data
-
-    # ＜正常系5＞
     # 入力なし
-    def test_normal_5(self, app, shared_contract):
+    def test_normal_3(self, app, shared_contract):
         client = self.client_with_admin_login(app)
         response = client.post(
             self.url_bankinfo,
@@ -758,8 +762,10 @@ class TestIssuerInfo(TestBase):
         response = client.get(self.url_bankinfo)
         assert response.status_code == 403
 
+    # データ戻し
     @pytest.fixture(scope='class', autouse=True)
-    def clean_db(self, db):
+    def clean_db(self, db, issuer):
         yield
 
-        Issuer.query.filter(Issuer.eth_account == Config.ETH_ACCOUNT).delete()
+        issuer.issuer_name = '発行体１'
+        db.session.commit()
