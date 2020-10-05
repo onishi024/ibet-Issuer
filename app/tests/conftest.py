@@ -1,9 +1,8 @@
 import json
 
 import pytest
-import os
 
-import yaml
+from cryptography.fernet import Fernet
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 
@@ -63,12 +62,14 @@ def init_login_user(db):
             'login_id': 'admin',
             'user_name': '管理者',
             'role_id': 1,
-            'password': '1234'
+            'password': '1234',
+            'eth_account': eth_account['issuer']['account_address']
         }, {
             'login_id': 'user',
             'user_name': 'ユーザ',
             'role_id': 2,
-            'password': '1234'
+            'password': '1234',
+            'eth_account': eth_account['issuer']['account_address']
         },
     ]
 
@@ -81,10 +82,90 @@ def init_login_user(db):
     db.session.commit()
 
 
+@pytest.fixture(scope='session')
+def issuer(db):
+    issuer = Issuer.query.filter(Issuer.eth_account == eth_account['issuer']['account_address']).first()
+    if issuer is not None:
+        return issuer
+
+    fernet = Fernet(Config.ETH_ACCOUNT_PASSWORD_SECRET_KEY)
+    encrypted_account_password = fernet.encrypt(eth_account['issuer']['password'].encode()).decode()
+    with open('data/rsa/private.pem') as f:
+        encrypted_rsa_private_key = f.read()
+
+    issuer = Issuer(
+        eth_account=eth_account['issuer']['account_address'],
+        issuer_name='発行体１',
+        private_keystore='GETH',
+        network='IBET',
+        max_sell_price=100000000,
+        agent_address=eth_account['agent']['account_address'],
+        payment_gateway_contract_address='',
+        personal_info_contract_address='',
+        token_list_contract_address='',
+        ibet_share_exchange_contract_address='',
+        ibet_sb_exchange_contract_address='',
+        ibet_membership_exchange_contract_address='',
+        ibet_coupon_exchange_contract_address='',
+        encrypted_account_password=encrypted_account_password,
+        encrypted_rsa_private_key=encrypted_rsa_private_key,
+    )
+
+    db.session.add(issuer)
+    db.session.commit()
+
+    return issuer
+
+
+@pytest.fixture(scope='session')
+def issuer2(db):
+    issuer2 = Issuer.query.filter(Issuer.eth_account == eth_account['issuer2']['account_address']).first()
+    if issuer2 is not None:
+        return issuer2
+
+    fernet = Fernet(Config.ETH_ACCOUNT_PASSWORD_SECRET_KEY)
+    encrypted_account_password = fernet.encrypt(eth_account['issuer2']['password'].encode()).decode()
+    with open('data/rsa/private.pem') as f:
+        encrypted_rsa_private_key = f.read()
+
+    deployer = Issuer(
+        eth_account=eth_account['issuer2']['account_address'],
+        issuer_name='issuer2',
+        private_keystore='GETH',
+        network='IBET',
+        max_sell_price=100000000,
+        agent_address=eth_account['agent']['account_address'],
+        payment_gateway_contract_address='',
+        personal_info_contract_address='',
+        token_list_contract_address='',
+        ibet_share_exchange_contract_address='',
+        ibet_sb_exchange_contract_address='',
+        ibet_membership_exchange_contract_address='',
+        ibet_coupon_exchange_contract_address='',
+        encrypted_account_password=encrypted_account_password,
+        encrypted_rsa_private_key=encrypted_rsa_private_key,
+    )
+    db.session.add(deployer)
+
+    # 発行体2のユーザ
+    user = User()
+    user.login_id = 'admin2',
+    user.user_name = '管理者2',
+    user.role_id = 1,
+    user.eth_account = eth_account['issuer2']['account_address']
+    user.password = '1234'
+    db.session.add(user)
+
+    db.session.commit()
+    return deployer
+
+
 @pytest.fixture(scope="session", autouse=True)
 def db_setup(request, db):
     print('    <class start>')
     init_login_user(db)
+    issuer(db)
+    issuer2(db)
 
     def teardown():
         db.session.remove()
@@ -106,33 +187,6 @@ class TestBase(object):
             param_db.session.add(entity)
         param_db.session.commit()
 
-    def db_init_exec(self, param_db, init_ptn=None):
-        param_db.session.commit()
-        param_db.drop_all()
-        param_db.create_all()
-        db_init_list = [
-            {"table_name": "Role", "start_row": 1, "end_row": 9999},
-            {"table_name": "User", "start_row": 1, "end_row": 9999}
-        ]
-        if self.data is None:
-            with open(os.path.abspath(os.path.join(os.path.dirname(__file__), 'data.yaml')), 'r',
-                      encoding='utf-8') as s:
-                try:
-                    self.data = yaml.load(s)
-                except yaml.YAMLError as ex:
-                    raise ex
-
-        if init_ptn is not None:
-            db_init_list.extend(init_ptn)
-
-        for cfg in db_init_list:
-            table_name = cfg["table_name"]
-            start_row = 'row_%04d' % cfg["start_row"]
-            end_row = 'row_%04d' % cfg["end_row"]
-            records = self.data[table_name]
-            data_rows = {k: v for k, v in records.items() if start_row <= k <= end_row}
-            self.add_data(param_db, table_name, data_rows)
-
     @staticmethod
     def client_with_user_login(param_app):
         client = param_app.test_client()
@@ -140,16 +194,17 @@ class TestBase(object):
         return client
 
     @staticmethod
-    def client_with_admin_login(param_app):
+    def client_with_admin_login(param_app, login_id='admin'):
         client = param_app.test_client()
-        client.post(url_for('auth.login'), data={'login_id': 'admin', 'password': '1234'})
+        client.post(url_for('auth.login'), data={'login_id': login_id, 'password': '1234'})
         return client
 
     @staticmethod
-    def client_with_api_login(param_app):
+    def client_with_api_login(param_app, login_id="admin"):
         client = param_app.test_client()
-        response = client.post('/api/auth', json={'login_id': 'admin', 'password': '1234'})
+        response = client.post('/api/auth', json={'login_id': login_id, 'password': '1234'})
         return client, json.loads(response.data.decode('utf-8'))['access_token']
+
 
 # ---------------------------------------------------------------------------------------------
 # quorum系
@@ -170,7 +225,7 @@ def payment_gateway_contract():
     print(contract_address)
     contract = ContractUtils.get_contract('PaymentGateway', contract_address)
     tx_hash = contract.functions.addAgent(agent['account_address']).transact(
-        {'from': deployer['account_address'], 'gas': 4000000}
+        {'from': deployer['account_address'], 'gas': Config.TX_GAS_LIMIT}
     )
     web3.eth.waitForTransactionReceipt(tx_hash)
 
@@ -198,9 +253,9 @@ def exchange_regulator_service_contract():
     exchange_regulator_service = ContractUtils.get_contract('ExchangeRegulatorService', contract_address)
     web3.eth.defaultAccount = deployer['account_address']
     exchange_regulator_service.functions.register(eth_account['issuer']['account_address'], False).\
-        transact({'from': deployer['account_address'], 'gas': 4000000})
+        transact({'from': deployer['account_address'], 'gas': Config.TX_GAS_LIMIT})
     exchange_regulator_service.functions.register(eth_account['trader']['account_address'], False).\
-        transact({'from': deployer['account_address'], 'gas': 4000000})
+        transact({'from': deployer['account_address'], 'gas': Config.TX_GAS_LIMIT})
 
     return {'address': contract_address, 'abi': abi}
 
@@ -244,16 +299,16 @@ def bond_exchange_contract(payment_gateway_address, personalinfo_address, exchan
 
     storage = ContractUtils.get_contract('ExchangeStorage', storage_address)
     storage.functions.upgradeVersion(contract_address).transact(
-        {'from': deployer['account_address'], 'gas': 4000000}
+        {'from': deployer['account_address'], 'gas': Config.TX_GAS_LIMIT}
     )
 
     # 取引参加者登録
     ExchangeRegulatorService = \
         ContractUtils.get_contract('ExchangeRegulatorService', exchange_regulator_service_address)
     ExchangeRegulatorService.functions.register(issuer['account_address'], False). \
-        transact({'from': deployer['account_address'], 'gas': 4000000})
+        transact({'from': deployer['account_address'], 'gas': Config.TX_GAS_LIMIT})
     ExchangeRegulatorService.functions.register(trader['account_address'], False). \
-        transact({'from': deployer['account_address'], 'gas': 4000000})
+        transact({'from': deployer['account_address'], 'gas': Config.TX_GAS_LIMIT})
 
     return {'address': contract_address, 'abi': abi}
 
@@ -277,7 +332,7 @@ def coupon_exchange_contract(payment_gateway_address):
 
     storage = ContractUtils.get_contract('ExchangeStorage', storage_address)
     storage.functions.upgradeVersion(contract_address).transact(
-        {'from': deployer['account_address'], 'gas': 4000000}
+        {'from': deployer['account_address'], 'gas': Config.TX_GAS_LIMIT}
     )
 
     return {'address': contract_address, 'abi': abi}
@@ -302,7 +357,7 @@ def membership_exchange_contract(payment_gateway_address):
 
     storage = ContractUtils.get_contract('ExchangeStorage', storage_address)
     storage.functions.upgradeVersion(contract_address).transact(
-        {'from': deployer['account_address'], 'gas': 4000000}
+        {'from': deployer['account_address'], 'gas': Config.TX_GAS_LIMIT}
     )
 
     return {'address': contract_address, 'abi': abi}
@@ -336,22 +391,22 @@ def otc_exchange_contract(payment_gateway_address, personalinfo_address, exchang
 
     storage = ContractUtils.get_contract('OTCExchangeStorage', storage_address)
     storage.functions.upgradeVersion(contract_address).transact(
-        {'from': deployer['account_address'], 'gas': 4000000}
+        {'from': deployer['account_address'], 'gas': Config.TX_GAS_LIMIT}
     )
 
     # 取引参加者登録
     ExchangeRegulatorService = \
         ContractUtils.get_contract('ExchangeRegulatorService', exchange_regulator_service_address)
     ExchangeRegulatorService.functions.register(issuer['account_address'], False). \
-        transact({'from': deployer['account_address'], 'gas': 4000000})
+        transact({'from': deployer['account_address'], 'gas': Config.TX_GAS_LIMIT})
     ExchangeRegulatorService.functions.register(trader['account_address'], False). \
-        transact({'from': deployer['account_address'], 'gas': 4000000})
+        transact({'from': deployer['account_address'], 'gas': Config.TX_GAS_LIMIT})
 
     return {'address': contract_address, 'abi': abi}
 
 
-@pytest.fixture(scope='class')
-def shared_contract():
+@pytest.fixture(scope='class', autouse=True)
+def shared_contract(db, issuer: Issuer):
     payment_gateway = payment_gateway_contract()
     personal_info = personalinfo_contract()
     exchange_regulator_service = exchange_regulator_service_contract()
@@ -377,4 +432,14 @@ def shared_contract():
         'IbetMembershipExchange': membership_exchange,
         'IbetShareExchange': otc_exchange
     }
+
+    issuer.payment_gateway_contract_address = payment_gateway['address']
+    issuer.personal_info_contract_address = personal_info['address']
+    issuer.token_list_contract_address = token_list['address']
+    issuer.ibet_sb_exchange_contract_address = bond_exchange['address']
+    issuer.ibet_coupon_exchange_contract_address = coupon_exchange['address']
+    issuer.ibet_membership_exchange_contract_address = membership_exchange['address']
+    issuer.ibet_share_exchange_contract_address = otc_exchange['address']
+    db.session.commit()
+
     return contracts

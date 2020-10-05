@@ -33,30 +33,54 @@ $ python manage.py db upgrade
 
 ### 事前準備
 
-* 初期データの登録
-```bash
-$ python manage.py shell
->> （ibet-Issuer/app/tests/testdata.txt にあるコマンドをコピー＆ペースト）
-```
-
 * RSAキーペア生成
 ```bash
 $ python rsa/create_rsakey.py password
 ```
 
-### 環境変数追加
-* ibet-SmartContractで定義したコントラクトをQuorumにデプロイした時に得られる、コントラクトアドレス等を環境変数に定義しておく
+* EOA keyfileパスワード保管用の鍵生成
+```bash
+$ python manage.py eth_account_password_secret_key
+```
 
-    * TOKEN_LIST_CONTRACT_ADDRESS：TokenListコントラクト
-    * PERSONAL_INFO_CONTRACT_ADDRESS：PersonalInfoコントラクト
-    * PAYMENT_GATEWAY_CONTRACT_ADDRESS：PaymentGatewayコントラクト
-    * IBET_SB_EXCHANGE_CONTRACT_ADDRESS：IbetStraightBondExchangeコントラクト
-    * IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS：IbetCouponExchangeコントラクト
-    * IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS：IbetMembershipExchangeコントラクト
-    * ETH_ACCOUNT_PASSWORD：利用アカウントの秘密鍵ファイルのパスワード
+* 環境変数追加
     * DATABASE_URL：postgresqlのissuerdbのURL
-    * WEB3_HTTP_PROVIDER：Blockchainノードのエンドポイント
+    * WEB3_HTTP_PROVIDER：Quorumノードのエンドポイント
     * RSA_PASSWORD：RSAキーペアのパスワード
+    * ETH_ACCOUNT_PASSWORD_SECRET_KEY: EOA keyfile のパスワード（AES鍵）を二重で暗号化して保管するための共通鍵
+
+* 初期ユーザの追加
+```bash
+$ python manage.py create_user {発行体アカウントアドレス}
+```
+
+* 発行体の設定
+```bash
+$ python manage.py issuer_template > data/issuer.yaml
+```
+
+事前に ibet-SmartContract をデプロイして得られるコントラクトアドレスを data/issuer.yaml に設定する。
+```yaml
+eth_account: '{発行体アカウントアドレス}'
+issuer_name: ''
+private_keystore: GETH
+network: IBET
+max_sell_price: 100000000
+agent_address: ''
+payment_gateway_contract_address: '{PaymentGatewayコントラクト}'
+personal_info_contract_address: '{PersonalInfoコントラクト}'
+token_list_contract_address: '{TokenListコントラクト}'
+ibet_share_exchange_contract_address: '{IbetOTCExchangeコントラクト}'
+ibet_sb_exchange_contract_address: '{IbetStraightBondExchangeコントラクト}'
+ibet_membership_exchange_contract_address: '{IbetMembershipExchangeコントラクト}'
+ibet_coupon_exchange_contract_address: '{IbetCouponExchangeコントラクト}'
+```
+
+記載した内容をDBに登録する。
+パスワード入力を求められるのでGethの発行体アカウントパスワード（keyfileパスワード）を入力する。
+```bash
+$ python manage.py issuer_save data/issuer.yaml --eoa-keyfile-password --rsa-privatekey data/rsa/private.pem
+```
 
 ###  サーバ起動
 ```bash

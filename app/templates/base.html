@@ -184,7 +184,7 @@ desired effect
       </ul>
       <!-- /.sidebar-menu -->
       <p class="text-center" style="margin-top: 50px;">
-          <input type="image" src="{{url_for('static', filename='eth_address.png')}}" width="50%" height="50%" alt="" onclick="viewAddress()"/>
+          <a class="qrcode" onclick="viewAddress()" data-size="50%" style="cursor: pointer;"></a>
       </p>
     </section>
     <!-- /.sidebar -->
@@ -255,7 +255,7 @@ desired effect
   <!-- Main Footer -->
   <footer class="main-footer">
     <!-- Default to the left -->
-    <strong>Copyright &copy; 2020 BOOSTRY Co., Ltd.</strong> All rights reserved.&nbsp;&nbsp;&nbsp;<div class="pull-right">@verison 0.15</div>
+    <strong>Copyright &copy; 2020 BOOSTRY Co., Ltd.</strong> All rights reserved.&nbsp;&nbsp;&nbsp;<div class="pull-right">@verison 0.16</div>
   </footer>
   <!-- /.control-sidebar -->
   <!-- Add the sidebar's background. This div must be placed
@@ -278,9 +278,9 @@ desired effect
             </div>
             <div class="modal-body" >
                 <div align="center">
-                    <img src="{{url_for('static', filename='eth_address.png')}}" width="40%" height="40%" alt=""/>
+                    <div class="qrcode" data-size="40%"></div>
                 </div>
-                <div align="center" id="modal-address-body">{{ session['eth_address'] }}</div>
+                <div align="center" id="modal-address-body">{{ session['eth_account'] }}</div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">閉じる</button>
@@ -303,8 +303,21 @@ desired effect
 </script>
 <!-- noty -->
 <script src="/static/js/noty-3.1.4/lib/noty.min.js"></script>
+<!-- QR Code -->
+<script src="/static/js/kjua.min.js"></script>
 <script type="text/javascript">
     $(document).ready(function() {
+        $('.qrcode').each(function() {
+            var qrCode =kjua({
+                text: '{{ session['eth_account'] }}',
+                render: 'svg',
+                quiet: 4,
+                ecLevel: "M"
+            });
+            qrCode.style.width = this.dataset["size"];
+            qrCode.style.height = this.dataset["size"];
+            this.appendChild(qrCode);
+        })
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}

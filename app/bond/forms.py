@@ -2,6 +2,7 @@
 import math
 from decimal import Decimal
 
+from flask import session
 from flask_wtf import FlaskForm as Form
 
 from wtforms import IntegerField, StringField, TextAreaField, \
@@ -9,7 +10,8 @@ from wtforms import IntegerField, StringField, TextAreaField, \
 from wtforms.validators import DataRequired, URL, Optional, Length, Regexp, \
     NumberRange, InputRequired
 from wtforms import ValidationError
-from config import Config
+
+from app.models import Issuer
 
 from web3 import Web3
 
@@ -40,6 +42,21 @@ def decimalPlaces(places, message='小数点以下の桁数が多すぎます。
             raise ValidationError(message)
 
     return _check_decimal_places
+
+
+def max_sell_price(message='{max_sell_price}円が上限です。'):
+    """
+    最大売出価格バリデータを返す。
+    :param message: エラーメッセージ。埋め込み文字列`{max_sell_price}`には最大売出価格が設定される。
+    :return:　バリデータ
+    """
+
+    def _max_sell_price(form, field):
+        issuer = Issuer.query.get(session['issuer_id'])
+        if field.data > issuer.max_sell_price:
+            raise ValidationError(message.format(max_sell_price=issuer.max_sell_price))
+
+    return _max_sell_price
 
 
 # トークン新規発行
@@ -546,12 +563,12 @@ class SellTokenForm(Form):
     abi = TextAreaField("インターフェース", validators=[])
     bytecode = TextAreaField("バイトコード", validators=[])
 
-    message = '売出価格は' + str(Config.MAX_SELL_PRICE) + '円が上限です。'
     sellPrice = IntegerField(
         "売出価格（額面当り）",
         validators=[
             DataRequired('売出価格は必須です。'),
-            NumberRange(min=1, max=int(Config.MAX_SELL_PRICE), message=message),
+            NumberRange(min=1, message='最低売出価格は1円です'),
+            max_sell_price('売出価格は{max_sell_price}円が上限です。')
         ]
     )
 

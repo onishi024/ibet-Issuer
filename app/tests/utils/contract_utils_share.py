@@ -21,14 +21,13 @@ def create_order(issuer, counterpart, share_exchange, token_address, amount, pri
     web3.eth.waitForTransactionReceipt(tx_hash)
 
     ExchangeContract = ContractUtils.get_contract('IbetOTCExchange', share_exchange['address'])
-    tx_hash = ExchangeContract.functions.createOrder(
+    ExchangeContract.functions.createOrder(
         counterpart['account_address'],
         token_address,
         amount,
         price,
         agent['account_address']
-    ). \
-        transact({'from': issuer['account_address'], 'gas': 4000000})
+    ).transact({'from': issuer['account_address'], 'gas': Config.TX_GAS_LIMIT})
 
 
 # 直近注文IDを取得
@@ -53,7 +52,7 @@ def take_buy(invoker, share_exchange, order_id):
 
     ExchangeContract = ContractUtils.get_contract('IbetOTCExchange', share_exchange['address'])
     tx_hash = ExchangeContract.functions.executeOrder(order_id). \
-        transact({'from': invoker['account_address'], 'gas': 4000000})
+        transact({'from': invoker['account_address'], 'gas': Config.TX_GAS_LIMIT})
     web3.eth.waitForTransactionReceipt(tx_hash)
 
 
@@ -67,7 +66,7 @@ def confirm_agreement(invoker, share_exchange, order_id, agreement_id):
 
     tx_hash = ExchangeContract.functions. \
         confirmAgreement(order_id, agreement_id). \
-        transact({'from': invoker['account_address'], 'gas': 4000000})
+        transact({'from': invoker['account_address'], 'gas': Config.TX_GAS_LIMIT})
     web3.eth.waitForTransactionReceipt(tx_hash)
 
 
@@ -77,7 +76,7 @@ def apply_for_offering(db, invoker, token_address):
     web3.personal.unlockAccount(invoker['account_address'], invoker['password'])
     TokenContract = ContractUtils.get_contract('IbetShare', token_address)
     tx_hash = TokenContract.functions.applyForOffering(1, 'abcdefgh'). \
-        transact({'from': invoker['account_address'], 'gas': 4000000})
+        transact({'from': invoker['account_address'], 'gas': Config.TX_GAS_LIMIT})
     web3.eth.waitForTransactionReceipt(tx_hash)
 
     # 募集申込イベント登録

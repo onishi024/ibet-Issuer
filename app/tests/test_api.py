@@ -7,7 +7,7 @@ import pytest
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
 
-from app.models import Token, HolderList, Issuer
+from app.models import Token, HolderList
 from config import Config
 from .conftest import TestBase
 from .utils.account_config import eth_account
@@ -51,15 +51,6 @@ trader_encrypted_info = base64.encodebytes(cipher.encrypt(json.dumps(trader_pers
 
 @pytest.fixture(scope="class", autouse=True)
 def setup(db, shared_contract):
-    Config.ETH_ACCOUNT = eth_account['issuer']['account_address']
-    Config.ETH_ACCOUNT_PASSWORD = eth_account['issuer']['password']
-    Config.AGENT_ADDRESS = eth_account['agent']['account_address']
-    Config.IBET_SHARE_EXCHANGE_CONTRACT_ADDRESS = shared_contract['IbetShareExchange']['address']
-    Config.IBET_SB_EXCHANGE_CONTRACT_ADDRESS = shared_contract['IbetStraightBondExchange']['address']
-    Config.IBET_MEMBERSHIP_EXCHANGE_CONTRACT_ADDRESS = shared_contract['IbetMembershipExchange']['address']
-    Config.PAYMENT_GATEWAY_CONTRACT_ADDRESS = shared_contract['PaymentGateway']['address']
-    Config.TOKEN_LIST_CONTRACT_ADDRESS = shared_contract['TokenList']['address']
-    Config.PERSONAL_INFO_CONTRACT_ADDRESS = shared_contract['PersonalInfo']['address']
 
     # PersonalInfo登録
     register_personal_info(
@@ -79,12 +70,6 @@ def setup(db, shared_contract):
         shared_contract['PaymentGateway'],
         issuer_encrypted_info
     )
-
-    # 発行体名義登録
-    issuer = Issuer()
-    issuer.eth_account = eth_account['issuer']['account_address']
-    issuer.issuer_name = '発行体１'
-    db.session.add(issuer)
 
 
 class TestAPIShareHolders(TestBase):
@@ -242,6 +227,26 @@ class TestAPIShareHolders(TestBase):
             'error': 'Authorization Required',
             'status_code': 401
         }
+
+    # ＜エラー系3＞
+    #   株式保有者一覧(API)
+    #   発行体相違エラー：404
+    def test_error_3(self, app):
+        # 発行体1で発行済みトークン情報を取得
+        tokens = Token.query.filter_by(
+            template_id=Config.TEMPLATE_ID_SHARE,
+            admin_address=eth_account['issuer']['account_address'].lower()
+        ).all()
+        token = tokens[0]
+
+        client, jwt = self.client_with_api_login(app, login_id='admin2')
+
+        # 保有者一覧の参照（発行体2が発行体1のトークンアドレスを指定）
+        response = client.post(
+            self.url_share_holders + token.token_address,
+            headers={'Authorization': 'JWT ' + jwt}
+        )
+        assert response.status_code == 404
 
 
 class TestAPIBondHolders(TestBase):
@@ -407,6 +412,26 @@ class TestAPIBondHolders(TestBase):
             'status_code': 401
         }
 
+    # ＜エラー系3＞
+    #   債券保有者一覧(API)
+    #   発行体相違エラー：404
+    def test_error_3(self, app):
+        # 発行体1で発行済みトークン情報を取得
+        tokens = Token.query.filter_by(
+            template_id=Config.TEMPLATE_ID_SB,
+            admin_address=eth_account['issuer']['account_address'].lower()
+        ).all()
+        token = tokens[0]
+
+        client, jwt = self.client_with_api_login(app, login_id='admin2')
+
+        # 保有者一覧の参照（発行体2が発行体1のトークンアドレスを指定）
+        response = client.post(
+            self.url_bond_holders + token.token_address,
+            headers={'Authorization': 'JWT ' + jwt}
+        )
+        assert response.status_code == 404
+
 
 class TestAPIMembershipHolders(TestBase):
     # テスト対象URL
@@ -559,6 +584,26 @@ class TestAPIMembershipHolders(TestBase):
             'status_code': 401
         }
 
+    # ＜エラー系3＞
+    #   会員権保有者一覧(API)
+    #   発行体相違エラー：404
+    def test_error_3(self, app):
+        # 発行体1で発行済みトークン情報を取得
+        tokens = Token.query.filter_by(
+            template_id=Config.TEMPLATE_ID_MEMBERSHIP,
+            admin_address=eth_account['issuer']['account_address'].lower()
+        ).all()
+        token = tokens[0]
+
+        client, jwt = self.client_with_api_login(app, login_id='admin2')
+
+        # 保有者一覧の参照（発行体2が発行体1のトークンアドレスを指定）
+        response = client.post(
+            self.url_membership_holders + token.token_address,
+            headers={'Authorization': 'JWT ' + jwt}
+        )
+        assert response.status_code == 404
+
 
 #############################################################################
 # 後処理
@@ -568,5 +613,3 @@ def test_end(db):
     yield
 
     clean_issue_event(db)
-
-    Issuer.query.filter(Issuer.eth_account == Config.ETH_ACCOUNT).delete()
