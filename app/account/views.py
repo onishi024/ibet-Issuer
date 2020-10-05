@@ -302,10 +302,8 @@ def payment_account_regist(form):
     # 銀行口座情報の登録
     payment_gateway_address = issuer.payment_gateway_contract_address
     PaymentGatewayContract = ContractUtils.get_contract('PaymentGateway', payment_gateway_address)
-    gas = PaymentGatewayContract.functions.register(agent_address, payment_account_ciphertext).\
-        estimateGas({'from': session['eth_account']})
     tx = PaymentGatewayContract.functions.register(agent_address, payment_account_ciphertext).\
-        buildTransaction({'from': session['eth_account'], 'gas': gas})
+        buildTransaction({'from': session['eth_account'], 'gas': Config.TX_GAS_LIMIT})
     ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
 
 

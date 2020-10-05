@@ -23,5 +23,5 @@ def register_personal_info(invoker, personal_info, encrypted_info):
 
     issuer = eth_account['issuer']
     tx_hash = PersonalInfoContract.functions.register(issuer['account_address'], encrypted_info). \
-        transact({'from': invoker['account_address'], 'gas': 4000000})
+        transact({'from': invoker['account_address'], 'gas': Config.TX_GAS_LIMIT})
     web3.eth.waitForTransactionReceipt(tx_hash)

@@ -134,7 +134,7 @@ def bulk_transfer(token_contract, number, issuer):
     for i in range(number):
         print(i)
         tx = token_contract.functions.transferFrom(issuer.eth_account, web3.eth.accounts[i], 1). \
-            buildTransaction({'from': issuer.eth_account, 'gas': 4000000})
+            buildTransaction({'from': issuer.eth_account, 'gas': Config.TX_GAS_LIMIT})
         ContractUtils.send_transaction(transaction=tx, eth_account=issuer.eth_account, db_session=db_session)
 
 

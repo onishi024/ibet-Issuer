@@ -184,87 +184,65 @@ def issue():
                 # 年利の登録処理
                 interestRate = int(form.interestRate.data * 10000)
                 if interestRate != 0:
-                    gas = TokenContract.functions.setInterestRate(interestRate). \
-                        estimateGas({'from': session['eth_account']})
                     tx = TokenContract.functions.setInterestRate(interestRate). \
-                        buildTransaction({'from': session['eth_account'], 'gas': gas})
+                        buildTransaction({'from': session['eth_account'], 'gas': Config.TX_GAS_LIMIT})
                     ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
 
                 # 利払日の登録処理
-                gas = TokenContract.functions.setInterestPaymentDate(interestPaymentDate_string). \
-                    estimateGas({'from': session['eth_account']})
                 tx = TokenContract.functions.setInterestPaymentDate(interestPaymentDate_string). \
-                    buildTransaction({'from': session['eth_account'], 'gas': gas})
+                    buildTransaction({'from': session['eth_account'], 'gas': Config.TX_GAS_LIMIT})
                 ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
 
                 # メモの登録処理
                 if form.memo.data:
-                    gas = TokenContract.functions.setMemo(form.memo.data). \
-                        estimateGas({'from': session['eth_account']})
                     tx = TokenContract.functions.setMemo(form.memo.data). \
-                        buildTransaction({'from': session['eth_account'], 'gas': gas})
+                        buildTransaction({'from': session['eth_account'], 'gas': Config.TX_GAS_LIMIT})
                     ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
 
                 # 商品画像URLの登録処理
                 if form.image_1.data != '' or form.image_2.data != '' or form.image_3.data != '':
                     if form.image_1.data != '':
-                        gas = TokenContract.functions.setImageURL(0, form.image_1.data). \
-                            estimateGas({'from': session['eth_account']})
                         tx = TokenContract.functions.setImageURL(0, form.image_1.data). \
-                            buildTransaction({'from': session['eth_account'], 'gas': gas})
+                            buildTransaction({'from': session['eth_account'], 'gas': Config.TX_GAS_LIMIT})
                         ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
                     if form.image_2.data != '':
-                        gas = TokenContract.functions.setImageURL(1, form.image_2.data). \
-                            estimateGas({'from': session['eth_account']})
                         tx = TokenContract.functions.setImageURL(1, form.image_2.data). \
-                            buildTransaction({'from': session['eth_account'], 'gas': gas})
+                            buildTransaction({'from': session['eth_account'], 'gas': Config.TX_GAS_LIMIT})
                         ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
                     if form.image_3.data != '':
-                        gas = TokenContract.functions.setImageURL(2, form.image_3.data). \
-                            estimateGas({'from': session['eth_account']})
                         tx = TokenContract.functions.setImageURL(2, form.image_3.data). \
-                            buildTransaction({'from': session['eth_account'], 'gas': gas})
+                            buildTransaction({'from': session['eth_account'], 'gas': Config.TX_GAS_LIMIT})
                         ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
 
                 # 譲渡可否設定の登録処理
                 # NOTE:デフォルト設定は譲渡可能（True）なので、譲渡不可（False）の場合にのみ、更新処理を行う
                 if form.transferable.data == "False":
-                    gas = TokenContract.functions.setTransferable(False). \
-                        estimateGas({'from': session['eth_account']})
                     tx = TokenContract.functions.setTransferable(False). \
-                        buildTransaction({'from': session['eth_account'], 'gas': gas})
+                        buildTransaction({'from': session['eth_account'], 'gas': Config.TX_GAS_LIMIT})
                     ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
 
                 # 問い合わせ先の登録処理
                 if form.contact_information.data:
-                    gas = TokenContract.functions.setContactInformation(form.contact_information.data). \
-                        estimateGas({'from': session['eth_account']})
                     tx = TokenContract.functions.setContactInformation(form.contact_information.data). \
-                        buildTransaction({'from': session['eth_account'], 'gas': gas})
+                        buildTransaction({'from': session['eth_account'], 'gas': Config.TX_GAS_LIMIT})
                     ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
 
                 # プライバシーポリシーの登録処理
                 if form.privacy_policy.data:
-                    gas = TokenContract.functions.setPrivacyPolicy(form.privacy_policy.data). \
-                        estimateGas({'from': session['eth_account']})
                     tx = TokenContract.functions.setPrivacyPolicy(form.privacy_policy.data). \
-                        buildTransaction({'from': session['eth_account'], 'gas': gas})
+                        buildTransaction({'from': session['eth_account'], 'gas': Config.TX_GAS_LIMIT})
                     ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
 
                 # 個人情報コントラクトの登録処理
                 personal_info_address = form.personalInfoAddress.data
-                gas = TokenContract.functions.setPersonalInfoAddress(personal_info_address). \
-                    estimateGas({'from': session['eth_account']})
                 tx = TokenContract.functions.setPersonalInfoAddress(personal_info_address). \
-                    buildTransaction({'from': session['eth_account'], 'gas': gas})
+                    buildTransaction({'from': session['eth_account'], 'gas': Config.TX_GAS_LIMIT})
                 ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
 
                 # DEXアドレスの登録処理
                 tradable_exchange = to_checksum_address(form.tradableExchange.data)
-                gas = TokenContract.functions.setTradableExchange(tradable_exchange). \
-                    estimateGas({'from': session['eth_account']})
                 tx = TokenContract.functions.setTradableExchange(tradable_exchange). \
-                    buildTransaction({'from': session['eth_account'], 'gas': gas})
+                    buildTransaction({'from': session['eth_account'], 'gas': Config.TX_GAS_LIMIT})
                 ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
 
             flash('新規発行を受け付けました。発行完了までに数分程かかることがあります。', 'success')
@@ -702,10 +680,8 @@ def transfer_ownership(token_address, account_address):
                     account_address=account_address,
                     form=form
                 )
-            gas = TokenContract.functions.transferFrom(from_address, to_address, amount). \
-                estimateGas({'from': session['eth_account']})
             tx = TokenContract.functions.transferFrom(from_address, to_address, amount). \
-                buildTransaction({'from': session['eth_account'], 'gas': gas})
+                buildTransaction({'from': session['eth_account'], 'gas': Config.TX_GAS_LIMIT})
             ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
             # NOTE: 保有者一覧が非同期で更新されるため、5秒待つ
             time.sleep(5)
@@ -870,10 +846,8 @@ def setting(token_address):
             # 年利変更
             formInterestRate = int(form.interestRate.data * 10000)
             if formInterestRate != interestRate_int:
-                gas = TokenContract.functions.setInterestRate(formInterestRate). \
-                    estimateGas({'from': session['eth_account']})
                 tx = TokenContract.functions.setInterestRate(formInterestRate). \
-                    buildTransaction({'from': session['eth_account'], 'gas': gas})
+                    buildTransaction({'from': session['eth_account'], 'gas': Config.TX_GAS_LIMIT})
                 ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
 
             # 利払い日変更
@@ -898,18 +872,14 @@ def setting(token_address):
                     break
             if isInterestPaymentDateChanged:
                 newInterestPaymentDate_string = json.dumps(newInterestPaymentDate)
-                gas = TokenContract.functions.setInterestPaymentDate(newInterestPaymentDate_string). \
-                    estimateGas({'from': session['eth_account']})
                 tx = TokenContract.functions.setInterestPaymentDate(newInterestPaymentDate_string). \
-                    buildTransaction({'from': session['eth_account'], 'gas': gas})
+                    buildTransaction({'from': session['eth_account'], 'gas': Config.TX_GAS_LIMIT})
                 ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
 
             # メモ欄変更
             if form.memo.data != memo:
-                gas = TokenContract.functions.setMemo(form.memo.data). \
-                    estimateGas({'from': session['eth_account']})
                 tx = TokenContract.functions.setMemo(form.memo.data). \
-                    buildTransaction({'from': session['eth_account'], 'gas': gas})
+                    buildTransaction({'from': session['eth_account'], 'gas': Config.TX_GAS_LIMIT})
                 ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
 
             # 譲渡制限変更
@@ -917,66 +887,48 @@ def setting(token_address):
                 transferable_bool = True
                 if form.transferable.data == 'False':
                     transferable_bool = False
-                gas = TokenContract.functions.setTransferable(transferable_bool). \
-                    estimateGas({'from': session['eth_account']})
                 tx = TokenContract.functions.setTransferable(transferable_bool). \
-                    buildTransaction({'from': session['eth_account'], 'gas': gas})
+                    buildTransaction({'from': session['eth_account'], 'gas': Config.TX_GAS_LIMIT})
                 ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
 
             # 画像変更
             if form.image_1.data != image_1:
-                gas = TokenContract.functions.setImageURL(0, form.image_1.data). \
-                    estimateGas({'from': session['eth_account']})
                 tx = TokenContract.functions.setImageURL(0, form.image_1.data). \
-                    buildTransaction({'from': session['eth_account'], 'gas': gas})
+                    buildTransaction({'from': session['eth_account'], 'gas': Config.TX_GAS_LIMIT})
                 ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
             if form.image_2.data != image_2:
-                gas = TokenContract.functions.setImageURL(1, form.image_2.data). \
-                    estimateGas({'from': session['eth_account']})
                 tx = TokenContract.functions.setImageURL(1, form.image_2.data). \
-                    buildTransaction({'from': session['eth_account'], 'gas': gas})
+                    buildTransaction({'from': session['eth_account'], 'gas': Config.TX_GAS_LIMIT})
                 ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
             if form.image_3.data != image_3:
-                gas = TokenContract.functions.setImageURL(2, form.image_3.data). \
-                    estimateGas({'from': session['eth_account']})
                 tx = TokenContract.functions.setImageURL(2, form.image_3.data). \
-                    buildTransaction({'from': session['eth_account'], 'gas': gas})
+                    buildTransaction({'from': session['eth_account'], 'gas': Config.TX_GAS_LIMIT})
                 ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
 
             # DEXアドレス変更
             if form.tradableExchange.data != tradableExchange:
-                gas = TokenContract.functions. \
-                    setTradableExchange(to_checksum_address(form.tradableExchange.data)). \
-                    estimateGas({'from': session['eth_account']})
                 tx = TokenContract.functions. \
                     setTradableExchange(to_checksum_address(form.tradableExchange.data)). \
-                    buildTransaction({'from': session['eth_account'], 'gas': gas})
+                    buildTransaction({'from': session['eth_account'], 'gas': Config.TX_GAS_LIMIT})
                 ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
 
             # PersonalInfoコントラクトアドレス変更
             if form.personalInfoAddress.data != personalInfoAddress:
-                gas = TokenContract.functions. \
-                    setPersonalInfoAddress(to_checksum_address(form.personalInfoAddress.data)). \
-                    estimateGas({'from': session['eth_account']})
                 tx = TokenContract.functions. \
                     setPersonalInfoAddress(to_checksum_address(form.personalInfoAddress.data)). \
-                    buildTransaction({'from': session['eth_account'], 'gas': gas})
+                    buildTransaction({'from': session['eth_account'], 'gas': Config.TX_GAS_LIMIT})
                 ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
 
             # 問い合わせ先変更
             if form.contact_information.data != contact_information:
-                gas = TokenContract.functions.setContactInformation(form.contact_information.data). \
-                    estimateGas({'from': session['eth_account']})
                 tx = TokenContract.functions.setContactInformation(form.contact_information.data). \
-                    buildTransaction({'from': session['eth_account'], 'gas': gas})
+                    buildTransaction({'from': session['eth_account'], 'gas': Config.TX_GAS_LIMIT})
                 ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
 
             # プライバシーポリシー変更
             if form.privacy_policy.data != privacy_policy:
-                gas = TokenContract.functions.setPrivacyPolicy(form.privacy_policy.data). \
-                    estimateGas({'from': session['eth_account']})
                 tx = TokenContract.functions.setPrivacyPolicy(form.privacy_policy.data). \
-                    buildTransaction({'from': session['eth_account'], 'gas': gas})
+                    buildTransaction({'from': session['eth_account'], 'gas': Config.TX_GAS_LIMIT})
                 ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
 
             flash('設定変更を受け付けました。変更完了までに数分程かかることがあります。', 'success')
@@ -1067,10 +1019,8 @@ def request_signature(token_address):
 
             # コントラクトに情報を登録する
             try:
-                gas = TokenContract.functions.requestSignature(signer_address). \
-                    estimateGas({'from': session['eth_account']})
                 tx = TokenContract.functions.requestSignature(signer_address). \
-                    buildTransaction({'from': session['eth_account'], 'gas': gas})
+                    buildTransaction({'from': session['eth_account'], 'gas': Config.TX_GAS_LIMIT})
                 ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
             except ValueError:
                 flash('処理に失敗しました。', 'error')
@@ -1116,10 +1066,8 @@ def release():
     list_contract_address = issuer.token_list_contract_address
     ListContract = ContractUtils.get_contract('TokenList', list_contract_address)
     try:
-        gas = ListContract.functions.register(token_address, 'IbetStraightBond'). \
-            estimateGas({'from': session['eth_account']})
         tx = ListContract.functions.register(token_address, 'IbetStraightBond'). \
-            buildTransaction({'from': session['eth_account'], 'gas': gas})
+            buildTransaction({'from': session['eth_account'], 'gas': Config.TX_GAS_LIMIT})
         ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
     except ValueError:
         flash('既に公開されています。', 'error')
@@ -1142,10 +1090,8 @@ def redeem():
     TokenContract = TokenUtils.get_contract(token_address, session['eth_account'])
 
     try:
-        gas = TokenContract.functions.redeem(). \
-            estimateGas({'from': session['eth_account']})
         tx = TokenContract.functions.redeem(). \
-            buildTransaction({'from': session['eth_account'], 'gas': gas})
+            buildTransaction({'from': session['eth_account'], 'gas': Config.TX_GAS_LIMIT})
         ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
     except ValueError:
         flash('償還処理に失敗しました。', 'error')
@@ -1175,10 +1121,8 @@ def add_supply(token_address):
     if request.method == 'POST':
         if form.validate():
             try:
-                gas = TokenContract.functions.issueFrom(session['eth_account'], ZERO_ADDRESS, form.amount.data). \
-                    estimateGas({'from': session['eth_account']})
                 tx = TokenContract.functions.issueFrom(session['eth_account'], ZERO_ADDRESS, form.amount.data). \
-                    buildTransaction({'from': session['eth_account'], 'gas': gas})
+                    buildTransaction({'from': session['eth_account'], 'gas': Config.TX_GAS_LIMIT})
                 ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
             except Exception as e:
                 logger.error(e)
@@ -1378,20 +1322,15 @@ def sell(token_address):
                 return redirect(url_for('.sell', token_address=token_address))
             else:
                 # DEXコントラクトへのDeposit
-                gas = TokenContract.functions.transfer(tradableExchange, balance). \
-                    estimateGas({'from': session['eth_account']})
                 tx = TokenContract.functions.transfer(tradableExchange, balance). \
-                    buildTransaction({'from': session['eth_account'], 'gas': gas})
+                    buildTransaction({'from': session['eth_account'], 'gas': Config.TX_GAS_LIMIT})
                 ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
 
                 # 売り注文実行
                 ExchangeContract = ContractUtils.get_contract('IbetStraightBondExchange', tradableExchange)
-                gas = ExchangeContract.functions. \
-                    createOrder(token_address, balance, form.sellPrice.data, False, agent_account). \
-                    estimateGas({'from': session['eth_account']})
                 tx = ExchangeContract.functions. \
                     createOrder(token_address, balance, form.sellPrice.data, False, agent_account). \
-                    buildTransaction({'from': session['eth_account'], 'gas': gas})
+                    buildTransaction({'from': session['eth_account'], 'gas': Config.TX_GAS_LIMIT})
                 ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
 
                 time.sleep(3)  # NOTE: バックプロセスによるDB反映までにタイムラグがあるため3秒待つ
@@ -1446,10 +1385,8 @@ def cancel_order(token_address, order_id):
 
     if request.method == 'POST':
         if form.validate():
-            gas = ExchangeContract.functions.cancelOrder(order_id). \
-                estimateGas({'from': session['eth_account']})
             tx = ExchangeContract.functions.cancelOrder(order_id). \
-                buildTransaction({'from': session['eth_account'], 'gas': gas})
+                buildTransaction({'from': session['eth_account'], 'gas': Config.TX_GAS_LIMIT})
             ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
             time.sleep(3)  # NOTE: バックプロセスによるDB反映までにタイムラグがあるため3秒待つ
             flash('売出停止処理を受け付けました。停止されるまでに数分程かかることがあります。', 'success')
@@ -1515,10 +1452,8 @@ def _set_offering_status(token_address, status):
     TokenContract = TokenUtils.get_contract(token_address, session['eth_account'])
 
     try:
-        gas = TokenContract.functions.setInitialOfferingStatus(status). \
-            estimateGas({'from': session['eth_account']})
         tx = TokenContract.functions.setInitialOfferingStatus(status). \
-            buildTransaction({'from': session['eth_account'], 'gas': gas})
+            buildTransaction({'from': session['eth_account'], 'gas': Config.TX_GAS_LIMIT})
         ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
         flash('処理を受け付けました。', 'success')
     except Exception as e:
@@ -1686,10 +1621,8 @@ def allot(token_address, account_address):
             # 割当処理
             to_address = to_checksum_address(account_address)
             try:
-                gas = TokenContract.functions.allot(to_address, form.amount.data). \
-                    estimateGas({'from': session['eth_account']})
                 tx = TokenContract.functions.allot(to_address, form.amount.data). \
-                    buildTransaction({'from': session['eth_account'], 'gas': gas})
+                    buildTransaction({'from': session['eth_account'], 'gas': Config.TX_GAS_LIMIT})
                 ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
             except Exception as e:
                 logger.error(e)
@@ -1755,10 +1688,8 @@ def transfer_allotment(token_address, account_address):
             from_address = session['eth_account']
             to_address = to_checksum_address(account_address)
             try:
-                gas = TokenContract.functions.transferFrom(from_address, to_address, amount). \
-                    estimateGas({'from': session['eth_account']})
                 tx = TokenContract.functions.transferFrom(from_address, to_address, amount). \
-                    buildTransaction({'from': session['eth_account'], 'gas': gas})
+                    buildTransaction({'from': session['eth_account'], 'gas': Config.TX_GAS_LIMIT})
                 ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
             except Exception as e:
                 logger.exception(e)

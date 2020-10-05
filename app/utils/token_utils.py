@@ -189,10 +189,8 @@ class TokenUtils:
             personal_info_address = to_checksum_address(custom_personal_info_address)
         PersonalInfoContract = ContractUtils.get_contract('PersonalInfo', personal_info_address)
         try:
-            gas = PersonalInfoContract.functions.modify(account_address, ciphertext). \
-                estimateGas({'from': issuer_address})
             tx = PersonalInfoContract.functions.modify(account_address, ciphertext). \
-                buildTransaction({'from': issuer_address, 'gas': gas})
+                buildTransaction({'from': issuer_address, 'gas': Config.TX_GAS_LIMIT})
             ContractUtils.send_transaction(transaction=tx, eth_account=issuer_address)
         except Exception as err:
             logger.exception(f"{err}")
