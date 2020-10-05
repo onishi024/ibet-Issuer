@@ -32,7 +32,7 @@ def take_buy(invoker, membership_exchange, order_id, amount):
 
     ExchangeContract = ContractUtils.get_contract('IbetMembershipExchange', membership_exchange['address'])
     tx_hash = ExchangeContract.functions.executeOrder(order_id, amount, True). \
-        transact({'from': invoker['account_address'], 'gas': 4000000})
+        transact({'from': invoker['account_address'], 'gas': Config.TX_GAS_LIMIT})
     web3.eth.waitForTransactionReceipt(tx_hash)
 
 
@@ -47,7 +47,7 @@ def confirm_agreement(invoker, membership_exchange, order_id, agreement_id):
 
     tx_hash = ExchangeContract.functions. \
         confirmAgreement(order_id, agreement_id). \
-        transact({'from': invoker['account_address'], 'gas': 4000000})
+        transact({'from': invoker['account_address'], 'gas': Config.TX_GAS_LIMIT})
     web3.eth.waitForTransactionReceipt(tx_hash)
 
 
@@ -57,7 +57,7 @@ def apply_for_offering(db, invoker, token_address):
     web3.personal.unlockAccount(invoker['account_address'], invoker['password'])
     TokenContract = ContractUtils.get_contract('IbetMembership', token_address)
     tx_hash = TokenContract.functions.applyForOffering('abcdefgh'). \
-        transact({'from': invoker['account_address'], 'gas': 4000000})
+        transact({'from': invoker['account_address'], 'gas': Config.TX_GAS_LIMIT})
     web3.eth.waitForTransactionReceipt(tx_hash)
 
     # 募集申込イベント登録

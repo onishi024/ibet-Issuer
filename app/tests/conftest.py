@@ -225,7 +225,7 @@ def payment_gateway_contract():
     print(contract_address)
     contract = ContractUtils.get_contract('PaymentGateway', contract_address)
     tx_hash = contract.functions.addAgent(agent['account_address']).transact(
-        {'from': deployer['account_address'], 'gas': 4000000}
+        {'from': deployer['account_address'], 'gas': Config.TX_GAS_LIMIT}
     )
     web3.eth.waitForTransactionReceipt(tx_hash)
 
@@ -253,9 +253,9 @@ def exchange_regulator_service_contract():
     exchange_regulator_service = ContractUtils.get_contract('ExchangeRegulatorService', contract_address)
     web3.eth.defaultAccount = deployer['account_address']
     exchange_regulator_service.functions.register(eth_account['issuer']['account_address'], False).\
-        transact({'from': deployer['account_address'], 'gas': 4000000})
+        transact({'from': deployer['account_address'], 'gas': Config.TX_GAS_LIMIT})
     exchange_regulator_service.functions.register(eth_account['trader']['account_address'], False).\
-        transact({'from': deployer['account_address'], 'gas': 4000000})
+        transact({'from': deployer['account_address'], 'gas': Config.TX_GAS_LIMIT})
 
     return {'address': contract_address, 'abi': abi}
 
@@ -299,16 +299,16 @@ def bond_exchange_contract(payment_gateway_address, personalinfo_address, exchan
 
     storage = ContractUtils.get_contract('ExchangeStorage', storage_address)
     storage.functions.upgradeVersion(contract_address).transact(
-        {'from': deployer['account_address'], 'gas': 4000000}
+        {'from': deployer['account_address'], 'gas': Config.TX_GAS_LIMIT}
     )
 
     # 取引参加者登録
     ExchangeRegulatorService = \
         ContractUtils.get_contract('ExchangeRegulatorService', exchange_regulator_service_address)
     ExchangeRegulatorService.functions.register(issuer['account_address'], False). \
-        transact({'from': deployer['account_address'], 'gas': 4000000})
+        transact({'from': deployer['account_address'], 'gas': Config.TX_GAS_LIMIT})
     ExchangeRegulatorService.functions.register(trader['account_address'], False). \
-        transact({'from': deployer['account_address'], 'gas': 4000000})
+        transact({'from': deployer['account_address'], 'gas': Config.TX_GAS_LIMIT})
 
     return {'address': contract_address, 'abi': abi}
 
@@ -332,7 +332,7 @@ def coupon_exchange_contract(payment_gateway_address):
 
     storage = ContractUtils.get_contract('ExchangeStorage', storage_address)
     storage.functions.upgradeVersion(contract_address).transact(
-        {'from': deployer['account_address'], 'gas': 4000000}
+        {'from': deployer['account_address'], 'gas': Config.TX_GAS_LIMIT}
     )
 
     return {'address': contract_address, 'abi': abi}
@@ -357,7 +357,7 @@ def membership_exchange_contract(payment_gateway_address):
 
     storage = ContractUtils.get_contract('ExchangeStorage', storage_address)
     storage.functions.upgradeVersion(contract_address).transact(
-        {'from': deployer['account_address'], 'gas': 4000000}
+        {'from': deployer['account_address'], 'gas': Config.TX_GAS_LIMIT}
     )
 
     return {'address': contract_address, 'abi': abi}
@@ -391,16 +391,16 @@ def otc_exchange_contract(payment_gateway_address, personalinfo_address, exchang
 
     storage = ContractUtils.get_contract('OTCExchangeStorage', storage_address)
     storage.functions.upgradeVersion(contract_address).transact(
-        {'from': deployer['account_address'], 'gas': 4000000}
+        {'from': deployer['account_address'], 'gas': Config.TX_GAS_LIMIT}
     )
 
     # 取引参加者登録
     ExchangeRegulatorService = \
         ContractUtils.get_contract('ExchangeRegulatorService', exchange_regulator_service_address)
     ExchangeRegulatorService.functions.register(issuer['account_address'], False). \
-        transact({'from': deployer['account_address'], 'gas': 4000000})
+        transact({'from': deployer['account_address'], 'gas': Config.TX_GAS_LIMIT})
     ExchangeRegulatorService.functions.register(trader['account_address'], False). \
-        transact({'from': deployer['account_address'], 'gas': 4000000})
+        transact({'from': deployer['account_address'], 'gas': Config.TX_GAS_LIMIT})
 
     return {'address': contract_address, 'abi': abi}
 

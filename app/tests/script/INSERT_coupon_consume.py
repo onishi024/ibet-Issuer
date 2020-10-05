@@ -101,7 +101,7 @@ def issue_token(exchange_address, data_count, token_type, issuer):
 def register_token_list(token_dict, token_type, issuer):
     TokenListContract = ContractUtils.get_contract('TokenList', issuer.token_list_contract_address)
     tx = TokenListContract.functions.register(token_dict['address'], token_type). \
-        buildTransaction({'from': issuer.eth_account, 'gas': 4000000})
+        buildTransaction({'from': issuer.eth_account, 'gas': Config.TX_GAS_LIMIT})
     ContractUtils.send_transaction(transaction=tx, eth_account=issuer.eth_account, db_session=db_session)
     print("TokenListContract Length:" + str(TokenListContract.functions.getListLength().call()))
 
@@ -116,7 +116,7 @@ def offer_token(agent_address, exchange_address, token_dict, amount, token_type,
 def transfer_to_exchange(exchange_address, token_dict, amount, token_type, issuer):
     TokenContract = ContractUtils.get_contract(token_type, token_dict['address'])
     tx = TokenContract.functions.transfer(exchange_address, amount). \
-        buildTransaction({'from': issuer.eth_account, 'gas': 4000000})
+        buildTransaction({'from': issuer.eth_account, 'gas': Config.TX_GAS_LIMIT})
     ContractUtils.send_transaction(transaction=tx, eth_account=issuer.eth_account, db_session=db_session)
     print("transfer_to_exchange:balanceOf exchange_address:" + str(TokenContract.functions.balanceOf(exchange_address).call()))
 
@@ -147,7 +147,7 @@ def buy_coupon_token(trader_address, ExchangeContract, order_id, amount):
     web3.personal.unlockAccount(trader_address, 'password')
     tx_hash = ExchangeContract.functions. \
         executeOrder(order_id, amount, True). \
-        transact({'from': trader_address, 'gas': 4000000})
+        transact({'from': trader_address, 'gas': Config.TX_GAS_LIMIT})
     web3.eth.waitForTransactionReceipt(tx_hash)
 
 
@@ -158,7 +158,7 @@ def register_personalinfo(invoker_address, encrypted_info, issuer):
     PersonalInfoContract = ContractUtils.get_contract('PersonalInfo', issuer.personal_info_contract_address)
 
     tx_hash = PersonalInfoContract.functions.register(issuer.eth_account, encrypted_info). \
-        transact({'from': invoker_address, 'gas': 4000000})
+        transact({'from': invoker_address, 'gas': Config.TX_GAS_LIMIT})
     web3.eth.waitForTransactionReceipt(tx_hash)
     print("register_personalinfo:" + str(PersonalInfoContract.functions.isRegistered(invoker_address, issuer.eth_account).call()))
 
@@ -167,7 +167,7 @@ def register_personalinfo(invoker_address, encrypted_info, issuer):
 def add_agent_to_payment_gateway(agent_address, issuer):
     PaymentGatewayContract = ContractUtils.get_contract('PaymentGateway', issuer.payment_gateway_contract_address)
     tx = PaymentGatewayContract.functions.addAgent(agent_address). \
-        buildTransaction({'from': issuer.eth_account, 'gas': 4000000})
+        buildTransaction({'from': issuer.eth_account, 'gas': Config.TX_GAS_LIMIT})
     ContractUtils.send_transaction(transaction=tx, eth_account=issuer.eth_account, db_session=db_session)
 
 
@@ -180,7 +180,7 @@ def register_payment_account(invoker_address, invoker_password, encrypted_info, 
     web3.personal.unlockAccount(invoker_address, invoker_password)
 
     tx_hash = PaymentGatewayContract.functions.register(agent_address, encrypted_info). \
-        transact({'from': invoker_address, 'gas': 4000000})
+        transact({'from': invoker_address, 'gas': Config.TX_GAS_LIMIT})
     web3.eth.waitForTransactionReceipt(tx_hash)
 
     # 2) 認可 from Agent
@@ -188,7 +188,7 @@ def register_payment_account(invoker_address, invoker_password, encrypted_info, 
     web3.personal.unlockAccount(agent_address, 'password', 10000)
 
     tx_hash = PaymentGatewayContract.functions.approve(invoker_address). \
-        transact({'from': agent_address, 'gas': 4000000})
+        transact({'from': agent_address, 'gas': Config.TX_GAS_LIMIT})
     web3.eth.waitForTransactionReceipt(tx_hash)
     print("register PaymentGatewayContract:" + str(PaymentGatewayContract.functions.accountApproved(invoker_address, agent_address).call()))
 
@@ -240,7 +240,7 @@ def main(data_count, issuer):
         web3.eth.defaultAccount = trader_address
         web3.personal.unlockAccount(trader_address, 'password', 10000)
         tx_hash = TokenContract.functions.consume(1).transact(
-            {'from': trader_address, 'gas': 400000}
+            {'from': trader_address, 'gas': Config.TX_GAS_LIMIT}
         )
         web3.eth.waitForTransactionReceipt(tx_hash)
         print("count: " + str(count))

@@ -23,7 +23,7 @@ def register_only_payment_account(invoker, payment_gateway, encrypted_info):
 
     agent = eth_account['agent']
     tx_hash = PaymentGatewayContract.functions.register(agent['account_address'], encrypted_info). \
-        transact({'from': invoker['account_address'], 'gas': 4000000})
+        transact({'from': invoker['account_address'], 'gas': Config.TX_GAS_LIMIT})
     web3.eth.waitForTransactionReceipt(tx_hash)
 
 # 決済口座の認可
@@ -37,7 +37,7 @@ def approve_payment_account(invoker, payment_gateway):
     web3.personal.unlockAccount(agent['account_address'], agent['password'])
 
     tx_hash = PaymentGatewayContract.functions.approve(invoker['account_address']). \
-        transact({'from': agent['account_address'], 'gas': 4000000})
+        transact({'from': agent['account_address'], 'gas': Config.TX_GAS_LIMIT})
     web3.eth.waitForTransactionReceipt(tx_hash)
 
 
@@ -53,7 +53,7 @@ def register_payment_account(invoker, payment_gateway, encrypted_info):
 
     agent = eth_account['agent']
     tx_hash = PaymentGatewayContract.functions.register(agent['account_address'], encrypted_info). \
-        transact({'from': invoker['account_address'], 'gas': 4000000})
+        transact({'from': invoker['account_address'], 'gas': Config.TX_GAS_LIMIT})
     web3.eth.waitForTransactionReceipt(tx_hash)
 
     # 2) 認可 from Agent
@@ -61,5 +61,5 @@ def register_payment_account(invoker, payment_gateway, encrypted_info):
     web3.personal.unlockAccount(agent['account_address'], agent['password'])
 
     tx_hash = PaymentGatewayContract.functions.approve(invoker['account_address']). \
-        transact({'from': agent['account_address'], 'gas': 4000000})
+        transact({'from': agent['account_address'], 'gas': Config.TX_GAS_LIMIT})
     web3.eth.waitForTransactionReceipt(tx_hash)

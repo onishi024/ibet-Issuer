@@ -126,7 +126,7 @@ def issue_token(exchange_address, data_count, token_type, issuer):
 def register_token_list(token_dict, token_type, issuer):
     TokenListContract = ContractUtils.get_contract('TokenList', issuer.token_list_contract_address)
     tx = TokenListContract.functions.register(token_dict['address'], token_type).\
-        buildTransaction({'from': issuer.eth_account, 'gas': 4000000})
+        buildTransaction({'from': issuer.eth_account, 'gas': Config.TX_GAS_LIMIT})
     ContractUtils.send_transaction(transaction=tx, eth_account=issuer.eth_account, db_session=db_session)
     print("TokenListContract Length:" + str(TokenListContract.functions.getListLength().call()))
 
