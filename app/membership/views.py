@@ -204,7 +204,7 @@ def applications_csv_download():
             item["account_name"] + ',' + item["account_email_address"] + ',' + item["data"] + '\n'
         f.write(data_row)
 
-    now = datetime.fromtimestamp(datetime.utcnow().timestamp(), JST)
+    now = datetime.now(tz=JST)
     res = make_response()
     csvdata = f.getvalue()
     res.data = csvdata.encode('sjis', 'ignore')
@@ -396,7 +396,7 @@ def holders_csv_download():
             holder["email"] + '\n'
         f.write(data_row)
 
-    now = datetime.fromtimestamp(datetime.utcnow().timestamp(), JST)
+    now = datetime.now(tz=JST)
     res = make_response()
     csvdata = f.getvalue()
     res.data = csvdata.encode('sjis', 'ignore')

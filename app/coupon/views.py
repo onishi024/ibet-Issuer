@@ -286,7 +286,8 @@ def applications_csv_download():
             token_name + ',' + token_address + ',' + item["account_address"] + ',' + \
             item["account_name"] + ',' + item["account_email_address"] + ',' + item["data"] + '\n'
         f.write(data_row)
-    now = datetime.fromtimestamp(datetime.utcnow().timestamp(), JST)
+
+    now = datetime.now(tz=JST)
     res = make_response()
     csvdata = f.getvalue()
     res.data = csvdata.encode('sjis', 'ignore')
@@ -1297,7 +1298,7 @@ def used_csv_download():
             str(usage["value"]) + '\n'
         f.write(data_row)
 
-    now = datetime.fromtimestamp(datetime.utcnow().timestamp(), JST)
+    now = datetime.now(tz=JST)
     res = make_response()
     csvdata = f.getvalue()
     res.data = csvdata.encode('sjis')
@@ -1367,7 +1368,7 @@ def holders_csv_download():
             holder["email"] + '\n'
         f.write(data_row)
 
-    now = datetime.fromtimestamp(datetime.utcnow().timestamp(), JST)
+    now = datetime.now(tz=JST)
     res = make_response()
     csvdata = f.getvalue()
     res.data = csvdata.encode('sjis', 'ignore')

@@ -27,48 +27,77 @@ from flask_migrate import Migrate, MigrateCommand
 
 app = create_app(os.getenv('FLASK_CONFIG') or 'default')
 manager = Manager(app)
-migrate = Migrate(app, db, compare_type=True)
 
 
+###############################################
+# Interactive shell
+###############################################
 def make_shell_context():
     return {'app': app, 'db': db, 'User': User, 'Role': Role}
 
 
-class CreateInitUser(Command):
-    def run(self):
-        roles = ['admin', 'user']
-        for r in roles:
-            role = Role.query.filter_by(name=r).first()
-            if role is None:
-                role = Role(name=r)
-            db.session.add(role)
+manager.add_command("shell", Shell(make_context=make_shell_context))
 
-        users = [
-            {'login_id': 'admin', 'user_name': '管理者', 'role_id': 1, 'password': 'admin'},
-        ]
-
-        for u_dict in users:
-            user = User.query.filter_by(login_id=u_dict['login_id']).first()
-            if user is None:
-                user = User()
-                for key, value in u_dict.items():
-                    setattr(user, key, value)
-                db.session.add(user)
-
-        db.session.commit()
+###############################################
+# Migrate database
+###############################################
+migrate = Migrate(app, db, compare_type=True)
+manager.add_command("db", MigrateCommand)
 
 
+###############################################
+# Reset database
+###############################################
 class DropAlembicVersion(Command):
     def run(self):
         AlembicVersion.__table__.drop(db.engine)
 
 
-manager.add_command("shell", Shell(make_context=make_shell_context))
-manager.add_command("db", MigrateCommand)
-manager.add_command("createuser", CreateInitUser())
 manager.add_command("resetdb", DropAlembicVersion())
 
 
+###############################################
+# Create roles and an initial admin user
+###############################################
+@manager.command
+def create_user(eth_account):
+    """Create Initial Login User
+    :param eth_account: EOA
+    :return: None
+    """
+
+    # Create role
+    roles = ["admin", "user"]
+    for r in roles:
+        role = Role.query.filter_by(name=r).first()
+        if role is None:
+            role = Role(name=r)
+        db.session.add(role)
+
+    # Create an initial admin user
+    users = [
+        {
+            "eth_account": eth_account,
+            "login_id": "admin",
+            "user_name": "管理者",
+            "role_id": 1,
+            "password": "admin"
+        },
+    ]
+    for u_dict in users:
+        user = User.query.filter_by(login_id=u_dict['login_id']).first()
+        if user is None:
+            user = User()
+            for key, value in u_dict.items():
+                setattr(user, key, value)
+            db.session.add(user)
+
+    db.session.commit()
+
+
+###############################################
+# Create secret key for keyfile password
+###############################################
 @manager.command
 def eth_account_password_secret_key():
     """
@@ -79,6 +108,9 @@ def eth_account_password_secret_key():
     print(f'ETH_ACCOUNT_PASSWORD_SECRET_KEY="{secret_key}"')
 
 
+###############################################
+# Issuer settings
+###############################################
 def _represent_odict(dumper, instance):
     return dumper.represent_mapping('tag:yaml.org,2002:map', instance.items())
 
@@ -121,18 +153,29 @@ def issuer_show(eth_account):
     print(_issuer_to_text(issuer.__dict__))
 
 
-ADDRESS_COLUMNS = [
-    re.compile('eth_account'), re.compile('agent_address'), re.compile('.*_contract_address$')
-]
-
-
-@manager.option('issuer_file',
-                help='issuer information file, which can be create by `issuer_template` or `issuer_show`')
-@manager.option('--rsa-privatekey', help='specify RSA private key file', required=False)
-@manager.option('--eoa-keyfile-password', action="store_true", help='update EOA keyfile password',
-                default=False, required=False)
+@manager.option(
+    'issuer_file',
+    help='issuer information file, which can be create by `issuer_template` or `issuer_show`'
+)
+@manager.option(
+    '--rsa-privatekey',
+    help='specify RSA private key file',
+    required=False
+)
+@manager.option(
+    '--eoa-keyfile-password',
+    action="store_true",
+    help='update EOA keyfile password',
+    default=False,
+    required=False
+)
 def issuer_save(issuer_file, rsa_privatekey, eoa_keyfile_password):
     """Creates or updates issuer information"""
+
+    ADDRESS_COLUMNS = [
+        re.compile('eth_account'), re.compile('agent_address'), re.compile('.*_contract_address$')
+    ]
+
     # parse issuer_file
     with open(issuer_file) as f:
         new_values = yaml.load(f)
@@ -207,6 +250,9 @@ def issuer_save(issuer_file, rsa_privatekey, eoa_keyfile_password):
     print("Successfully updated.")
 
 
+###############################################
+# Test
+###############################################
 @manager.option('-v', dest='v_opt', action="store_true", help='pytest -v option add.', default=False, required=False)
 @manager.option('-s', dest='s_opt', action="store_true", help='pytest -s option add.', default=False, required=False)
 @manager.option('-x', dest='x_opt', action="store_true", help='pytest -x option add.', default=False, required=False)
