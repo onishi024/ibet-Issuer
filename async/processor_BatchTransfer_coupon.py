@@ -28,7 +28,6 @@ logging.basicConfig(format=log_fmt)
 # 設定情報の取得
 WEB3_HTTP_PROVIDER = os.environ.get('WEB3_HTTP_PROVIDER') or 'http://localhost:8545'
 URI = os.environ.get('DATABASE_URL') or 'postgresql://issueruser:issuerpass@localhost:5432/issuerdb'
-exchange_address = Config.IBET_COUPON_EXCHANGE_CONTRACT_ADDRESS
 
 # 初期化
 web3 = Web3(Web3.HTTPProvider(WEB3_HTTP_PROVIDER))
@@ -37,8 +36,6 @@ engine = create_engine(URI, echo=False)
 db_session = scoped_session(sessionmaker())
 db_session.configure(bind=engine)
 
-# Exchangeコントラクトへの接続
-exchange_contract = ContractUtils.get_contract('IbetCouponExchange', exchange_address)
 
 # 常時起動（無限ループ）
 while True:
@@ -57,7 +54,13 @@ while True:
     for item in untransferred_list:
 
         # Tokenコントラクトへの接続
-        token = db_session.query(Token).filter(Token.token_address == item.token_address).first()
+        token = db_session.query(Token). \
+            filter(Token.token_address == item.token_address). \
+            filter(Token.admin_address == item.eth_account.lower()). \
+            first()
+        if token is None:
+            logging.warning('Cannot handle coupon token address %s', item.token_address)
+            continue
         token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
         TokenContract = web3.eth.contract(
             address=token.token_address,
@@ -65,17 +68,15 @@ while True:
         )
 
         # 割当処理
-        from_address = Config.ETH_ACCOUNT  # 発行体アドレス
+        from_address = item.eth_account  # 発行体アドレス
         to_address = to_checksum_address(item.to_address)
         amount = item.amount
 
         try:
             # DEXコントラクトへデポジット（Transfer）
-            gas = TokenContract.functions.transferFrom(from_address, to_address, amount). \
-                estimateGas({'from': Config.ETH_ACCOUNT})
             tx = TokenContract.functions.transferFrom(from_address, to_address, amount). \
-                buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
-            ContractUtils.send_transaction(transaction=tx)
+                buildTransaction({'from': item.eth_account, 'gas': Config.TX_GAS_LIMIT})
+            ContractUtils.send_transaction(transaction=tx, eth_account=item.eth_account, db_session=db_session)
 
             # DBを割当済に更新
             item.transferred = True

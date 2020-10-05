@@ -14,7 +14,7 @@ def apply_for_offering(db, invoker, token_address):
     web3.personal.unlockAccount(invoker['account_address'], invoker['password'])
     TokenContract = ContractUtils.get_contract('IbetCoupon', token_address)
     tx_hash = TokenContract.functions.applyForOffering('abcdefgh'). \
-        transact({'from': invoker['account_address'], 'gas': 4000000})
+        transact({'from': invoker['account_address'], 'gas': Config.TX_GAS_LIMIT})
     web3.eth.waitForTransactionReceipt(tx_hash)
 
     # 募集申込イベント登録

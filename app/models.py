@@ -1,4 +1,5 @@
 # -*- coding:utf-8 -*-
+from sqlalchemy.orm import deferred
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import url_for, redirect
 from flask_login import UserMixin
@@ -59,6 +60,8 @@ class User(UserMixin, db.Model):
 
     # シーケンスID
     id = db.Column(db.Integer, primary_key=True)
+    # アカウントアドレス
+    eth_account = db.Column(db.String(42), nullable=False)
     # ログインID
     login_id = db.Column(db.String(64), unique=True, index=True)
     # ユーザー名
@@ -125,9 +128,37 @@ class Issuer(db.Model):
     # シーケンスID
     id = db.Column(db.Integer, primary_key=True)
     # アカウントアドレス
-    eth_account = db.Column(db.String(50), nullable=False)
+    eth_account = db.Column(db.String(50), unique=True, nullable=False)
     # 発行体名称
     issuer_name = db.Column(db.String(64), nullable=False)
+    # 秘密鍵保存先（GETH or AWS_SECRETS_MANAGER)
+    private_keystore = db.Column(db.String(64), nullable=False, default="GETH")
+    # 一般/金融ネットワーク（IBET or IBETFIN）
+    network = db.Column(db.String(64), nullable=False, default="IBET")
+    # 売出価格（単価）の上限値（円）
+    max_sell_price = db.Column(db.Integer, nullable=False, default=100000000)
+    # 収納代行業者アドレス
+    agent_address = db.Column(db.String(42))
+    # PaymentGatewayコントラクトアドレス
+    payment_gateway_contract_address = db.Column(db.String(42))
+    # 個人情報記帳コントラクトアドレス
+    personal_info_contract_address = db.Column(db.String(42))
+    # トークンリストコントラクトアドレス
+    token_list_contract_address = db.Column(db.String(42))
+    # 株式取引コントラクトアドレス
+    ibet_share_exchange_contract_address = db.Column(db.String(42))
+    # 債券取引コントラクトアドレス
+    ibet_sb_exchange_contract_address = db.Column(db.String(42))
+    # 会員権取引コントラクトアドレス
+    ibet_membership_exchange_contract_address = db.Column(db.String(42))
+    # クーポン取引コントラクトアドレス
+    ibet_coupon_exchange_contract_address = db.Column(db.String(42))
+    # EOA keyfileのパスワード（暗号化済）
+    # deferredで暗号化情報が必要なとき以外はDBから取得しないようにする
+    encrypted_account_password = deferred(db.Column(db.String(2048)))
+    # 個人情報復号化用RSA鍵ファイル（暗号化済）
+    # deferredで暗号化情報が必要なとき以外はDBから取得しないようにする
+    encrypted_rsa_private_key = deferred(db.Column(db.String(16384)))
 
     def __repr__(self):
         return '<Issuer %s>' % self.eth_account
@@ -177,6 +208,8 @@ class CouponBulkTransfer(db.Model):
 
     # シーケンスID
     id = db.Column(db.Integer, primary_key=True)
+    # アカウントアドレス
+    eth_account = db.Column(db.String(42), nullable=False)
     # トークンアドレス
     token_address = db.Column(db.String(42), nullable=False)
     # 割当先アドレス
