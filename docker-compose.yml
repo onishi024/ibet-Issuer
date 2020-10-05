@@ -2,7 +2,7 @@ version: "3"
 
 services:
   postgres-issuer:
-    image: postgres:9.6
+    image: postgres:10.1
     environment:
       - POSTGRES_USER=apluser
       - POSTGRES_PASSWORD=apluserpass
