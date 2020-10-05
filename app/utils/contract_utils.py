@@ -55,7 +55,7 @@ class ContractUtils:
             bytecode_runtime=contract_json["deployedBytecode"],
         )
 
-        tx = contract.constructor(*args).buildTransaction(transaction={'from': deployer, 'gas': 6000000})
+        tx = contract.constructor(*args).buildTransaction(transaction={'from': deployer, 'gas': Config.TX_GAS_LIMIT})
         tx_hash, txn_receipt = ContractUtils.send_transaction(
             transaction=tx,
             eth_account=deployer,

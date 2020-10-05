@@ -123,12 +123,9 @@ def transfer_to_exchange(exchange_address, token_dict, amount, token_type, issue
 
 # トークンの売りMake注文
 def make_sell_token(agent_address, token_dict, amount, ExchangeContract, issuer):
-    gas = ExchangeContract.functions. \
-        createOrder(token_dict['address'], amount, 100, False, agent_address). \
-        estimateGas({'from': issuer.eth_account})
     tx = ExchangeContract.functions. \
         createOrder(token_dict['address'], amount, 100, False, agent_address). \
-        buildTransaction({'from': issuer.eth_account, 'gas': gas})
+        buildTransaction({'from': issuer.eth_account, 'gas': Config.TX_GAS_LIMIT})
     ContractUtils.send_transaction(transaction=tx, eth_account=issuer.eth_account, db_session=db_session)
 
 
@@ -233,9 +230,8 @@ def main(data_count, issuer):
     # 決済承認：収納代行
     web3.eth.defaultAccount = agent_address
     web3.personal.unlockAccount(agent_address, 'password', 10000)
-    gas = ExchangeContract.estimateGas({'from': agent_address}).confirmAgreement(order_id, agreement_id)
     ExchangeContract.functions.confirmAgreement(order_id, agreement_id).transact(
-        {'from': agent_address, 'gas': gas}
+        {'from': agent_address, 'gas': Config.TX_GAS_LIMIT}
     )
 
     # クーポンの消費

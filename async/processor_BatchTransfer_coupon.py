@@ -74,10 +74,8 @@ while True:
 
         try:
             # DEXコントラクトへデポジット（Transfer）
-            gas = TokenContract.functions.transferFrom(from_address, to_address, amount). \
-                estimateGas({'from': item.eth_account})
             tx = TokenContract.functions.transferFrom(from_address, to_address, amount). \
-                buildTransaction({'from': item.eth_account, 'gas': gas})
+                buildTransaction({'from': item.eth_account, 'gas': Config.TX_GAS_LIMIT})
             ContractUtils.send_transaction(transaction=tx, eth_account=item.eth_account, db_session=db_session)
 
             # DBを割当済に更新

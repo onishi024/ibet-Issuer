@@ -9,6 +9,8 @@ services:
       - POSTGRES_DB=apldb
   ganache-cli:
     image: "trufflesuite/ganache-cli:latest"
+    environment:
+      - gasLimit=800000000
     ports:
       - "8545:8545"
   ibet-issuer:
