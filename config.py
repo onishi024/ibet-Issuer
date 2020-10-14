@@ -19,9 +19,10 @@ class Config:
     # gunicornのworker数
     WORKER_COUNT = int(os.environ.get("WORKER_COUNT")) if os.environ.get("WORKER_COUNT") else 4
 
-    # Company List
+    # 実行環境
     APP_ENV = os.getenv('FLASK_CONFIG') or 'default'
 
+    # Company List
     COMPANY_LIST_URL = {}
     if APP_ENV == "production":
         COMPANY_LIST_URL['IBET'] = 'https://s3-ap-northeast-1.amazonaws.com/ibet-company-list/company_list.json'
@@ -125,6 +126,9 @@ class Config:
 
     # RSA鍵ファイルのパスワード
     RSA_PASSWORD = os.environ.get('RSA_PASSWORD')
+
+    # Zero Address
+    ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 
     @staticmethod
     def init_app(app):

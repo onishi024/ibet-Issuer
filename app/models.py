@@ -253,7 +253,7 @@ class Certification(db.Model):
 
 
 class HolderList(db.Model):
-    """債券保有者名簿"""
+    """保有者名簿CSV"""
     __tablename__ = 'holder_list'
 
     # シーケンスID
@@ -264,6 +264,51 @@ class HolderList(db.Model):
     holder_list = db.Column(db.LargeBinary)
     # 作成タイムスタンプ
     created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+
+class UTXO(db.Model):
+    """UTXO"""
+    __tablename__ = "utxo"
+
+    # トランザクションハッシュ
+    transaction_hash = db.Column(db.String(66), primary_key=True)
+    # アカウントアドレス
+    account_address = db.Column(db.String(42), index=True)
+    # トークンアドレス
+    token_address = db.Column(db.String(42), index=True)
+    # 数量
+    amount = db.Column(db.Integer)
+    # ブロックタイムスタンプ
+    block_timestamp = db.Column(db.DateTime)
+    # トランザクション年月日
+    transaction_date_jst = db.Column(db.String(10))
+
+    def __repr__(self):
+        return f"<UTXO {self.transaction_hash}, {self.account_address}, {self.token_address}, {self.amount}>"
+
+
+class BondLedger(db.Model):
+    """債券原簿"""
+    __tablename__ = "bond_ledger"
+
+    # シーケンスID
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    # トークンアドレス
+    token_address = db.Column(db.String(42))
+    # 原簿情報（JSON）
+    ledger = db.Column(db.LargeBinary)
+    # 作成タイムスタンプ
+    created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+
+class BondLedgerBlockNumber(db.Model):
+    """債券原簿blockNumber"""
+    __tablename__ = "bond_ledger_block_number"
+
+    # シーケンスID
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    # 直近blockNumber
+    latest_block_number = db.Column(db.Integer)
 
 
 class AddressType(Enum):
