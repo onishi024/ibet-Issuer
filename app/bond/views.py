@@ -4,43 +4,43 @@ import io
 import json
 import re
 from datetime import datetime, timezone, timedelta
-
 import time
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
-from eth_utils import to_checksum_address
-from flask import request, redirect, url_for, flash, make_response, render_template, abort, jsonify, session
+
+from flask_wtf import FlaskForm as Form
+from flask import request, redirect, url_for, flash, make_response, \
+    render_template, abort, jsonify, session
 from flask_login import login_required
+
 from sqlalchemy import func, desc
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
+from eth_utils import to_checksum_address
 
 from app import db
 from app.exceptions import EthRuntimeError
-from app.models import Token, Certification, Order, Agreement, AgreementStatus, Transfer, AddressType, ApplyFor, \
-    Issuer, HolderList
+from app.models import Token, Certification, Order, Agreement, AgreementStatus, \
+    Transfer, AddressType, ApplyFor, Issuer, HolderList
 from app.utils import ContractUtils, TokenUtils
 from config import Config
+
 from . import bond
-from .forms import TransferOwnershipForm, SettingForm, RequestSignatureForm, IssueForm, SellTokenForm, \
-    CancelOrderForm, TransferForm, AllotForm, AddSupplyForm
+from .forms import TransferOwnershipForm, SettingForm, RequestSignatureForm, \
+    IssueForm, SellTokenForm, CancelOrderForm, TransferForm, AllotForm, AddSupplyForm
+
+from logging import getLogger
+logger = getLogger('api')
 
 web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
 web3.middleware_stack.inject(geth_poa_middleware, layer=0)
-
-from logging import getLogger
-
-logger = getLogger('api')
-
 JST = timezone(timedelta(hours=+9), 'JST')
-
-ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 
 
 ####################################################
 # 共通処理
 ####################################################
-def flash_errors(form):
+def flash_errors(form: Form):
     for field, errors in form.errors.items():
         for error in errors:
             flash(error, 'error')
@@ -729,7 +729,7 @@ def holder(token_address, account_address):
         personal_info_address = TokenContract.functions.personalInfoAddress().call()
     except Exception as err:
         logger.exception(f"{err}")
-        personal_info_address = ZERO_ADDRESS
+        personal_info_address = Config.ZERO_ADDRESS
 
     #########################
     # GET：参照
@@ -1121,7 +1121,7 @@ def add_supply(token_address):
     if request.method == 'POST':
         if form.validate():
             try:
-                tx = TokenContract.functions.issueFrom(session['eth_account'], ZERO_ADDRESS, form.amount.data). \
+                tx = TokenContract.functions.issueFrom(session['eth_account'], Config.ZERO_ADDRESS, form.amount.data). \
                     buildTransaction({'from': session['eth_account'], 'gas': Config.TX_GAS_LIMIT})
                 ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
             except Exception as e:
