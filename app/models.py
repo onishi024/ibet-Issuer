@@ -164,6 +164,23 @@ class Issuer(db.Model):
         return '<Issuer %s>' % self.eth_account
 
 
+class LedgerAdministrator(db.Model):
+    """原簿管理者情報"""
+    __tablename__ = 'ledger_administrator'
+
+    # アカウントアドレス
+    eth_account = db.Column(db.String(42), primary_key=True)
+    # 名称
+    name = db.Column(db.String(200), nullable=False)
+    # 住所
+    address = db.Column(db.String(200), nullable=False)
+    # 事務取扱場所
+    location = db.Column(db.String(200), nullable=False)
+
+    def __repr__(self):
+        return '<LedgerAdministrator %s>' % self.eth_account
+
+
 ########################################################
 # トークン管理
 ########################################################

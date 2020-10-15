@@ -19,7 +19,7 @@ path = os.path.join(os.path.dirname(__file__), '../')
 sys.path.append(path)
 
 from app.utils import ContractUtils
-from app.models import Token, UTXO, BondLedger, BondLedgerBlockNumber, Issuer
+from app.models import Token, UTXO, BondLedger, BondLedgerBlockNumber, Issuer, LedgerAdministrator
 from config import Config
 
 from web3 import Web3
@@ -126,24 +126,39 @@ class DBSink:
         created_date = datetime.utcnow().replace(tzinfo=timezone.utc).astimezone(JST).strftime("%Y/%m/%d")
 
         # 債券情報
+        bond_name = token.functions.name().call()
+        bond_purpose = token.functions.purpose().call()
+        bond_face_value = token.functions.faceValue().call()
+        bond_total_supply = token.functions.totalSupply().call()
+        bond_memo = token.functions.memo().call()
+
         bond_description = {
-            "名称": token.functions.name().call(),
-            "説明": token.functions.purpose().call(),
-            "総額": token.functions.faceValue().call() * token.functions.totalSupply().call(),
-            "各債券の金額": token.functions.faceValue().call(),
-            "その他補足事項": token.functions.memo().call()
+            "名称": bond_name,
+            "説明": bond_purpose,
+            "総額": bond_face_value * bond_total_supply,
+            "各債券の金額": bond_face_value,
+            "その他補足事項": bond_memo
         }
 
         # 原簿管理人
-        # TODO:DBから取得する
-        ledger_admin = {
-            "名称": "aaa",
-            "住所": "bbb",
-            "事務取扱場所": "ccc"
-        }
+        issuer_address = token.functions.owner().call()
+        administrator = self.db.query(LedgerAdministrator).\
+            filter(LedgerAdministrator.eth_account == issuer_address).first()
+
+        if administrator is not None:
+            ledger_admin = {
+                "氏名または名称": administrator.name,
+                "住所": administrator.address,
+                "事務取扱場所": administrator.location
+            }
+        else:
+            ledger_admin = {
+                "氏名または名称": "",
+                "住所": "",
+                "事務取扱場所": ""
+            }
 
         # 債権者情報
-        issuer_address = token.functions.owner().call()
         issuer = self.db.query(Issuer).filter(Issuer.eth_account == issuer_address).first()
         personal_info_contract_address = token.functions.personalInfoAddress().call()
         personal_info_contract = ContractUtils.get_contract('PersonalInfo', personal_info_contract_address)
@@ -171,7 +186,7 @@ class DBSink:
                 "アカウントアドレス": account_address,
                 "氏名または名称": "",
                 "住所": "",
-                "金額": amount,
+                "金額": bond_face_value * amount,
                 "取得日": transaction_date_jst
             }
 
@@ -226,9 +241,8 @@ class DBSink:
                             "質権の目的である債券": "-"
                         }
                     }
-            except Exception as err:  # 復号化処理でエラーが発生した場合、デフォルト値を設定
-                pass
-                # logging.error(f"Failed to decrypt: {err}")
+            except Exception as err:
+                logging.error(f"Failed to decrypt: {err} : account_address = {account_address}")
 
             creditors.append(details)
 
@@ -239,6 +253,7 @@ class DBSink:
             "原簿管理人": ledger_admin,
             "債権者": creditors
         }
+        logging.debug(ledger)
         bond_ledger = BondLedger(
             token_address=token.address,
             ledger=json.dumps(ledger, ensure_ascii=False).encode()

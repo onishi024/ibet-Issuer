@@ -718,3 +718,24 @@ class AddSupplyForm(Form):
     def __init__(self, issue=None, *args, **kwargs):
         super(AddSupplyForm, self).__init__(*args, **kwargs)
         self.issue = issue
+
+
+# 原簿管理者情報登録
+class LedgerAdministratorForm(Form):
+    name = StringField("名称", validators=[
+        DataRequired("名称は必須です。"),
+        Length(max=40, message="名称は40文字までです。")
+    ])
+    address = StringField("住所", validators=[
+        DataRequired("住所は必須です。"),
+        Length(max=200, message="住所は200文字までです。")
+    ])
+    location = StringField("事務取扱場所", validators=[
+        DataRequired("事務取扱場所は必須です。"),
+        Length(max=200, message="事務取扱場所は200文字までです。")
+    ])
+    submit = SubmitField('登録')
+
+    def __init__(self, ledger_administrator=None, *args, **kwargs):
+        super(LedgerAdministratorForm, self).__init__(*args, **kwargs)
+        self.ledger_administrator = ledger_administrator

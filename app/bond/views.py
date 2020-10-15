@@ -21,15 +21,17 @@ from eth_utils import to_checksum_address
 from app import db
 from app.exceptions import EthRuntimeError
 from app.models import Token, Certification, Order, Agreement, AgreementStatus, \
-    Transfer, AddressType, ApplyFor, Issuer, HolderList
+    Transfer, AddressType, ApplyFor, Issuer, HolderList, LedgerAdministrator
 from app.utils import ContractUtils, TokenUtils
 from config import Config
 
 from . import bond
 from .forms import TransferOwnershipForm, SettingForm, RequestSignatureForm, \
-    IssueForm, SellTokenForm, CancelOrderForm, TransferForm, AllotForm, AddSupplyForm
+    IssueForm, SellTokenForm, CancelOrderForm, TransferForm, \
+    AllotForm, AddSupplyForm, LedgerAdministratorForm
 
 from logging import getLogger
+
 logger = getLogger('api')
 
 web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
@@ -1287,7 +1289,7 @@ def sell(token_address):
     interestPaymentDate_string = TokenContract.functions.interestPaymentDate().call()
     interestPaymentDate = \
         json.loads(interestPaymentDate_string.replace("'", '"').replace('True', 'true').replace('False', 'false')) \
-        if interestPaymentDate_string else default_interest_payment_date()
+            if interestPaymentDate_string else default_interest_payment_date()
     redemptionDate = TokenContract.functions.redemptionDate().call()
     redemptionValue = TokenContract.functions.redemptionValue().call()
     returnDate = TokenContract.functions.returnDate().call()
@@ -1765,6 +1767,61 @@ def token_tracker(token_address):
         token_address=token_address,
         track=track
     )
+
+
+#################################################
+# 原簿管理者情報の登録
+#################################################
+@bond.route('/ledger_administrator', methods=['GET', 'POST'])
+@login_required
+def ledger_administrator():
+    logger.info('bond/ledger_administrator')
+
+    form = LedgerAdministratorForm()
+
+    ##############################
+    # POST
+    ##############################
+    if request.method == "POST":
+        if form.validate():
+            record = LedgerAdministrator.query. \
+                filter(LedgerAdministrator.eth_account == session["eth_account"]). \
+                first()
+            if record is None:
+                record = LedgerAdministrator()
+                record.eth_account = session["eth_account"]
+                record.name = form.name.data
+                record.address = form.address.data
+                record.location = form.location.data
+                db.session.add(record)
+            else:
+                record.name = form.name.data
+                record.address = form.address.data
+                record.location = form.location.data
+            db.session.commit()
+            flash('登録処理が完了しました。', 'success')
+        else:
+            flash_errors(form)
+
+        return render_template('bond/ledger_administrator.html', form=form)
+
+    ##############################
+    # GET
+    ##############################
+    if request.method == "GET":
+        record = LedgerAdministrator.query. \
+            filter(LedgerAdministrator.eth_account == session['eth_account']). \
+            first()
+        if record is not None:
+            form.name.data = record.name
+            form.address.data = record.address
+            form.location.data = record.location
+        else:
+            form.name.data = ""
+            form.address.data = ""
+            form.location.data = ""
+
+        return render_template('bond/ledger_administrator.html', form=form)
 
 
 ####################################################
