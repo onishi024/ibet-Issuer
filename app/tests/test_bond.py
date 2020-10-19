@@ -884,8 +884,8 @@ class TestBond(TestBase):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
         token = tokens[0]
 
-        holder_list = HolderList.query.filter_by(token_address=token.token_address).first()
-        ledger_id = holder_list.id
+        record = BondLedger.query.filter_by(token_address=token.token_address).first()
+        ledger_id = record.id
 
         client = self.client_with_admin_login(app)
 
