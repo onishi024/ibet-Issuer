@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% block head %}
-  {{ super() }}
-  <!-- DataTables -->
-  <link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
-  <!-- common.css -->
-  <link rel="stylesheet" href="/static/css/common.css">
+{{ super() }}
+<!-- DataTables -->
+<link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
+<!-- common.css -->
+<link rel="stylesheet" href="/static/css/common.css">
 {% endblock %}
 {% set active_page = "share_list" %}
 
@@ -12,24 +12,25 @@
 {% block page_header %}株式保有者一覧 <span class="badge bg-secondary">株式</span>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
-    <li><a href="{{ url_for('index.index') }}">トップ</a></li>
-    <li><a href="{{ url_for('share.list') }}">株式一覧</a></li>
-    <li class="active">株式保有者一覧</li>
+<li><a href="{{ url_for('index.index') }}">トップ</a></li>
+<li><a href="{{ url_for('share.list') }}">株式一覧</a></li>
+<li class="active">株式保有者一覧</li>
 {% endblock %}
 
 {% block page_content %}
 <section class="content">
     <div class="box box-default">
-      <div class="box-header">
-        <form method="post" action="{{ url_for('share.holders_csv_download') }}" enctype="multipart/form-data">
-          <h3 class="box-title" id="token_name"></h3>
-          <input type="text" name="token_address" style="display:none;" value="{{ token_address }}">
-          <div class="pull-right box-tools">
-            <button id="csv_download" type="submit" class="btn btn-default" disabled>保有者リストダウンロード</button>
-            <a href="{{ url_for('share.holders_csv_history', token_address=token_address) }}" class="btn btn-default">履歴</a>
-          </div>
-        </form>
-      </div>
+        <div class="box-header">
+            <form method="post" action="{{ url_for('share.holders_csv_download') }}" enctype="multipart/form-data">
+                <h3 class="box-title" id="token_name"></h3>
+                <input type="text" name="token_address" style="display:none;" value="{{ token_address }}">
+                <div class="pull-right box-tools">
+                    <button id="csv_download" type="submit" class="btn btn-success" disabled>ダウンロード</button>
+                    <a href="{{ url_for('share.holders_csv_history', token_address=token_address) }}"
+                       class="btn btn-default">履歴</a>
+                </div>
+            </form>
+        </div>
         <div class="box-body">
             <table id="data_table" class="table table-bordered table-hover">
                 <thead>
@@ -48,115 +49,116 @@
             </table>
         </div>
         <div class="box-footer">
-            <button type="button" class="btn btn-default" onclick="location.href='{{ url_for("share.list") }}'">一覧に戻る</button>
+            <button type="button" class="btn btn-default" onclick="location.href='{{ url_for('share.list') }}'">一覧に戻る
+            </button>
         </div>
         <div class="overlay">
             <i class="fa fa-refresh fa-spin"></i>
         </div>
-  </div>
-  <div class="box box-widget collapsed-box">
-      <div class="box-header with-border">
-          <h3 class="box-title">ファイルレイアウト</h3>
-          <div class="box-tools pull-right">
-              <button type="button" class="btn btn-box-tool" data-widget="collapse">
-                  <i class="fa fa-plus"></i>
-              </button>
-          </div>
-      </div>
-      <div class="box-body">
-          <div class="col-md-7">
-              <table class="table table-bordered" style="background-color: #777; color: #fff;">
-                  <tr>
-                      <td>ファイル名</td>
-                      <td>[YYYYMMDDHHMMSS]share_holders.csv</td>
-                  </tr>
-                  <tr>
-                      <td>ファイル形式</td>
-                      <td>可変長CSV形式テキストファイル</td>
-                  </tr>
-                  <tr>
-                      <td>文字コード</td>
-                      <td>Shift_JIS</td>
-                  </tr>
-                  <tr>
-                      <td>改行コード</td>
-                      <td>LF</td>
-                  </tr>
-                  <tr>
-                      <td>区切り文字</td>
-                      <td>,</td>
-                  </tr>
-                  <tr>
-                      <td>囲み文字</td>
-                      <td>なし</td>
-                  </tr>
-              </table>
-          </div>
-          <table class="table table-bordered">
-              <thead>
-              <tr>
-                  <th>項目名</th>
-                  <th>サンプル値</th>
-                  <th>補足</th>
-              </tr>
-              </thead>
-              <tbody>
-              <tr>
-                  <td>株式名</td>
-                  <td>ibet株</td>
-                  <td></td>
-              </tr>
-              <tr>
-                  <td>株式アドレス</td>
-                  <td>0xF37aF18966609eCaDe3E4D1831996853c637cfF3</td>
-                  <td></td>
-              </tr>
-              <tr>
-                  <td>アカウントアドレス</td>
-                  <td>0x0b3c7F97383bCFf942E6b1038a47B9AA5377A252</td>
-                  <td></td>
-              </tr>
-              <tr>
-                  <td>保有数量</td>
-                  <td>10</td>
-                  <td></td>
-              </tr>
-              <tr>
-                  <td>注文中数量</td>
-                  <td>2</td>
-                  <td></td>
-              </tr>
-              <tr>
-                  <td>保有者氏名</td>
-                  <td>中本哲史</td>
-                  <td></td>
-              </tr>
-              <tr>
-                  <td>保有者生年月日</td>
-                  <td>20081031</td>
-                  <td>YYYYMMDD</td>
-              </tr>
-              <tr>
-                  <td>保有者郵便番号</td>
-                  <td>1000001</td>
-                  <td></td>
-              </tr>
-              <tr>
-                  <td>保有者住所</td>
-                  <td>東京都千代田区大手町１</td>
-                  <td></td>
-              </tr>
-              <tr>
-                  <td>保有者メールアドレス</td>
-                  <td>ibet@ibet.jp</td>
-                  <td></td>
-              </tr>
-              </tbody>
-          </table>
-      </div>
-      <div class="box-footer">
-      </div>
-</div>
+    </div>
+    <div class="box box-widget collapsed-box">
+        <div class="box-header with-border">
+            <h3 class="box-title">ファイルレイアウト</h3>
+            <div class="box-tools pull-right">
+                <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                    <i class="fa fa-plus"></i>
+                </button>
+            </div>
+        </div>
+        <div class="box-body">
+            <div class="col-md-7">
+                <table class="table table-bordered" style="background-color: #777; color: #fff;">
+                    <tr>
+                        <td>ファイル名</td>
+                        <td>[YYYYMMDDHHMMSS]share_holders.csv</td>
+                    </tr>
+                    <tr>
+                        <td>ファイル形式</td>
+                        <td>可変長CSV形式テキストファイル</td>
+                    </tr>
+                    <tr>
+                        <td>文字コード</td>
+                        <td>Shift_JIS</td>
+                    </tr>
+                    <tr>
+                        <td>改行コード</td>
+                        <td>LF</td>
+                    </tr>
+                    <tr>
+                        <td>区切り文字</td>
+                        <td>,</td>
+                    </tr>
+                    <tr>
+                        <td>囲み文字</td>
+                        <td>なし</td>
+                    </tr>
+                </table>
+            </div>
+            <table class="table table-bordered">
+                <thead>
+                <tr>
+                    <th>項目名</th>
+                    <th>サンプル値</th>
+                    <th>補足</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>株式名</td>
+                    <td>ibet株</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>株式アドレス</td>
+                    <td>0xF37aF18966609eCaDe3E4D1831996853c637cfF3</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>アカウントアドレス</td>
+                    <td>0x0b3c7F97383bCFf942E6b1038a47B9AA5377A252</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>保有数量</td>
+                    <td>10</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>注文中数量</td>
+                    <td>2</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>保有者氏名</td>
+                    <td>中本哲史</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>保有者生年月日</td>
+                    <td>20081031</td>
+                    <td>YYYYMMDD</td>
+                </tr>
+                <tr>
+                    <td>保有者郵便番号</td>
+                    <td>1000001</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>保有者住所</td>
+                    <td>東京都千代田区大手町１</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>保有者メールアドレス</td>
+                    <td>ibet@ibet.jp</td>
+                    <td></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="box-footer">
+        </div>
+    </div>
 </section>
 {% endblock %}
 
@@ -283,5 +285,7 @@ $(function () {
         });
     }
 })
+
+
 </script>
 {% endblock %}

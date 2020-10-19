@@ -7,6 +7,7 @@ from base64 import b64encode
 
 import requests
 
+from flask_wtf import FlaskForm as Form
 from flask import request, redirect, url_for, flash, render_template, session
 from flask import Markup
 from flask_login import login_required, current_user
@@ -40,7 +41,7 @@ JST = timezone(timedelta(hours=+9), 'JST')
 # +++++++++++++++++++++++++++++++
 # Utils
 # +++++++++++++++++++++++++++++++
-def flash_errors(form):
+def flash_errors(form: Form):
     for field, errors in form.errors.items():
         for error in errors:
             flash(error, 'error')
@@ -235,13 +236,9 @@ def bankinfo():
         form.account_number.data = ''
         form.account_holder.data = ''
 
-        # PersonalInfoコントラクトへの登録状態を取得
         bank = Bank.query.filter().filter(Bank.eth_account == session['eth_account']).first()
-
-        if bank is not None:
-            # 登録済みの場合は登録されている情報を取得
+        if bank is not None:  # 登録済みの場合は登録されている情報を取得
             try:
-                # 銀行口座情報の取得
                 form.bank_name.data = bank.bank_name
                 form.bank_code.data = bank.bank_code
                 form.branch_name.data = bank.branch_name

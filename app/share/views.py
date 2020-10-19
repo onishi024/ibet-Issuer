@@ -11,6 +11,7 @@ import time
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 
+from flask_wtf import FlaskForm as Form
 from flask import request, redirect, url_for, flash, make_response, render_template, abort, jsonify, session
 from flask_login import login_required
 from sqlalchemy import desc
@@ -34,13 +35,11 @@ from logging import getLogger
 
 logger = getLogger('api')
 
-ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
-
 
 ####################################################
 # 共通処理
 ####################################################
-def flash_errors(form):
+def flash_errors(form: Form):
     for field, errors in form.errors.items():
         for error in errors:
             flash(error, 'error')
@@ -532,7 +531,7 @@ def add_supply(token_address):
     if request.method == 'POST':
         if form.validate():
             try:
-                tx = TokenContract.functions.issueFrom(session["eth_account"], ZERO_ADDRESS, form.amount.data). \
+                tx = TokenContract.functions.issueFrom(session["eth_account"], Config.ZERO_ADDRESS, form.amount.data). \
                     buildTransaction({'from': session["eth_account"], 'gas': Config.TX_GAS_LIMIT})
                 ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
             except Exception as e:
@@ -679,7 +678,7 @@ def get_applications(token_address):
         personal_info_address = TokenContract.functions.personalInfoAddress().call()
     except Exception as e:
         logger.exception(e)
-        personal_info_address = ZERO_ADDRESS
+        personal_info_address = Config.ZERO_ADDRESS
 
     # 申込（ApplyFor）イベントを検索
     apply_for_events = ApplyFor.query. \
@@ -1017,14 +1016,14 @@ def get_holders(token_address):
         tradable_exchange = TokenContract.functions.tradableExchange().call()
     except Exception as err:
         logger.error(f"Failed to get token attributes: {err}")
-        tradable_exchange = ZERO_ADDRESS
+        tradable_exchange = Config.ZERO_ADDRESS
         pass
     # 個人情報コントラクトの情報取得
     try:
         personal_info_address = TokenContract.functions.personalInfoAddress().call()
     except Exception as err:
         logger.error(f"Failed to get token attributes: {err}")
-        personal_info_address = ZERO_ADDRESS
+        personal_info_address = Config.ZERO_ADDRESS
 
     # 取引コントラクト接続
     ExchangeContract = ContractUtils.get_contract('IbetOTCExchange', tradable_exchange)
@@ -1100,7 +1099,8 @@ def get_holders(token_address):
             else:
                 # 暗号化個人情報取得
                 try:
-                    encrypted_info = PersonalInfoContract.functions.personal_info(account_address, token_owner).call()[2]
+                    encrypted_info = PersonalInfoContract.functions.personal_info(account_address, token_owner).call()[
+                        2]
                 except Exception as err:
                     logger.warning(f"Failed to get personal information: {err}")
                     encrypted_info = ''
@@ -1251,7 +1251,7 @@ def holder(token_address, account_address):
         personal_info_address = TokenContract.functions.personalInfoAddress().call()
     except Exception as e:
         logger.exception(e)
-        personal_info_address = ZERO_ADDRESS
+        personal_info_address = Config.ZERO_ADDRESS
 
     #########################
     # GET：参照
