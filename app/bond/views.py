@@ -21,7 +21,7 @@ from eth_utils import to_checksum_address
 from app import db
 from app.exceptions import EthRuntimeError
 from app.models import Token, Certification, Order, Agreement, AgreementStatus, \
-    Transfer, AddressType, ApplyFor, Issuer, HolderList, LedgerAdministrator
+    Transfer, AddressType, ApplyFor, Issuer, HolderList, LedgerAdministrator, BondLedger
 from app.utils import ContractUtils, TokenUtils
 from config import Config
 
@@ -1822,6 +1822,92 @@ def ledger_administrator():
             form.location.data = ""
 
         return render_template('bond/ledger_administrator.html', form=form)
+
+
+#################################################
+# 原簿履歴
+#################################################
+@bond.route('/ledger_history/<string:token_address>', methods=['GET'])
+@login_required
+def ledger_history(token_address: str):
+    logger.info('bond/ledger_history')
+
+    # アドレスフォーマットチェック
+    if not Web3.isAddress(token_address):
+        abort(404)
+
+    return render_template('bond/ledger_history.html', token_address=token_address)
+
+
+# 原簿履歴取得
+@bond.route('/get_ledger_history/<string:token_address>', methods=['GET'])
+@login_required
+def get_ledger_history(token_address):
+    logger.info('bond/get_ledger_history')
+
+    # アドレスフォーマットチェック
+    if not Web3.isAddress(token_address):
+        abort(404)
+
+    # 発行体が管理するトークンであることをチェック
+    token = Token.query. \
+        filter(Token.token_address == token_address). \
+        filter(Token.admin_address == session['eth_account'].lower()). \
+        first()
+    if token is None:
+        abort(404)
+
+    records = BondLedger.query. \
+        filter(BondLedger.token_address == token_address). \
+        order_by(desc(BondLedger.created)). \
+        all()
+
+    ledgers = []
+    for record in records:
+        created_jst = record.created.replace(tzinfo=timezone.utc).astimezone(JST)
+        created_formatted = created_jst.strftime("%Y/%m/%d %H:%M:%S %z")
+        file_name = f'{created_jst.strftime("%Y%m%d%H%M%S")}bond_ledger.json'
+        ledgers.append({
+            'id': record.id,
+            'token_address': record.token_address,
+            'created': created_formatted,
+            'file_name': file_name
+        })
+
+    return jsonify(ledgers)
+
+
+# 原簿ダウンロード
+@bond.route('/ledger_download', methods=['POST'])
+@login_required
+def ledger_download():
+    logger.info('bond/ledger_download')
+
+    token_address = request.form.get('token_address')
+    ledger_id = request.form.get('ledger_id')
+
+    # 発行体が管理するトークンであることをチェック
+    token = Token.query. \
+        filter(Token.token_address == token_address). \
+        filter(Token.admin_address == session['eth_account'].lower()). \
+        first()
+    if token is None:
+        abort(404)
+
+    # 原簿情報の取得
+    record = BondLedger.query. \
+        filter(BondLedger.id == ledger_id). \
+        filter(BondLedger.token_address == token_address). \
+        first()
+    if record is None:
+        abort(404)
+
+    created = record.created.replace(tzinfo=timezone.utc).astimezone(JST)  # JSTに変換
+    res = make_response()
+    res.data = record.ledger
+    res.headers['Content-Type'] = 'text/plain'
+    res.headers['Content-Disposition'] = f"attachment; filename={created.strftime('%Y%m%d%H%M%S')}bond_ledger.json"
+    return res
 
 
 ####################################################
