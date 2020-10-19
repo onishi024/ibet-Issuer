@@ -9,6 +9,7 @@ from datetime import datetime, timezone, timedelta
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 
+from flask_wtf import FlaskForm as Form
 from flask import request, redirect, url_for, flash, make_response, render_template, abort, jsonify, session
 from flask_login import login_required
 from sqlalchemy import func, desc
@@ -40,7 +41,7 @@ JST = timezone(timedelta(hours=+9), 'JST')
 ####################################################
 
 # 共通処理：エラー表示
-def flash_errors(form):
+def flash_errors(form: Form):
     for field, errors in form.errors.items():
         for error in errors:
             flash(error, 'error')
