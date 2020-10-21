@@ -1,4 +1,3 @@
-#!/usr/local/bin/python
 # -*- coding:utf-8 -*-
 import difflib
 import getpass
@@ -12,13 +11,6 @@ import yaml
 from cryptography.fernet import Fernet
 from eth_utils import to_checksum_address
 from web3 import Web3
-
-if os.path.exists('.env'):
-    print('Importing environment from .env...', file=sys.stderr)
-    for line in open('.env'):
-        var = line.strip().split('=')
-        if len(var) == 2:
-            os.environ[var[0]] = var[1]
 
 from app import create_app, db
 from app.models import AlembicVersion, User, Role, Issuer
@@ -101,11 +93,11 @@ def create_user(eth_account):
 @manager.command
 def eth_account_password_secret_key():
     """
-    Generates ETH_ACCOUNT_PASSWORD_SECRET_KEY.
-    ETH_ACCOUNT_PASSWORD_SECRET_KEY is used to encrypt/decrypt the password of an EOA keyfile.
+    Generates SECURE_PARAMETER_ENCRYPTION_KEY.
+    SECURE_PARAMETER_ENCRYPTION_KEY is used to encrypt/decrypt the issuer's secure parameter.
     """
     secret_key = Fernet.generate_key().decode()
-    print(f'ETH_ACCOUNT_PASSWORD_SECRET_KEY="{secret_key}"')
+    print(f'SECURE_PARAMETER_ENCRYPTION_KEY="{secret_key}"')
 
 
 ###############################################
@@ -194,7 +186,7 @@ def issuer_save(issuer_file, rsa_privatekey, eoa_keyfile_password):
     if eoa_keyfile_password:
         print(f'Input the EOA keyfile password for {eth_account}')
         password = getpass.getpass()
-        fernet = Fernet(os.environ['ETH_ACCOUNT_PASSWORD_SECRET_KEY'])
+        fernet = Fernet(os.environ['SECURE_PARAMETER_ENCRYPTION_KEY'])
         encrypted_eoa_keyfile_password = fernet.encrypt(password.encode()).decode()
 
     # RSA private key

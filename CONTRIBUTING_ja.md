@@ -47,7 +47,7 @@ $ python manage.py eth_account_password_secret_key
     * DATABASE_URL：postgresqlのissuerdbのURL
     * WEB3_HTTP_PROVIDER：Quorumノードのエンドポイント
     * RSA_PASSWORD：RSAキーペアのパスワード
-    * ETH_ACCOUNT_PASSWORD_SECRET_KEY: EOA keyfile のパスワード（AES鍵）を二重で暗号化して保管するための共通鍵
+    * SECURE_PARAMETER_ENCRYPTION_KEY: 発行体設定情報のうちセキュアパラメータを暗号化するための共通鍵
 
 * 初期ユーザの追加
 ```bash

@@ -85,7 +85,7 @@ class ContractUtils:
         issuer = query.filter(Issuer.eth_account == eth_account).first()
 
         # EOA keyfileのパスワードを取得
-        fernet = Fernet(Config.ETH_ACCOUNT_PASSWORD_SECRET_KEY)
+        fernet = Fernet(Config.SECURE_PARAMETER_ENCRYPTION_KEY)
         eth_account_password = fernet.decrypt(issuer.encrypted_account_password.encode()).decode()
 
         if issuer.private_keystore == "GETH":  # keystoreとしてgethを利用する場合

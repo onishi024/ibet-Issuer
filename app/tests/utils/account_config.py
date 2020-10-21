@@ -3,7 +3,7 @@ from web3 import Web3
 from config import Config
 
 web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
-Config.ETH_ACCOUNT_PASSWORD_SECRET_KEY = 'tUaLkijsBFMSUme4J1p-EPBQJYGfwCAECadnxXD-prY='
+Config.SECURE_PARAMETER_ENCRYPTION_KEY = 'tUaLkijsBFMSUme4J1p-EPBQJYGfwCAECadnxXD-prY='
 
 # Account Address
 eth_account = {
