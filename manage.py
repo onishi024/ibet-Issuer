@@ -90,7 +90,7 @@ def create_user(eth_account):
 
 
 ###############################################
-# Reset database
+# Create RSA key
 ###############################################
 @manager.command
 def create_rsakey(pass_phrase):
@@ -114,7 +114,7 @@ def create_rsakey(pass_phrase):
 
 
 ###############################################
-# Create secret key for keyfile password
+# Create secure parameter encryption key
 ###############################################
 @manager.command
 def create_enckey():
@@ -191,7 +191,9 @@ def issuer_save(issuer_file, rsa_privatekey, eoa_keyfile_password):
     """Creates or updates issuer information"""
 
     ADDRESS_COLUMNS = [
-        re.compile('eth_account'), re.compile('agent_address'), re.compile('.*_contract_address$')
+        re.compile('eth_account'),
+        re.compile('agent_address'),
+        re.compile('.*_contract_address$')
     ]
 
     # parse issuer_file
@@ -216,6 +218,7 @@ def issuer_save(issuer_file, rsa_privatekey, eoa_keyfile_password):
         encrypted_eoa_keyfile_password = fernet.encrypt(password.encode()).decode()
 
     # RSA private key
+    # NOTE: RSA鍵ファイルはデフォルトで暗号化されているのでそのままDBに保存する
     rsa_privatekey_file = None
     if rsa_privatekey is not None:
         with open(rsa_privatekey) as f:
