@@ -5,6 +5,8 @@ import os
 import re
 import sys
 from collections import OrderedDict
+from Crypto.PublicKey import RSA
+from Crypto import Random
 
 import pytest
 import yaml
@@ -88,10 +90,34 @@ def create_user(eth_account):
 
 
 ###############################################
+# Reset database
+###############################################
+@manager.command
+def create_rsakey(pass_phrase):
+    """
+    Generate RSA key file
+    private key file: data/rsa/private.pem
+    public key file: data/rsa/public.pem
+    """
+    random_func = Random.new().read
+    rsa = RSA.generate(10240, random_func)
+
+    # 秘密鍵作成
+    private_pem = rsa.exportKey(format='PEM', passphrase=pass_phrase)
+    with open('data/rsa/private.pem', 'wb') as f:
+        f.write(private_pem)
+
+    # 公開鍵作成
+    public_pem = rsa.publickey().exportKey()
+    with open('data/rsa/public.pem', 'wb') as f:
+        f.write(public_pem)
+
+
+###############################################
 # Create secret key for keyfile password
 ###############################################
 @manager.command
-def eth_account_password_secret_key():
+def create_enckey():
     """
     Generates SECURE_PARAMETER_ENCRYPTION_KEY.
     SECURE_PARAMETER_ENCRYPTION_KEY is used to encrypt/decrypt the issuer's secure parameter.

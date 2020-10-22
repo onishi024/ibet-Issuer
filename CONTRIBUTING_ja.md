@@ -1,4 +1,4 @@
-# 開発者ドキュメント（日本語）
+# 開発者ドキュメント
 
 ## 0. 開発推奨環境
 
@@ -29,37 +29,40 @@ $ python manage.py db migrate
 $ python manage.py db upgrade
 ```
 
-## 2. サーバ起動
+## 2. 各種設定
 
-### 事前準備
-
-* RSAキーペア生成
+### RSAキーペア生成
 ```bash
-$ python rsa/create_rsakey.py password
+$ python manage.py create_rsakey {pass_phrase}
 ```
 
-* EOA keyfileパスワード保管用の鍵生成
+### セキュアパラメータ暗号化鍵（SECURE_PARAMETER_ENCRYPTION_KEY）生成
 ```bash
-$ python manage.py eth_account_password_secret_key
+$ python manage.py create_enckey
 ```
 
-* 環境変数追加
-    * DATABASE_URL：postgresqlのissuerdbのURL
-    * WEB3_HTTP_PROVIDER：Quorumノードのエンドポイント
-    * RSA_PASSWORD：RSAキーペアのパスワード
-    * SECURE_PARAMETER_ENCRYPTION_KEY: 発行体設定情報のうちセキュアパラメータを暗号化するための共通鍵
+### 環境変数設定
 
-* 初期ユーザの追加
+```
+DATABASE_URL = PostgreSQLのissuerアプリ用DBのURL
+WEB3_HTTP_PROVIDER = Quorumノードのエンドポイント
+RSA_PASSWORD = RSAキーペアのパスワード
+SECURE_PARAMETER_ENCRYPTION_KEY = 発行体設定情報のうちセキュアパラメータを暗号化するための共通鍵
+```
+
+### 初期ユーザの追加
 ```bash
 $ python manage.py create_user {発行体アカウントアドレス}
 ```
 
-* 発行体の設定
+### 発行体情報の設定
+
+事前に ibet-SmartContract をデプロイして得られるコントラクトアドレスを data/issuer.yaml に設定する。
+issuer.yamlのテンプレートは以下のコマンドで作成することができる。
 ```bash
 $ python manage.py issuer_template > data/issuer.yaml
 ```
 
-事前に ibet-SmartContract をデプロイして得られるコントラクトアドレスを data/issuer.yaml に設定する。
 ```yaml
 eth_account: '{発行体アカウントアドレス}'
 issuer_name: ''
@@ -76,22 +79,25 @@ ibet_membership_exchange_contract_address: '{IbetMembershipExchangeコントラ�
 ibet_coupon_exchange_contract_address: '{IbetCouponExchangeコントラクト}'
 ```
 
-記載した内容をDBに登録する。
-パスワード入力を求められるのでGethの発行体アカウントパスワード（keyfileパスワード）を入力する。
+記載した内容は、以下のコマンドでDBに反映することができる。
 ```bash
 $ python manage.py issuer_save data/issuer.yaml --eoa-keyfile-password --rsa-privatekey data/rsa/private.pem
 ```
+ここで、`--eoa-keyfile-password`を指定した場合、パスワード入力を求められるので、EOAのkeyfileのパスワードを入力する。
+また、`--rsa-privatekey`には上記で作成したRSAの秘密鍵のファイルを指定する。
 
-###  サーバ起動
+## 3. サーバ起動
+設定が完了したら、以下のコマンドでサーバを起動することができる。
 ```bash
 $ cd ibet-Issuer
 $ gunicorn -b localhost:5000 --reload manage:app --config guniconf.py
 ```
 * http://localhost:5000/ で接続して起動していることを確認
-* ログイン画面で、DBに格納されているログインID,パスワードを入力すると、TOP画面が表示される
+* ログイン画面で、DBに格納されているログインID、パスワードを入力すると、TOP画面が表示される
 
 
-## 3. テスト実行
+## 4. テスト実行
+### テスト実行
 * manage.py で定義してあるコマンドオプションにしたがって、テストを実行する
 ```bash
 $ cd ibet-Issuer
@@ -100,8 +106,10 @@ $ python manage.py test
 * testのオプションについては`python manage.py test --help`で確認できる
 
 
-## 4. データ増幅スクリプト
-### トークン登録
+### データ増幅スクリプト
+疎通確認およびテスト用のデータを増幅するためのスクリプトが用意されている。
+
+#### トークン登録
 * 引数
     - 登録件数(int)
     - トークン種別(string):IbetStraightBond, IbetMembership, IbetCoupon
@@ -112,7 +120,7 @@ python ./app/tests/script/INSERT_token.py 3 IbetMembership
 python ./app/tests/script/INSERT_token.py 3 IbetCoupon
 ```
 
-### トークン保有者登録
+#### トークン保有者登録
 * 引数
     - 登録件数(int)
     - トークン種別(string): IbetStraightBond, IbetMembership, IbetCoupon
@@ -128,7 +136,7 @@ python async/processor_IssueEvent.py
 python async/indexer_Transfer.py
 ```
 
-### クーポン利用履歴登録
+#### クーポン利用履歴登録
 * 引数
     - 登録件数(int)
 
