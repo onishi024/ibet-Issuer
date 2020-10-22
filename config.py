@@ -118,8 +118,8 @@ class Config:
     # Transaction Gas Limit
     TX_GAS_LIMIT = int(os.environ.get("TX_GAS_LIMIT")) if os.environ.get("TX_GAS_LIMIT") else 6000000
 
-    # DBカラムIssuer.encrypted_account_passwordの鍵
-    ETH_ACCOUNT_PASSWORD_SECRET_KEY = os.environ.get('ETH_ACCOUNT_PASSWORD_SECRET_KEY')
+    # 発行体セキュアパラメータ暗号化共通鍵
+    SECURE_PARAMETER_ENCRYPTION_KEY = os.environ.get('SECURE_PARAMETER_ENCRYPTION_KEY')
 
     # Private Key Store for AWS Secrets Manager
     AWS_REGION_NAME = 'ap-northeast-1'  # NOTE:現状は固定で設定
