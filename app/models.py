@@ -1,11 +1,32 @@
 # -*- coding:utf-8 -*-
-from sqlalchemy.orm import deferred
-from werkzeug.security import generate_password_hash, check_password_hash
-from flask import url_for, redirect
-from flask_login import UserMixin
-from . import db, login_manager
+import base64
+import json
 from datetime import datetime
 from enum import Enum
+
+import requests
+from Crypto.Cipher import PKCS1_OAEP
+from Crypto.PublicKey import RSA
+
+from sqlalchemy.orm import deferred
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask import url_for, redirect, abort
+from flask_login import UserMixin
+from eth_utils import to_checksum_address
+from web3 import Web3
+from web3.middleware import geth_poa_middleware
+
+from . import db, login_manager
+from config import Config
+from logging import getLogger
+
+from .exceptions import EthRuntimeError
+from .utils import ContractUtils
+
+logger = getLogger('api')
+
+web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
+web3.middleware_stack.inject(geth_poa_middleware, layer=0)
 
 
 @login_manager.user_loader
@@ -164,6 +185,23 @@ class Issuer(db.Model):
         return '<Issuer %s>' % self.eth_account
 
 
+class LedgerAdministrator(db.Model):
+    """原簿管理者情報"""
+    __tablename__ = 'ledger_administrator'
+
+    # アカウントアドレス
+    eth_account = db.Column(db.String(42), primary_key=True)
+    # 名称
+    name = db.Column(db.String(200), nullable=False)
+    # 住所
+    address = db.Column(db.String(200), nullable=False)
+    # 事務取扱場所
+    location = db.Column(db.String(200), nullable=False)
+
+    def __repr__(self):
+        return '<LedgerAdministrator %s>' % self.eth_account
+
+
 ########################################################
 # トークン管理
 ########################################################
@@ -253,7 +291,7 @@ class Certification(db.Model):
 
 
 class HolderList(db.Model):
-    """債券保有者名簿"""
+    """保有者名簿CSV"""
     __tablename__ = 'holder_list'
 
     # シーケンスID
@@ -264,6 +302,51 @@ class HolderList(db.Model):
     holder_list = db.Column(db.LargeBinary)
     # 作成タイムスタンプ
     created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+
+class UTXO(db.Model):
+    """UTXO"""
+    __tablename__ = "utxo"
+
+    # トランザクションハッシュ
+    transaction_hash = db.Column(db.String(66), primary_key=True)
+    # アカウントアドレス
+    account_address = db.Column(db.String(42), index=True)
+    # トークンアドレス
+    token_address = db.Column(db.String(42), index=True)
+    # 数量
+    amount = db.Column(db.Integer)
+    # ブロックタイムスタンプ
+    block_timestamp = db.Column(db.DateTime)
+    # トランザクション年月日
+    transaction_date_jst = db.Column(db.String(10))
+
+    def __repr__(self):
+        return f"<UTXO {self.transaction_hash}, {self.account_address}, {self.token_address}, {self.amount}>"
+
+
+class BondLedger(db.Model):
+    """債券原簿"""
+    __tablename__ = "bond_ledger"
+
+    # シーケンスID
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    # トークンアドレス
+    token_address = db.Column(db.String(42))
+    # 原簿情報（JSON）
+    ledger = db.Column(db.LargeBinary)
+    # 作成タイムスタンプ
+    created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+
+class BondLedgerBlockNumber(db.Model):
+    """債券原簿blockNumber"""
+    __tablename__ = "bond_ledger_block_number"
+
+    # シーケンスID
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    # 直近blockNumber
+    latest_block_number = db.Column(db.Integer)
 
 
 class AddressType(Enum):
@@ -439,3 +522,164 @@ class AgreementStatus(Enum):
     PENDING = 0
     DONE = 1
     CANCELED = 2
+
+
+########################################################
+# コントラクト
+########################################################
+class PersonalInfoContract:
+    """PersonalInfoコントラクト"""
+
+    def __init__(self, issuer_address: str, custom_personal_info_address=None):
+        issuer = Issuer.query.filter(Issuer.eth_account == issuer_address).first()
+        if custom_personal_info_address is None:
+            contract_address = issuer.personal_info_contract_address
+        else:
+            contract_address = to_checksum_address(custom_personal_info_address)
+        self.issuer = issuer
+
+        contract_file = f"contracts/PersonalInfo.json"
+        contract_json = json.load(open(contract_file, "r"))
+        self.personal_info_contract = web3.eth.contract(
+            address=to_checksum_address(contract_address),
+            abi=contract_json['abi'],
+        )
+
+    def get_info(self, account_address: str, default_value=None):
+        """個人情報取得
+
+        :param account_address: トークン保有者のアドレス
+        :param default_value: 値が未設定の項目に設定する初期値。(未指定時: None)
+        :return: personal info
+        """
+        # アドレスフォーマットのチェック
+        if not Web3.isAddress(account_address):
+            abort(404)
+
+        # 発行体のRSA秘密鍵の取得
+        cipher = None
+        try:
+            key = RSA.importKey(self.issuer.encrypted_rsa_private_key, Config.RSA_PASSWORD)
+            cipher = PKCS1_OAEP.new(key)
+        except Exception as err:
+            logger.error(f"Cannot open the private key: {err}")
+
+        # デフォルト値を設定
+        personal_info = {
+            "account_address": account_address,
+            "key_manager": default_value,
+            "name": default_value,
+            "address": {
+                "postal_code": default_value,
+                "prefecture": default_value,
+                "city": default_value,
+                "address1": default_value,
+                "address2": default_value
+            },
+            "email": default_value,
+            "birth": default_value
+        }
+
+        # 個人情報（暗号化）取得
+        personal_info_state = self.personal_info_contract.functions. \
+            personal_info(account_address, self.issuer.eth_account). \
+            call()
+        encrypted_info = personal_info_state[2]
+
+        if encrypted_info == '' or cipher is None:
+            return personal_info  # デフォルトの情報を返却
+        else:
+            try:
+                ciphertext = base64.decodebytes(encrypted_info.encode('utf-8'))
+                # NOTE:
+                # JavaScriptでRSA暗号化する際に、先頭が0x00の場合は00を削った状態でデータが連携される。
+                # そのままdecryptすると、ValueError（Ciphertext with incorrect length）になるため、
+                # 先頭に再度00を加えて、decryptを行う。
+                if len(ciphertext) == 1279:
+                    hex_fixed = "00" + ciphertext.hex()
+                    ciphertext = base64.b16decode(hex_fixed.upper())
+                decrypted_info = json.loads(cipher.decrypt(ciphertext))
+
+                personal_info["key_manager"] = decrypted_info.get("key_manager", default_value)
+                personal_info["name"] = decrypted_info.get("name", default_value)
+                address = decrypted_info.get("address")
+                if address is not None:
+                    personal_info["address"]["postal_code"] = address.get("postal_code", default_value)
+                    personal_info["address"]["prefecture"] = address.get("prefecture", default_value)
+                    personal_info["address"]["city"] = address.get("city", default_value)
+                    personal_info["address"]["address1"] = address.get("address1", default_value)
+                    personal_info["address"]["address2"] = address.get("address2", default_value)
+                personal_info["email"] = decrypted_info.get("email", default_value)
+                personal_info["birth"] = decrypted_info.get("birth", default_value)
+                return personal_info
+            except Exception as err:
+                logger.error(f"Failed to decrypt: {err}")
+                return personal_info  # デフォルトの情報を返却
+
+    def modify_info(self, account_address: str, data: dict, default_value=None):
+        """トークン保有者情報の修正
+
+        :param account_address: アカウントアドレス
+        :param data: 更新データ
+        :param default_value: 値が未設定の項目に設定する初期値。(未指定時: None)
+        :return: None
+        """
+        # アドレスフォーマットのチェック
+        if not Web3.isAddress(account_address):
+            abort(404)
+
+        # デフォルト値
+        personal_info = {
+            "key_manager": data.get("key_manager", default_value),
+            "name": data.get("name", default_value),
+            "address": {
+                "postal_code": default_value,
+                "prefecture": default_value,
+                "city": default_value,
+                "address1": default_value,
+                "address2": default_value
+            },
+            "email": default_value,
+            "birth": default_value
+        }
+
+        address = data.get("address")
+        if address is not None:
+            personal_info["address"]["postal_code"] = address.get("postal_code", default_value)
+            personal_info["address"]["prefecture"] = address.get("prefecture", default_value)
+            personal_info["address"]["city"] = address.get("city", default_value)
+            personal_info["address"]["address1"] = address.get("address1", default_value)
+            personal_info["address"]["address2"] = address.get("address2", default_value)
+        personal_info["email"] = data.get("email", default_value)
+        personal_info["birth"] = data.get("birth", default_value)
+
+        # 個人情報暗号化用RSA公開鍵の取得
+        rsa_public_key = None
+        if Config.APP_ENV == 'production':  # Production環境の場合
+            company_list = []
+            isExist = False
+            try:
+                company_list = requests.get(Config.COMPANY_LIST_URL[self.issuer.network]).json()
+            except Exception as err:
+                logger.exception(f"{err}")
+                abort(500)
+            for company_info in company_list:
+                if to_checksum_address(company_info['address']) == self.issuer.eth_account:
+                    isExist = True
+                    rsa_public_key = RSA.importKey(company_info['rsa_publickey'].replace('\\n', ''))
+            if not isExist:  # RSA公開鍵が取得できなかった場合はエラーを返して以降の処理を実施しない
+                abort(400)
+        else:  # NOTE:Production環境以外の場合はローカルのRSA公開鍵を取得
+            rsa_public_key = RSA.importKey(open('data/rsa/public.pem').read())
+
+        # 個人情報の暗号化
+        cipher = PKCS1_OAEP.new(rsa_public_key)
+        ciphertext = base64.encodebytes(cipher.encrypt(json.dumps(personal_info).encode('utf-8')))
+
+        try:
+            tx = self.personal_info_contract.functions.modify(account_address, ciphertext). \
+                buildTransaction({'from': self.issuer.eth_account, 'gas': Config.TX_GAS_LIMIT})
+            ContractUtils.send_transaction(transaction=tx, eth_account=self.issuer.eth_account)
+        except Exception as err:
+            logger.exception(f"{err}")
+            raise EthRuntimeError()

@@ -8,14 +8,14 @@
 {% endblock %}
 {% set active_page = "bond_list" %}
 
-{% block title %}債券保有者リスト履歴 - {% endblock %}
-{% block page_header %}債券保有者リスト履歴 <span class="badge bg-secondary">債券</span>{% endblock %}
+{% block title %}債券原簿履歴 - {% endblock %}
+{% block page_header %}債券原簿履歴 <span class="badge bg-secondary">債券</span>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
 <li><a href="{{ url_for('index.index') }}">トップ</a></li>
 <li><a href="{{ url_for('bond.list') }}">債券一覧</a></li>
 <li><a href="{{ url_for('bond.holders', token_address=token_address) }}">債券保有者一覧</a></li>
-<li class="active">債券保有者リスト履歴</li>
+<li class="active">債券原簿履歴</li>
 {% endblock %}
 
 {% block page_content %}
@@ -25,10 +25,10 @@
             <h3 class="box-title" id="token_name"></h3>
         </div>
         <div class="box-body">
-            <form id="download-form" method="post" action="{{ url_for('bond.holders_csv_history_download') }}"
+            <form id="download-form" method="post" action="{{ url_for('bond.ledger_download') }}"
                   enctype="multipart/form-data">
                 <input type="hidden" name="token_address" value="{{ token_address }}">
-                <input type="hidden" name="csv_id">
+                <input type="hidden" name="ledger_id">
                 <table id="data_table" class="table table-bordered table-hover">
                     <thead>
                     <tr>
@@ -43,7 +43,9 @@
             </form>
         </div>
         <div class="box-footer">
-            <button type="button" class="btn btn-default" onclick="location.href='{{ url_for('bond.holders', token_address=token_address) }}'">保有者一覧に戻る</button>
+            <button type="button" class="btn btn-default"
+                    onclick="location.href='{{ url_for('bond.holders', token_address=token_address) }}'">保有者一覧に戻る
+            </button>
         </div>
         <div class="overlay">
             <i class="fa fa-refresh fa-spin"></i>
@@ -60,7 +62,7 @@
 <script>
 token_address = {{ token_address | tojson }};
 token_name_url = '{{ url_for("bond.get_token_name", token_address=token_address) }}';
-get_holders_csv_history_url = '{{ url_for("bond.get_holders_csv_history", token_address=token_address) }}';
+get_ledger_history_url = '{{ url_for("bond.get_ledger_history", token_address=token_address) }}';
 $(function () {
     $('#data_table').DataTable({
         columns: [
@@ -73,22 +75,22 @@ $(function () {
             orderable: true,
             title: "ファイル名"
         }, {
-            data: "csv_id",
+            data: "ledger_id",
             orderable: false,
             className: "text-center",
             render: function (data) {
-                return `<button type="button" class="csv-download btn btn-default btn-sm" data-csv-id="${data}"/>ダウンロード`;
+                return `<button type="button" class="ledger-download btn btn-default btn-sm" data-ledger-id="${data}"/>ダウンロード`;
             }
         }],
         ajax: {
-            url: get_holders_csv_history_url,
+            url: get_ledger_history_url,
             dataSrc : function (json) {
                 returnJson = [];
                 for(index in json){
                     returnJsonRaw = {
                         created: json[index]['created'] || '--',
                         file_name: json[index]['file_name'] || '--',
-                        csv_id: json[index]['id']
+                        ledger_id: json[index]['id']
                     };
                     returnJson.push(returnJsonRaw)
                 }
@@ -135,8 +137,8 @@ $(function () {
     }
     getTokenName()
 
-    $(document.body).on('click', '.csv-download', function() {
-        $('[name="csv_id"]').val($(this).data('csv-id'));
+    $(document.body).on('click', '.ledger-download', function() {
+        $('[name="ledger_id"]').val($(this).data('ledger-id'));
         $('#download-form').submit();
     })
 })

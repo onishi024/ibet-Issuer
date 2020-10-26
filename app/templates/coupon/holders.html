@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% block head %}
-  {{ super() }}
-  <!-- DataTables -->
-  <link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
-  <!-- common.css -->
-  <link rel="stylesheet" href="/static/css/common.css">
+{{ super() }}
+<!-- DataTables -->
+<link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
+<!-- common.css -->
+<link rel="stylesheet" href="/static/css/common.css">
 {% endblock %}
 {% set active_page = "coupon_list" %}
 
@@ -12,9 +12,9 @@
 {% block page_header %}クーポン保有者一覧 <span class="badge bg-secondary">クーポン</span>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
-    <li><a href="{{ url_for('index.index') }}">トップ</a></li>
-    <li><a href="{{ url_for('coupon.list') }}">クーポン一覧</a></li>
-    <li class="active">保有者一覧</li>
+<li><a href="{{ url_for('index.index') }}">トップ</a></li>
+<li><a href="{{ url_for('coupon.list') }}">クーポン一覧</a></li>
+<li class="active">保有者一覧</li>
 {% endblock %}
 
 {% block page_content %}
@@ -22,11 +22,11 @@
     <div class="box box-default">
         <div class="box-header">
             <form method="post" action="{{ url_for('coupon.holders_csv_download') }}" enctype="multipart/form-data">
-              <h3 class="box-title" id="token_name"></h3>
-              <input type="text" name="token_address" style="display:none;" value="{{ token_address }}">
-              <div class="pull-right box-tools">
-                  <button id="csv_download" type="submit" class="btn btn-default" disabled>保有者リストダウンロード</button>
-              </div>
+                <h3 class="box-title" id="token_name"></h3>
+                <input type="text" name="token_address" style="display:none;" value="{{ token_address }}">
+                <div class="pull-right box-tools">
+                    <button id="csv_download" type="submit" class="btn btn-success" disabled>ダウンロード</button>
+                </div>
             </form>
         </div>
         <div class="box-body">
@@ -47,7 +47,8 @@
             </table>
         </div>
         <div class="box-footer">
-            <button type="button" class="btn btn-default" onclick="location.href='{{ url_for("coupon.list") }}'">一覧に戻る</button>
+            <button type="button" class="btn btn-default" onclick="location.href='{{ url_for('coupon.list') }}'">一覧に戻る
+            </button>
         </div>
         <div class="overlay">
             <i class="fa fa-refresh fa-spin"></i>
@@ -283,5 +284,6 @@ window.onload = function getTokenName() {
         alert('データ取得に失敗しました');
     });
 };
+
 </script>
 {% endblock %}

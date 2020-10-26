@@ -11,7 +11,7 @@ from Crypto.Cipher import PKCS1_OAEP
 from eth_utils import to_checksum_address
 
 from config import Config
-from app.models import Token, HolderList
+from app.models import Token, HolderList, BondLedger
 from .conftest import TestBase
 from .utils.account_config import eth_account
 from .utils.contract_utils_common import processor_issue_event, index_transfer_event, clean_issue_event
@@ -47,6 +47,9 @@ class TestBond(TestBase):
     url_holders_csv_history = 'bond/holders_csv_history/'  # 保有者リスト履歴
     url_get_holders_csv_history = 'bond/get_holders_csv_history/'  # 保有者リスト履歴（API）
     url_holders_csv_history_download = 'bond/holders_csv_history_download'  # 保有者リストCSVダウンロード
+    url_ledger_history = 'bond/ledger_history/'  # 原簿履歴
+    url_get_ledger_history = 'bond/get_ledger_history/'  # 原簿履歴取得
+    url_ledger_download = 'bond/ledger_download'  # 原簿ダウンロード
     url_add_supply = 'bond/add_supply/'  # 追加発行
     url_allot = 'bond/allot/'  # 割当登録
     url_applications_csv_download = 'bond/applications_csv_download'  # 申込者リストCSVダウンロード
@@ -69,6 +72,7 @@ class TestBond(TestBase):
     }
 
     trader_personal_info_json = {
+        "key_manager": "4010001203704",
         "name": "ﾀﾝﾀｲﾃｽﾄ",
         "address": {
             "postal_code": "1040053",
@@ -464,13 +468,13 @@ class TestBond(TestBase):
         assumed_csv = '\n'.join([
             # CSVヘッダ
             ",".join([
-                'token_name', 'token_address', 'account_address',
+                'token_name', 'token_address', 'account_address', 'key_manager',
                 'balance', 'commitment', 'total_balance', 'total_holdings',
                 'name', 'birth_date', 'postal_code', 'address', 'email'
             ]),
             # CSVデータ
             ','.join([
-                'テスト債券', token.token_address, eth_account['issuer']['account_address'],
+                'テスト債券', token.token_address, eth_account['issuer']['account_address'], '--',
                 '1000000', '0', '1000000', '1000000000',
                 '発行体１', '--', '--', '--', '--'
             ])
@@ -782,7 +786,7 @@ class TestBond(TestBase):
 
         # 保有者リスト履歴を作成
         holderList = HolderList()
-        holderList.token_address = tokens[0].token_address
+        holderList.token_address = token.token_address
         holderList.created = datetime(2020, 2, 29, 12, 59, 59, 1234, tzinfo=timezone.utc)
         holderList.holder_list = b'dummy csv bond test_normal_18_3'
         db.session.add(holderList)
@@ -809,7 +813,7 @@ class TestBond(TestBase):
 
         client = self.client_with_admin_login(app)
 
-        # 保有者一覧（API）の参照
+        # 保有者リストダウンロード
         response = client.post(
             self.url_holders_csv_history_download,
             data={
@@ -820,6 +824,83 @@ class TestBond(TestBase):
 
         assert response.status_code == 200
         assert response.data == b'dummy csv bond test_normal_18_3'
+
+    # ＜正常系19-1＞
+    #   債券原簿履歴
+    def test_normal_19_1(self, app):
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
+        token = tokens[0]
+        client = self.client_with_admin_login(app)
+
+        # 画面表示
+        response = client.get(self.url_ledger_history + token.token_address)
+        assert response.status_code == 200
+        assert '<title>債券原簿履歴'.encode('utf-8') in response.data
+        assert token.token_address.encode('utf-8') in response.data
+
+    # ＜正常系19-2＞
+    #   債券原簿履歴取得
+    #   0件：履歴データ
+    def test_normal_19_2(self, app):
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
+        token = tokens[0]
+        client = self.client_with_admin_login(app)
+
+        # 原簿履歴取得
+        response = client.get(self.url_get_ledger_history + token.token_address)
+        response_data = json.loads(response.data)
+
+        assert response.status_code == 200
+        assert len(response_data) == 0
+
+    # ＜正常系19-3＞
+    #   債券原簿履歴取得
+    #   1件：履歴データ
+    def test_normal_19_3(self, app, db):
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
+        token = tokens[0]
+        client = self.client_with_admin_login(app)
+
+        # 原簿履歴データを作成
+        record = BondLedger()
+        record.token_address = token.token_address
+        record.created = datetime(2020, 2, 29, 12, 59, 59, 1234, tzinfo=timezone.utc)
+        record.ledger = b'dummy json for ledger test'
+        db.session.add(record)
+
+        # 原簿履歴取得
+        response = client.get(self.url_get_ledger_history + token.token_address)
+        response_data = json.loads(response.data)
+
+        assert response.status_code == 200
+        assert len(response_data) == 1
+        assert token.token_address == response_data[0]['token_address']
+        assert '2020/02/29 21:59:59 +0900' == response_data[0]['created']
+        assert '20200229215959bond_ledger.json' == response_data[0]['file_name']
+
+    # ＜正常系19-4＞
+    #   債券原簿ダウンロード
+    #   ※19-3の続き
+    def test_normal_19_4(self, app, db):
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
+        token = tokens[0]
+
+        record = BondLedger.query.filter_by(token_address=token.token_address).first()
+        ledger_id = record.id
+
+        client = self.client_with_admin_login(app)
+
+        # 原簿ダウンロード
+        response = client.post(
+            self.url_ledger_download,
+            data={
+                'token_address': token.token_address,
+                'ledger_id': ledger_id
+            }
+        )
+
+        assert response.status_code == 200
+        assert response.data == b'dummy json for ledger test'
 
     #############################################################################
     # テスト（エラー系）
@@ -938,6 +1019,39 @@ class TestBond(TestBase):
             data={
                 'token_address': error_address,
                 'csv_id': 1
+            }
+        )
+        assert response.status_code == 404
+
+    # ＜エラー系1＞
+    #   原簿履歴（アドレスのフォーマットエラー）
+    def test_error_1_7(self, app):
+        error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
+
+        client = self.client_with_admin_login(app)
+        response = client.get(self.url_ledger_history + error_address)
+        assert response.status_code == 404
+
+    # ＜エラー系1＞
+    #   原簿履歴取得（アドレスのフォーマットエラー）
+    def test_error_1_8(self, app):
+        error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
+
+        client = self.client_with_admin_login(app)
+        response = client.get(self.url_get_ledger_history + error_address)
+        assert response.status_code == 404
+
+    # ＜エラー系1＞
+    #   原簿ダウンロード（アドレスのフォーマットエラー）
+    def test_error_1_9(self, app):
+        error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
+
+        client = self.client_with_admin_login(app)
+        response = client.post(
+            self.url_ledger_download,
+            data={
+                'token_address': error_address,
+                'ledger_id': 1
             }
         )
         assert response.status_code == 404
@@ -1603,6 +1717,44 @@ class TestBond(TestBase):
         client = self.client_with_admin_login(app, login_id='admin2')
 
         response = client.get(self.url_token_tracker + token.token_address)
+        assert response.status_code == 404
+
+    # ＜エラー系7_21＞
+    # ＜発行体相違＞
+    #   原簿履歴取得: 異なる発行体管理化のトークンアドレス
+    def test_error_7_21(self, app):
+        # 発行体1管理下のトークンアドレス
+        tokens = Token.query.filter_by(
+            template_id=Config.TEMPLATE_ID_SB,
+            admin_address=eth_account['issuer']['account_address'].lower()
+        ).all()
+        token = tokens[0]
+
+        # 発行体2でログイン
+        client = self.client_with_admin_login(app, login_id='admin2')
+
+        response = client.get(self.url_get_ledger_history + token.token_address)
+        assert response.status_code == 404
+
+    # ＜エラー系7_22＞
+    # ＜発行体相違＞
+    #   原簿ダウンロード: 異なる発行体管理化のトークンアドレス
+    def test_error_7_22(self, app):
+        # 発行体1管理下のトークンアドレス
+        tokens = Token.query.filter_by(
+            template_id=Config.TEMPLATE_ID_SB,
+            admin_address=eth_account['issuer']['account_address'].lower()
+        ).all()
+        token = tokens[0]
+
+        # 発行体2でログイン
+        client = self.client_with_admin_login(app, login_id='admin2')
+
+        response = client.post(
+            self.url_ledger_download,
+            data={
+                'token_address': token.token_address
+            })
         assert response.status_code == 404
 
     #############################################################################

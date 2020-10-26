@@ -11,4 +11,10 @@ sleep 10
 # test
 python manage.py test -v --cov 
 
+status_code=$?
+
 mv coverage.xml ./cov
+
+if [ $status_code -ne 0 ]; then
+  exit 1
+fi
