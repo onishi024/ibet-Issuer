@@ -1,13 +1,9 @@
 # -*- coding:utf-8 -*-
 import json
-import base64
 import io
 import re
 import time
 from datetime import datetime, timezone, timedelta
-
-from Crypto.PublicKey import RSA
-from Crypto.Cipher import PKCS1_OAEP
 
 from flask_wtf import FlaskForm as Form
 from flask import request, redirect, url_for, flash, make_response, render_template, abort, jsonify, session
@@ -219,20 +215,16 @@ def applications_csv_download():
 @login_required
 def get_applications(token_address):
     # Tokenコントラクト接続
-    TokenContract = TokenUtils.get_contract(token_address, session['eth_account'])
-
-    # RSA秘密鍵取得
-    issuer = Issuer.query.get(session['issuer_id'])
-    cipher = None
-    try:
-        key = RSA.importKey(issuer.encrypted_rsa_private_key, Config.RSA_PASSWORD)
-        cipher = PKCS1_OAEP.new(key)
-    except Exception as err:
-        logger.error(f"Cannot open the private key: {err}")
+    TokenContract = TokenUtils.get_contract(
+        token_address=token_address,
+        issuer_address=session['eth_account'],
+        template_id=Config.TEMPLATE_ID_MEMBERSHIP
+    )
 
     # PersonalInfoコントラクト接続
-    personalinfo_address = issuer.personal_info_contract_address
-    PersonalInfoContract = ContractUtils.get_contract('PersonalInfo', personalinfo_address)
+    personal_info_contract = PersonalInfoContract(
+        issuer_address=session['eth_account']
+    )
 
     # 申込（ApplyFor）イベントを検索
     apply_for_events = ApplyFor.query. \
@@ -244,47 +236,23 @@ def get_applications(token_address):
     for event in apply_for_events:
         account_list.append(event.account_address)
 
-    applications = []
+    _applications = []
     for account_address in account_list:
-        encrypted_info = PersonalInfoContract.functions. \
-            personal_info(account_address, session['eth_account']).call()[2]
-        account_name = ''
-        account_email_address = ''
-        if encrypted_info == '' or cipher is None:
-            pass
-        else:
-            try:
-                # 個人情報を復号
-                ciphertext = base64.decodebytes(encrypted_info.encode('utf-8'))
-                # NOTE:
-                # JavaScriptでRSA暗号化する際に、先頭が0x00の場合は00を削った状態でデータが連携される。
-                # そのままdecryptすると、ValueError（Ciphertext with incorrect length）になるため、
-                # 先頭に再度00を加えて、decryptを行う。
-                if len(ciphertext) == 1279:
-                    hex_fixed = "00" + ciphertext.hex()
-                    ciphertext = base64.b16decode(hex_fixed.upper())
-                message = cipher.decrypt(ciphertext)
-                personal_info_json = json.loads(message)
-
-                # 氏名
-                if 'name' in personal_info_json:
-                    account_name = personal_info_json['name']
-                # Eメールアドレス
-                if 'email' in personal_info_json:
-                    account_email_address = personal_info_json['email']
-            except Exception as err:
-                logger.error(f"Failed to decrypt: {err}")
-
+        # 個人情報取得
+        personal_info = personal_info_contract.get_info(
+            account_address=account_address,
+            default_value="--"
+        )
         data = TokenContract.functions.applications(account_address).call()
-        application = {
+        _application = {
             'account_address': account_address,
-            'account_name': account_name,
-            'account_email_address': account_email_address,
+            'account_name': personal_info['name'],
+            'account_email_address': personal_info['email'],
             'data': data
         }
-        applications.append(application)
+        _applications.append(_application)
 
-    return jsonify(applications)
+    return jsonify(_applications)
 
 
 ####################################################
