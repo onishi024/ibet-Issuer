@@ -65,6 +65,7 @@ class TestShare(TestBase):
     }
 
     trader_personal_info_json = {
+        "key_manager": "4010001203704",
         "name": "ﾀﾝﾀｲﾃｽﾄ",
         "address": {
             "postal_code": "1040053",
@@ -735,19 +736,19 @@ class TestShare(TestBase):
 
         # CSVヘッダ
         csv_header = ",".join([
-            'token_name', 'token_address', 'account_address',
+            'token_name', 'token_address', 'account_address', 'key_manager',
             'balance', 'commitment',
             'name', 'birth_date', 'postal_code', 'address', 'email'
         ])
         # CSVデータ（発行体）
         csv_row_issuer = ','.join([
-            self.token_data1['name'], token.token_address, eth_account['issuer']['account_address'],
+            self.token_data1['name'], token.token_address, eth_account['issuer']['account_address'], '--',
             '999980', '0',
             '発行体１', '--', '--', '--', '--'
         ])
         # CSVデータ（投資家）
         csv_row_trader = ','.join([
-            self.token_data1['name'], token.token_address, eth_account['trader']['account_address'],
+            self.token_data1['name'], token.token_address, eth_account['trader']['account_address'], '4010001203704',
             '30', '0',
             'ﾀﾝﾀｲﾃｽﾄ', '20191102', '1040053', '東京都中央区　勝どき1丁目１\u002d２\u30fc３', 'abcd1234@aaa.bbb.cc'
         ])

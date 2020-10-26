@@ -17,6 +17,7 @@ from .utils.contract_utils_personal_info import register_personal_info
 
 # PersonalInfo情報の暗号化
 issuer_personal_info_json = {
+    "key_manager": "4010001203704",
     "name": "株式会社１",
     "address": {
         "postal_code": "1234567",
@@ -33,6 +34,7 @@ cipher = PKCS1_OAEP.new(key)
 issuer_encrypted_info = base64.encodebytes(cipher.encrypt(json.dumps(issuer_personal_info_json).encode('utf-8')))
 
 trader_personal_info_json = {
+    "key_manager": "4010001203704",
     "name": "ﾀﾝﾀｲﾃｽﾄ",
     "address": {
         "postal_code": "1040053",
@@ -51,7 +53,6 @@ trader_encrypted_info = base64.encodebytes(cipher.encrypt(json.dumps(trader_pers
 
 @pytest.fixture(scope="class", autouse=True)
 def setup(db, shared_contract):
-
     # PersonalInfo登録
     register_personal_info(
         eth_account['issuer'],
@@ -83,7 +84,7 @@ class TestAPIShareHolders(TestBase):
         # 株式新規発行
         with self.client_with_admin_login(app) as client:
             # 新規発行
-            r = client.post(
+            client.post(
                 '/share/issue',
                 data={
                     'name': 'テスト株',
@@ -164,18 +165,18 @@ class TestAPIShareHolders(TestBase):
         csv_data = '\n'.join([
             # CSVヘッダ
             ",".join([
-                'token_name', 'token_address', 'account_address',
+                'token_name', 'token_address', 'account_address', 'key_manager',
                 'balance', 'commitment',
                 'name', 'birth_date', 'postal_code', 'address', 'email'
             ]),
             # CSVデータ
             ','.join([
-                'テスト株', token.token_address, eth_account['issuer']['account_address'],
+                'テスト株', token.token_address, eth_account['issuer']['account_address'], '--',
                 '999990', '0',
                 '発行体１', '--', '--', '--', '--'
             ]),
             ','.join([
-                'テスト株', token.token_address, eth_account['trader']['account_address'],
+                'テスト株', token.token_address, eth_account['trader']['account_address'], '4010001203704',
                 '10', '0',
                 'ﾀﾝﾀｲﾃｽﾄ', '20191102', '1040053', '東京都中央区　勝どき1丁目１-２ー３', 'abcd1234@aaa.bbb.cc'
             ])
@@ -348,18 +349,18 @@ class TestAPIBondHolders(TestBase):
         csv_data = '\n'.join([
             # CSVヘッダ
             ",".join([
-                'token_name', 'token_address', 'account_address',
+                'token_name', 'token_address', 'account_address', 'key_manager',
                 'balance', 'commitment', 'total_balance', 'total_holdings',
                 'name', 'birth_date', 'postal_code', 'address', 'email'
             ]),
             # CSVデータ
             ','.join([
-                'テスト債券', token.token_address, eth_account['issuer']['account_address'],
+                'テスト債券', token.token_address, eth_account['issuer']['account_address'], '--',
                 '999990', '0', '999990', '999990000',
                 '発行体１', '--', '--', '--', '--'
             ]),
             ','.join([
-                'テスト債券', token.token_address, eth_account['trader']['account_address'],
+                'テスト債券', token.token_address, eth_account['trader']['account_address'], '4010001203704',
                 '10', '0', '10', '10000',
                 'ﾀﾝﾀｲﾃｽﾄ', '20191102', '1040053', '東京都中央区　勝どき1丁目１-２ー３', 'abcd1234@aaa.bbb.cc'
             ])
@@ -520,18 +521,18 @@ class TestAPIMembershipHolders(TestBase):
         csv_data = '\n'.join([
             # CSVヘッダ
             ",".join([
-                'token_name', 'token_address', 'account_address',
+                'token_name', 'token_address', 'account_address', 'key_manager',
                 'balance', 'commitment',
                 'name', 'birth_date', 'postal_code', 'address', 'email'
             ]),
             # CSVデータ
             ','.join([
-                'テスト会員権', token.token_address, eth_account['issuer']['account_address'],
+                'テスト会員権', token.token_address, eth_account['issuer']['account_address'], '--',
                 '999990', '0',
                 '発行体１', '--', '--', '--', '--'
             ]),
             ','.join([
-                'テスト会員権', token.token_address, eth_account['trader']['account_address'],
+                'テスト会員権', token.token_address, eth_account['trader']['account_address'], '4010001203704',
                 '10', '0',
                 'ﾀﾝﾀｲﾃｽﾄ', '20191102', '1040053', '東京都中央区　勝どき1丁目１-２ー３', 'abcd1234@aaa.bbb.cc'
             ])

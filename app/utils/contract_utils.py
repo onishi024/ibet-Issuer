@@ -8,7 +8,6 @@ from web3 import Web3
 from web3.middleware import geth_poa_middleware
 from eth_utils import to_checksum_address
 
-from app.models import Issuer
 from config import Config
 from logging import getLogger
 
@@ -22,12 +21,23 @@ class ContractUtils:
 
     @staticmethod
     def get_contract_info(contract_name):
+        """コントラクト情報取得
+
+        :param contract_name: コントラクト名
+        :return: ABI, bytecode, deployedBytecode
+        """
         contract_file = f"contracts/{contract_name}.json"
         contract_json = json.load(open(contract_file, "r"))
         return contract_json["abi"], contract_json["bytecode"], contract_json["deployedBytecode"]
 
     @staticmethod
     def get_contract(contract_name, address):
+        """コントラクト接続
+
+        :param contract_name: コントラクト名
+        :param address: コントラクトアドレス
+        :return: Contract
+        """
         contract_file = f"contracts/{contract_name}.json"
         contract_json = json.load(open(contract_file, "r"))
         contract = web3.eth.contract(
@@ -38,8 +48,8 @@ class ContractUtils:
 
     @staticmethod
     def deploy_contract(contract_name, args, deployer, db_session=None):
-        """
-        コントラクトデプロイ
+        """コントラクトデプロイ
+
         :param contract_name: コントラクト名
         :param args: コンストラクタに与える引数
         :param deployer: デプロイ実行者
@@ -72,13 +82,15 @@ class ContractUtils:
 
     @staticmethod
     def send_transaction(*, transaction, eth_account, db_session=None):
-        """
-        トランザクション送信
+        """トランザクション送信
+
         :param transaction: transaction
         :param eth_account: トランザクションを送信する発行体アドレス
         :param db_session: DBセッション。Flaskアプリ以外（Processor）の場合、必須。
         :return: transaction hash, transaction receipt
         """
+        from app.models import Issuer
+
         tx_hash = None
 
         query = Issuer.query if db_session is None else db_session.query(Issuer)
