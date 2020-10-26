@@ -44,6 +44,7 @@
                     <th></th>
                     <th></th>
                     <th></th>
+                    <th></th>
                 </tr>
                 </thead>
                 <tbody>
@@ -119,6 +120,11 @@
                     <td>アカウントアドレス</td>
                     <td>0x0b3c7F97383bCFf942E6b1038a47B9AA5377A252</td>
                     <td></td>
+                </tr>
+                <tr>
+                    <td>鍵管理機関</td>
+                    <td>4010001203704</td>
+                    <td>法人番号</td>
                 </tr>
                 <tr>
                     <td>保有数量</td>
@@ -208,6 +214,9 @@ $(function () {
             return '<small>' + data + '</small>'
             }
         }, {
+            data: 'key_manager',
+            title: '鍵管理機関'
+        }, {
             data: "name",
             orderable: true,
             title: "氏名"
@@ -247,6 +256,7 @@ $(function () {
                 returnJsonRaw = {
                     address_type : json[index]['address_type'] ? json[index]['address_type'] : 0,
                     account_address : json[index]['account_address'] ? json[index]['account_address'] : '--',
+                    key_manager : json[index]['key_manager'] ? json[index]['key_manager'] : '--',
                     name: json[index]['name'] ? json[index]['name'] : '--',
                     balance: balance,
                     commitment: json[index]['commitment'] ? json[index]['commitment'].toLocaleString() : 0,

@@ -72,6 +72,7 @@ class TestBond(TestBase):
     }
 
     trader_personal_info_json = {
+        "key_manager": "4010001203704",
         "name": "ﾀﾝﾀｲﾃｽﾄ",
         "address": {
             "postal_code": "1040053",
@@ -467,13 +468,13 @@ class TestBond(TestBase):
         assumed_csv = '\n'.join([
             # CSVヘッダ
             ",".join([
-                'token_name', 'token_address', 'account_address',
+                'token_name', 'token_address', 'account_address', 'key_manager',
                 'balance', 'commitment', 'total_balance', 'total_holdings',
                 'name', 'birth_date', 'postal_code', 'address', 'email'
             ]),
             # CSVデータ
             ','.join([
-                'テスト債券', token.token_address, eth_account['issuer']['account_address'],
+                'テスト債券', token.token_address, eth_account['issuer']['account_address'], '--',
                 '1000000', '0', '1000000', '1000000000',
                 '発行体１', '--', '--', '--', '--'
             ])
