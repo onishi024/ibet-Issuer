@@ -132,12 +132,19 @@ class DBSink:
         bond_total_supply = token.functions.totalSupply().call()
         bond_memo = token.functions.memo().call()
 
+        payment_info = {
+            "払込金額": 0,
+            "払込日": "",
+            "払込状況": False
+        }
+
         bond_description = {
-            "名称": bond_name,
-            "説明": bond_purpose,
-            "総額": bond_face_value * bond_total_supply,
-            "各債券の金額": bond_face_value,
-            "その他補足事項": bond_memo
+            "社債名称": bond_name,
+            "社債の説明": bond_purpose,
+            "社債の総額": bond_face_value * bond_total_supply,
+            "各社債の金額": bond_face_value,
+            "払込情報": payment_info,
+            "社債の種類": bond_memo
         }
 
         # 原簿管理人
@@ -186,8 +193,22 @@ class DBSink:
                 "アカウントアドレス": account_address,
                 "氏名または名称": "",
                 "住所": "",
-                "金額": bond_face_value * amount,
-                "取得日": transaction_date_jst
+                "社債金額": bond_face_value * amount,
+                "取得日": transaction_date_jst,
+                "金銭以外の財産給付情報": {
+                    "財産の価格": "-",
+                    "給付日": "-"
+                },
+                "債権相殺情報": {
+                    "相殺する債権額": "-",
+                    "相殺日": "-"
+                },
+                "質権情報": {
+                    "質権者の氏名または名称": "-",
+                    "質権者の住所": "-",
+                    "質権の目的である債券": "-"
+                },
+                "備考": "-"
             }
 
             try:
@@ -225,7 +246,7 @@ class DBSink:
                         "アカウントアドレス": account_address,
                         "氏名または名称": name,
                         "住所": address,
-                        "金額": amount,
+                        "社債金額": bond_face_value * amount,
                         "取得日": transaction_date_jst,
                         "金銭以外の財産給付情報": {
                             "財産の価格": "-",
@@ -239,7 +260,8 @@ class DBSink:
                             "質権者の氏名または名称": "-",
                             "質権者の住所": "-",
                             "質権の目的である債券": "-"
-                        }
+                        },
+                        "備考": "-"
                     }
             except Exception as err:
                 logging.error(f"Failed to decrypt: {err} : account_address = {account_address}")
@@ -248,10 +270,10 @@ class DBSink:
 
         # 原簿保管
         ledger = {
-            "原簿作成日": created_date,
-            "債券情報": bond_description,
-            "原簿管理人": ledger_admin,
-            "債権者": creditors
+            "社債原簿作成日": created_date,
+            "社債情報": bond_description,
+            "社債原簿管理人": ledger_admin,
+            "社債権者": creditors
         }
         logging.debug(ledger)
         bond_ledger = BondLedger(
