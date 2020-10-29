@@ -36,7 +36,7 @@
                     <div class="col-md-1"></div>
                     <div class="col-md-8">
                         {{ form.bond_name.label }}
-                        {{ form.bond_name(class="form-control") }}
+                        {{ form.bond_name(class="form-control", autocomplete="off") }}
                     </div>
                 </div>
                 <div class="form-group">
@@ -57,14 +57,14 @@
                     <div class="col-md-1"></div>
                     <div class="col-md-6">
                         {{ form.total_amount.label }}
-                        {{ form.total_amount(class="form-control comma-separate") }}
+                        {{ form.total_amount(class="form-control comma-separate", autocomplete="off") }}
                     </div>
                 </div>
                 <div class="form-group">
                     <div class="col-md-1"></div>
                     <div class="col-md-6">
                         {{ form.face_value.label }}
-                        {{ form.face_value(class="form-control comma-separate") }}
+                        {{ form.face_value(class="form-control comma-separate", autocomplete="off") }}
                     </div>
                 </div>
                 <!-- 払込情報 -->
@@ -79,7 +79,7 @@
                     <div class="col-md-1"></div>
                     <div class="col-md-6">
                         {{ form.payment_amount.label }}
-                        {{ form.payment_amount(class="form-control comma-separate") }}
+                        {{ form.payment_amount(class="form-control comma-separate", autocomplete="off") }}
                     </div>
                 </div>
                 <div class="form-group">
@@ -115,21 +115,21 @@
                     <div class="col-md-1"></div>
                     <div class="col-md-8">
                         {{ form.ledger_admin_name.label }}
-                        {{ form.ledger_admin_name(class="form-control") }}
+                        {{ form.ledger_admin_name(class="form-control", autocomplete="off") }}
                     </div>
                 </div>
                 <div class="form-group">
                     <div class="col-md-1"></div>
                     <div class="col-md-8">
                         {{ form.ledger_admin_address.label }}
-                        {{ form.ledger_admin_address(class="form-control") }}
+                        {{ form.ledger_admin_address(class="form-control", autocomplete="off") }}
                     </div>
                 </div>
                 <div class="form-group">
                     <div class="col-md-1"></div>
                     <div class="col-md-8">
                         {{ form.ledger_admin_location.label }}
-                        {{ form.ledger_admin_location(class="form-control") }}
+                        {{ form.ledger_admin_location(class="form-control", autocomplete="off") }}
                     </div>
                 </div>
             </div>

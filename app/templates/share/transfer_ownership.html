@@ -32,13 +32,13 @@
         <div class="form-group">
           {{ form.to_address.label(class="col-md-2 control-label") }}
           <div class="col-md-5">
-            {{ form.to_address(class="form-control") }}
+            {{ form.to_address(class="form-control", autocomplete="off") }}
           </div>
         </div>
         <div class="form-group">
           {{ form.amount.label(class="col-md-2 control-label") }}
           <div class="col-md-5">
-            {{ form.amount(class="form-control") }}
+            {{ form.amount(class="form-control", autocomplete="off") }}
           </div>
         </div>
       </div>
