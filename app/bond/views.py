@@ -18,15 +18,15 @@ from eth_utils import to_checksum_address
 from app import db
 from app.exceptions import EthRuntimeError
 from app.models import Token, Certification, Order, Agreement, AgreementStatus, \
-    Transfer, AddressType, ApplyFor, Issuer, HolderList, LedgerAdministrator, BondLedger, \
-    PersonalInfoContract
+    Transfer, AddressType, ApplyFor, Issuer, HolderList, BondLedger, \
+    PersonalInfoContract, CorporateBondLedgerTemplate
 from app.utils import ContractUtils, TokenUtils
 from config import Config
 
 from . import bond
 from .forms import TransferOwnershipForm, SettingForm, RequestSignatureForm, \
     IssueForm, SellTokenForm, CancelOrderForm, TransferForm, \
-    AllotForm, AddSupplyForm, LedgerAdministratorForm
+    AllotForm, AddSupplyForm, CorporateBondLedgerTemplateForm
 
 from logging import getLogger
 
@@ -1012,6 +1012,105 @@ def request_signature(token_address):
         return render_template('bond/request_signature.html', form=form)
 
 
+#################################################
+# 社債原簿基本情報の登録
+#################################################
+@bond.route('/corporate_bond_ledger_template/<string:token_address>', methods=['GET', 'POST'])
+@login_required
+def corporate_bond_ledger_template(token_address):
+    logger.info('bond/corporate_bond_ledger_template')
+
+    form = CorporateBondLedgerTemplateForm()
+
+    # 権限チェック
+    token = Token.query. \
+        filter(Token.token_address == token_address). \
+        filter(Token.admin_address == session['eth_account'].lower()). \
+        first()
+    if token is None:
+        abort(404)
+
+    ##############################
+    # POST
+    ##############################
+    if request.method == "POST":
+        if form.validate():
+            record = CorporateBondLedgerTemplate.query. \
+                filter(CorporateBondLedgerTemplate.token_address == token_address). \
+                filter(CorporateBondLedgerTemplate.eth_account == session["eth_account"]). \
+                first()
+            if record is None:
+                record = CorporateBondLedgerTemplate()
+                record.token_address = token_address
+                record.eth_account = session["eth_account"]
+                record.bond_name = form.bond_name.data
+                record.bond_description = form.bond_description.data
+                record.bond_type = form.bond_type.data
+                record.total_amount = form.total_amount.data
+                record.face_value = form.face_value.data
+                record.payment_amount = form.payment_amount.data
+                record.payment_date = form.payment_date.data
+                record.payment_status = form.payment_status.data
+                record.ledger_admin_name = form.ledger_admin_name.data
+                record.ledger_admin_address = form.ledger_admin_address.data
+                record.ledger_admin_location = form.ledger_admin_location.data
+                db.session.add(record)
+            else:
+                record.bond_name = form.bond_name.data
+                record.bond_description = form.bond_description.data
+                record.bond_type = form.bond_type.data
+                record.total_amount = form.total_amount.data
+                record.face_value = form.face_value.data
+                record.payment_amount = form.payment_amount.data
+                record.payment_date = form.payment_date.data
+                record.payment_status = form.payment_status.data
+                record.ledger_admin_name = form.ledger_admin_name.data
+                record.ledger_admin_address = form.ledger_admin_address.data
+                record.ledger_admin_location = form.ledger_admin_location.data
+            db.session.commit()
+            flash('登録処理が完了しました。', 'success')
+        else:
+            flash_errors(form)
+
+        return render_template('bond/corporate_bond_ledger_template.html', form=form, form_description=form.description)
+
+    ##############################
+    # GET
+    ##############################
+    if request.method == "GET":
+        record = CorporateBondLedgerTemplate.query. \
+            filter(CorporateBondLedgerTemplate.token_address == token_address). \
+            filter(CorporateBondLedgerTemplate.eth_account == session['eth_account']). \
+            first()
+        if record is not None:
+            form.token_address.data = token_address
+            form.bond_name.data = record.bond_name
+            form.bond_description.data = record.bond_description
+            form.bond_type.data = record.bond_type
+            form.total_amount.data = record.total_amount
+            form.face_value.data = record.face_value
+            form.payment_amount.data = record.payment_amount
+            form.payment_date.data = record.payment_date
+            form.payment_status.data = str(record.payment_status)
+            form.ledger_admin_name.data = record.ledger_admin_name
+            form.ledger_admin_address.data = record.ledger_admin_address
+            form.ledger_admin_location.data = record.ledger_admin_location
+        else:
+            form.token_address.data = token_address
+            form.bond_name.data = ""
+            form.bond_description.data = ""
+            form.bond_type.data = ""
+            form.total_amount.data = ""
+            form.face_value.data = ""
+            form.payment_amount.data = ""
+            form.payment_date.data = ""
+            form.payment_status.data = "False"
+            form.ledger_admin_name.data = ""
+            form.ledger_admin_address.data = ""
+            form.ledger_admin_location.data = ""
+        return render_template('bond/corporate_bond_ledger_template.html', form=form, form_description=form.description)
+
+
 ####################################################
 # [債券]公開
 ####################################################
@@ -1711,62 +1810,6 @@ def token_tracker(token_address):
         token_address=token_address,
         track=track
     )
-
-
-#################################################
-# 原簿管理者情報の登録
-#################################################
-@bond.route('/ledger_administrator', methods=['GET', 'POST'])
-@login_required
-def ledger_administrator():
-    logger.info('bond/ledger_administrator')
-
-    form = LedgerAdministratorForm()
-
-    ##############################
-    # POST
-    ##############################
-    if request.method == "POST":
-        if form.validate():
-            record = LedgerAdministrator.query. \
-                filter(LedgerAdministrator.eth_account == session["eth_account"]). \
-                first()
-            if record is None:
-                record = LedgerAdministrator()
-                record.eth_account = session["eth_account"]
-                record.name = form.name.data
-                record.address = form.address.data
-                record.location = form.location.data
-                db.session.add(record)
-            else:
-                record.name = form.name.data
-                record.address = form.address.data
-                record.location = form.location.data
-            db.session.commit()
-            flash('登録処理が完了しました。', 'success')
-        else:
-            flash_errors(form)
-
-        return render_template('bond/ledger_administrator.html', form=form)
-
-    ##############################
-    # GET
-    ##############################
-    if request.method == "GET":
-        record = LedgerAdministrator.query. \
-            filter(LedgerAdministrator.eth_account == session['eth_account']). \
-            first()
-        if record is not None:
-            form.name.data = record.name
-            form.address.data = record.address
-            form.location.data = record.location
-        else:
-            form.name.data = ""
-            form.address.data = ""
-            form.location.data = ""
-
-        return render_template('bond/ledger_administrator.html', form=form)
-
 
 #################################################
 # 原簿履歴

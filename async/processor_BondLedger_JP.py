@@ -19,7 +19,8 @@ path = os.path.join(os.path.dirname(__file__), '../')
 sys.path.append(path)
 
 from app.utils import ContractUtils
-from app.models import Token, UTXO, BondLedger, BondLedgerBlockNumber, Issuer, LedgerAdministrator
+from app.models import Token, UTXO, BondLedger, BondLedgerBlockNumber, Issuer, \
+    CorporateBondLedgerTemplate
 from config import Config
 
 from web3 import Web3
@@ -122,41 +123,53 @@ class DBSink:
                     self.db.merge(utxo)
 
     def on_bond_ledger(self, token):
+        #########################################
         # 原簿作成日
+        #########################################
         created_date = datetime.utcnow().replace(tzinfo=timezone.utc).astimezone(JST).strftime("%Y/%m/%d")
 
-        # 債券情報
-        bond_name = token.functions.name().call()
-        bond_purpose = token.functions.purpose().call()
-        bond_face_value = token.functions.faceValue().call()
-        bond_total_supply = token.functions.totalSupply().call()
-        bond_memo = token.functions.memo().call()
+        #########################################
+        # 社債の情報
+        #########################################
+        ledger_template = CorporateBondLedgerTemplate.query. \
+            filter(CorporateBondLedgerTemplate.token_address == token.address).\
+            first()
 
-        payment_info = {
-            "払込金額": 0,
-            "払込日": "",
-            "払込状況": False
-        }
+        if ledger_template is not None:
+            bond_description = {
+                "社債名称": ledger_template.bond_name,
+                "社債の説明": ledger_template.bond_description,
+                "社債の総額": ledger_template.total_amount,
+                "各社債の金額": ledger_template.face_value,
+                "払込情報": {
+                    "払込金額": ledger_template.payment_amount,
+                    "払込日": ledger_template.payment_date,
+                    "払込状況": ledger_template.payment_status
+                },
+                "社債の種類": ledger_template.bond_type
+            }
+        else:
+            bond_description = {
+                "社債名称": "",
+                "社債の説明": "",
+                "社債の総額": "",
+                "各社債の金額": "",
+                "払込情報": {
+                    "払込金額": "",
+                    "払込日": "",
+                    "払込状況": ""
+                },
+                "社債の種類": ""
+            }
 
-        bond_description = {
-            "社債名称": bond_name,
-            "社債の説明": bond_purpose,
-            "社債の総額": bond_face_value * bond_total_supply,
-            "各社債の金額": bond_face_value,
-            "払込情報": payment_info,
-            "社債の種類": bond_memo
-        }
-
+        #########################################
         # 原簿管理人
-        issuer_address = token.functions.owner().call()
-        administrator = self.db.query(LedgerAdministrator).\
-            filter(LedgerAdministrator.eth_account == issuer_address).first()
-
-        if administrator is not None:
+        #########################################
+        if ledger_template is not None:
             ledger_admin = {
-                "氏名または名称": administrator.name,
-                "住所": administrator.address,
-                "事務取扱場所": administrator.location
+                "氏名または名称": ledger_template.ledger_admin_name,
+                "住所": ledger_template.ledger_admin_address,
+                "事務取扱場所": ledger_template.ledger_admin_location
             }
         else:
             ledger_admin = {
@@ -165,7 +178,11 @@ class DBSink:
                 "事務取扱場所": ""
             }
 
+        #########################################
         # 債権者情報
+        #########################################
+        issuer_address = token.functions.owner().call()
+        face_value = token.functions.faceValue().call()
         issuer = self.db.query(Issuer).filter(Issuer.eth_account == issuer_address).first()
         personal_info_contract_address = token.functions.personalInfoAddress().call()
         personal_info_contract = ContractUtils.get_contract('PersonalInfo', personal_info_contract_address)
@@ -193,7 +210,7 @@ class DBSink:
                 "アカウントアドレス": account_address,
                 "氏名または名称": "",
                 "住所": "",
-                "社債金額": bond_face_value * amount,
+                "社債金額": face_value * amount,
                 "取得日": transaction_date_jst,
                 "金銭以外の財産給付情報": {
                     "財産の価格": "-",
@@ -233,36 +250,15 @@ class DBSink:
 
                     # 氏名
                     name = personal_info_json.get("name", "")
-
                     # 住所
                     address_details = personal_info_json.get("address", {})
                     address = f'{address_details.get("prefecture", "")}' \
                               f'{address_details.get("city", "")} ' \
                               f'{address_details.get("address1", "")} ' \
                               f'{address_details.get("address2", "")}'
-
-                    # 保有者情報
-                    details = {
-                        "アカウントアドレス": account_address,
-                        "氏名または名称": name,
-                        "住所": address,
-                        "社債金額": bond_face_value * amount,
-                        "取得日": transaction_date_jst,
-                        "金銭以外の財産給付情報": {
-                            "財産の価格": "-",
-                            "給付日": "-"
-                        },
-                        "債権相殺情報": {
-                            "相殺する債権額": "-",
-                            "相殺日": "-"
-                        },
-                        "質権情報": {
-                            "質権者の氏名または名称": "-",
-                            "質権者の住所": "-",
-                            "質権の目的である債券": "-"
-                        },
-                        "備考": "-"
-                    }
+                    # 保有者情報設定
+                    details["氏名または名称"] = name
+                    details["住所"] = address
             except Exception as err:
                 logging.error(f"Failed to decrypt: {err} : account_address = {account_address}")
 
