@@ -720,22 +720,95 @@ class AddSupplyForm(Form):
         self.issue = issue
 
 
-# 原簿管理者情報登録
-class LedgerAdministratorForm(Form):
-    name = StringField("名称", validators=[
-        DataRequired("名称は必須です。"),
-        Length(max=40, message="名称は40文字までです。")
-    ])
-    address = StringField("住所", validators=[
-        DataRequired("住所は必須です。"),
-        Length(max=200, message="住所は200文字までです。")
-    ])
-    location = StringField("事務取扱場所", validators=[
-        DataRequired("事務取扱場所は必須です。"),
-        Length(max=200, message="事務取扱場所は200文字までです。")
-    ])
+# 社債原簿基本情報登録
+class CorporateBondLedgerTemplateForm(Form):
+    yyyymmdd_regexp = '^(19[0-9]{2}|20[0-9]{2})(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])$'
+
+    token_address = HiddenField(
+        "トークンアドレス",
+        validators=[
+            DataRequired('トークンアドレスは必須です。')
+        ]
+    )
+    bond_name = StringField(
+        "社債名称",
+        validators=[
+            DataRequired("社債名称は必須です。"),
+            Length(max=200, message="社債名称は200文字までです。")
+        ]
+    )
+    bond_description = TextAreaField(
+        "社債の説明",
+        validators=[
+            DataRequired("社債の説明は必須です。"),
+            Length(max=1_000, message="社債の説明は1000文字までです。")
+        ]
+    )
+    bond_type = TextAreaField(
+        "社債の種類",
+        validators=[
+            DataRequired("社債の種類は必須です。"),
+            Length(max=1_000, message="社債種類は1000文字までです。")
+        ]
+    )
+    total_amount = IntegerField(
+        "社債の総額",
+        validators=[
+            InputRequired('社債の総額は必須です。'),
+            NumberRange(min=0, max=1_000_000_000_000, message='社債の総額は1,000,000,000,000が上限です。'),
+        ]
+    )
+    face_value = IntegerField(
+        "各社債の金額",
+        validators=[
+            InputRequired('各社債の金額は必須です。'),
+            NumberRange(min=0, max=100_000_000, message='各社債の金額は100,000,000が上限です。'),
+        ]
+    )
+    payment_amount = IntegerField(
+        "払込金額",
+        validators=[
+            InputRequired('払込金額は必須です。'),
+            NumberRange(min=0, max=1_000_000_000_000, message='払込金額は1,000,000,000,000が上限です。'),
+        ]
+    )
+    payment_date = StringField(
+        "払込日",
+        validators=[
+            DataRequired("払込日は必須です。"),
+            Regexp(yyyymmdd_regexp, message='償還日はYYYYMMDDで入力してください。')
+        ]
+    )
+    payment_status = SelectField(
+        "払込状況",
+        choices=[(True, 'True'), (False, 'False')],
+        default='False'
+    )
+    ledger_admin_name = StringField(
+        "名称",
+        validators=[
+            DataRequired("名称は必須です。"),
+            Length(max=200, message="名称は200文字までです。")
+        ]
+    )
+    ledger_admin_address = StringField(
+        "本店所在地",
+        validators=[
+            DataRequired("本店所在地は必須です。"),
+            Length(max=200, message="本店所在地は200文字までです。")
+        ]
+    )
+    ledger_admin_location = StringField(
+        "事務取扱場所",
+        validators=[
+            DataRequired("事務取扱場所は必須です。"),
+            Length(max=200, message="事務取扱場所は200文字までです。")
+        ]
+    )
     submit = SubmitField('登録')
 
-    def __init__(self, ledger_administrator=None, *args, **kwargs):
-        super(LedgerAdministratorForm, self).__init__(*args, **kwargs)
-        self.ledger_administrator = ledger_administrator
+    def __init__(self, *args, **kwargs):
+        super(CorporateBondLedgerTemplateForm, self).__init__(*args, **kwargs)
+        self.payment_status.choices = [('True', '完了'), ('False', '未完了')]
+        self.description = {
+        }

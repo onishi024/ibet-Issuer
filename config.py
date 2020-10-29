@@ -66,7 +66,6 @@ class Config:
             ('bond_issue', 'fa fa-circle-o', '新規発行', 'bond.issue'),
             ('bond_list', 'fa fa-circle-o', '発行済一覧', 'bond.list'),
             ('bond_position', 'fa fa-circle-o', '売出管理', 'bond.positions'),
-            ('bond_ledger_administrator', 'fa fa-circle-o', '原簿管理者情報', 'bond.ledger_administrator'),
         ]),
         ('membership', 'glyphicon glyphicon-th', '会員権', [
             ('membership_issue', 'fa fa-circle-o', '新規発行', 'membership.issue'),
