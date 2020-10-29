@@ -185,21 +185,41 @@ class Issuer(db.Model):
         return '<Issuer %s>' % self.eth_account
 
 
-class LedgerAdministrator(db.Model):
-    """原簿管理者情報"""
-    __tablename__ = 'ledger_administrator'
+class CorporateBondLedgerTemplate(db.Model):
+    """社債原簿基本情報"""
+    __tablename__ = 'corporate_bond_ledger_template'
 
+    # シーケンスID
+    id = db.Column(db.Integer, primary_key=True)
+    # トークンアドレス
+    token_address = db.Column(db.String(42), index=True)
     # アカウントアドレス
-    eth_account = db.Column(db.String(42), primary_key=True)
-    # 名称
-    name = db.Column(db.String(200), nullable=False)
-    # 住所
-    address = db.Column(db.String(200), nullable=False)
-    # 事務取扱場所
-    location = db.Column(db.String(200), nullable=False)
+    eth_account = db.Column(db.String(42), index=True)
+    # 社債名称
+    bond_name = db.Column(db.String(200), nullable=False)
+    # 社債の説明
+    bond_description = db.Column(db.String(1000), nullable=False)
+    # 社債の種類
+    bond_type = db.Column(db.String(1000), nullable=False)
+    # 社債の総額
+    total_amount = db.Column(db.BigInteger, nullable=False)
+    # 各社債の金額
+    face_value = db.Column(db.Integer, nullable=False)
+    # 払込情報_払込金額
+    payment_amount = db.Column(db.BigInteger, nullable=False)
+    # 払込情報_払込日
+    payment_date = db.Column(db.String(8), nullable=False)
+    # 払込情報_払込状況
+    payment_status = db.Column(db.Boolean, nullable=False)
+    # 原簿管理人_名称
+    ledger_admin_name = db.Column(db.String(200), nullable=False)
+    # 原簿管理人_住所
+    ledger_admin_address = db.Column(db.String(200), nullable=False)
+    # 原簿管理人_事務取扱場所
+    ledger_admin_location = db.Column(db.String(200), nullable=False)
 
     def __repr__(self):
-        return '<LedgerAdministrator %s>' % self.eth_account
+        return f'<CorporateBondLedgerTemplate({self.token_address}, {self.eth_account})>'
 
 
 ########################################################
