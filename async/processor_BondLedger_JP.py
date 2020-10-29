@@ -131,7 +131,7 @@ class DBSink:
         #########################################
         # 社債の情報
         #########################################
-        ledger_template = CorporateBondLedgerTemplate.query. \
+        ledger_template = self.db.query(CorporateBondLedgerTemplate). \
             filter(CorporateBondLedgerTemplate.token_address == token.address).\
             first()
 
