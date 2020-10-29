@@ -363,10 +363,8 @@ class Processor:
             block_timestamp = datetime.fromtimestamp(
                 web3.eth.getBlock(event['blockNumber'])['timestamp']
             )
-            block_timestamp_jst = datetime.fromtimestamp(
-                web3.eth.getBlock(event['blockNumber'])['timestamp'],
-                JST
-            )
+            block_timestamp_jst = block_timestamp.replace(tzinfo=timezone.utc).\
+                astimezone(JST)
             transaction_date_jst = block_timestamp_jst.strftime("%Y/%m/%d")
 
             if amount is not None and amount <= sys.maxsize:
