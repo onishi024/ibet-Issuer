@@ -1,4 +1,3 @@
-#!/usr/local/bin/python
 # -*- coding:utf-8 -*-
 import difflib
 import getpass
@@ -6,19 +5,14 @@ import os
 import re
 import sys
 from collections import OrderedDict
+from Crypto.PublicKey import RSA
+from Crypto import Random
 
 import pytest
 import yaml
 from cryptography.fernet import Fernet
 from eth_utils import to_checksum_address
 from web3 import Web3
-
-if os.path.exists('.env'):
-    print('Importing environment from .env...', file=sys.stderr)
-    for line in open('.env'):
-        var = line.strip().split('=')
-        if len(var) == 2:
-            os.environ[var[0]] = var[1]
 
 from app import create_app, db
 from app.models import AlembicVersion, User, Role, Issuer
@@ -96,16 +90,40 @@ def create_user(eth_account):
 
 
 ###############################################
-# Create secret key for keyfile password
+# Create RSA key
 ###############################################
 @manager.command
-def eth_account_password_secret_key():
+def create_rsakey(pass_phrase):
     """
-    Generates ETH_ACCOUNT_PASSWORD_SECRET_KEY.
-    ETH_ACCOUNT_PASSWORD_SECRET_KEY is used to encrypt/decrypt the password of an EOA keyfile.
+    Generate RSA key file
+    private key file: data/rsa/private.pem
+    public key file: data/rsa/public.pem
+    """
+    random_func = Random.new().read
+    rsa = RSA.generate(10240, random_func)
+
+    # 秘密鍵作成
+    private_pem = rsa.exportKey(format='PEM', passphrase=pass_phrase)
+    with open('data/rsa/private.pem', 'wb') as f:
+        f.write(private_pem)
+
+    # 公開鍵作成
+    public_pem = rsa.publickey().exportKey()
+    with open('data/rsa/public.pem', 'wb') as f:
+        f.write(public_pem)
+
+
+###############################################
+# Create secure parameter encryption key
+###############################################
+@manager.command
+def create_enckey():
+    """
+    Generates SECURE_PARAMETER_ENCRYPTION_KEY.
+    SECURE_PARAMETER_ENCRYPTION_KEY is used to encrypt/decrypt the issuer's secure parameter.
     """
     secret_key = Fernet.generate_key().decode()
-    print(f'ETH_ACCOUNT_PASSWORD_SECRET_KEY="{secret_key}"')
+    print(f'SECURE_PARAMETER_ENCRYPTION_KEY="{secret_key}"')
 
 
 ###############################################
@@ -173,7 +191,9 @@ def issuer_save(issuer_file, rsa_privatekey, eoa_keyfile_password):
     """Creates or updates issuer information"""
 
     ADDRESS_COLUMNS = [
-        re.compile('eth_account'), re.compile('agent_address'), re.compile('.*_contract_address$')
+        re.compile('eth_account'),
+        re.compile('agent_address'),
+        re.compile('.*_contract_address$')
     ]
 
     # parse issuer_file
@@ -194,10 +214,11 @@ def issuer_save(issuer_file, rsa_privatekey, eoa_keyfile_password):
     if eoa_keyfile_password:
         print(f'Input the EOA keyfile password for {eth_account}')
         password = getpass.getpass()
-        fernet = Fernet(os.environ['ETH_ACCOUNT_PASSWORD_SECRET_KEY'])
+        fernet = Fernet(os.environ['SECURE_PARAMETER_ENCRYPTION_KEY'])
         encrypted_eoa_keyfile_password = fernet.encrypt(password.encode()).decode()
 
     # RSA private key
+    # NOTE: RSA鍵ファイルはデフォルトで暗号化されているのでそのままDBに保存する
     rsa_privatekey_file = None
     if rsa_privatekey is not None:
         with open(rsa_privatekey) as f:

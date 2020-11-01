@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 from logging import getLogger
 
+from flask_wtf import FlaskForm as Form
 from flask import render_template, redirect, request, url_for, flash, session
 from flask_login import login_user, logout_user, login_required
 
@@ -8,17 +9,16 @@ from . import auth
 from .forms import LoginForm
 from ..models import User, Issuer
 
-
 logger = getLogger('api')
 
 
-def flash_errors(form):
+def flash_errors(form: Form):
     for field, errors in form.errors.items():
         for error in errors:
             flash(error, 'error')
 
 
-@auth.route('/login', methods=['GET','POST'])
+@auth.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
     if request.method == 'POST' and form.validate() is True:

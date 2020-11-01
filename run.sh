@@ -8,6 +8,7 @@ python async/processor_IssueEvent.py &
 python async/processor_BatchTransfer_coupon.py &
 python async/processor_Order.py &
 python async/processor_Agreement.py &
+python async/processor_BondLedger_JP.py &
 python async/indexer_Transfer.py &
 python async/indexer_ApplyFor.py &
 python async/indexer_Consume.py &

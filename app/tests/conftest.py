@@ -88,7 +88,7 @@ def issuer(db):
     if issuer is not None:
         return issuer
 
-    fernet = Fernet(Config.ETH_ACCOUNT_PASSWORD_SECRET_KEY)
+    fernet = Fernet(Config.SECURE_PARAMETER_ENCRYPTION_KEY)
     encrypted_account_password = fernet.encrypt(eth_account['issuer']['password'].encode()).decode()
     with open('data/rsa/private.pem') as f:
         encrypted_rsa_private_key = f.read()
@@ -123,7 +123,7 @@ def issuer2(db):
     if issuer2 is not None:
         return issuer2
 
-    fernet = Fernet(Config.ETH_ACCOUNT_PASSWORD_SECRET_KEY)
+    fernet = Fernet(Config.SECURE_PARAMETER_ENCRYPTION_KEY)
     encrypted_account_password = fernet.encrypt(eth_account['issuer2']['password'].encode()).decode()
     with open('data/rsa/private.pem') as f:
         encrypted_rsa_private_key = f.read()

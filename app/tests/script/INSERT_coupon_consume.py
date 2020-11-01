@@ -49,7 +49,7 @@ engine = create_engine(URI, echo=False)
 db_session = scoped_session(sessionmaker())
 db_session.configure(bind=engine)
 
-fernet = Fernet(os.environ['ETH_ACCOUNT_PASSWORD_SECRET_KEY'].encode())
+fernet = Fernet(os.environ['SECURE_PARAMETER_ENCRYPTION_KEY'].encode())
 
 
 # トークン発行

@@ -1,46 +1,46 @@
 # -*- coding:utf-8 -*-
-import base64
 import io
 import json
 import re
 from datetime import datetime, timezone, timedelta
-
 import time
-from Crypto.Cipher import PKCS1_OAEP
-from Crypto.PublicKey import RSA
-from eth_utils import to_checksum_address
-from flask import request, redirect, url_for, flash, make_response, render_template, abort, jsonify, session
+
+from flask_wtf import FlaskForm as Form
+from flask import request, redirect, url_for, flash, make_response, \
+    render_template, abort, jsonify, session
 from flask_login import login_required
+
 from sqlalchemy import func, desc
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
+from eth_utils import to_checksum_address
 
 from app import db
 from app.exceptions import EthRuntimeError
-from app.models import Token, Certification, Order, Agreement, AgreementStatus, Transfer, AddressType, ApplyFor, \
-    Issuer, HolderList
+from app.models import Token, Certification, Order, Agreement, AgreementStatus, \
+    Transfer, AddressType, ApplyFor, Issuer, HolderList, BondLedger, \
+    PersonalInfoContract, CorporateBondLedgerTemplate
 from app.utils import ContractUtils, TokenUtils
 from config import Config
-from . import bond
-from .forms import TransferOwnershipForm, SettingForm, RequestSignatureForm, IssueForm, SellTokenForm, \
-    CancelOrderForm, TransferForm, AllotForm, AddSupplyForm
 
-web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
-web3.middleware_stack.inject(geth_poa_middleware, layer=0)
+from . import bond
+from .forms import TransferOwnershipForm, SettingForm, RequestSignatureForm, \
+    IssueForm, SellTokenForm, CancelOrderForm, TransferForm, \
+    AllotForm, AddSupplyForm, CorporateBondLedgerTemplateForm
 
 from logging import getLogger
 
 logger = getLogger('api')
 
+web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
+web3.middleware_stack.inject(geth_poa_middleware, layer=0)
 JST = timezone(timedelta(hours=+9), 'JST')
-
-ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 
 
 ####################################################
 # 共通処理
 ####################################################
-def flash_errors(form):
+def flash_errors(form: Form):
     for field, errors in form.errors.items():
         for error in errors:
             flash(error, 'error')
@@ -347,6 +347,7 @@ def holders_csv_download():
         'token_name,' + \
         'token_address,' + \
         'account_address,' + \
+        'key_manager,' + \
         'balance,' + \
         'commitment,' + \
         'total_balance,' + \
@@ -367,7 +368,8 @@ def holders_csv_download():
         total_holdings = total_balance * face_value
         # データ行
         data_row = \
-            token_name + ',' + token_address + ',' + holder["account_address"] + ',' + \
+            token_name + ',' + token_address + ',' + \
+            holder["account_address"] + ',' + holder["key_manager"] + ',' + \
             str(holder["balance"]) + ',' + str(holder["commitment"]) + ',' + \
             str(total_balance) + ',' + str(total_holdings) + ',' + \
             holder["name"] + ',' + holder["birth_date"] + ',' + \
@@ -380,15 +382,14 @@ def holders_csv_download():
     csvdata = f.getvalue()
     res.data = csvdata.encode('sjis', 'ignore')
     res.headers['Content-Type'] = 'text/plain'
-    res.headers['Content-Disposition'] = 'attachment; filename=' + now.strftime("%Y%m%d%H%M%S") \
-                                         + 'bond_holders_list.csv'
+    res.headers['Content-Disposition'] = f"attachment; filename={now.strftime('%Y%m%d%H%M%S')}bond_holders_list.csv"
     return res
 
 
 # 保有者リスト取得
 @bond.route('/get_holders/<string:token_address>', methods=['GET'])
 @login_required
-def get_holders(token_address):
+def get_holders(token_address: str):
     """
     保有者一覧取得
     :param token_address: トークンアドレス
@@ -396,56 +397,59 @@ def get_holders(token_address):
     """
     logger.info('bond/get_holders')
 
-    # Tokenコントラクト接続
-    TokenContract = TokenUtils.get_contract(token_address, session['eth_account'])
+    DEFAULT_VALUE = "--"
 
-    # RSA秘密鍵の取得
+    token_owner = session['eth_account']
     issuer = Issuer.query.get(session['issuer_id'])
-    cipher = None
-    try:
-        key = RSA.importKey(issuer.encrypted_rsa_private_key, Config.RSA_PASSWORD)
-        cipher = PKCS1_OAEP.new(key)
-    except Exception as err:
-        logger.error(f"Cannot open the private key: {err}")
 
-    # 取引コントラクト、個人情報コントラクトの情報取得
+    # Tokenコントラクトに接続
+    TokenContract = TokenUtils.get_contract(
+        token_address,
+        token_owner,
+        Config.TEMPLATE_ID_SB
+    )
+
+    # DEXコントラクト接続
     try:
         tradable_exchange = TokenContract.functions.tradableExchange().call()
+    except Exception as err:
+        logger.error(f"Failed to get token attributes: {err}")
+        tradable_exchange = Config.ZERO_ADDRESS
+    dex_contract = ContractUtils.get_contract('IbetStraightBondExchange', tradable_exchange)
+
+    # PersonalInfoコントラクト接続
+    try:
         personal_info_address = TokenContract.functions.personalInfoAddress().call()
     except Exception as err:
         logger.error(f"Failed to get token attributes: {err}")
-        tradable_exchange = '0x0000000000000000000000000000000000000000'
-        personal_info_address = '0x0000000000000000000000000000000000000000'
-
-    # 債券取引コントラクト接続
-    ExchangeContract = ContractUtils.get_contract('IbetStraightBondExchange', tradable_exchange)
-
-    # 個人情報コントラクト接続
-    PersonalInfoContract = ContractUtils.get_contract('PersonalInfo', personal_info_address)
+        personal_info_address = Config.ZERO_ADDRESS
+    personal_info_contract = PersonalInfoContract(
+        issuer_address=token_owner,
+        custom_personal_info_address=personal_info_address
+    )
 
     # Transferイベントを検索
+    # →　残高を保有している可能性のあるアドレスを抽出
+    # →　保有者リストをユニークにする
     transfer_events = Transfer.query. \
         distinct(Transfer.account_address_to). \
         filter(Transfer.token_address == token_address).all()
 
-    # 残高を保有している可能性のあるアドレスを抽出する
-    token_owner = session['eth_account']
     holders_temp = [token_owner]  # 発行体アドレスをリストに追加
     for event in transfer_events:
         holders_temp.append(event.account_address_to)
 
-    # 口座リストをユニークにする
     holders_uniq = []
     for x in holders_temp:
         if x not in holders_uniq:
             holders_uniq.append(x)
 
-    # 保有者情報抽出
+    # 保有者情報を取得
     holders = []
     for account_address in holders_uniq:
         balance = TokenContract.functions.balanceOf(account_address).call()
         try:
-            commitment = ExchangeContract.functions.commitmentOf(account_address, token_address).call()
+            commitment = dex_contract.functions.commitmentOf(account_address, token_address).call()
         except Exception as err:
             logger.warning(f"Failed to get commitment: {err}")
             commitment = 0
@@ -459,103 +463,55 @@ def get_holders(token_address):
             else:
                 address_type = AddressType.OTHERS.value
 
-            # 保有者情報：初期値（個人情報なし）
+            # 保有者情報：デフォルト値（個人情報なし）
             holder = {
                 'account_address': account_address,
-                'name': '--',
-                'postal_code': '--',
-                'email': '--',
-                'address': '--',
-                'birth_date': '--',
+                'key_manager': DEFAULT_VALUE,
+                'name': DEFAULT_VALUE,
+                'postal_code': DEFAULT_VALUE,
+                'email': DEFAULT_VALUE,
+                'address': DEFAULT_VALUE,
+                'birth_date': DEFAULT_VALUE,
                 'balance': balance,
                 'commitment': commitment,
                 'address_type': address_type
             }
 
-            if address_type == AddressType.ISSUER.value:
-                issuer_info = Issuer.query.filter(Issuer.eth_account == account_address).first()
-
-                if issuer_info is not None:
-                    # 保有者情報（発行体）
-                    holder = {
-                        'account_address': account_address,
-                        'name': issuer_info.issuer_name or '--',
-                        'postal_code': '--',
-                        'email': '--',
-                        'address': '--',
-                        'birth_date': '--',
-                        'balance': balance,
-                        'commitment': commitment,
-                        'address_type': address_type
-                    }
-            else:
-                # 暗号化個人情報取得
-                try:
-                    encrypted_info = PersonalInfoContract.functions. \
-                        personal_info(account_address, token_owner).call()[2]
-                except Exception as err:
-                    logger.warning(f"Failed to get personal information: {err}")
-                    encrypted_info = ''
-
-                if encrypted_info == '' or cipher is None:  # 情報が空の場合、デフォルト値を設定
-                    pass
+            if address_type == AddressType.ISSUER.value:  # 保有者が発行体の場合
+                holder["name"] = issuer.issuer_name or '--'
+                holders.append(holder)
+            else:  # 保有者が発行体以外の場合
+                decrypted_personal_info = personal_info_contract.get_info(
+                    account_address=account_address,
+                    default_value=""
+                )
+                # 住所の編集
+                prefecture = decrypted_personal_info["address"]["prefecture"]
+                city = decrypted_personal_info["address"]["city"]
+                address_1 = decrypted_personal_info["address"]["address1"]
+                address_2 = decrypted_personal_info["address"]["address2"]
+                if prefecture != "" and city != "":
+                    formatted_address = prefecture + city
                 else:
-                    try:
-                        # 個人情報復号化
-                        ciphertext = base64.decodebytes(encrypted_info.encode('utf-8'))
-                        # NOTE:
-                        # JavaScriptでRSA暗号化する際に、先頭が0x00の場合は00を削った状態でデータが連携される。
-                        # そのままdecryptすると、ValueError（Ciphertext with incorrect length）になるため、
-                        # 先頭に再度00を加えて、decryptを行う。
-                        if len(ciphertext) == 1279:
-                            hex_fixed = "00" + ciphertext.hex()
-                            ciphertext = base64.b16decode(hex_fixed.upper())
-                        message = cipher.decrypt(ciphertext)
-                        personal_info_json = json.loads(message)
+                    formatted_address = DEFAULT_VALUE
+                if address_1 != "":
+                    formatted_address = formatted_address + "　" + address_1
+                if address_2 != "":
+                    formatted_address = formatted_address + "　" + address_2
 
-                        # 氏名
-                        name = personal_info_json['name'] \
-                            if personal_info_json['name'] else "--"
-
-                        # 住所
-                        if personal_info_json['address']['prefecture'] \
-                                and personal_info_json['address']['city'] \
-                                and personal_info_json['address']['address1']:
-                            address = personal_info_json['address']['prefecture'] \
-                                      + personal_info_json['address']['city']
-                            if personal_info_json['address']['address1'] != "":
-                                address = address + "　" + personal_info_json['address']['address1']
-                            if personal_info_json['address']['address2'] != "":
-                                address = address + "　" + personal_info_json['address']['address2']
-                        else:
-                            address = "--"
-
-                        # 郵便番号
-                        postal_code = personal_info_json['address']['postal_code'] \
-                            if personal_info_json['address']['postal_code'] else "--"
-
-                        # Eメールアドレス
-                        email = personal_info_json['email'] if personal_info_json['email'] else "--"
-
-                        # 生年月日
-                        birth_date = personal_info_json['birth'] if personal_info_json['birth'] else "--"
-
-                        # 保有者情報（個人情報あり）
-                        holder = {
-                            'account_address': account_address,
-                            'name': name,
-                            'postal_code': postal_code,
-                            'email': email,
-                            'address': address,
-                            'birth_date': birth_date,
-                            'balance': balance,
-                            'commitment': commitment,
-                            'address_type': address_type
-                        }
-                    except Exception as err:  # 復号化処理でエラーが発生した場合、デフォルト値を設定
-                        logger.error(f"Failed to decrypt: {err}")
-
-            holders.append(holder)
+                holder = {
+                    'account_address': account_address,
+                    'key_manager': decrypted_personal_info["key_manager"],
+                    'name': decrypted_personal_info["name"],
+                    'postal_code': decrypted_personal_info["address"]["postal_code"],
+                    'email': decrypted_personal_info["email"],
+                    'address': formatted_address,
+                    'birth_date': decrypted_personal_info["birth"],
+                    'balance': balance,
+                    'commitment': commitment,
+                    'address_type': address_type
+                }
+                holders.append(holder)
 
     return jsonify(holders)
 
@@ -713,33 +669,46 @@ def transfer_ownership(token_address, account_address):
 @bond.route('/holder/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
 @login_required
 def holder(token_address, account_address):
+    """保有者詳細取得
+
+    :param token_address: トークンアドレス
+    :param account_address: アカウントアドレス
+    :return: 保有者詳細情報
+    """
     # アドレスフォーマットのチェック
     if not Web3.isAddress(token_address) or not Web3.isAddress(account_address):
         abort(404)
     token_address = to_checksum_address(token_address)
     account_address = to_checksum_address(account_address)
 
+    token_owner = session['eth_account']
+
     # トークンで指定した個人情報コントラクトのアドレスを取得
     TokenContract = TokenUtils.get_contract(
         token_address=token_address,
-        issuer_address=session['eth_account'],
+        issuer_address=token_owner,
         template_id=Config.TEMPLATE_ID_SB
     )
     try:
         personal_info_address = TokenContract.functions.personalInfoAddress().call()
     except Exception as err:
         logger.exception(f"{err}")
-        personal_info_address = ZERO_ADDRESS
+        personal_info_address = Config.ZERO_ADDRESS
+
+    # PersonalInfoコントラクト接続
+    personal_info_contract = PersonalInfoContract(
+        issuer_address=token_owner,
+        custom_personal_info_address=personal_info_address
+    )
 
     #########################
     # GET：参照
     #########################
     if request.method == "GET":
         logger.info('bond/holder(GET)')
-        personal_info = TokenUtils.get_holder(
+        personal_info = personal_info_contract.get_info(
             account_address=account_address,
-            issuer_address=session['eth_account'],
-            custom_personal_info_address=personal_info_address
+            default_value="--"
         )
         return render_template(
             'bond/holder.html',
@@ -755,21 +724,19 @@ def holder(token_address, account_address):
         if request.form.get('_method') == 'DELETE':  # 個人情報初期化
             logger.info('bond/holder(DELETE)')
             try:
-                TokenUtils.modify_personal_info(
+                personal_info_contract.modify_info(
                     account_address=account_address,
-                    issuer_address=session['eth_account'],
                     data={},
-                    custom_personal_info_address=personal_info_address
                 )
                 flash('個人情報の初期化に成功しました。', 'success')
             except EthRuntimeError:
                 flash('個人情報の初期化に失敗しました。', 'error')
 
-            personal_info = TokenUtils.get_holder(
+            personal_info = personal_info_contract.get_info(
                 account_address=account_address,
-                issuer_address=session['eth_account'],
-                custom_personal_info_address=personal_info_address
+                default_value="--"
             )
+
             return render_template(
                 'bond/holder.html',
                 personal_info=personal_info,
@@ -1045,6 +1012,105 @@ def request_signature(token_address):
         return render_template('bond/request_signature.html', form=form)
 
 
+#################################################
+# 社債原簿基本情報の登録
+#################################################
+@bond.route('/corporate_bond_ledger_template/<string:token_address>', methods=['GET', 'POST'])
+@login_required
+def corporate_bond_ledger_template(token_address):
+    logger.info('bond/corporate_bond_ledger_template')
+
+    form = CorporateBondLedgerTemplateForm()
+
+    # 権限チェック
+    token = Token.query. \
+        filter(Token.token_address == token_address). \
+        filter(Token.admin_address == session['eth_account'].lower()). \
+        first()
+    if token is None:
+        abort(404)
+
+    ##############################
+    # POST
+    ##############################
+    if request.method == "POST":
+        if form.validate():
+            record = CorporateBondLedgerTemplate.query. \
+                filter(CorporateBondLedgerTemplate.token_address == token_address). \
+                filter(CorporateBondLedgerTemplate.eth_account == session["eth_account"]). \
+                first()
+            if record is None:
+                record = CorporateBondLedgerTemplate()
+                record.token_address = token_address
+                record.eth_account = session["eth_account"]
+                record.bond_name = form.bond_name.data
+                record.bond_description = form.bond_description.data
+                record.bond_type = form.bond_type.data
+                record.total_amount = form.total_amount.data
+                record.face_value = form.face_value.data
+                record.payment_amount = form.payment_amount.data
+                record.payment_date = form.payment_date.data
+                record.payment_status = form.payment_status.data
+                record.ledger_admin_name = form.ledger_admin_name.data
+                record.ledger_admin_address = form.ledger_admin_address.data
+                record.ledger_admin_location = form.ledger_admin_location.data
+                db.session.add(record)
+            else:
+                record.bond_name = form.bond_name.data
+                record.bond_description = form.bond_description.data
+                record.bond_type = form.bond_type.data
+                record.total_amount = form.total_amount.data
+                record.face_value = form.face_value.data
+                record.payment_amount = form.payment_amount.data
+                record.payment_date = form.payment_date.data
+                record.payment_status = form.payment_status.data
+                record.ledger_admin_name = form.ledger_admin_name.data
+                record.ledger_admin_address = form.ledger_admin_address.data
+                record.ledger_admin_location = form.ledger_admin_location.data
+            db.session.commit()
+            flash('登録処理が完了しました。', 'success')
+        else:
+            flash_errors(form)
+
+        return render_template('bond/corporate_bond_ledger_template.html', form=form, form_description=form.description)
+
+    ##############################
+    # GET
+    ##############################
+    if request.method == "GET":
+        record = CorporateBondLedgerTemplate.query. \
+            filter(CorporateBondLedgerTemplate.token_address == token_address). \
+            filter(CorporateBondLedgerTemplate.eth_account == session['eth_account']). \
+            first()
+        if record is not None:
+            form.token_address.data = token_address
+            form.bond_name.data = record.bond_name
+            form.bond_description.data = record.bond_description
+            form.bond_type.data = record.bond_type
+            form.total_amount.data = record.total_amount
+            form.face_value.data = record.face_value
+            form.payment_amount.data = record.payment_amount
+            form.payment_date.data = record.payment_date
+            form.payment_status.data = str(record.payment_status)
+            form.ledger_admin_name.data = record.ledger_admin_name
+            form.ledger_admin_address.data = record.ledger_admin_address
+            form.ledger_admin_location.data = record.ledger_admin_location
+        else:
+            form.token_address.data = token_address
+            form.bond_name.data = ""
+            form.bond_description.data = ""
+            form.bond_type.data = ""
+            form.total_amount.data = ""
+            form.face_value.data = ""
+            form.payment_amount.data = ""
+            form.payment_date.data = ""
+            form.payment_status.data = "False"
+            form.ledger_admin_name.data = ""
+            form.ledger_admin_address.data = ""
+            form.ledger_admin_location.data = ""
+        return render_template('bond/corporate_bond_ledger_template.html', form=form, form_description=form.description)
+
+
 ####################################################
 # [債券]公開
 ####################################################
@@ -1121,7 +1187,7 @@ def add_supply(token_address):
     if request.method == 'POST':
         if form.validate():
             try:
-                tx = TokenContract.functions.issueFrom(session['eth_account'], ZERO_ADDRESS, form.amount.data). \
+                tx = TokenContract.functions.issueFrom(session['eth_account'], Config.ZERO_ADDRESS, form.amount.data). \
                     buildTransaction({'from': session['eth_account'], 'gas': Config.TX_GAS_LIMIT})
                 ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
             except Exception as e:
@@ -1287,7 +1353,7 @@ def sell(token_address):
     interestPaymentDate_string = TokenContract.functions.interestPaymentDate().call()
     interestPaymentDate = \
         json.loads(interestPaymentDate_string.replace("'", '"').replace('True', 'true').replace('False', 'false')) \
-        if interestPaymentDate_string else default_interest_payment_date()
+            if interestPaymentDate_string else default_interest_payment_date()
     redemptionDate = TokenContract.functions.redemptionDate().call()
     redemptionValue = TokenContract.functions.redemptionValue().call()
     returnDate = TokenContract.functions.returnDate().call()
@@ -1303,7 +1369,7 @@ def sell(token_address):
         if form.validate():
             # PersonalInfo Contract
             personalinfo_address = TokenContract.functions.personalInfoAddress().call()
-            PersonalInfoContract = ContractUtils.get_contract(
+            personal_info_contract = ContractUtils.get_contract(
                 'PersonalInfo', personalinfo_address)
 
             # PaymentGateway Contract
@@ -1314,7 +1380,7 @@ def sell(token_address):
             eth_account = session['eth_account']
             agent_account = issuer.agent_address
 
-            if PersonalInfoContract.functions.isRegistered(eth_account, eth_account).call() == False:
+            if personal_info_contract.functions.isRegistered(eth_account, eth_account).call() == False:
                 flash('発行体情報が未登録です。', 'error')
                 return redirect(url_for('.sell', token_address=token_address))
             elif PaymentGatewayContract.functions.accountApproved(eth_account, agent_account).call() == False:
@@ -1524,20 +1590,23 @@ def applications_csv_download():
 @login_required
 def get_applications(token_address):
     # Tokenコントラクト接続
-    TokenContract = TokenUtils.get_contract(token_address, session['eth_account'])
-
-    # RSA秘密鍵取得
-    issuer = Issuer.query.get(session['issuer_id'])
-    cipher = None
-    try:
-        key = RSA.importKey(issuer.encrypted_rsa_private_key, Config.RSA_PASSWORD)
-        cipher = PKCS1_OAEP.new(key)
-    except Exception as err:
-        logger.error(f"Cannot open the private key: {err}")
+    TokenContract = TokenUtils.get_contract(
+        token_address=token_address,
+        issuer_address=session['eth_account'],
+        template_id=Config.TEMPLATE_ID_SB
+    )
 
     # PersonalInfoコントラクト接続
-    personal_info_contract_address = TokenContract.functions.personalInfoAddress().call()
-    PersonalInfoContract = ContractUtils.get_contract('PersonalInfo', personal_info_contract_address)
+    try:
+        personal_info_address = TokenContract.functions.personalInfoAddress().call()
+    except Exception as e:
+        logger.exception(e)
+        personal_info_address = Config.ZERO_ADDRESS
+
+    personal_info_contract = PersonalInfoContract(
+        issuer_address=session['eth_account'],
+        custom_personal_info_address=personal_info_address
+    )
 
     # 申込（ApplyFor）イベントを検索
     apply_for_events = ApplyFor.query. \
@@ -1551,42 +1620,18 @@ def get_applications(token_address):
 
     applications = []
     for account_address in account_list:
-        # 個人情報参照
-        encrypted_info = PersonalInfoContract.functions. \
-            personal_info(account_address, session['eth_account']).call()[2]
-        account_name = ''
-        account_email_address = ''
-        if encrypted_info == '' or cipher is None:
-            pass
-        else:
-            try:
-                # 個人情報を復号
-                ciphertext = base64.decodebytes(encrypted_info.encode('utf-8'))
-                # NOTE:
-                # JavaScriptでRSA暗号化する際に、先頭が0x00の場合は00を削った状態でデータが連携される。
-                # そのままdecryptすると、ValueError（Ciphertext with incorrect length）になるため、
-                # 先頭に再度00を加えて、decryptを行う。
-                if len(ciphertext) == 1279:
-                    hex_fixed = "00" + ciphertext.hex()
-                    ciphertext = base64.b16decode(hex_fixed.upper())
-                message = cipher.decrypt(ciphertext)
-                personal_info_json = json.loads(message)
-
-                # 氏名
-                if 'name' in personal_info_json:
-                    account_name = personal_info_json['name']
-                # Eメールアドレス
-                if 'email' in personal_info_json:
-                    account_email_address = personal_info_json['email']
-            except Exception as err:
-                logger.error(f"Failed to decrypt: {err}")
+        # 個人情報取得
+        personal_info = personal_info_contract.get_info(
+            account_address=account_address,
+            default_value="--"
+        )
 
         application_data = TokenContract.functions.applications(account_address).call()
         balance = TokenContract.functions.balanceOf(to_checksum_address(account_address)).call()
         application = {
             'account_address': account_address,
-            'account_name': account_name,
-            'account_email_address': account_email_address,
+            'account_name': personal_info['name'],
+            'account_email_address': personal_info['email'],
             'requested_amount': application_data[0],
             'allotted_amount': application_data[1],
             'data': application_data[2],
@@ -1765,6 +1810,91 @@ def token_tracker(token_address):
         token_address=token_address,
         track=track
     )
+
+#################################################
+# 原簿履歴
+#################################################
+@bond.route('/ledger_history/<string:token_address>', methods=['GET'])
+@login_required
+def ledger_history(token_address: str):
+    logger.info('bond/ledger_history')
+
+    # アドレスフォーマットチェック
+    if not Web3.isAddress(token_address):
+        abort(404)
+
+    return render_template('bond/ledger_history.html', token_address=token_address)
+
+
+# 原簿履歴取得
+@bond.route('/get_ledger_history/<string:token_address>', methods=['GET'])
+@login_required
+def get_ledger_history(token_address):
+    logger.info('bond/get_ledger_history')
+
+    # アドレスフォーマットチェック
+    if not Web3.isAddress(token_address):
+        abort(404)
+
+    # 発行体が管理するトークンであることをチェック
+    token = Token.query. \
+        filter(Token.token_address == token_address). \
+        filter(Token.admin_address == session['eth_account'].lower()). \
+        first()
+    if token is None:
+        abort(404)
+
+    records = BondLedger.query. \
+        filter(BondLedger.token_address == token_address). \
+        order_by(desc(BondLedger.created)). \
+        all()
+
+    ledgers = []
+    for record in records:
+        created_jst = record.created.replace(tzinfo=timezone.utc).astimezone(JST)
+        created_formatted = created_jst.strftime("%Y/%m/%d %H:%M:%S %z")
+        file_name = f'{created_jst.strftime("%Y%m%d%H%M%S")}bond_ledger.json'
+        ledgers.append({
+            'id': record.id,
+            'token_address': record.token_address,
+            'created': created_formatted,
+            'file_name': file_name
+        })
+
+    return jsonify(ledgers)
+
+
+# 原簿ダウンロード
+@bond.route('/ledger_download', methods=['POST'])
+@login_required
+def ledger_download():
+    logger.info('bond/ledger_download')
+
+    token_address = request.form.get('token_address')
+    ledger_id = request.form.get('ledger_id')
+
+    # 発行体が管理するトークンであることをチェック
+    token = Token.query. \
+        filter(Token.token_address == token_address). \
+        filter(Token.admin_address == session['eth_account'].lower()). \
+        first()
+    if token is None:
+        abort(404)
+
+    # 原簿情報の取得
+    record = BondLedger.query. \
+        filter(BondLedger.id == ledger_id). \
+        filter(BondLedger.token_address == token_address). \
+        first()
+    if record is None:
+        abort(404)
+
+    created = record.created.replace(tzinfo=timezone.utc).astimezone(JST)  # JSTに変換
+    res = make_response()
+    res.data = record.ledger
+    res.headers['Content-Type'] = 'text/plain'
+    res.headers['Content-Disposition'] = f"attachment; filename={created.strftime('%Y%m%d%H%M%S')}bond_ledger.json"
+    return res
 
 
 ####################################################

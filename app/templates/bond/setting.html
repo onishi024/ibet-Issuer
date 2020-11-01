@@ -40,9 +40,9 @@
                 {% else %}
                 <button id="redeem" class="btn btn-danger btn-sm" type="button" style="width: 120px">償還 <i class="fa fa-exclamation-triangle"></i></button>
                 {% endif %}
-                <!-- 認定依頼 -->
+                <!-- 原簿基本情報登録 -->
                 {% if not is_redeemed %}
-                <button type="button" class="btn btn-success btn-sm" style="width: 120px" onclick="location.href='{{ url_for("bond.request_signature", token_address=token_address)}}'">認定依頼 <i class="fa fa-arrow-circle-right"></i></button>
+                <button type="button" class="btn btn-default btn-sm" style="width: 120px" onclick="location.href='{{ url_for('bond.corporate_bond_ledger_template', token_address=token_address)}}'">原簿情報登録 <i class="fa fa-arrow-circle-right"></i></button>
                 {% endif %}
             </div>
         </div>
@@ -68,7 +68,7 @@
                     </div>
                     <!-- 追加発行 -->
                     {% if not is_redeemed %}
-                    <button type="button" class="btn btn-default btn-sm" style="width: 120px" onclick="location.href='{{ url_for("bond.add_supply", token_address=token_address)}}'">追加発行 <i class="fa fa-plus-circle"></i></button>
+                    <button type="button" class="btn btn-default btn-sm" style="width: 120px" onclick="location.href='{{ url_for('bond.add_supply', token_address=token_address)}}'">追加発行 <i class="fa fa-plus-circle"></i></button>
                     {% endif %}
                 </div>
                 <div class="form-group">
@@ -264,7 +264,7 @@
                 </div>
             </div>
             <div class="box-footer">
-                <button type="button" class="btn btn-default" onclick="location.href= '{{ url_for("bond.list") }}'">キャンセル</button>
+                <button type="button" class="btn btn-default" onclick="location.href= '{{ url_for('bond.list') }}'">キャンセル</button>
                 <button type="submit" class="btn btn-success" id="load" data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中">設定変更</button>
             </div>
         </form>
