@@ -104,23 +104,27 @@ class TestBond(TestBase):
     def test_normal_0(self, shared_contract, db):
         # PersonalInfo登録（発行体：Issuer）
         register_personal_info(
-            eth_account['issuer'],
-            shared_contract['PersonalInfo'],
-            self.issuer_encrypted_info
+            db=db,
+            invoker=eth_account["issuer"],
+            contract_address=shared_contract["PersonalInfo"]["address"],
+            info=self.issuer_personal_info_json,
+            encrypted_info=self.issuer_encrypted_info
         )
 
         # PersonalInfo登録（投資家：Trader）
         register_personal_info(
-            eth_account['trader'],
-            shared_contract['PersonalInfo'],
-            self.trader_encrypted_info
+            db=db,
+            invoker=eth_account["trader"],
+            contract_address=shared_contract["PersonalInfo"]["address"],
+            info=self.trader_personal_info_json,
+            encrypted_info=self.trader_encrypted_info
         )
 
         # PaymentGateway：銀行口座情報登録
         register_payment_account(
-            eth_account['issuer'],
-            shared_contract['PaymentGateway'],
-            self.issuer_encrypted_info
+            invoker=eth_account['issuer'],
+            payment_gateway=shared_contract['PaymentGateway'],
+            encrypted_info=self.issuer_encrypted_info
         )
 
     # ＜正常系1＞

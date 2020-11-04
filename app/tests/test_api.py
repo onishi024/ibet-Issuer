@@ -53,16 +53,22 @@ trader_encrypted_info = base64.encodebytes(cipher.encrypt(json.dumps(trader_pers
 
 @pytest.fixture(scope="class", autouse=True)
 def setup(db, shared_contract):
-    # PersonalInfo登録
+    # PersonalInfo登録（発行体：Issuer）
     register_personal_info(
-        eth_account['issuer'],
-        shared_contract['PersonalInfo'],
-        issuer_encrypted_info
+        db=db,
+        invoker=eth_account["issuer"],
+        contract_address=shared_contract["PersonalInfo"]["address"],
+        info=issuer_personal_info_json,
+        encrypted_info=issuer_encrypted_info
     )
+
+    # PersonalInfo登録（投資家：Trader）
     register_personal_info(
-        eth_account['trader'],
-        shared_contract['PersonalInfo'],
-        trader_encrypted_info
+        db=db,
+        invoker=eth_account["trader"],
+        contract_address=shared_contract["PersonalInfo"]["address"],
+        info=trader_personal_info_json,
+        encrypted_info=trader_encrypted_info
     )
 
     # 銀行口座情報登録
