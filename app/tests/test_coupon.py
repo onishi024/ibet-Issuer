@@ -71,6 +71,7 @@ class TestCoupon(TestBase):
     }
 
     trader_personal_info_json = {
+        "key_manager": "",
         "name": "ﾀﾝﾀｲﾃｽﾄ",
         "address": {
             "postal_code": "1040053",
@@ -102,15 +103,19 @@ class TestCoupon(TestBase):
     def test_normal_0(self, shared_contract, db):
         # personalinfo登録
         register_personal_info(
-            eth_account['issuer'],
-            shared_contract['PersonalInfo'],
-            self.issuer_encrypted_info
+            db=db,
+            invoker=eth_account['issuer'],
+            contract_address=shared_contract['PersonalInfo']['address'],
+            info=self.issuer_personal_info_json,
+            encrypted_info=self.issuer_encrypted_info
         )
 
         register_personal_info(
-            eth_account['trader'],
-            shared_contract['PersonalInfo'],
-            self.trader_encrypted_info
+            db=db,
+            invoker=eth_account["trader"],
+            contract_address=shared_contract["PersonalInfo"]["address"],
+            info=self.trader_personal_info_json,
+            encrypted_info=self.trader_encrypted_info
         )
 
     # ＜正常系1_1＞

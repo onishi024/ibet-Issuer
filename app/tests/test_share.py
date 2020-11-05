@@ -173,31 +173,23 @@ class TestShare(TestBase):
     # 共通処理
     #############################################################################
     @pytest.fixture(scope='class', autouse=True)
-    def setup_personal_info(self, shared_contract):
-        # PersonalInfo情報の暗号化
-        key = RSA.importKey(open('data/rsa/public.pem').read())
-        cipher = PKCS1_OAEP.new(key)
-
-        issuer_encrypted_info = \
-            base64.encodebytes(
-                cipher.encrypt(json.dumps(self.issuer_personal_info_json).encode('utf-8')))
-
-        trader_encrypted_info = \
-            base64.encodebytes(
-                cipher.encrypt(json.dumps(self.trader_personal_info_json).encode('utf-8')))
-
+    def setup_personal_info(self, shared_contract, db):
         # PersonalInfo登録（発行体：Issuer）
         register_personal_info(
-            eth_account['issuer'],
-            shared_contract['PersonalInfo'],
-            issuer_encrypted_info
+            db=db,
+            invoker=eth_account['issuer'],
+            contract_address=shared_contract['PersonalInfo']['address'],
+            info=self.issuer_personal_info_json,
+            encrypted_info=self.issuer_encrypted_info
         )
 
         # PersonalInfo登録（投資家：Trader）
         register_personal_info(
-            eth_account['trader'],
-            shared_contract['PersonalInfo'],
-            trader_encrypted_info
+            db=db,
+            invoker=eth_account["trader"],
+            contract_address=shared_contract["PersonalInfo"]["address"],
+            info=self.trader_personal_info_json,
+            encrypted_info=self.trader_encrypted_info
         )
 
     #############################################################################
@@ -509,15 +501,17 @@ class TestShare(TestBase):
     # ＜保有者一覧＞
     #   保有者一覧で確認(1件)
     #   ※Token_1が対象
-    def test_normal_5_1(self, app, shared_contract):
+    def test_normal_5_1(self, app, shared_contract, db):
         client = self.client_with_admin_login(app)
         token = TestShare.get_token(0)
 
         # 発行体のpersonalInfo登録
         register_personal_info(
-            eth_account['issuer'],
-            shared_contract['PersonalInfo'],
-            self.issuer_encrypted_info
+            db=db,
+            invoker=eth_account['issuer'],
+            contract_address=shared_contract['PersonalInfo']['address'],
+            info=self.issuer_personal_info_json,
+            encrypted_info=self.issuer_encrypted_info
         )
 
         # 保有者一覧の参照
@@ -549,7 +543,7 @@ class TestShare(TestBase):
     # ＜保有者一覧＞
     #   約定　→　保有者一覧で確認（複数件）
     #   ※Token_1が対象
-    def test_normal_5_2(self, app, shared_contract):
+    def test_normal_5_2(self, app, shared_contract, db):
         client = self.client_with_admin_login(app)
         token = TestShare.get_token(0)
 
@@ -569,9 +563,11 @@ class TestShare(TestBase):
 
         # 投資家のpersonalInfo登録
         register_personal_info(
-            eth_account['trader'],
-            shared_contract['PersonalInfo'],
-            self.trader_encrypted_info
+            db=db,
+            invoker=eth_account["trader"],
+            contract_address=shared_contract["PersonalInfo"]["address"],
+            info=self.trader_personal_info_json,
+            encrypted_info=self.trader_encrypted_info
         )
 
         # 約定データの作成
