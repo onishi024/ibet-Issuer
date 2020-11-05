@@ -1,3 +1,22 @@
+"""
+Copyright BOOSTRY Co., Ltd.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+
+You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed onan "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
+See the License for the specific language governing permissions and
+limitations under the License.
+
+SPDX-License-Identifier: Apache-2.0
+"""
+
 from flask import render_template, request, jsonify
 from .index import index_blueprint
 from .app import app
@@ -12,6 +31,7 @@ def bad_request(e):
     response = jsonify({'error': 'bad request'})
     response.status_code = 400
     return response
+
 
 @index_blueprint.app_errorhandler(403)
 def forbidden(e):
