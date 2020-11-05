@@ -1,4 +1,22 @@
-# -*- coding:utf-8 -*-
+"""
+Copyright BOOSTRY Co., Ltd.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+
+You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed onan "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
+See the License for the specific language governing permissions and
+limitations under the License.
+
+SPDX-License-Identifier: Apache-2.0
+"""
+
 import json
 import base64
 import secrets
@@ -299,7 +317,7 @@ def payment_account_regist(form):
     # 銀行口座情報の登録
     payment_gateway_address = issuer.payment_gateway_contract_address
     PaymentGatewayContract = ContractUtils.get_contract('PaymentGateway', payment_gateway_address)
-    tx = PaymentGatewayContract.functions.register(agent_address, payment_account_ciphertext).\
+    tx = PaymentGatewayContract.functions.register(agent_address, payment_account_ciphertext). \
         buildTransaction({'from': session['eth_account'], 'gas': Config.TX_GAS_LIMIT})
     ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
 
