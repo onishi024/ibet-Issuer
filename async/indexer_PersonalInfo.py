@@ -338,6 +338,7 @@ class Processor:
                             personal_info=decrypted_personalinfo,
                             timestamp=timestamp
                         )
+                        self.sink.flush()
             except Exception as err:
                 logging.error(err)
 
@@ -359,6 +360,7 @@ class Processor:
                             personal_info=decrypted_personalinfo,
                             timestamp=timestamp
                         )
+                        self.sink.flush()
             except Exception as err:
                 logging.error(err)
 
