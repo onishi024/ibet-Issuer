@@ -126,6 +126,7 @@ class TestMembership(TestBase):
     }
 
     trader_personal_info_json = {
+        "key_manager": "",
         "name": "ﾀﾝﾀｲﾃｽﾄ",
         "address": {
             "postal_code": "1040053",
@@ -611,15 +612,17 @@ class TestMembership(TestBase):
     # ＜保有者一覧＞
     #   保有者一覧で確認(1件)
     #   ※Token_1が対象
-    def test_normal_6_1(self, app, shared_contract):
+    def test_normal_6_1(self, app, shared_contract, db):
         client = self.client_with_admin_login(app)
         token = TestMembership.get_token(0)
 
         # 発行体のpersonalInfo登録
         register_personal_info(
-            eth_account['issuer'],
-            shared_contract['PersonalInfo'],
-            self.issuer_encrypted_info
+            db=db,
+            invoker=eth_account["issuer"],
+            contract_address=shared_contract["PersonalInfo"]["address"],
+            info=self.issuer_personal_info_json,
+            encrypted_info=self.issuer_encrypted_info
         )
 
         # 保有者一覧の参照
@@ -651,15 +654,17 @@ class TestMembership(TestBase):
     # ＜保有者一覧＞
     #   約定　→　保有者一覧で確認（複数件）
     #   ※Token_1が対象
-    def test_normal_6_2(self, app, shared_contract):
+    def test_normal_6_2(self, app, shared_contract, db):
         client = self.client_with_admin_login(app)
         token = TestMembership.get_token(0)
 
         # 投資家のpersonalInfo登録
         register_personal_info(
-            eth_account['trader'],
-            shared_contract['PersonalInfo'],
-            self.trader_encrypted_info
+            db=db,
+            invoker=eth_account["trader"],
+            contract_address=shared_contract["PersonalInfo"]["address"],
+            info=self.trader_personal_info_json,
+            encrypted_info=self.trader_encrypted_info
         )
 
         # 約定データの作成

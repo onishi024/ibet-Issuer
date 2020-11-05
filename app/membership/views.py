@@ -13,6 +13,7 @@ from sqlalchemy import func, desc
 from app import db
 from app.models import Token, Order, Agreement, AgreementStatus, AddressType, ApplyFor, Transfer, Issuer, HolderList, \
     PersonalInfoContract
+from app.models import PersonalInfo as PersonalInfoModel
 from app.utils import ContractUtils, TokenUtils
 from app.exceptions import EthRuntimeError
 from config import Config
@@ -404,13 +405,6 @@ def get_holders(token_address):
         tradable_exchange = Config.ZERO_ADDRESS
     dex_contract = ContractUtils.get_contract('IbetMembershipExchange', tradable_exchange)
 
-    # PersonalInfoコントラクト接続
-    personal_info_address = issuer.personal_info_contract_address
-    personal_info_contract = PersonalInfoContract(
-        issuer_address=token_owner,
-        custom_personal_info_address=personal_info_address
-    )
-
     # Transferイベントを検索
     # →　残高を保有している可能性のあるアドレスを抽出
     # →　保有者リストをユニークにする
@@ -428,7 +422,7 @@ def get_holders(token_address):
             holders_uniq.append(x)
 
     # 保有者情報抽出
-    holders = []
+    _holders = []
     for account_address in holders_uniq:
         balance = TokenContract.functions.balanceOf(account_address).call()
         try:
@@ -447,7 +441,7 @@ def get_holders(token_address):
                 address_type = AddressType.OTHERS.value
 
             # 保有者情報：デフォルト値（個人情報なし）
-            holder = {
+            _holder = {
                 'account_address': account_address,
                 'key_manager': DEFAULT_VALUE,
                 'name': DEFAULT_VALUE,
@@ -461,42 +455,46 @@ def get_holders(token_address):
             }
 
             if address_type == AddressType.ISSUER.value:  # 保有者が発行体の場合
-                holder["name"] = issuer.issuer_name or '--'
-                holders.append(holder)
+                _holder["name"] = issuer.issuer_name or '--'
+                _holders.append(_holder)
             else:  # 保有者が発行体以外の場合
-                decrypted_personal_info = personal_info_contract.get_info(
-                    account_address=account_address,
-                    default_value=""
-                )
-                # 住所の編集
-                prefecture = decrypted_personal_info["address"]["prefecture"]
-                city = decrypted_personal_info["address"]["city"]
-                address_1 = decrypted_personal_info["address"]["address1"]
-                address_2 = decrypted_personal_info["address"]["address2"]
-                if prefecture != "" and city != "":
-                    formatted_address = prefecture + city
-                else:
-                    formatted_address = DEFAULT_VALUE
-                if address_1 != "":
-                    formatted_address = formatted_address + "　" + address_1
-                if address_2 != "":
-                    formatted_address = formatted_address + "　" + address_2
+                record = PersonalInfoModel.query. \
+                    filter(PersonalInfoModel.account_address == account_address). \
+                    filter(PersonalInfoModel.issuer_address == token_owner). \
+                    first()
 
-                holder = {
-                    'account_address': account_address,
-                    'key_manager': decrypted_personal_info["key_manager"],
-                    'name': decrypted_personal_info["name"],
-                    'postal_code': decrypted_personal_info["address"]["postal_code"],
-                    'email': decrypted_personal_info["email"],
-                    'address': formatted_address,
-                    'birth_date': decrypted_personal_info["birth"],
-                    'balance': balance,
-                    'commitment': commitment,
-                    'address_type': address_type
-                }
-                holders.append(holder)
+                if record is not None:
+                    decrypted_personal_info = record.personal_info
+                    # 住所の編集
+                    prefecture = decrypted_personal_info["address"]["prefecture"]
+                    city = decrypted_personal_info["address"]["city"]
+                    address_1 = decrypted_personal_info["address"]["address1"]
+                    address_2 = decrypted_personal_info["address"]["address2"]
+                    if prefecture is not None and city is not None:
+                        formatted_address = prefecture + city
+                    else:
+                        formatted_address = DEFAULT_VALUE
+                    if address_1 is not None and address_1 != "":
+                        formatted_address = formatted_address + "　" + address_1
+                    if address_2 is not None and address_2 != "":
+                        formatted_address = formatted_address + "　" + address_2
 
-    return jsonify(holders)
+                    _holder = {
+                        'account_address': account_address,
+                        'key_manager': decrypted_personal_info["key_manager"],
+                        'name': decrypted_personal_info["name"],
+                        'postal_code': decrypted_personal_info["address"]["postal_code"],
+                        'email': decrypted_personal_info["email"],
+                        'address': formatted_address,
+                        'birth_date': decrypted_personal_info["birth"],
+                        'balance': balance,
+                        'commitment': commitment,
+                        'address_type': address_type
+                    }
+
+                _holders.append(_holder)
+
+    return jsonify(_holders)
 
 
 @membership.route('/get_token_name/<string:token_address>', methods=['GET'])
