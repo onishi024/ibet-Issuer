@@ -269,7 +269,8 @@ class Processor:
         self.personalinfo_list.clear()
         # 発行済のトークンのリストを取得
         _tokens = self.db.query(Token).all()
-        # 各トークンの PersonalInfoContract Model を取得
+        # issuer-address , personalinfo-address の組み合わせのリストを取得
+        tmp_list = []
         for _token in _tokens:
             if _token.token_address is not None:
                 if _token.template_id == Config.TEMPLATE_ID_SB or _token.template_id == Config.TEMPLATE_ID_SHARE:
@@ -281,15 +282,24 @@ class Processor:
                         abi=abi
                     )
                     personalinfo_address = token_contract.functions.personalInfoAddress().call()
-                    personalinfo_contract = PersonalInfoContract(
-                        issuer_address=_token.admin_address,
-                        custom_personal_info_address=personalinfo_address
-                    )
+                    tmp_list.append({
+                        "issuer_address": _token.admin_address,
+                        "personalinfo_address": personalinfo_address
+                    })
                 else:
-                    personalinfo_contract = PersonalInfoContract(
-                        issuer_address=_token.admin_address
-                    )
-                self.personalinfo_list.append(personalinfo_contract)
+                    tmp_list.append({
+                        "issuer_address": _token.admin_address,
+                        "personalinfo_address": None
+                    })
+        # リストの重複を排除する
+        unique_list = list(map(json.loads, set(map(json.dumps, tmp_list))))
+        # PersonalInfoContract のリストを取得
+        for item in unique_list:
+            personalinfo_contract = PersonalInfoContract(
+                issuer_address=item["issuer_address"],
+                custom_personal_info_address=item["personalinfo_address"]
+            )
+            self.personalinfo_list.append(personalinfo_contract)
 
     def __get_blocknumber(self):
         """DB同期済の直近blockNumberを取得
