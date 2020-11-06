@@ -192,7 +192,7 @@ class Sinks:
 
     def on_personalinfo_modify(self, *args, **kwargs):
         for sink in self.sinks:
-            sink.on_personalinfo_register(*args, **kwargs)
+            sink.on_personalinfo_modify(*args, **kwargs)
 
     def flush(self, *args, **kwargs):
         for sink in self.sinks:
@@ -206,7 +206,7 @@ class ConsoleSink:
 
     @staticmethod
     def on_personalinfo_modify(account_address, issuer_address, personal_info, timestamp):
-        logging.info(f"Register: account_address={account_address}, issuer_address={issuer_address}")
+        logging.info(f"Modify: account_address={account_address}, issuer_address={issuer_address}")
 
     def flush(self):
         return
