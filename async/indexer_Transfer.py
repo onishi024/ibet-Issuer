@@ -73,20 +73,6 @@ class Sinks:
             sink.flush(*args, **kwargs)
 
 
-class ConsoleSink:
-    @staticmethod
-    def on_transfer(transaction_hash, token_address,
-                    account_address_from, account_address_to, transfer_amount, block_timestamp):
-        logging.info(
-            "Transfer: transaction_hash={}, token_address={}, account_address_from={}, account_address_to={}".format(
-                transaction_hash, token_address, account_address_from, account_address_to
-            )
-        )
-
-    def flush(self):
-        return
-
-
 class DBSink:
     def __init__(self, db):
         self.db = db
@@ -103,6 +89,12 @@ class DBSink:
             transfer_record.transfer_amount = transfer_amount
             transfer_record.block_timestamp = block_timestamp
             self.db.merge(transfer_record)
+            logging.info(
+                f"Transfer: transaction_hash={transaction_hash}, "
+                f"token_address={token_address}, "
+                f"from={account_address_from}, "
+                f"to={account_address_to}"
+            )
 
     def flush(self):
         self.db.commit()
@@ -115,8 +107,7 @@ class DBSink:
 
 
 class Processor:
-    def __init__(self, web3, sink, db):
-        self.web3 = web3
+    def __init__(self, sink, db):
         self.sink = sink
         self.latest_block = web3.eth.blockNumber
         self.db = db
@@ -175,16 +166,15 @@ class Processor:
                             transfer_amount=args['value'],
                             block_timestamp=block_timestamp
                         )
-                self.web3.eth.uninstallFilter(event_filter.filter_id)
+                web3.eth.uninstallFilter(event_filter.filter_id)
             except Exception as e:
                 logging.error(e)
                 pass
 
 
-sink = Sinks()
-sink.register(ConsoleSink())
-sink.register(DBSink(db_session))
-processor = Processor(web3, sink, db_session)
+_sink = Sinks()
+_sink.register(DBSink(db_session))
+processor = Processor(sink=_sink, db=db_session)
 
 processor.initial_sync()
 while True:
