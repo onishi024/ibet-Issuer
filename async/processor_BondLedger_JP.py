@@ -478,5 +478,5 @@ while True:
     except Exception as ex:
         logging.exception(ex)
 
-    # 10分間隔で実行
-    time.sleep(600)
+    # 1分間隔で実行
+    time.sleep(60)
