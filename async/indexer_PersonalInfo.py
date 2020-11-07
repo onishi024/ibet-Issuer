@@ -41,6 +41,7 @@ from config import Config
 
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
+from web3.exceptions import BadFunctionCallOutput
 from eth_utils import to_checksum_address
 
 # NOTE:ログフォーマットはメッセージ監視が出来るように設定する必要がある。
@@ -274,18 +275,21 @@ class Processor:
         for _token in _tokens:
             if _token.token_address is not None:
                 if _token.template_id == Config.TEMPLATE_ID_SB or _token.template_id == Config.TEMPLATE_ID_SHARE:
-                    abi = json.loads(
-                        _token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false')
-                    )
-                    token_contract = web3.eth.contract(
-                        address=_token.token_address,
-                        abi=abi
-                    )
-                    personalinfo_address = token_contract.functions.personalInfoAddress().call()
-                    tmp_list.append({
-                        "issuer_address": _token.admin_address,
-                        "personalinfo_address": personalinfo_address
-                    })
+                    try:
+                        abi = json.loads(
+                            _token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false')
+                        )
+                        token_contract = web3.eth.contract(
+                            address=_token.token_address,
+                            abi=abi
+                        )
+                        personalinfo_address = token_contract.functions.personalInfoAddress().call()
+                        tmp_list.append({
+                            "issuer_address": _token.admin_address,
+                            "personalinfo_address": personalinfo_address
+                        })
+                    except BadFunctionCallOutput:
+                        logging.warning(f"Failed to get the PersonalInfo address: token = {_token.token_address}")
                 else:
                     tmp_list.append({
                         "issuer_address": _token.admin_address,
