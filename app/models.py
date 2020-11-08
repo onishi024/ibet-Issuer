@@ -378,9 +378,9 @@ class CorporateBondLedgerTemplate(db.Model):
     # 各社債の金額
     face_value = db.Column(db.Integer, nullable=False)
     # 払込情報_払込金額
-    payment_amount = db.Column(db.BigInteger, nullable=False)
+    payment_amount = db.Column(db.BigInteger)
     # 払込情報_払込日
-    payment_date = db.Column(db.String(8), nullable=False)
+    payment_date = db.Column(db.String(8))
     # 払込情報_払込状況
     payment_status = db.Column(db.Boolean, nullable=False)
     # 原簿管理人_名称
