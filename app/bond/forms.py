@@ -22,7 +22,6 @@ from decimal import Decimal
 
 from flask import session
 from flask_wtf import FlaskForm as Form
-
 from wtforms import IntegerField, StringField, TextAreaField, \
     SubmitField, HiddenField, DecimalField, SelectField
 from wtforms.validators import DataRequired, URL, Optional, Length, Regexp, \
@@ -48,7 +47,6 @@ def decimalPlaces(places, message='小数点以下の桁数が多すぎます。
     def _check_decimal_places(form, field):
         """
         有効小数点桁数チェック
-        :param places: 小数点以下有効桁数：整数
         :param field: 桁数チェックを行う変数：小数（Form）
         :return: 真偽値
         """
@@ -786,14 +784,14 @@ class CorporateBondLedgerTemplateForm(Form):
     payment_amount = IntegerField(
         "払込金額",
         validators=[
-            InputRequired('払込金額は必須です。'),
+            Optional(),
             NumberRange(min=0, max=1_000_000_000_000, message='払込金額は1,000,000,000,000が上限です。'),
         ]
     )
     payment_date = StringField(
         "払込日",
         validators=[
-            DataRequired("払込日は必須です。"),
+            Optional(),
             Regexp(yyyymmdd_regexp, message='償還日はYYYYMMDDで入力してください。')
         ]
     )
