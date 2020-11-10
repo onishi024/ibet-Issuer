@@ -56,7 +56,6 @@ class TestCoupon(TestBase):
     url_applications_csv_download = 'coupon/applications_csv_download'  # 申込者リストCSVダウンロード
     url_allocate = 'coupon/allocate'  # 割当（募集申込）
     url_transfer = 'coupon/transfer'  # 割当
-    url_bulk_transfer = 'coupon/bulk_transfer'  # 一括割当
     url_transfer_ownership = 'coupon/transfer_ownership/'  # 所有者移転
     url_holders = 'coupon/holders/'  # 保有者一覧
     url_get_holders = 'coupon/get_holders/'  # 保有者一覧（API）
@@ -517,21 +516,6 @@ class TestCoupon(TestBase):
         response = client.get(self.url_transfer)
         assert response.status_code == 200
         assert '<title>クーポン割当'.encode('utf-8') in response.data
-
-    # ＜正常系7_3＞
-    # ＜一括割当画面表示＞
-    #   クーポン一括割当
-    def test_normal_7_3(self, app):
-        client = self.client_with_admin_login(app)
-
-        # 一括割当処理(GET)
-        response = client.get(self.url_bulk_transfer)
-        assert response.status_code == 200
-        assert '<title>クーポン一括割当'.encode('utf-8') in response.data
-
-        # CSV一括割当処理(POST)
-        response = client.post(self.url_bulk_transfer)
-        assert response.status_code == 200
 
     # ＜正常系8＞
     # ＜保有者詳細＞

@@ -16,9 +16,10 @@ limitations under the License.
 
 SPDX-License-Identifier: Apache-2.0
 """
-
+import csv
 import json
 import re
+import uuid
 from datetime import datetime, timezone, timedelta
 
 JST = timezone(timedelta(hours=+9), 'JST')
@@ -31,13 +32,15 @@ from flask_login import login_required
 from sqlalchemy import desc
 
 from app import db
-from app.models import Token, Transfer, AddressType, ApplyFor, Issuer, HolderList, PersonalInfoContract
+from app.models import Token, Transfer, AddressType, ApplyFor, Issuer, HolderList, PersonalInfoContract, BulkTransfer, \
+    BulkTransferUpload
 from app.models import PersonalInfo as PersonalInfoModel
 from app.utils import ContractUtils, TokenUtils
 from app.exceptions import EthRuntimeError
 from config import Config
 from . import share
-from .forms import IssueForm, SettingForm, AddSupplyForm, TransferOwnershipForm, TransferForm, AllotForm
+from .forms import IssueForm, SettingForm, AddSupplyForm, TransferOwnershipForm, TransferForm, AllotForm, \
+    BulkTransferUploadForm
 
 from web3 import Web3
 from eth_utils import to_checksum_address
@@ -1277,6 +1280,248 @@ def holder(token_address, account_address):
                 token_address=token_address,
                 account_address=account_address
             )
+
+
+#################################################
+# 一括強制移転
+#################################################
+
+# 一括強制移転CSVアップロード
+@share.route('/bulk_transfer', methods=['GET', 'POST'])
+@login_required
+def bulk_transfer():
+    form = BulkTransferUploadForm()
+
+    #########################
+    # GET：アップロード画面参照
+    #########################
+    if request.method == "GET":
+        logger.info("share/bulk_transfer(GET)")
+        return render_template("share/bulk_transfer.html", form=form)
+
+    #########################
+    # POST：ファイルアップロード
+    #########################
+    if request.method == "POST":
+        logger.info("share/bulk_transfer(POST)")
+
+        # Formバリデート
+        if form.validate() is False:
+            flash_errors(form)
+            return render_template("share/bulk_transfer.html", form=form)
+
+        send_data = request.files["transfer_csv"]
+
+        # CSVファイル読み込み
+        _transfer_list = []
+        try:
+            stream = io.StringIO(send_data.stream.read().decode("UTF8"), newline=None)
+            csv_input = csv.reader(stream)
+            for row in csv_input:
+                _transfer_list.append(row)
+        except Exception as err:
+            logger.error(f"Failed to upload file: {err}")
+            flash("CSVアップロードでエラーが発生しました。", "error")
+            return render_template("share/bulk_transfer.html", form=form)
+
+        # アップロードIDを生成（UUID4）
+        upload_id = str(uuid.uuid4())
+
+        token_address_0 = None
+        for i, row in enumerate(_transfer_list):
+            # <CHK>ファイルフォーマットチェック
+            try:
+                token_address = row[0]
+                from_address = row[1]
+                to_address = row[2]
+                transfer_amount = row[3]
+            except IndexError:
+                flash("ファイルフォーマットが正しくありません。", "error")
+                db.session.rollback()
+                return render_template("share/bulk_transfer.html", form=form)
+
+            # <CHK>アドレスフォーマットチェック（token_address）
+            if not Web3.isAddress(token_address):
+                flash(f"{i + 1}行目に無効なトークンアドレスが含まれています。", "error")
+                db.session.rollback()
+                return render_template("share/bulk_transfer.html", form=form)
+
+            # <CHK>全てのトークンアドレスが同一のものであることのチェック
+            if i == 0:
+                token_address_0 = token_address
+            if token_address_0 != token_address:
+                flash(f"ファイル内に異なるトークンアドレスが含まれています。", "error")
+                db.session.rollback()
+                return render_template("share/bulk_transfer.html", form=form)
+
+            # <CHK>発行体が管理するトークンであることをチェック
+            token = Token.query. \
+                filter(Token.token_address == token_address). \
+                filter(Token.admin_address == session['eth_account'].lower()). \
+                filter(Token.template_id == Config.TEMPLATE_ID_SHARE). \
+                first()
+            if token is None:
+                flash(f"ファイル内に未発行のトークンアドレスが含まれています。", "error")
+                db.session.rollback()
+                return render_template("share/bulk_transfer.html", form=form)
+
+            # <CHK>アドレスフォーマットチェック（from_address）
+            if not Web3.isAddress(from_address):
+                flash(f"{i + 1}行目に無効な移転元アドレスが含まれています。", "error")
+                db.session.rollback()
+                return render_template("share/bulk_transfer.html", form=form)
+
+            # <CHK>アドレスフォーマットチェック（to_address）
+            if not Web3.isAddress(to_address):
+                flash(f"{i + 1}行目に無効な移転先アドレスが含まれています。", "error")
+                db.session.rollback()
+                return render_template("share/bulk_transfer.html", form=form)
+
+            # <CHK>移転数量のフォーマットチェック
+            if not transfer_amount.isdecimal():
+                flash(f"{i + 1}行目に無効な移転数量が含まれています。", "error")
+                db.session.rollback()
+                return render_template("share/bulk_transfer.html", form=form)
+
+            # DB登録処理（一括強制移転）
+            _bulk_transfer = BulkTransfer()
+            _bulk_transfer.eth_account = session['eth_account']
+            _bulk_transfer.upload_id = upload_id
+            _bulk_transfer.token_address = token_address
+            _bulk_transfer.template_id = Config.TEMPLATE_ID_SHARE
+            _bulk_transfer.from_address = from_address
+            _bulk_transfer.to_address = to_address
+            _bulk_transfer.amount = transfer_amount
+            _bulk_transfer.approved = False
+            _bulk_transfer.status = 0
+            db.session.add(_bulk_transfer)
+
+        # トークン名称を取得
+        token_name = ""
+        try:
+            TokenContract = TokenUtils.get_contract(token_address_0, session['eth_account'])
+            token_name = TokenContract.functions.name().call()
+        except Exception as err:
+            logger.warning(f"Failed to get token name: {err}")
+
+        # DB登録処理（一括強制移転アップロード）
+        _bulk_transfer_upload = BulkTransferUpload()
+        _bulk_transfer_upload.upload_id = upload_id
+        _bulk_transfer_upload.eth_account = session['eth_account']
+        _bulk_transfer_upload.token_address = token_address_0
+        _bulk_transfer_upload.token_name = token_name
+        _bulk_transfer_upload.template_id = Config.TEMPLATE_ID_SHARE
+        _bulk_transfer_upload.approved = False
+        db.session.add(_bulk_transfer_upload)
+
+        db.session.commit()
+        flash("ファイルアップロードが成功しました。", "success")
+        return redirect(url_for('.bulk_transfer'))
+
+
+# 一括強制移転CSVアップロード履歴（API）
+@share.route('/bulk_transfer_history', methods=['GET'])
+@login_required
+def bulk_transfer_history():
+    logger.info('share/bulk_transfer_history')
+
+    records = BulkTransferUpload.query. \
+        filter(BulkTransferUpload.eth_account == session["eth_account"]). \
+        filter(BulkTransferUpload.template_id == Config.TEMPLATE_ID_SHARE). \
+        order_by(desc(BulkTransferUpload.created)). \
+        all()
+
+    upload_list = []
+    for record in records:
+        # utc→jst の変換
+        created_jst = record.created.replace(tzinfo=timezone.utc).astimezone(JST)
+        created_formatted = created_jst.strftime("%Y/%m/%d %H:%M:%S %z")
+        upload_list.append({
+            "upload_id": record.upload_id,
+            "token_address": record.token_address,
+            "token_name": record.token_name,
+            "approved": record.approved,
+            "created": created_formatted
+        })
+
+    return jsonify(upload_list)
+
+
+# 一括強制移転同意
+@share.route('/bulk_transfer_approval/<string:upload_id>', methods=['GET', 'POST'])
+@login_required
+def bulk_transfer_approval(upload_id):
+
+    #########################
+    # GET：移転指示データ参照
+    #########################
+    if request.method == "GET":
+        logger.info("share/bulk_transfer_approval(GET)")
+
+        # 移転指示明細データを取得
+        bulk_transfer_records = BulkTransfer.query. \
+            filter(BulkTransfer.eth_account == session["eth_account"]). \
+            filter(BulkTransfer.upload_id == upload_id).\
+            order_by(desc(BulkTransfer.created)).\
+            all()
+
+        transfer_list = []
+        for record in bulk_transfer_records:
+            transfer_list.append({
+                'token_address': record.token_address,
+                'from_address': record.from_address,
+                'to_address': record.to_address,
+                'amount': record.amount,
+                'status': record.status,
+            })
+
+        # 移転アップロード情報を取得
+        bulk_transfer_upload_record = BulkTransferUpload.query. \
+            filter(BulkTransferUpload.eth_account == session["eth_account"]). \
+            filter(BulkTransferUpload.upload_id == upload_id). \
+            first()
+        if bulk_transfer_upload_record is None:
+            abort(404)
+        approved = bulk_transfer_upload_record.approved
+
+        return render_template(
+            "share/bulk_transfer_approval.html",
+            upload_id=upload_id,
+            approved=approved,
+            transfer_list=transfer_list
+        )
+
+    #########################
+    # POST：移転指示データ承認
+    #########################
+    if request.method == "POST":
+        logger.info('share/bulk_transfer_approval(POST)')
+
+        upload_id = request.form.get("upload_id")
+
+        # 移転指示明細データの承認ステータスを承認済に変更する
+        bulk_transfer_records = BulkTransfer.query. \
+            filter(BulkTransfer.eth_account == session["eth_account"]). \
+            filter(BulkTransfer.upload_id == upload_id). \
+            all()
+        for _record in bulk_transfer_records:
+            _record.approved = True
+            db.session.merge(_record)
+
+        # 移転アップロードの承認ステータスを承認済に変更する
+        bulk_transfer_upload_record = BulkTransferUpload.query. \
+            filter(BulkTransferUpload.eth_account == session["eth_account"]). \
+            filter(BulkTransferUpload.upload_id == upload_id). \
+            first()
+        if bulk_transfer_upload_record is not None:
+            bulk_transfer_upload_record.approved = True
+            db.session.merge(bulk_transfer_upload_record)
+
+        # 更新内容をコミット
+        db.session.commit()
+
+        flash('移転処理を開始しました。', 'success')
+        return redirect(url_for('.bulk_transfer_approval', upload_id=upload_id))
 
 
 ####################################################

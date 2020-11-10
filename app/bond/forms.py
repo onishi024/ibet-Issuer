@@ -23,7 +23,7 @@ from decimal import Decimal
 from flask import session
 from flask_wtf import FlaskForm as Form
 from wtforms import IntegerField, StringField, TextAreaField, \
-    SubmitField, HiddenField, DecimalField, SelectField
+    SubmitField, HiddenField, DecimalField, SelectField, FileField
 from wtforms.validators import DataRequired, URL, Optional, Length, Regexp, \
     NumberRange, InputRequired
 from wtforms import ValidationError
@@ -828,3 +828,17 @@ class CorporateBondLedgerTemplateForm(Form):
         self.payment_status.choices = [('True', '完了'), ('False', '未完了')]
         self.description = {
         }
+
+
+# 一括移転ファイルアップロード
+class BulkTransferUploadForm(Form):
+    transfer_csv = FileField(
+        "CSVファイル",
+        validators=[
+            DataRequired('ファイルを選択してください。')
+        ]
+    )
+    submit = SubmitField('アップロード')
+
+    def __init__(self, *args, **kwargs):
+        super(BulkTransferUploadForm, self).__init__(*args, **kwargs)

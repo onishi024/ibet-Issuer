@@ -21,7 +21,7 @@ import math
 
 from flask_wtf import FlaskForm as Form
 from web3 import Web3
-from wtforms import IntegerField, DecimalField, StringField, TextAreaField, SubmitField, SelectField
+from wtforms import IntegerField, DecimalField, StringField, TextAreaField, SubmitField, SelectField, FileField
 from wtforms import ValidationError
 from wtforms.validators import DataRequired, URL, Optional, Length, Regexp, NumberRange, InputRequired
 
@@ -438,3 +438,17 @@ class AllotForm(Form):
     def __init__(self, allot_bond=None, *args, **kwargs):
         super(AllotForm, self).__init__(*args, **kwargs)
         self.allot_bond = allot_bond
+
+
+# 一括移転ファイルアップロード
+class BulkTransferUploadForm(Form):
+    transfer_csv = FileField(
+        "CSVファイル",
+        validators=[
+            DataRequired('ファイルを選択してください。')
+        ]
+    )
+    submit = SubmitField('アップロード')
+
+    def __init__(self, *args, **kwargs):
+        super(BulkTransferUploadForm, self).__init__(*args, **kwargs)

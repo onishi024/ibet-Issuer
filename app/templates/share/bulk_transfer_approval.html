@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
+{% endblock %}
+{% set active_page = "share_bulk_transfer" %}
+
+{% block title %}一括強制移転承認 - {% endblock %}
+{% block page_header %}一括強制移転承認 <span class="badge bg-secondary">株式</span>{% endblock %}
+{% block page_description %}{% endblock %}
+{% block breadcrumb %}
+<li><a href="{{ url_for('index.index') }}">トップ</a></li>
+<li class="active">一括強制移転承認</li>
+{% endblock %}
+
+{% block page_content %}
+<section class="content">
+    <div class="box box-default">
+        <div class="box-header">
+            <h3 class="box-title">アップロードデータ <small>{{ upload_id }}</small></h3>
+            <div class="pull-right box-tools">
+                {% if approved %}
+                <button class="btn btn-default" type="button" style="width: 120px" disabled>承認済</button>
+                {% else %}
+                <button id="approve" class="btn btn-warning" type="button" style="width: 120px">承認</button>
+                {% endif %}
+            </div>
+        </div>
+        <div class="box-body">
+            <table id="data_table" class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>トークン</th>
+                        <th>移転元</th>
+                        <th>移転先</th>
+                        <th>移転数量</th>
+                        <th>実行状態</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in transfer_list %}
+                    <tr>
+                        <td style="word-break : break-all;"><small>{{ item.token_address }}</small></td>
+                        <td style="word-break : break-all;"><small>{{ item.from_address }}</small></td>
+                        <td style="word-break : break-all;"><small>{{ item.to_address }}</small></td>
+                        <td>{{ item.amount }}</td>
+                        {% if item.status == 0 %}
+                        <td>
+                            <div align="center"><span class="badge bg-default">未処理</span></div>
+                        </td>
+                        {% elif item.status == 1 %}
+                        <td>
+                            <div align="center"><span class="badge bg-green">正常終了</span></div>
+                        </td>
+                        {% elif item.status == 2 %}
+                        <td>
+                            <div align="center"><span class="badge bg-red">異常終了</span></div>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="box-footer">
+            <button type="button" class="btn btn-default" onclick="location.href='{{ url_for('share.bulk_transfer') }}'">
+                戻る
+            </button>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block required_js %}
+{{ super() }}
+<!-- モーダルダイアログ -->
+<div class="modal" id="modal-confirm" tabindex="-1" role="dialog" aria-labelledby="staticModalLabel" aria-hidden="true"
+    data-show="true" data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">×</span></button>
+                <h4 id="modal-prompt-title">modal</h4>
+            </div>
+            <div class="modal-body">
+                <p class="recipient" id="modal-text">modal</p>
+            </div>
+            <div class="modal-footer">
+                <form action="modal-action" id="modal-form" method="POST">
+                    <input type="hidden" name="upload_id" value="{{ upload_id }}">
+                    <button type="button" class="btn btn-default" id="modal-cancel" data-dismiss="modal">キャンセル</button>
+                    <button type="button" class="btn btn-warning" id="modal-ok"
+                        data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中">　 承認 　</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- DataTables -->
+<script src="/static/adminlte/bower_components/datatables.net/js/jquery.dataTables.min.js"></script>
+<script src="/static/adminlte/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+<script>
+    $(function () {
+        $('#data_table').DataTable({
+            'paging': true,
+            'lengthChange': true,
+            'searching': true,
+            'ordering': false,
+            'info': true,
+            'autoWidth': true,
+            'pagingType': "full_numbers",
+            'language': {
+                'info': "_TOTAL_ 件中 _START_ 〜 _END_ 件目",
+                'lengthMenu': "表示件数 _MENU_ 件",
+                'search': "検索:",
+                'paginate': {
+                    'first': "最初へ",
+                    'previous': "前へ",
+                    'next': "次へ",
+                    'last': "最後へ",
+                },
+                "emptyTable": "データが存在しません",
+                "sInfoEmpty": " 0 件中 0 から 0 まで表示"
+            },
+        })
+    })
+
+</script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#modal-ok').click(function () {
+            $('#modal-cancel').prop('disabled', true);
+            var $this = $(this);
+            $this.parents('form').submit();
+            $this.button('loading');
+            setTimeout(function () {
+                $this.button('reset');
+            }, 10000);
+        });
+        $('#approve').click(function () {
+            $('#modal-prompt-title').html('一括移転の承認 <i class="fa fa-exclamation-triangle"></i>');
+            $('#modal-text').html('移転処理を開始します。よろしいですか？');
+            $('#modal-form').attr('action', "{{ url_for('share.bulk_transfer_approval', upload_id=upload_id) }}");
+            $('#modal-confirm').modal();
+        });
+    });
+</script>
+{% endblock %}
