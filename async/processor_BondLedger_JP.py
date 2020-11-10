@@ -252,14 +252,8 @@ class DBSink:
                 )
 
             if personal_info_json is not None:
-                # 氏名
-                name = personal_info_json.get("name", "")
-                # 住所
-                address_details = personal_info_json.get("address", {})
-                address = f'{address_details.get("prefecture", "")}' \
-                          f'{address_details.get("city", "")} ' \
-                          f'{address_details.get("address1", "")} ' \
-                          f'{address_details.get("address2", "")}'
+                name = personal_info_json.get("name", "")  # 氏名
+                address = personal_info_json.get("address", "")  # 住所
             else:
                 name = ""
                 address = ""
