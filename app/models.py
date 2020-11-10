@@ -241,30 +241,62 @@ class Token(db.Model):
         return Token.id
 
 
-class CouponBulkTransfer(db.Model):
-    """クーポン割当一括登録"""
-    __tablename__ = 'coupon_bulk_transfer'
+class BulkTransferUpload(db.Model):
+    """一括強制移転アップロード"""
+    __tablename__ = 'bulk_transfer_upload'
+
+    # アップロードID
+    upload_id = db.Column(db.String(36), primary_key=True)
+    # 発行体アカウントアドレス
+    eth_account = db.Column(db.String(42), nullable=False, index=True)
+    # トークンアドレス
+    token_address = db.Column(db.String(42), nullable=False)
+    # トークン名称
+    token_name = db.Column(db.String(200))
+    # トークン種別
+    template_id = db.Column(db.Integer, nullable=False)
+    # 実行承認ステータス
+    approved = db.Column(db.Boolean, default=False)
+    # 作成タイムスタンプ
+    created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    # 更新タイムスタンプ
+    modified = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<BulkTransferUpload(id={self.id}, eth_account={self.eth_account}, token_address={self.token_address}, approved={self.approved})>"
+
+
+class BulkTransfer(db.Model):
+    """一括強制移転"""
+    __tablename__ = 'bulk_transfer'
 
     # シーケンスID
     id = db.Column(db.Integer, primary_key=True)
-    # アカウントアドレス
-    eth_account = db.Column(db.String(42), nullable=False)
+    # 発行体アカウントアドレス
+    eth_account = db.Column(db.String(42), nullable=False, index=True)
+    # アップロードID
+    upload_id = db.Column(db.String(36), index=True)
     # トークンアドレス
     token_address = db.Column(db.String(42), nullable=False)
-    # 割当先アドレス
+    # トークン種別
+    template_id = db.Column(db.Integer, nullable=False)
+    # 移転元アドレス
+    from_address = db.Column(db.String(42), nullable=False)
+    # 移転先アドレス
     to_address = db.Column(db.String(42), nullable=False)
-    # 割当数量
+    # 移転数量
     amount = db.Column(db.Integer, nullable=False)
-    # 割当状態
-    transferred = db.Column(db.Boolean, default=False)
+    # 実行承認ステータス
+    approved = db.Column(db.Boolean, default=False, index=True)
+    # 実行状態（未処理：0、正常終了：1、異常終了：2）
+    status = db.Column(db.Integer, nullable=False, index=True)
+    # 作成タイムスタンプ
+    created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    # 更新タイムスタンプ
+    modified = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     def __repr__(self):
-        return "<CouponBulkTransfer('token_address'='%s', 'to_address'='%s', 'amount'='%s', 'transferred'='%s')>" % \
-               (self.token_address, self.to_address, self.amount, self.transferred)
-
-    @classmethod
-    def get_id(cls):
-        return CouponBulkTransfer.id
+        return f"<BulkTransfer(id={self.id}, eth_account={self.eth_account}, upload_id={self.upload_id}, token_address={self.token_address})>"
 
 
 class Certification(db.Model):

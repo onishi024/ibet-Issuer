@@ -29,18 +29,17 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
-from eth_utils import to_checksum_address
 
 path = os.path.join(os.path.dirname(__file__), '../')
 sys.path.append(path)
 
 from app.utils import ContractUtils
-from app.models import CouponBulkTransfer, Token
+from app.models import BulkTransfer, Token
 from config import Config
 
 # NOTE:ログフォーマットはメッセージ監視が出来るように設定する必要がある。
 dictConfig(Config.LOG_CONFIG)
-log_fmt = 'PROCESSOR-BatchTransferCoupon [%(asctime)s] [%(process)d] [%(levelname)s] %(message)s'
+log_fmt = 'PROCESSOR-BatchTransfer [%(asctime)s] [%(process)d] [%(levelname)s] %(message)s'
 logging.basicConfig(format=log_fmt)
 
 # 設定情報の取得
@@ -57,55 +56,50 @@ db_session.configure(bind=engine)
 
 # 常時起動（無限ループ）
 while True:
-    logging.debug('[CouponBatchTransfer] Loop Start')
+    logging.debug('Loop Start')
 
-    # 割当（Transfer）済ではないレコードを抽出
-    try:
-        untransferred_list = db_session.query(CouponBulkTransfer). \
-            filter(CouponBulkTransfer.transferred == False).all()
-    except Exception as err:
-        logging.error("%s", err)
-        time.sleep(10)
-        continue
+    # 実行承認済、かつ未実行のレコードリストを抽出
+    transfer_list = db_session.query(BulkTransfer).\
+        filter(BulkTransfer.approved == True).\
+        filter(BulkTransfer.status == 0).\
+        all()
 
-    # レコード単位で割当処理を実行
-    for item in untransferred_list:
-
-        # Tokenコントラクトへの接続
+    # レコード単位で移転処理を実行
+    for record in transfer_list:
+        # Tokenコントラクトに接続
         token = db_session.query(Token). \
-            filter(Token.token_address == item.token_address). \
-            filter(Token.admin_address == item.eth_account.lower()). \
+            filter(Token.token_address == record.token_address). \
+            filter(Token.admin_address == record.eth_account.lower()). \
             first()
         if token is None:
-            logging.warning('Cannot handle coupon token address %s', item.token_address)
+            logging.warning('Cannot handle coupon token address %s', record.token_address)
             continue
         token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
         TokenContract = web3.eth.contract(
             address=token.token_address,
             abi=token_abi
         )
-
-        # 割当処理
-        from_address = item.eth_account  # 発行体アドレス
-        to_address = to_checksum_address(item.to_address)
-        amount = item.amount
-
+        # 強制移転処理
+        from_address = record.from_address
+        to_address = record.to_address
+        amount = record.amount
         try:
-            # DEXコントラクトへデポジット（Transfer）
             tx = TokenContract.functions.transferFrom(from_address, to_address, amount). \
-                buildTransaction({'from': item.eth_account, 'gas': Config.TX_GAS_LIMIT})
-            ContractUtils.send_transaction(transaction=tx, eth_account=item.eth_account, db_session=db_session)
-
-            # DBを割当済に更新
-            item.transferred = True
-
-            logging.info("[CouponBatchTransfer] Success : {}".format(item.token_address))
-
+                buildTransaction({'from': record.eth_account, 'gas': Config.TX_GAS_LIMIT})
+            ContractUtils.send_transaction(
+                transaction=tx,
+                eth_account=record.eth_account,
+                db_session=db_session
+            )
+            # レコードを処理済に更新
+            record.status = 1  # 正常終了
+            logging.info(f"Transfer was successful: eth_account={record.eth_account}, upload_id={record.upload_id}, id={record.id}")
         except Exception as err:
-            logging.error("%s", err)
-            break
+            record.status = 2  # 異常終了
+            logging.error(f"Transfer was failed: eth_account={record.eth_account}, upload_id={record.upload_id}, id={record.id} : {err}")
 
+        # 更新情報をコミット
         db_session.commit()
 
-    logging.debug('[CouponBatchTransfer] Loop Finished')
+    logging.debug('Loop Finished')
     time.sleep(10)
