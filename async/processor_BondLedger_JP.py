@@ -136,8 +136,8 @@ class DBSink:
                     spend_amount = spend_amount - utxo_amount
                     self.db.merge(utxo)
                 else:
-                    spend_amount = 0
                     utxo.amount = utxo_amount - spend_amount
+                    spend_amount = 0
                     self.db.merge(utxo)
 
     def on_bond_ledger(self, token):
