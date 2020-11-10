@@ -132,27 +132,19 @@ class TestMembership(TestBase):
     #############################################################################
     issuer_personal_info_json = {
         "name": "株式会社１",
-        "address": {
-            "postal_code": "1234567",
-            "prefecture": "東京都",
-            "city": "中央区",
-            "address1": "日本橋11-1",
-            "address2": "東京マンション１０１"
-        },
+        "postal_code": "1234567",
+        "address": "東京都中央区　日本橋11-1　東京マンション１０１",
         "email": "abcd1234@aaa.bbb.cc",
         "birth": "20190902"
     }
 
+    # \uff0d: 「－」FULLWIDTH HYPHEN-MINUS。半角ハイフン変換対象。
+    # \u30fc: 「ー」KATAKANA-HIRAGANA PROLONGED SOUND MARK。半角ハイフン変換対象外。
     trader_personal_info_json = {
         "key_manager": "",
         "name": "ﾀﾝﾀｲﾃｽﾄ",
-        "address": {
-            "postal_code": "1040053",
-            "prefecture": "東京都",
-            "city": "中央区",
-            "address1": "勝どき1丁目１－２ー３",
-            "address2": ""
-        },
+        "postal_code": "1040053",
+        "address": "東京都中央区　勝どき1丁目１\uff0d２\u30fc３",
         "email": "abcd1234@aaa.bbb.cc",
         "birth": "20191102"
     }

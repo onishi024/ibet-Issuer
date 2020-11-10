@@ -20,7 +20,7 @@ SPDX-License-Identifier: Apache-2.0
 from flask import session
 from flask_wtf import FlaskForm as Form
 
-from wtforms import IntegerField, StringField, TextAreaField, SubmitField, SelectField
+from wtforms import IntegerField, StringField, TextAreaField, SubmitField, SelectField, FileField
 from wtforms.validators import DataRequired, URL, Optional, Length, Regexp, NumberRange
 from wtforms import ValidationError
 
@@ -396,3 +396,17 @@ class AddSupplyForm(Form):
     def __init__(self, issue=None, *args, **kwargs):
         super(AddSupplyForm, self).__init__(*args, **kwargs)
         self.issue = issue
+
+
+# 一括移転ファイルアップロード
+class BulkTransferUploadForm(Form):
+    transfer_csv = FileField(
+        "CSVファイル",
+        validators=[
+            DataRequired('ファイルを選択してください。')
+        ]
+    )
+    submit = SubmitField('アップロード')
+
+    def __init__(self, *args, **kwargs):
+        super(BulkTransferUploadForm, self).__init__(*args, **kwargs)

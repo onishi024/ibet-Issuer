@@ -241,30 +241,62 @@ class Token(db.Model):
         return Token.id
 
 
-class CouponBulkTransfer(db.Model):
-    """クーポン割当一括登録"""
-    __tablename__ = 'coupon_bulk_transfer'
+class BulkTransferUpload(db.Model):
+    """一括強制移転アップロード"""
+    __tablename__ = 'bulk_transfer_upload'
+
+    # アップロードID
+    upload_id = db.Column(db.String(36), primary_key=True)
+    # 発行体アカウントアドレス
+    eth_account = db.Column(db.String(42), nullable=False, index=True)
+    # トークンアドレス
+    token_address = db.Column(db.String(42), nullable=False)
+    # トークン名称
+    token_name = db.Column(db.String(200))
+    # トークン種別
+    template_id = db.Column(db.Integer, nullable=False)
+    # 実行承認ステータス
+    approved = db.Column(db.Boolean, default=False)
+    # 作成タイムスタンプ
+    created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    # 更新タイムスタンプ
+    modified = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<BulkTransferUpload(id={self.id}, eth_account={self.eth_account}, token_address={self.token_address}, approved={self.approved})>"
+
+
+class BulkTransfer(db.Model):
+    """一括強制移転"""
+    __tablename__ = 'bulk_transfer'
 
     # シーケンスID
     id = db.Column(db.Integer, primary_key=True)
-    # アカウントアドレス
-    eth_account = db.Column(db.String(42), nullable=False)
+    # 発行体アカウントアドレス
+    eth_account = db.Column(db.String(42), nullable=False, index=True)
+    # アップロードID
+    upload_id = db.Column(db.String(36), index=True)
     # トークンアドレス
     token_address = db.Column(db.String(42), nullable=False)
-    # 割当先アドレス
+    # トークン種別
+    template_id = db.Column(db.Integer, nullable=False)
+    # 移転元アドレス
+    from_address = db.Column(db.String(42), nullable=False)
+    # 移転先アドレス
     to_address = db.Column(db.String(42), nullable=False)
-    # 割当数量
+    # 移転数量
     amount = db.Column(db.Integer, nullable=False)
-    # 割当状態
-    transferred = db.Column(db.Boolean, default=False)
+    # 実行承認ステータス
+    approved = db.Column(db.Boolean, default=False, index=True)
+    # 実行状態（未処理：0、正常終了：1、異常終了：2）
+    status = db.Column(db.Integer, nullable=False, index=True)
+    # 作成タイムスタンプ
+    created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    # 更新タイムスタンプ
+    modified = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     def __repr__(self):
-        return "<CouponBulkTransfer('token_address'='%s', 'to_address'='%s', 'amount'='%s', 'transferred'='%s')>" % \
-               (self.token_address, self.to_address, self.amount, self.transferred)
-
-    @classmethod
-    def get_id(cls):
-        return CouponBulkTransfer.id
+        return f"<BulkTransfer(id={self.id}, eth_account={self.eth_account}, upload_id={self.upload_id}, token_address={self.token_address})>"
 
 
 class Certification(db.Model):
@@ -643,13 +675,8 @@ class PersonalInfoContract:
             "account_address": account_address,
             "key_manager": default_value,
             "name": default_value,
-            "address": {
-                "postal_code": default_value,
-                "prefecture": default_value,
-                "city": default_value,
-                "address1": default_value,
-                "address2": default_value
-            },
+            "postal_code": default_value,
+            "address": default_value,
             "email": default_value,
             "birth": default_value
         }
@@ -676,13 +703,8 @@ class PersonalInfoContract:
 
                 personal_info["key_manager"] = decrypted_info.get("key_manager", default_value)
                 personal_info["name"] = decrypted_info.get("name", default_value)
-                address = decrypted_info.get("address")
-                if address is not None:
-                    personal_info["address"]["postal_code"] = address.get("postal_code", default_value)
-                    personal_info["address"]["prefecture"] = address.get("prefecture", default_value)
-                    personal_info["address"]["city"] = address.get("city", default_value)
-                    personal_info["address"]["address1"] = address.get("address1", default_value)
-                    personal_info["address"]["address2"] = address.get("address2", default_value)
+                personal_info["postal_code"] = decrypted_info.get("postal_code", default_value)
+                personal_info["address"] = decrypted_info.get("address", default_value)
                 personal_info["email"] = decrypted_info.get("email", default_value)
                 personal_info["birth"] = decrypted_info.get("birth", default_value)
                 return personal_info
@@ -702,30 +724,14 @@ class PersonalInfoContract:
         if not Web3.isAddress(account_address):
             abort(404)
 
-        # デフォルト値
         personal_info = {
             "key_manager": data.get("key_manager", default_value),
             "name": data.get("name", default_value),
-            "address": {
-                "postal_code": default_value,
-                "prefecture": default_value,
-                "city": default_value,
-                "address1": default_value,
-                "address2": default_value
-            },
-            "email": default_value,
-            "birth": default_value
+            "postal_code": data.get("postal_code", default_value),
+            "address": data.get("address", default_value),
+            "email": data.get("email", default_value),
+            "birth": data.get("birth", default_value)
         }
-
-        address = data.get("address")
-        if address is not None:
-            personal_info["address"]["postal_code"] = address.get("postal_code", default_value)
-            personal_info["address"]["prefecture"] = address.get("prefecture", default_value)
-            personal_info["address"]["city"] = address.get("city", default_value)
-            personal_info["address"]["address1"] = address.get("address1", default_value)
-            personal_info["address"]["address2"] = address.get("address2", default_value)
-        personal_info["email"] = data.get("email", default_value)
-        personal_info["birth"] = data.get("birth", default_value)
 
         # 個人情報暗号化用RSA公開鍵の取得
         rsa_public_key = None

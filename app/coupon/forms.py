@@ -315,20 +315,6 @@ class TransferForm(Form):
         self.transfer_coupon = transfer_coupon
 
 
-class BulkTransferForm(Form):
-    transfer_csv = FileField(
-        "CSVファイル",
-        validators=[
-            DataRequired('ファイルを選択してください。')
-        ]
-    )
-    submit = SubmitField('アップロード')
-
-    def __init__(self, bulk_transfer_data=None, *args, **kwargs):
-        super(BulkTransferForm, self).__init__(*args, **kwargs)
-        self.bulk_transfer_data = bulk_transfer_data
-
-
 class TransferOwnershipForm(Form):
     from_address = StringField("現在の所有者", validators=[])
     to_address = StringField(
@@ -398,3 +384,17 @@ class CancelOrderForm(Form):
     def __init__(self, cancel_order=None, *args, **kwargs):
         super(CancelOrderForm, self).__init__(*args, **kwargs)
         self.sell_token = cancel_order
+
+
+# 一括移転ファイルアップロード
+class BulkTransferUploadForm(Form):
+    transfer_csv = FileField(
+        "CSVファイル",
+        validators=[
+            DataRequired('ファイルを選択してください。')
+        ]
+    )
+    submit = SubmitField('アップロード')
+
+    def __init__(self, *args, **kwargs):
+        super(BulkTransferUploadForm, self).__init__(*args, **kwargs)
