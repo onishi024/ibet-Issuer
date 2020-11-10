@@ -675,13 +675,8 @@ class PersonalInfoContract:
             "account_address": account_address,
             "key_manager": default_value,
             "name": default_value,
-            "address": {
-                "postal_code": default_value,
-                "prefecture": default_value,
-                "city": default_value,
-                "address1": default_value,
-                "address2": default_value
-            },
+            "postal_code": default_value,
+            "address": default_value,
             "email": default_value,
             "birth": default_value
         }
@@ -708,13 +703,8 @@ class PersonalInfoContract:
 
                 personal_info["key_manager"] = decrypted_info.get("key_manager", default_value)
                 personal_info["name"] = decrypted_info.get("name", default_value)
-                address = decrypted_info.get("address")
-                if address is not None:
-                    personal_info["address"]["postal_code"] = address.get("postal_code", default_value)
-                    personal_info["address"]["prefecture"] = address.get("prefecture", default_value)
-                    personal_info["address"]["city"] = address.get("city", default_value)
-                    personal_info["address"]["address1"] = address.get("address1", default_value)
-                    personal_info["address"]["address2"] = address.get("address2", default_value)
+                personal_info["postal_code"] = decrypted_info.get("postal_code", default_value)
+                personal_info["address"] = decrypted_info.get("address", default_value)
                 personal_info["email"] = decrypted_info.get("email", default_value)
                 personal_info["birth"] = decrypted_info.get("birth", default_value)
                 return personal_info
@@ -734,30 +724,14 @@ class PersonalInfoContract:
         if not Web3.isAddress(account_address):
             abort(404)
 
-        # デフォルト値
         personal_info = {
             "key_manager": data.get("key_manager", default_value),
             "name": data.get("name", default_value),
-            "address": {
-                "postal_code": default_value,
-                "prefecture": default_value,
-                "city": default_value,
-                "address1": default_value,
-                "address2": default_value
-            },
-            "email": default_value,
-            "birth": default_value
+            "postal_code": data.get("postal_code", default_value),
+            "address": data.get("address", default_value),
+            "email": data.get("email", default_value),
+            "birth": data.get("birth", default_value)
         }
-
-        address = data.get("address")
-        if address is not None:
-            personal_info["address"]["postal_code"] = address.get("postal_code", default_value)
-            personal_info["address"]["prefecture"] = address.get("prefecture", default_value)
-            personal_info["address"]["city"] = address.get("city", default_value)
-            personal_info["address"]["address1"] = address.get("address1", default_value)
-            personal_info["address"]["address2"] = address.get("address2", default_value)
-        personal_info["email"] = data.get("email", default_value)
-        personal_info["birth"] = data.get("birth", default_value)
 
         # 個人情報暗号化用RSA公開鍵の取得
         rsa_public_key = None

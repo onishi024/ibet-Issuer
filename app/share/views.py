@@ -1107,27 +1107,13 @@ def get_holders(token_address):
 
                 if record is not None:
                     decrypted_personal_info = record.personal_info
-                    # 住所の編集
-                    prefecture = decrypted_personal_info["address"]["prefecture"]
-                    city = decrypted_personal_info["address"]["city"]
-                    address_1 = decrypted_personal_info["address"]["address1"]
-                    address_2 = decrypted_personal_info["address"]["address2"]
-                    if prefecture is not None and city is not None:
-                        formatted_address = prefecture + city
-                    else:
-                        formatted_address = DEFAULT_VALUE
-                    if address_1 is not None and address_1 != "":
-                        formatted_address = formatted_address + "　" + address_1
-                    if address_2 is not None and address_2 != "":
-                        formatted_address = formatted_address + "　" + address_2
-
                     _holder = {
                         'account_address': account_address,
                         'key_manager': decrypted_personal_info["key_manager"],
                         'name': decrypted_personal_info["name"],
-                        'postal_code': decrypted_personal_info["address"]["postal_code"],
+                        'postal_code': decrypted_personal_info["postal_code"],
                         'email': decrypted_personal_info["email"],
-                        'address': formatted_address,
+                        'address': decrypted_personal_info["address"],
                         'birth_date': decrypted_personal_info["birth"],
                         'balance': balance,
                         'commitment': commitment,
