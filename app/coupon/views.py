@@ -1275,12 +1275,12 @@ def get_holders(token_address):
                     decrypted_personal_info = record.personal_info
                     _holder = {
                         'account_address': account_address,
-                        'key_manager': decrypted_personal_info["key_manager"],
-                        'name': decrypted_personal_info["name"],
-                        'postal_code': decrypted_personal_info["postal_code"],
-                        'address': decrypted_personal_info["address"],
-                        'email': decrypted_personal_info["email"],
-                        'birth_date': decrypted_personal_info["birth"],
+                        'key_manager': decrypted_personal_info.get("key_manager", DEFAULT_VALUE),
+                        'name': decrypted_personal_info.get("name", DEFAULT_VALUE),
+                        'postal_code': decrypted_personal_info.get("postal_code", DEFAULT_VALUE),
+                        'address': decrypted_personal_info.get("address", DEFAULT_VALUE),
+                        'email': decrypted_personal_info.get("email", DEFAULT_VALUE),
+                        'birth_date': decrypted_personal_info.get("birth", DEFAULT_VALUE),
                         'balance': balance,
                         'used': used,
                         'address_type': address_type

@@ -127,18 +127,18 @@ def share_holders(token_address):
                 if record is not None:
                     decrypted_personal_info = record.personal_info
                     # 住所に含まれるUnicodeの各種ハイフン文字を半角ハイフン（U+002D）に変換する
-                    address = decrypted_personal_info["address"]
+                    address = decrypted_personal_info.get("address", DEFAULT_VALUE)
                     formatted_address = \
                         re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', address)
 
                     holder = {
                         'account_address': account_address,
-                        'key_manager': decrypted_personal_info["key_manager"],
-                        'name': decrypted_personal_info["name"],
-                        'postal_code': decrypted_personal_info["postal_code"],
-                        'email': decrypted_personal_info["email"],
+                        'key_manager': decrypted_personal_info.get("key_manager", DEFAULT_VALUE),
+                        'name': decrypted_personal_info.get("name", DEFAULT_VALUE),
+                        'postal_code': decrypted_personal_info.get("postal_code", DEFAULT_VALUE),
+                        'email': decrypted_personal_info.get("email", DEFAULT_VALUE),
                         'address': formatted_address,
-                        'birth_date': decrypted_personal_info["birth"],
+                        'birth_date': decrypted_personal_info.get("birth", DEFAULT_VALUE),
                         'balance': balance,
                         'commitment': commitment
                     }
@@ -266,18 +266,18 @@ def bond_holders(token_address):
                 if record is not None:
                     decrypted_personal_info = record.personal_info
                     # 住所に含まれるUnicodeの各種ハイフン文字を半角ハイフン（U+002D）に変換する
-                    address = decrypted_personal_info["address"]
+                    address = decrypted_personal_info.get("address", DEFAULT_VALUE)
                     formatted_address = \
                         re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', address)
 
                     holder = {
                         'account_address': account_address,
-                        'key_manager': decrypted_personal_info["key_manager"],
-                        'name': decrypted_personal_info["name"],
-                        'postal_code': decrypted_personal_info["postal_code"],
-                        'email': decrypted_personal_info["email"],
+                        'key_manager': decrypted_personal_info.get("key_manager", DEFAULT_VALUE),
+                        'name': decrypted_personal_info.get("name", DEFAULT_VALUE),
+                        'postal_code': decrypted_personal_info.get("postal_code", DEFAULT_VALUE),
+                        'email': decrypted_personal_info.get("email", DEFAULT_VALUE),
                         'address': formatted_address,
-                        'birth_date': decrypted_personal_info["birth"],
+                        'birth_date': decrypted_personal_info.get("birth", DEFAULT_VALUE),
                         'balance': balance,
                         'commitment': commitment
                     }
@@ -407,18 +407,18 @@ def membership_holders(token_address):
                 if record is not None:
                     decrypted_personal_info = record.personal_info
                     # 住所に含まれるUnicodeの各種ハイフン文字を半角ハイフン（U+002D）に変換する
-                    address = decrypted_personal_info["address"]
+                    address = decrypted_personal_info.get("address", DEFAULT_VALUE)
                     formatted_address = \
                         re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', address)
 
                     holder = {
                         'account_address': account_address,
-                        'key_manager': decrypted_personal_info["key_manager"],
-                        'name': decrypted_personal_info["name"],
-                        'postal_code': decrypted_personal_info["postal_code"],
-                        'email': decrypted_personal_info["email"],
+                        'key_manager': decrypted_personal_info.get("key_manager", DEFAULT_VALUE),
+                        'name': decrypted_personal_info.get("name", DEFAULT_VALUE),
+                        'postal_code': decrypted_personal_info.get("postal_code", DEFAULT_VALUE),
+                        'email': decrypted_personal_info.get("email", DEFAULT_VALUE),
                         'address': formatted_address,
-                        'birth_date': decrypted_personal_info["birth"],
+                        'birth_date': decrypted_personal_info.get("birth", DEFAULT_VALUE),
                         'balance': balance,
                         'commitment': commitment
                     }
