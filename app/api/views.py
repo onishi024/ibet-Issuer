@@ -128,8 +128,11 @@ def share_holders(token_address):
                     decrypted_personal_info = record.personal_info
                     # 住所に含まれるUnicodeの各種ハイフン文字を半角ハイフン（U+002D）に変換する
                     address = decrypted_personal_info.get("address", DEFAULT_VALUE)
-                    formatted_address = \
-                        re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', address)
+                    try:
+                        formatted_address = \
+                            re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', address)
+                    except TypeError:  # データ変換エラー
+                        formatted_address = ""
 
                     holder = {
                         'account_address': account_address,
@@ -267,8 +270,11 @@ def bond_holders(token_address):
                     decrypted_personal_info = record.personal_info
                     # 住所に含まれるUnicodeの各種ハイフン文字を半角ハイフン（U+002D）に変換する
                     address = decrypted_personal_info.get("address", DEFAULT_VALUE)
-                    formatted_address = \
-                        re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', address)
+                    try:
+                        formatted_address = \
+                            re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', address)
+                    except TypeError:  # データ変換エラー
+                        formatted_address = ""
 
                     holder = {
                         'account_address': account_address,
@@ -408,8 +414,11 @@ def membership_holders(token_address):
                     decrypted_personal_info = record.personal_info
                     # 住所に含まれるUnicodeの各種ハイフン文字を半角ハイフン（U+002D）に変換する
                     address = decrypted_personal_info.get("address", DEFAULT_VALUE)
-                    formatted_address = \
-                        re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', address)
+                    try:
+                        formatted_address = \
+                            re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', address)
+                    except TypeError:
+                        formatted_address = ""
 
                     holder = {
                         'account_address': account_address,

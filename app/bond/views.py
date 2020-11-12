@@ -381,7 +381,10 @@ def holders_csv_download():
 
     for holder in holders:
         # Unicodeの各種ハイフン文字を半角ハイフン（U+002D）に変換する
-        holder_address = re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', holder["address"])
+        try:
+            holder_address = re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', holder["address"])
+        except TypeError:  # データ変換エラー
+            holder_address = ""
         # 保有数量合計
         total_balance = holder["balance"] + holder["commitment"]
         # 保有金額合計

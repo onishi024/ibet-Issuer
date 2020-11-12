@@ -111,14 +111,18 @@ class DBSink:
                 account_address: str, token_address: str, amount: int,
                 block_timestamp: datetime, transaction_date_jst: str):
         if spent is False:
-            utxo = UTXO()
-            utxo.transaction_hash = transaction_hash
-            utxo.account_address = account_address
-            utxo.token_address = token_address
-            utxo.amount = amount
-            utxo.block_timestamp = block_timestamp
-            utxo.transaction_date_jst = transaction_date_jst
-            self.db.add(utxo)
+            utxo = self.db.query(UTXO). \
+                filter(UTXO.transaction_hash == transaction_hash). \
+                first()
+            if utxo is None:
+                utxo = UTXO()
+                utxo.transaction_hash = transaction_hash
+                utxo.account_address = account_address
+                utxo.token_address = token_address
+                utxo.amount = amount
+                utxo.block_timestamp = block_timestamp
+                utxo.transaction_date_jst = transaction_date_jst
+                self.db.add(utxo)
         else:
             utxo_list = self.db.query(UTXO). \
                 filter(UTXO.account_address == account_address). \
