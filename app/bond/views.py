@@ -1881,26 +1881,109 @@ def ledger_download():
 
     token_address = request.form.get('token_address')
     ledger_id = request.form.get('ledger_id')
+    latest_flg = int(request.form.get('latest_flg', 0))
 
-    # 発行体が管理するトークンであることをチェック
-    token = Token.query. \
-        filter(Token.token_address == token_address). \
-        filter(Token.admin_address == session['eth_account'].lower()). \
-        first()
-    if token is None:
-        abort(404)
+    issuer_address = session["eth_account"]
 
-    # 原簿情報の取得
-    record = BondLedger.query. \
-        filter(BondLedger.id == ledger_id). \
-        filter(BondLedger.token_address == token_address). \
-        first()
-    if record is None:
-        abort(404)
+    if latest_flg == 0:  # 原簿情報を直近化しない場合
+        # 発行体が管理するトークンであることをチェック
+        token = Token.query. \
+            filter(Token.token_address == token_address). \
+            filter(Token.admin_address == issuer_address.lower()). \
+            first()
+        if token is None:
+            abort(404)
+
+        # 原簿情報の取得
+        record = BondLedger.query. \
+            filter(BondLedger.id == ledger_id). \
+            filter(BondLedger.token_address == token_address). \
+            first()
+        if record is None:
+            abort(404)
+        res_data = record.ledger
+    else:
+        # 発行体が管理するトークンであることをチェック
+        token = Token.query. \
+            filter(Token.token_address == token_address). \
+            filter(Token.admin_address == issuer_address.lower()). \
+            first()
+        if token is None:
+            abort(404)
+
+        # 原簿情報の取得
+        record = BondLedger.query. \
+            filter(BondLedger.id == ledger_id). \
+            filter(BondLedger.token_address == token_address). \
+            first()
+        if record is None:
+            abort(404)
+        bond_ledger = json.loads(record.ledger)
+
+        # 直近の社債原簿基本情報を取得
+        ledger_template = CorporateBondLedgerTemplate.query. \
+            filter(CorporateBondLedgerTemplate.token_address == token_address). \
+            first()
+        if ledger_template is None:
+            abort(404)
+
+        # 社債情報の更新
+        bond_ledger[u"社債情報"][u"社債名称"] = ledger_template.bond_name
+        bond_ledger[u"社債情報"][u"社債の説明"] = ledger_template.bond_description
+        bond_ledger[u"社債情報"][u"社債の総額"] = ledger_template.total_amount
+        bond_ledger[u"社債情報"][u"各社債の金額"] = ledger_template.face_value
+        bond_ledger[u"社債情報"][u"払込情報"][u"払込金額"] = ledger_template.payment_amount
+        bond_ledger[u"社債情報"][u"払込情報"][u"払込日"] = ledger_template.payment_date
+        bond_ledger[u"社債情報"][u"払込情報"][u"払込状況"] = ledger_template.payment_status
+        bond_ledger[u"社債情報"][u"社債の種類"] = ledger_template.bond_type
+
+        # 社債原簿管理人の更新
+        bond_ledger[u"社債原簿管理人"][u"氏名または名称"] = ledger_template.ledger_admin_name
+        bond_ledger[u"社債原簿管理人"][u"住所"] = ledger_template.ledger_admin_address
+        bond_ledger[u"社債原簿管理人"][u"事務取扱場所"] = ledger_template.ledger_admin_location
+
+        # 社債権者情報の更新
+        for i, item in enumerate(bond_ledger[u"社債権者"]):
+            account_address = item[u"アカウントアドレス"]
+
+            # DBから直近の個人情報を取得
+            personal_info_record = PersonalInfoModel.query. \
+                filter(PersonalInfoModel.account_address == account_address). \
+                filter(PersonalInfoModel.issuer_address == issuer_address). \
+                first()
+
+            # DBに個人情報が存在しない場合は、コントラクトから個人情報を取得
+            if personal_info_record is None:
+                # トークンで指定した個人情報コントラクトのアドレスを取得
+                TokenContract = TokenUtils.get_contract(
+                    token_address=token_address,
+                    issuer_address=issuer_address,
+                    template_id=Config.TEMPLATE_ID_SB
+                )
+                try:
+                    personal_info_address = TokenContract.functions.personalInfoAddress().call()
+                except Exception as err:
+                    logger.exception(f"{err}")
+                    personal_info_address = Config.ZERO_ADDRESS
+                personal_info_contract = PersonalInfoContract(
+                    issuer_address=issuer_address,
+                    custom_personal_info_address=personal_info_address
+                )
+                personal_info = personal_info_contract.get_info(
+                    account_address=account_address,
+                    default_value=""
+                )
+            else:
+                personal_info = personal_info_record.personal_info
+
+            bond_ledger[u"社債権者"][i][u"氏名または名称"] = personal_info.get("name", "")
+            bond_ledger[u"社債権者"][i][u"住所"] = personal_info.get("address", "")
+
+        res_data = json.dumps(bond_ledger, ensure_ascii=False).encode()
 
     created = record.created.replace(tzinfo=timezone.utc).astimezone(JST)  # JSTに変換
     res = make_response()
-    res.data = record.ledger
+    res.data = res_data
     res.headers['Content-Type'] = 'text/plain'
     res.headers['Content-Disposition'] = f"attachment; filename={created.strftime('%Y%m%d%H%M%S')}bond_ledger.json"
     return res
