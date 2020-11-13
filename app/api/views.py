@@ -117,7 +117,7 @@ def share_holders(token_address):
             }
 
             if account_address == token_owner:  # 保有者が発行体の場合
-                holder["name"] = issuer.issuer_name or '--'
+                holder["name"] = issuer.issuer_name or DEFAULT_VALUE
             else:  # 保有者が発行体以外の場合
                 record = PersonalInfoModel.query. \
                     filter(PersonalInfoModel.account_address == account_address). \
@@ -126,22 +126,28 @@ def share_holders(token_address):
 
                 if record is not None:
                     decrypted_personal_info = record.personal_info
+                    key_manager = decrypted_personal_info.get("key_manager") or DEFAULT_VALUE
+                    name = decrypted_personal_info.get("name") or DEFAULT_VALUE
+                    postal_code = decrypted_personal_info.get("postal_code") or DEFAULT_VALUE
+                    email = decrypted_personal_info.get("email") or DEFAULT_VALUE
+                    birth_date = decrypted_personal_info.get("birth") or DEFAULT_VALUE
+
                     # 住所に含まれるUnicodeの各種ハイフン文字を半角ハイフン（U+002D）に変換する
                     address = decrypted_personal_info.get("address", DEFAULT_VALUE)
                     try:
                         formatted_address = \
                             re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', address)
                     except TypeError:  # データ変換エラー
-                        formatted_address = ""
+                        formatted_address = DEFAULT_VALUE
 
                     holder = {
                         'account_address': account_address,
-                        'key_manager': decrypted_personal_info.get("key_manager", DEFAULT_VALUE),
-                        'name': decrypted_personal_info.get("name", DEFAULT_VALUE),
-                        'postal_code': decrypted_personal_info.get("postal_code", DEFAULT_VALUE),
-                        'email': decrypted_personal_info.get("email", DEFAULT_VALUE),
+                        'key_manager': key_manager,
+                        'name': name,
+                        'postal_code': postal_code,
+                        'email': email,
                         'address': formatted_address,
-                        'birth_date': decrypted_personal_info.get("birth", DEFAULT_VALUE),
+                        'birth_date': birth_date,
                         'balance': balance,
                         'commitment': commitment
                     }
@@ -259,7 +265,7 @@ def bond_holders(token_address):
             }
 
             if account_address == token_owner:  # 保有者が発行体の場合
-                holder["name"] = issuer.issuer_name or '--'
+                holder["name"] = issuer.issuer_name or DEFAULT_VALUE
             else:  # 保有者が発行体以外の場合
                 record = PersonalInfoModel.query. \
                     filter(PersonalInfoModel.account_address == account_address). \
@@ -268,6 +274,12 @@ def bond_holders(token_address):
 
                 if record is not None:
                     decrypted_personal_info = record.personal_info
+                    key_manager = decrypted_personal_info.get("key_manager") or DEFAULT_VALUE
+                    name = decrypted_personal_info.get("name") or DEFAULT_VALUE
+                    postal_code = decrypted_personal_info.get("postal_code") or DEFAULT_VALUE
+                    email = decrypted_personal_info.get("email") or DEFAULT_VALUE
+                    birth_date = decrypted_personal_info.get("birth") or DEFAULT_VALUE
+
                     # 住所に含まれるUnicodeの各種ハイフン文字を半角ハイフン（U+002D）に変換する
                     address = decrypted_personal_info.get("address", DEFAULT_VALUE)
                     try:
@@ -278,12 +290,12 @@ def bond_holders(token_address):
 
                     holder = {
                         'account_address': account_address,
-                        'key_manager': decrypted_personal_info.get("key_manager", DEFAULT_VALUE),
-                        'name': decrypted_personal_info.get("name", DEFAULT_VALUE),
-                        'postal_code': decrypted_personal_info.get("postal_code", DEFAULT_VALUE),
-                        'email': decrypted_personal_info.get("email", DEFAULT_VALUE),
+                        'key_manager': key_manager,
+                        'name': name,
+                        'postal_code': postal_code,
+                        'email': email,
                         'address': formatted_address,
-                        'birth_date': decrypted_personal_info.get("birth", DEFAULT_VALUE),
+                        'birth_date': birth_date,
                         'balance': balance,
                         'commitment': commitment
                     }
@@ -404,7 +416,7 @@ def membership_holders(token_address):
             }
 
             if account_address == token_owner:  # 保有者が発行体の場合
-                holder["name"] = issuer.issuer_name or '--'
+                holder["name"] = issuer.issuer_name or DEFAULT_VALUE
             else:  # 保有者が発行体以外の場合
                 record = PersonalInfoModel.query. \
                     filter(PersonalInfoModel.account_address == account_address). \
@@ -412,6 +424,12 @@ def membership_holders(token_address):
                     first()
                 if record is not None:
                     decrypted_personal_info = record.personal_info
+                    key_manager = decrypted_personal_info.get("key_manager") or DEFAULT_VALUE
+                    name = decrypted_personal_info.get("name") or DEFAULT_VALUE
+                    postal_code = decrypted_personal_info.get("postal_code") or DEFAULT_VALUE
+                    email = decrypted_personal_info.get("email") or DEFAULT_VALUE
+                    birth_date = decrypted_personal_info.get("birth") or DEFAULT_VALUE
+
                     # 住所に含まれるUnicodeの各種ハイフン文字を半角ハイフン（U+002D）に変換する
                     address = decrypted_personal_info.get("address", DEFAULT_VALUE)
                     try:
@@ -422,12 +440,12 @@ def membership_holders(token_address):
 
                     holder = {
                         'account_address': account_address,
-                        'key_manager': decrypted_personal_info.get("key_manager", DEFAULT_VALUE),
-                        'name': decrypted_personal_info.get("name", DEFAULT_VALUE),
-                        'postal_code': decrypted_personal_info.get("postal_code", DEFAULT_VALUE),
-                        'email': decrypted_personal_info.get("email", DEFAULT_VALUE),
+                        'key_manager': key_manager,
+                        'name': name,
+                        'postal_code': postal_code,
+                        'email': email,
                         'address': formatted_address,
-                        'birth_date': decrypted_personal_info.get("birth", DEFAULT_VALUE),
+                        'birth_date': birth_date,
                         'balance': balance,
                         'commitment': commitment
                     }
