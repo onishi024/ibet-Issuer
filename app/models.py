@@ -608,6 +608,14 @@ class PersonalInfo(db.Model):
     # 発行体アドレス
     issuer_address = db.Column(db.String(42), index=True)
     # 個人情報
+    #   {
+    #       "key_manager": "string",
+    #       "name": "string",
+    #       "postal_code": "string",
+    #       "address": "string",
+    #       "email": "string",
+    #       "birth": "string"
+    #   }
     personal_info = db.Column(db.JSON, nullable=False)
     # 作成タイムスタンプ
     created = db.Column(db.DateTime, nullable=False, default=datetime.now)

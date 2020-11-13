@@ -909,7 +909,8 @@ class TestBond(TestBase):
             self.url_ledger_download,
             data={
                 'token_address': token.token_address,
-                'ledger_id': ledger_id
+                'ledger_id': ledger_id,
+                'latest_flg': 0
             }
         )
 
@@ -1065,7 +1066,8 @@ class TestBond(TestBase):
             self.url_ledger_download,
             data={
                 'token_address': error_address,
-                'ledger_id': 1
+                'ledger_id': 1,
+                'latest_flg': 0
             }
         )
         assert response.status_code == 404
@@ -1767,7 +1769,8 @@ class TestBond(TestBase):
         response = client.post(
             self.url_ledger_download,
             data={
-                'token_address': token.token_address
+                'token_address': token.token_address,
+                'latest_flg': 0
             })
         assert response.status_code == 404
 
