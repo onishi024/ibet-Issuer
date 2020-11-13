@@ -490,7 +490,7 @@ def get_holders(token_address: str):
             }
 
             if address_type == AddressType.ISSUER.value:  # 保有者が発行体の場合
-                _holder["name"] = issuer.issuer_name or '--'
+                _holder["name"] = issuer.issuer_name or DEFAULT_VALUE
                 _holders.append(_holder)
             else:  # 保有者が発行体以外の場合
                 record = PersonalInfoModel.query. \
@@ -500,14 +500,20 @@ def get_holders(token_address: str):
 
                 if record is not None:
                     decrypted_personal_info = record.personal_info
+                    key_manager = decrypted_personal_info.get("key_manager") or DEFAULT_VALUE
+                    name = decrypted_personal_info.get("name") or DEFAULT_VALUE
+                    postal_code = decrypted_personal_info.get("postal_code") or DEFAULT_VALUE
+                    address = decrypted_personal_info.get("address") or DEFAULT_VALUE
+                    email = decrypted_personal_info.get("email") or DEFAULT_VALUE
+                    birth_date = decrypted_personal_info.get("birth") or DEFAULT_VALUE
                     _holder = {
                         'account_address': account_address,
-                        'key_manager': decrypted_personal_info.get("key_manager", DEFAULT_VALUE),
-                        'name': decrypted_personal_info.get("name", DEFAULT_VALUE),
-                        'postal_code': decrypted_personal_info.get("postal_code", DEFAULT_VALUE),
-                        'address': decrypted_personal_info.get("address", DEFAULT_VALUE),
-                        'email': decrypted_personal_info.get("email", DEFAULT_VALUE),
-                        'birth_date': decrypted_personal_info.get("birth", DEFAULT_VALUE),
+                        'key_manager': key_manager,
+                        'name': name,
+                        'postal_code': postal_code,
+                        'address': address,
+                        'email': email,
+                        'birth_date': birth_date,
                         'balance': balance,
                         'commitment': commitment,
                         'address_type': address_type
