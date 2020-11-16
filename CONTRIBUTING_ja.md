@@ -50,10 +50,12 @@ RSA_PASSWORD = RSAキーペアのパスワード
 SECURE_PARAMETER_ENCRYPTION_KEY = 発行体設定情報のうちセキュアパラメータを暗号化するための共通鍵
 ```
 
-### 初期ユーザの追加
+### ログインユーザの追加
 ```bash
-$ python manage.py create_user {発行体アカウントアドレス}
+$ python manage.py create_user {ログインID} {発行体アカウントアドレス}
 ```
+
+初期パスワードが返却されるので、大切に保管しておく。
 
 ### 発行体情報の設定
 
