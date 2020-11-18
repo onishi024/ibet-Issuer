@@ -86,17 +86,24 @@ while True:
         try:
             tx = TokenContract.functions.transferFrom(from_address, to_address, amount). \
                 buildTransaction({'from': record.eth_account, 'gas': Config.TX_GAS_LIMIT})
-            ContractUtils.send_transaction(
+            tx_hash, txn_receipt = ContractUtils.send_transaction(
                 transaction=tx,
                 eth_account=record.eth_account,
                 db_session=db_session
             )
-            # レコードを処理済に更新
-            record.status = 1  # 正常終了
-            logging.info(f"Transfer was successful: eth_account={record.eth_account}, upload_id={record.upload_id}, id={record.id}")
+            # エラー判定
+            if txn_receipt["status"] == 1:  # トランザクションが正常終了
+                record.status = 1  # 正常終了
+                logging.info(f"Transfer was successful: eth_account={record.eth_account}, "
+                             f"upload_id={record.upload_id}, id={record.id}")
+            else:
+                record.status = 2  # 異常終了
+                logging.error(f"Transfer was failed: eth_account={record.eth_account}, "
+                              f"upload_id={record.upload_id}, id={record.id}")
         except Exception as err:
             record.status = 2  # 異常終了
-            logging.error(f"Transfer was failed: eth_account={record.eth_account}, upload_id={record.upload_id}, id={record.id} : {err}")
+            logging.error(f"Transfer was failed: eth_account={record.eth_account}, "
+                          f"upload_id={record.upload_id}, id={record.id} : {err}")
 
         # 更新情報をコミット
         db_session.commit()
