@@ -1494,14 +1494,21 @@ def bulk_transfer():
 
         # CSVファイル読み込み
         _transfer_list = []
+        record_count = 0
         try:
             stream = io.StringIO(send_data.stream.read().decode("UTF8"), newline=None)
             csv_input = csv.reader(stream)
             for row in csv_input:
                 _transfer_list.append(row)
+                record_count += 1
         except Exception as err:
             logger.error(f"Failed to upload file: {err}")
             flash("CSVアップロードでエラーが発生しました。", "error")
+            return render_template("coupon/bulk_transfer.html", form=form)
+
+        # レコード存在チェック
+        if record_count == 0:
+            flash("レコードが0件のファイルはアップロードできません。", "error")
             return render_template("coupon/bulk_transfer.html", form=form)
 
         # アップロードIDを生成（UUID4）
