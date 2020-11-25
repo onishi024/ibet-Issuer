@@ -18,6 +18,11 @@
     <div class="box box-default">
         <div class="box-header with-border">
             <h3 class="box-title">新規ファイルアップロード</h3>
+            <div class="pull-right box-tools">
+                <form method="post" action="{{ url_for('bond.bulk_transfer_sample') }}" enctype="multipart/form-data">
+                    <button type="submit" class="btn btn-default btn-sm">サンプルCSV</button>
+                </form>
+            </div>
         </div>
         <form method="POST" action="{{ url_for('share.bulk_transfer') }}" enctype="multipart/form-data">
             {{ form.csrf_token }}

@@ -2133,6 +2133,29 @@ def bulk_transfer():
         return redirect(url_for('.bulk_transfer'))
 
 
+# 一括強制移転サンプルCSVダウンロード
+@bond.route('/bulk_transfer/sample', methods=['POST'])
+@login_required
+def bulk_transfer_sample():
+    logger.info("bond/bulk_transfer_sample")
+
+    f = io.StringIO()
+
+    # サンプルデータ
+    # トークンアドレス, 移転元アドレス, 移転先アドレス, 移転数量
+    data_row = "0xD44a231af1C48105764D7298Bc694696DAb54179,0x0b3c7F97383bCFf942E6b1038a47B9AA5377A252,0xF37aF18966609eCaDe3E4D1831996853c637cfF3,10\n" \
+               "0xD44a231af1C48105764D7298Bc694696DAb54179,0xC362102bC5bbA9fBd0F2f5d397f3644Aa32b3bA8,0xF37aF18966609eCaDe3E4D1831996853c637cfF3,20"
+
+    f.write(data_row)
+
+    res = make_response()
+    csvdata = f.getvalue()
+    res.data = csvdata.encode('sjis')
+    res.headers['Content-Type'] = 'text/plain'
+    res.headers['Content-Disposition'] = 'attachment; filename=' + 'transfer_sample.csv'
+    return res
+
+
 # 一括強制移転CSVアップロード履歴（API）
 @bond.route('/bulk_transfer_history', methods=['GET'])
 @login_required
@@ -2165,7 +2188,6 @@ def bulk_transfer_history():
 @bond.route('/bulk_transfer_approval/<string:upload_id>', methods=['GET', 'POST'])
 @login_required
 def bulk_transfer_approval(upload_id):
-
     #########################
     # GET：移転指示データ参照
     #########################
@@ -2175,8 +2197,8 @@ def bulk_transfer_approval(upload_id):
         # 移転指示明細データを取得
         bulk_transfer_records = BulkTransfer.query. \
             filter(BulkTransfer.eth_account == session["eth_account"]). \
-            filter(BulkTransfer.upload_id == upload_id).\
-            order_by(desc(BulkTransfer.created)).\
+            filter(BulkTransfer.upload_id == upload_id). \
+            order_by(desc(BulkTransfer.created)). \
             all()
 
         transfer_list = []

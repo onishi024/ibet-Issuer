@@ -1421,6 +1421,29 @@ def bulk_transfer():
         return redirect(url_for('.bulk_transfer'))
 
 
+# 一括強制移転サンプルCSVダウンロード
+@share.route('/bulk_transfer/sample', methods=['POST'])
+@login_required
+def bulk_transfer_sample():
+    logger.info("share/bulk_transfer_sample")
+
+    f = io.StringIO()
+
+    # サンプルデータ
+    # トークンアドレス, 移転元アドレス, 移転先アドレス, 移転数量
+    data_row = "0xD44a231af1C48105764D7298Bc694696DAb54179,0x0b3c7F97383bCFf942E6b1038a47B9AA5377A252,0xF37aF18966609eCaDe3E4D1831996853c637cfF3,10\n" \
+               "0xD44a231af1C48105764D7298Bc694696DAb54179,0xC362102bC5bbA9fBd0F2f5d397f3644Aa32b3bA8,0xF37aF18966609eCaDe3E4D1831996853c637cfF3,20"
+
+    f.write(data_row)
+
+    res = make_response()
+    csvdata = f.getvalue()
+    res.data = csvdata.encode('sjis')
+    res.headers['Content-Type'] = 'text/plain'
+    res.headers['Content-Disposition'] = 'attachment; filename=' + 'transfer_sample.csv'
+    return res
+
+
 # 一括強制移転CSVアップロード履歴（API）
 @share.route('/bulk_transfer_history', methods=['GET'])
 @login_required
