@@ -1,4 +1,22 @@
-# -*- coding:utf-8 -*-
+"""
+Copyright BOOSTRY Co., Ltd.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+
+You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed onan "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
+See the License for the specific language governing permissions and
+limitations under the License.
+
+SPDX-License-Identifier: Apache-2.0
+"""
+
 from flask import session
 from flask_wtf import FlaskForm as Form
 
@@ -297,20 +315,6 @@ class TransferForm(Form):
         self.transfer_coupon = transfer_coupon
 
 
-class BulkTransferForm(Form):
-    transfer_csv = FileField(
-        "CSVファイル",
-        validators=[
-            DataRequired('ファイルを選択してください。')
-        ]
-    )
-    submit = SubmitField('アップロード')
-
-    def __init__(self, bulk_transfer_data=None, *args, **kwargs):
-        super(BulkTransferForm, self).__init__(*args, **kwargs)
-        self.bulk_transfer_data = bulk_transfer_data
-
-
 class TransferOwnershipForm(Form):
     from_address = StringField("現在の所有者", validators=[])
     to_address = StringField(
@@ -380,3 +384,17 @@ class CancelOrderForm(Form):
     def __init__(self, cancel_order=None, *args, **kwargs):
         super(CancelOrderForm, self).__init__(*args, **kwargs)
         self.sell_token = cancel_order
+
+
+# 一括移転ファイルアップロード
+class BulkTransferUploadForm(Form):
+    transfer_csv = FileField(
+        "CSVファイル",
+        validators=[
+            DataRequired('ファイルを選択してください。')
+        ]
+    )
+    submit = SubmitField('アップロード')
+
+    def __init__(self, *args, **kwargs):
+        super(BulkTransferUploadForm, self).__init__(*args, **kwargs)

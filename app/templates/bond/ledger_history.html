@@ -29,9 +29,11 @@
                   enctype="multipart/form-data">
                 <input type="hidden" name="token_address" value="{{ token_address }}">
                 <input type="hidden" name="ledger_id">
+                <input type="hidden" name="latest_flg">
                 <table id="data_table" class="table table-bordered table-hover">
                     <thead>
                     <tr>
+                        <th></th>
                         <th></th>
                         <th></th>
                         <th></th>
@@ -80,6 +82,13 @@ $(function () {
             className: "text-center",
             render: function (data) {
                 return `<button type="button" class="ledger-download btn btn-default btn-sm" data-ledger-id="${data}"/>ダウンロード`;
+            }
+        }, {
+            data: "ledger_id",
+            orderable: false,
+            className: "text-center",
+            render: function (data) {
+                return `<button type="button" class="latest-ledger-download btn btn-default btn-sm" data-ledger-id="${data}"/>直近化ダウンロード`;
             }
         }],
         ajax: {
@@ -139,6 +148,13 @@ $(function () {
 
     $(document.body).on('click', '.ledger-download', function() {
         $('[name="ledger_id"]').val($(this).data('ledger-id'));
+        $('[name="latest_flg"]').val(0);
+        $('#download-form').submit();
+    })
+
+    $(document.body).on('click', '.latest-ledger-download', function() {
+        $('[name="ledger_id"]').val($(this).data('ledger-id'));
+        $('[name="latest_flg"]').val(1);
         $('#download-form').submit();
     })
 })

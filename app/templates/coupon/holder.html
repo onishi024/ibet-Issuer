@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block head %}
-    {{ super() }}
+{{ super() }}
 {% endblock %}
 {% set active_page = "coupon_list" %}
 
@@ -8,103 +8,86 @@
 {% block page_header %}保有者詳細 <span class="badge bg-secondary">クーポン</span>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
-    <li><a href="{{ url_for('index.index') }}">トップ</a></li>
-    <li><a href="{{ url_for('coupon.list') }}">クーポン一覧</a></li>
-    <li class="active">保有者詳細</li>
+<li><a href="{{ url_for('index.index') }}">トップ</a></li>
+<li><a href="{{ url_for('coupon.list') }}">クーポン一覧</a></li>
+<li class="active">保有者詳細</li>
 {% endblock %}
 
 {% block page_content %}
 <section class="content">
-  <div class="box box-default">
-    <div class="box-header with-border">
-      <h3 class="box-title">保有者情報： {{personal_info['name']}}</h3>
-      <div class="pull-right box-tools">
-        <button id="delete" class="btn btn-danger btn-sm" type="button">個人情報初期化</button>
-      </div>
-    </div>
-    <br>
-    <div class=row>
-      <div class="col-md-1"></div>
-      <div class="col-md-10">
-        <!-- 住所 -->
-        <div class="box box-default box-solid">
-          <div class="box-header with-border">
-            <h3 class="box-title">住所</h3>
-          </div>
-          <form class="form-horizontal" role="form">
-            <div class="box-body">
-              <div class="row">
-                <label class="col-md-3">郵便番号</label>
-                <div class="form-group col-md-4">
-                  {{ personal_info['address']['postal_code'] }}
-                </div>
-              </div>
-              <div class="row">
-                <label class="col-md-3">都道府県</label>
-                <div class="form-group col-md-4">
-                  {{ personal_info['address']['prefecture'] }}
-                </div>
-              </div>
-              <div class="row">
-                <label class="col-md-3">市区町村</label>
-                <div class="form-group col-md-4">
-                  {{ personal_info['address']['city'] }}
-                </div>
-              </div>
-              <div class="row">
-                <label class="col-md-3">住所１</label>
-                <div class="form-group col-md-4">
-                  {{ personal_info['address']['address1'] }}
-                </div>
-              </div>
-              <div class="row">
-                <label class="col-md-3">住所２</label>
-                <div class="form-group col-md-4">
-                  {{ personal_info['address']['address2'] }}
-                </div>
-              </div>
+    <div class="box box-default">
+        <div class="box-header with-border">
+            <h3 class="box-title">保有者情報： {{personal_info['name']}}</h3>
+            <div class="pull-right box-tools">
+                <button id="delete" class="btn btn-danger btn-sm" type="button">個人情報初期化</button>
             </div>
-          </form>
         </div>
-        <!-- 生年月日 -->
-        <div class="box box-default box-solid">
-          <div class="box-header with-border">
-            <h3 class="box-title">生年月日</h3>
-          </div>
-          <form class="form-horizontal" role="form">
-            <div class="box-body">
-              <div class="row">
-                <label class="col-md-3">生年月日</label>
-                <div class="form-group col-md-4">
-                  {{ personal_info['birth'] }}
+        <br>
+        <div class=row>
+            <div class="col-md-1"></div>
+            <div class="col-md-10">
+                <!-- 住所 -->
+                <div class="box box-default box-solid">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">住所</h3>
+                    </div>
+                    <form class="form-horizontal" role="form">
+                        <div class="box-body">
+                            <div class="row">
+                                <label class="col-md-3">郵便番号</label>
+                                <div class="form-group col-md-4">
+                                    {{ personal_info['postal_code'] }}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <label class="col-md-3">住所</label>
+                                <div class="form-group col-md-4">
+                                    {{ personal_info['address'] }}
+                                </div>
+                            </div>
+                        </div>
+                    </form>
                 </div>
-              </div>
-            </div>
-          </form>
-        </div>
-        <!-- Eメールアドレス -->
-        <div class="box box-default box-solid">
-          <div class="box-header with-border">
-            <h3 class="box-title">Eメールアドレス</h3>
-          </div>
-          <form class="form-horizontal" role="form">
-            <div class="box-body">
-              <div class="row">
-                <label class="col-md-3">Eメール</label>
-                <div class="form-group col-md-4">
-                  {{ personal_info['email']}}
+                <!-- 生年月日 -->
+                <div class="box box-default box-solid">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">生年月日</h3>
+                    </div>
+                    <form class="form-horizontal" role="form">
+                        <div class="box-body">
+                            <div class="row">
+                                <label class="col-md-3">生年月日</label>
+                                <div class="form-group col-md-4">
+                                    {{ personal_info['birth'] }}
+                                </div>
+                            </div>
+                        </div>
+                    </form>
                 </div>
-              </div>
+                <!-- Eメールアドレス -->
+                <div class="box box-default box-solid">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">Eメールアドレス</h3>
+                    </div>
+                    <form class="form-horizontal" role="form">
+                        <div class="box-body">
+                            <div class="row">
+                                <label class="col-md-3">Eメール</label>
+                                <div class="form-group col-md-4">
+                                    {{ personal_info['email']}}
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
             </div>
-          </form>
+            <div class="col-md-1"></div>
         </div>
-      </div>
-      <div class="col-md-1"></div>
+        <div class="box-footer">
+            <button type="button" class="btn btn-default"
+                onclick="location.href='{{ url_for('coupon.holders', token_address=token_address) }}'">一覧に戻る</button>
+        </div>
     </div>
-    <div class="box-footer">
-        <button type="button" class="btn btn-default" onclick="location.href='{{ url_for("coupon.holders", token_address=token_address) }}'">一覧に戻る</button>
-    </div>
-  </div>
 </section>
 {% endblock %}
 
@@ -119,62 +102,57 @@
             <form action="modal-action" id="modal-prompt-form" method="POST">
                 <input type="hidden" name="_method" value="DELETE">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">×</span></button>
                     <h4 id="modal-prompt-title">modal</h4>
                 </div>
                 <div class="modal-body">
                     <p class="recipient" id="modal-prompt-text">modal</p>
                     <!-- アドレスチェック -->
                     <div class="form-group">
-                        <input type="text" class="form-control" autocomplete="off" id="prompt-form" name="account_address" />
+                        <input type="text" class="form-control" autocomplete="off" id="prompt-form"
+                            name="account_address" />
                         <input type="text" name="dummy" style="display:none;">
                         <p class="text-danger" id="modal-prompt-validate">アドレスが一致しません。初期化対象のアカウントであることを確認してください。</p>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default" id="modal-prompt-cancel" data-dismiss="modal">キャンセル</button>
-                    <button type="button" class="btn btn-danger" id="modal-prompt-ok" data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中">　 OK 　</button>
+                    <button type="button" class="btn btn-default" id="modal-prompt-cancel"
+                        data-dismiss="modal">キャンセル</button>
+                    <button type="button" class="btn btn-danger" id="modal-prompt-ok"
+                        data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中">　 OK 　</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 <script type="text/javascript">
-$(document).ready(function() {
-    $('#modal-prompt-ok').click(function () {
-        $('#modal-prompt-cancel').prop('disabled', true);
-        var $this = $(this);
-        var account_address_confirm = $('#prompt-form').val();
-        if (account_address_confirm != null && account_address_confirm.length > 0) {
-            var account_address = "{{ account_address }}"
-            if (account_address === account_address_confirm) {
-                $this.parents('form').submit();
-                $this.button('loading');
-                setTimeout(function () {
-                    $this.button('reset');
-                }, 10000);
-            } else {
-                $('#modal-prompt-cancel').prop('disabled', false);
-                $('#modal-prompt-validate').show();
+    $(document).ready(function () {
+        $('#modal-prompt-ok').click(function () {
+            $('#modal-prompt-cancel').prop('disabled', true);
+            var $this = $(this);
+            var account_address_confirm = $('#prompt-form').val();
+            if (account_address_confirm != null && account_address_confirm.length > 0) {
+                var account_address = "{{ account_address }}"
+                if (account_address === account_address_confirm) {
+                    $this.parents('form').submit();
+                    $this.button('loading');
+                    setTimeout(function () {
+                        $this.button('reset');
+                    }, 10000);
+                } else {
+                    $('#modal-prompt-cancel').prop('disabled', false);
+                    $('#modal-prompt-validate').show();
+                }
             }
-        }
+        });
+        $('#delete').click(function () {
+            $('#modal-prompt-title').html('初期化時確認 <i class="fa fa-exclamation-triangle"></i>');
+            $('#modal-prompt-text').html('この操作は元に戻すことができません。<br>念のため、初期化を行うアカウントアドレスを入力してください。');
+            $('#modal-prompt-form').attr('action', "{{ url_for('coupon.holder', token_address=token_address, account_address=account_address) }}");
+            $('#modal-prompt-validate').hide();
+            $('#modal-prompt').modal();
+        });
     });
-    $('#delete').click(function(){
-        $('#modal-prompt-title').html('初期化時確認 <i class="fa fa-exclamation-triangle"></i>');
-        $('#modal-prompt-text').html('この操作は元に戻すことができません。<br>念のため、初期化を行うアカウントアドレスを入力してください。');
-        $('#modal-prompt-form').attr('action', "{{ url_for('coupon.holder', token_address=token_address, account_address=account_address) }}");
-        $('#modal-prompt-validate').hide();
-        $('#modal-prompt').modal();
-    });
-});
-</script>
-<script type="text/javascript">
-$('#load.btn').on('click', function() {
-    var $this = $(this);
-    $this.button('loading');
-    setTimeout(function() {
-        $this.button('reset');
-    }, 8000);
-});
 </script>
 {% endblock %}

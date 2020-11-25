@@ -1,4 +1,22 @@
-# -*- coding:utf-8 -*-
+"""
+Copyright BOOSTRY Co., Ltd.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+
+You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed onan "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
+See the License for the specific language governing permissions and
+limitations under the License.
+
+SPDX-License-Identifier: Apache-2.0
+"""
+
 import re
 from http import HTTPStatus
 
@@ -7,7 +25,8 @@ from web3 import Web3
 from web3.middleware import geth_poa_middleware
 
 from app import db
-from app.models import Transfer, HolderList, Issuer, User, PersonalInfoContract
+from app.models import Transfer, HolderList, Issuer, User
+from app.models import PersonalInfo as PersonalInfoModel
 from app.utils import ContractUtils, TokenUtils
 from config import Config
 from . import api
@@ -47,17 +66,6 @@ def share_holders(token_address):
     except Exception as e:
         logger.exception(e)
         token_name = ''
-
-    # PersonalInfoコントラクト接続
-    try:
-        personal_info_address = TokenContract.functions.personalInfoAddress().call()
-    except Exception as err:
-        logger.error(f"Failed to get token attributes: {err}")
-        personal_info_address = Config.ZERO_ADDRESS
-    personal_info_contract = PersonalInfoContract(
-        issuer_address=user.eth_account,
-        custom_personal_info_address=personal_info_address
-    )
 
     # OTC取引コントラクト接続
     try:
@@ -109,40 +117,40 @@ def share_holders(token_address):
             }
 
             if account_address == token_owner:  # 保有者が発行体の場合
-                holder["name"] = issuer.issuer_name or '--'
+                holder["name"] = issuer.issuer_name or DEFAULT_VALUE
             else:  # 保有者が発行体以外の場合
-                decrypted_personal_info = personal_info_contract.get_info(
-                    account_address=account_address,
-                    default_value=""
-                )
-                # 住所の編集
-                prefecture = decrypted_personal_info["address"]["prefecture"]
-                city = decrypted_personal_info["address"]["city"]
-                address_1 = decrypted_personal_info["address"]["address1"]
-                address_2 = decrypted_personal_info["address"]["address2"]
-                if prefecture != "" and city != "":
-                    formatted_address = prefecture + city
-                else:
-                    formatted_address = DEFAULT_VALUE
-                if address_1 != "":
-                    formatted_address = formatted_address + "　" + address_1
-                if address_2 != "":
-                    formatted_address = formatted_address + "　" + address_2
-                # Unicodeの各種ハイフン文字を半角ハイフン（U+002D）に変換する
-                formatted_address = \
-                    re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', formatted_address)
+                record = PersonalInfoModel.query. \
+                    filter(PersonalInfoModel.account_address == account_address). \
+                    filter(PersonalInfoModel.issuer_address == token_owner). \
+                    first()
 
-                holder = {
-                    'account_address': account_address,
-                    'key_manager': decrypted_personal_info["key_manager"],
-                    'name': decrypted_personal_info["name"],
-                    'postal_code': decrypted_personal_info["address"]["postal_code"],
-                    'email': decrypted_personal_info["email"],
-                    'address': formatted_address,
-                    'birth_date': decrypted_personal_info["birth"],
-                    'balance': balance,
-                    'commitment': commitment
-                }
+                if record is not None:
+                    decrypted_personal_info = record.personal_info
+                    key_manager = decrypted_personal_info.get("key_manager") or DEFAULT_VALUE
+                    name = decrypted_personal_info.get("name") or DEFAULT_VALUE
+                    postal_code = decrypted_personal_info.get("postal_code") or DEFAULT_VALUE
+                    email = decrypted_personal_info.get("email") or DEFAULT_VALUE
+                    birth_date = decrypted_personal_info.get("birth") or DEFAULT_VALUE
+
+                    # 住所に含まれるUnicodeの各種ハイフン文字を半角ハイフン（U+002D）に変換する
+                    address = decrypted_personal_info.get("address", DEFAULT_VALUE)
+                    try:
+                        formatted_address = \
+                            re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', address)
+                    except TypeError:  # データ変換エラー
+                        formatted_address = DEFAULT_VALUE
+
+                    holder = {
+                        'account_address': account_address,
+                        'key_manager': key_manager,
+                        'name': name,
+                        'postal_code': postal_code,
+                        'email': email,
+                        'address': formatted_address,
+                        'birth_date': birth_date,
+                        'balance': balance,
+                        'commitment': commitment
+                    }
 
             # CSV出力用にトークンに関する情報を追加
             holder['token_name'] = token_name
@@ -207,17 +215,6 @@ def bond_holders(token_address):
         token_name = ''
         face_value = 0
 
-    # PersonalInfoコントラクト接続
-    try:
-        personal_info_address = TokenContract.functions.personalInfoAddress().call()
-    except Exception as err:
-        logger.error(f"Failed to get token attributes: {err}")
-        personal_info_address = Config.ZERO_ADDRESS
-    personal_info_contract = PersonalInfoContract(
-        issuer_address=user.eth_account,
-        custom_personal_info_address=personal_info_address
-    )
-
     # DEXコントラクト接続
     try:
         tradable_exchange = TokenContract.functions.tradableExchange().call()
@@ -268,40 +265,40 @@ def bond_holders(token_address):
             }
 
             if account_address == token_owner:  # 保有者が発行体の場合
-                holder["name"] = issuer.issuer_name or '--'
+                holder["name"] = issuer.issuer_name or DEFAULT_VALUE
             else:  # 保有者が発行体以外の場合
-                decrypted_personal_info = personal_info_contract.get_info(
-                    account_address=account_address,
-                    default_value=""
-                )
-                # 住所の編集
-                prefecture = decrypted_personal_info["address"]["prefecture"]
-                city = decrypted_personal_info["address"]["city"]
-                address_1 = decrypted_personal_info["address"]["address1"]
-                address_2 = decrypted_personal_info["address"]["address2"]
-                if prefecture != "" and city != "":
-                    formatted_address = prefecture + city
-                else:
-                    formatted_address = DEFAULT_VALUE
-                if address_1 != "":
-                    formatted_address = formatted_address + "　" + address_1
-                if address_2 != "":
-                    formatted_address = formatted_address + "　" + address_2
-                # Unicodeの各種ハイフン文字を半角ハイフン（U+002D）に変換する
-                formatted_address = \
-                    re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', formatted_address)
+                record = PersonalInfoModel.query. \
+                    filter(PersonalInfoModel.account_address == account_address). \
+                    filter(PersonalInfoModel.issuer_address == token_owner). \
+                    first()
 
-                holder = {
-                    'account_address': account_address,
-                    'key_manager': decrypted_personal_info["key_manager"],
-                    'name': decrypted_personal_info["name"],
-                    'postal_code': decrypted_personal_info["address"]["postal_code"],
-                    'email': decrypted_personal_info["email"],
-                    'address': formatted_address,
-                    'birth_date': decrypted_personal_info["birth"],
-                    'balance': balance,
-                    'commitment': commitment
-                }
+                if record is not None:
+                    decrypted_personal_info = record.personal_info
+                    key_manager = decrypted_personal_info.get("key_manager") or DEFAULT_VALUE
+                    name = decrypted_personal_info.get("name") or DEFAULT_VALUE
+                    postal_code = decrypted_personal_info.get("postal_code") or DEFAULT_VALUE
+                    email = decrypted_personal_info.get("email") or DEFAULT_VALUE
+                    birth_date = decrypted_personal_info.get("birth") or DEFAULT_VALUE
+
+                    # 住所に含まれるUnicodeの各種ハイフン文字を半角ハイフン（U+002D）に変換する
+                    address = decrypted_personal_info.get("address", DEFAULT_VALUE)
+                    try:
+                        formatted_address = \
+                            re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', address)
+                    except TypeError:  # データ変換エラー
+                        formatted_address = ""
+
+                    holder = {
+                        'account_address': account_address,
+                        'key_manager': key_manager,
+                        'name': name,
+                        'postal_code': postal_code,
+                        'email': email,
+                        'address': formatted_address,
+                        'birth_date': birth_date,
+                        'balance': balance,
+                        'commitment': commitment
+                    }
 
             # CSV出力用にトークンに関する情報を追加
             holder['token_name'] = token_name
@@ -369,11 +366,6 @@ def membership_holders(token_address):
         logger.exception(e)
         token_name = ''
 
-    # PersonalInfoコントラクト接続
-    personal_info_contract = PersonalInfoContract(
-        issuer_address=user.eth_account
-    )
-
     # 会員権取引コントラクト接続
     try:
         tradable_exchange = TokenContract.functions.tradableExchange().call()
@@ -424,40 +416,39 @@ def membership_holders(token_address):
             }
 
             if account_address == token_owner:  # 保有者が発行体の場合
-                holder["name"] = issuer.issuer_name or '--'
+                holder["name"] = issuer.issuer_name or DEFAULT_VALUE
             else:  # 保有者が発行体以外の場合
-                decrypted_personal_info = personal_info_contract.get_info(
-                    account_address=account_address,
-                    default_value=""
-                )
-                # 住所の編集
-                prefecture = decrypted_personal_info["address"]["prefecture"]
-                city = decrypted_personal_info["address"]["city"]
-                address_1 = decrypted_personal_info["address"]["address1"]
-                address_2 = decrypted_personal_info["address"]["address2"]
-                if prefecture != "" and city != "":
-                    formatted_address = prefecture + city
-                else:
-                    formatted_address = DEFAULT_VALUE
-                if address_1 != "":
-                    formatted_address = formatted_address + "　" + address_1
-                if address_2 != "":
-                    formatted_address = formatted_address + "　" + address_2
-                # Unicodeの各種ハイフン文字を半角ハイフン（U+002D）に変換する
-                formatted_address = \
-                    re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', formatted_address)
+                record = PersonalInfoModel.query. \
+                    filter(PersonalInfoModel.account_address == account_address). \
+                    filter(PersonalInfoModel.issuer_address == token_owner). \
+                    first()
+                if record is not None:
+                    decrypted_personal_info = record.personal_info
+                    key_manager = decrypted_personal_info.get("key_manager") or DEFAULT_VALUE
+                    name = decrypted_personal_info.get("name") or DEFAULT_VALUE
+                    postal_code = decrypted_personal_info.get("postal_code") or DEFAULT_VALUE
+                    email = decrypted_personal_info.get("email") or DEFAULT_VALUE
+                    birth_date = decrypted_personal_info.get("birth") or DEFAULT_VALUE
 
-                holder = {
-                    'account_address': account_address,
-                    'key_manager': decrypted_personal_info["key_manager"],
-                    'name': decrypted_personal_info["name"],
-                    'postal_code': decrypted_personal_info["address"]["postal_code"],
-                    'email': decrypted_personal_info["email"],
-                    'address': formatted_address,
-                    'birth_date': decrypted_personal_info["birth"],
-                    'balance': balance,
-                    'commitment': commitment
-                }
+                    # 住所に含まれるUnicodeの各種ハイフン文字を半角ハイフン（U+002D）に変換する
+                    address = decrypted_personal_info.get("address", DEFAULT_VALUE)
+                    try:
+                        formatted_address = \
+                            re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', address)
+                    except TypeError:
+                        formatted_address = ""
+
+                    holder = {
+                        'account_address': account_address,
+                        'key_manager': key_manager,
+                        'name': name,
+                        'postal_code': postal_code,
+                        'email': email,
+                        'address': formatted_address,
+                        'birth_date': birth_date,
+                        'balance': balance,
+                        'commitment': commitment
+                    }
 
             # CSV出力用にトークンに関する情報を追加
             holder['token_name'] = token_name

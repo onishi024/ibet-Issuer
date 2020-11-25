@@ -1,9 +1,27 @@
-# -*- coding:utf-8 -*-
+"""
+Copyright BOOSTRY Co., Ltd.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+
+You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed onan "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
+See the License for the specific language governing permissions and
+limitations under the License.
+
+SPDX-License-Identifier: Apache-2.0
+"""
+
 import math
 
 from flask_wtf import FlaskForm as Form
 from web3 import Web3
-from wtforms import IntegerField, DecimalField, StringField, TextAreaField, SubmitField, SelectField
+from wtforms import IntegerField, DecimalField, StringField, TextAreaField, SubmitField, SelectField, FileField
 from wtforms import ValidationError
 from wtforms.validators import DataRequired, URL, Optional, Length, Regexp, NumberRange, InputRequired
 
@@ -420,3 +438,17 @@ class AllotForm(Form):
     def __init__(self, allot_bond=None, *args, **kwargs):
         super(AllotForm, self).__init__(*args, **kwargs)
         self.allot_bond = allot_bond
+
+
+# 一括移転ファイルアップロード
+class BulkTransferUploadForm(Form):
+    transfer_csv = FileField(
+        "CSVファイル",
+        validators=[
+            DataRequired('ファイルを選択してください。')
+        ]
+    )
+    submit = SubmitField('アップロード')
+
+    def __init__(self, *args, **kwargs):
+        super(BulkTransferUploadForm, self).__init__(*args, **kwargs)

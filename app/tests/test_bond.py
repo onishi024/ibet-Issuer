@@ -1,4 +1,22 @@
-# -*- coding:utf-8 -*-
+"""
+Copyright BOOSTRY Co., Ltd.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+
+You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed onan "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
+See the License for the specific language governing permissions and
+limitations under the License.
+
+SPDX-License-Identifier: Apache-2.0
+"""
+
 from datetime import datetime, timezone
 
 import time
@@ -60,27 +78,19 @@ class TestBond(TestBase):
     #############################################################################
     issuer_personal_info_json = {
         "name": "株式会社１",
-        "address": {
-            "postal_code": "1234567",
-            "prefecture": "東京都",
-            "city": "中央区",
-            "address1": "日本橋11-1",
-            "address2": "東京マンション１０１"
-        },
+        "postal_code": "1234567",
+        "address": "東京都中央区　日本橋11-1　東京マンション１０１",
         "email": "abcd1234@aaa.bbb.cc",
         "birth": "20190902"
     }
 
+    # \uff0d: 「－」FULLWIDTH HYPHEN-MINUS。半角ハイフン変換対象。
+    # \u30fc: 「ー」KATAKANA-HIRAGANA PROLONGED SOUND MARK。半角ハイフン変換対象外。
     trader_personal_info_json = {
         "key_manager": "4010001203704",
         "name": "ﾀﾝﾀｲﾃｽﾄ",
-        "address": {
-            "postal_code": "1040053",
-            "prefecture": "東京都",
-            "city": "中央区",
-            "address1": "勝どき1丁目１－２ー３",
-            "address2": ""
-        },
+        "postal_code": "1040053",
+        "address": "東京都中央区　勝どき1丁目１\uff0d２\u30fc３",
         "email": "abcd1234@aaa.bbb.cc",
         "birth": "20191102"
     }
@@ -104,23 +114,27 @@ class TestBond(TestBase):
     def test_normal_0(self, shared_contract, db):
         # PersonalInfo登録（発行体：Issuer）
         register_personal_info(
-            eth_account['issuer'],
-            shared_contract['PersonalInfo'],
-            self.issuer_encrypted_info
+            db=db,
+            invoker=eth_account["issuer"],
+            contract_address=shared_contract["PersonalInfo"]["address"],
+            info=self.issuer_personal_info_json,
+            encrypted_info=self.issuer_encrypted_info
         )
 
         # PersonalInfo登録（投資家：Trader）
         register_personal_info(
-            eth_account['trader'],
-            shared_contract['PersonalInfo'],
-            self.trader_encrypted_info
+            db=db,
+            invoker=eth_account["trader"],
+            contract_address=shared_contract["PersonalInfo"]["address"],
+            info=self.trader_personal_info_json,
+            encrypted_info=self.trader_encrypted_info
         )
 
         # PaymentGateway：銀行口座情報登録
         register_payment_account(
-            eth_account['issuer'],
-            shared_contract['PaymentGateway'],
-            self.issuer_encrypted_info
+            invoker=eth_account['issuer'],
+            payment_gateway=shared_contract['PaymentGateway'],
+            encrypted_info=self.issuer_encrypted_info
         )
 
     # ＜正常系1＞
@@ -895,7 +909,8 @@ class TestBond(TestBase):
             self.url_ledger_download,
             data={
                 'token_address': token.token_address,
-                'ledger_id': ledger_id
+                'ledger_id': ledger_id,
+                'latest_flg': 0
             }
         )
 
@@ -1051,7 +1066,8 @@ class TestBond(TestBase):
             self.url_ledger_download,
             data={
                 'token_address': error_address,
-                'ledger_id': 1
+                'ledger_id': 1,
+                'latest_flg': 0
             }
         )
         assert response.status_code == 404
@@ -1753,7 +1769,8 @@ class TestBond(TestBase):
         response = client.post(
             self.url_ledger_download,
             data={
-                'token_address': token.token_address
+                'token_address': token.token_address,
+                'latest_flg': 0
             })
         assert response.status_code == 404
 

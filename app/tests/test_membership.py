@@ -1,4 +1,22 @@
-# -*- coding:utf-8 -*-
+"""
+Copyright BOOSTRY Co., Ltd.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+
+You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed onan "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
+See the License for the specific language governing permissions and
+limitations under the License.
+
+SPDX-License-Identifier: Apache-2.0
+"""
+
 from datetime import datetime, timezone
 
 import time
@@ -114,26 +132,19 @@ class TestMembership(TestBase):
     #############################################################################
     issuer_personal_info_json = {
         "name": "株式会社１",
-        "address": {
-            "postal_code": "1234567",
-            "prefecture": "東京都",
-            "city": "中央区",
-            "address1": "日本橋11-1",
-            "address2": "東京マンション１０１"
-        },
+        "postal_code": "1234567",
+        "address": "東京都中央区　日本橋11-1　東京マンション１０１",
         "email": "abcd1234@aaa.bbb.cc",
         "birth": "20190902"
     }
 
+    # \uff0d: 「－」FULLWIDTH HYPHEN-MINUS。半角ハイフン変換対象。
+    # \u30fc: 「ー」KATAKANA-HIRAGANA PROLONGED SOUND MARK。半角ハイフン変換対象外。
     trader_personal_info_json = {
+        "key_manager": "",
         "name": "ﾀﾝﾀｲﾃｽﾄ",
-        "address": {
-            "postal_code": "1040053",
-            "prefecture": "東京都",
-            "city": "中央区",
-            "address1": "勝どき1丁目１－２ー３",
-            "address2": ""
-        },
+        "postal_code": "1040053",
+        "address": "東京都中央区　勝どき1丁目１\uff0d２\u30fc３",
         "email": "abcd1234@aaa.bbb.cc",
         "birth": "20191102"
     }
@@ -611,15 +622,17 @@ class TestMembership(TestBase):
     # ＜保有者一覧＞
     #   保有者一覧で確認(1件)
     #   ※Token_1が対象
-    def test_normal_6_1(self, app, shared_contract):
+    def test_normal_6_1(self, app, shared_contract, db):
         client = self.client_with_admin_login(app)
         token = TestMembership.get_token(0)
 
         # 発行体のpersonalInfo登録
         register_personal_info(
-            eth_account['issuer'],
-            shared_contract['PersonalInfo'],
-            self.issuer_encrypted_info
+            db=db,
+            invoker=eth_account["issuer"],
+            contract_address=shared_contract["PersonalInfo"]["address"],
+            info=self.issuer_personal_info_json,
+            encrypted_info=self.issuer_encrypted_info
         )
 
         # 保有者一覧の参照
@@ -651,15 +664,17 @@ class TestMembership(TestBase):
     # ＜保有者一覧＞
     #   約定　→　保有者一覧で確認（複数件）
     #   ※Token_1が対象
-    def test_normal_6_2(self, app, shared_contract):
+    def test_normal_6_2(self, app, shared_contract, db):
         client = self.client_with_admin_login(app)
         token = TestMembership.get_token(0)
 
         # 投資家のpersonalInfo登録
         register_personal_info(
-            eth_account['trader'],
-            shared_contract['PersonalInfo'],
-            self.trader_encrypted_info
+            db=db,
+            invoker=eth_account["trader"],
+            contract_address=shared_contract["PersonalInfo"]["address"],
+            info=self.trader_personal_info_json,
+            encrypted_info=self.trader_encrypted_info
         )
 
         # 約定データの作成

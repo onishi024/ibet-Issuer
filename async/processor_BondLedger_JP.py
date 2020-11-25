@@ -1,4 +1,22 @@
-# -*- coding: utf-8 -*-
+"""
+Copyright BOOSTRY Co., Ltd.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+
+You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed onan "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
+See the License for the specific language governing permissions and
+limitations under the License.
+
+SPDX-License-Identifier: Apache-2.0
+"""
+
 import base64
 import json
 import os
@@ -6,7 +24,6 @@ import sys
 import time
 import logging
 from logging.config import dictConfig
-
 from datetime import datetime, timezone, timedelta
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
@@ -14,17 +31,17 @@ from Crypto.PublicKey import RSA
 from sqlalchemy import create_engine
 from sqlalchemy import func
 from sqlalchemy.orm import sessionmaker, scoped_session
+from web3 import Web3
+from web3.middleware import geth_poa_middleware
+from eth_utils import to_checksum_address
 
 path = os.path.join(os.path.dirname(__file__), '../')
 sys.path.append(path)
 
 from app.utils import ContractUtils
-from app.models import Token, UTXO, BondLedger, BondLedgerBlockNumber, Issuer, \
-    CorporateBondLedgerTemplate
+from app.models import Token, UTXO, BondLedger, BondLedgerBlockNumber, Issuer, CorporateBondLedgerTemplate
+from app.models import PersonalInfo as PersonalInfoModel
 from config import Config
-
-from web3 import Web3
-from web3.middleware import geth_poa_middleware
 
 # NOTE:ログフォーマットはメッセージ監視が出来るように設定する必要がある。
 dictConfig(Config.LOG_CONFIG)
@@ -94,20 +111,24 @@ class DBSink:
                 account_address: str, token_address: str, amount: int,
                 block_timestamp: datetime, transaction_date_jst: str):
         if spent is False:
-            utxo = UTXO()
-            utxo.transaction_hash = transaction_hash
-            utxo.account_address = account_address
-            utxo.token_address = token_address
-            utxo.amount = amount
-            utxo.block_timestamp = block_timestamp
-            utxo.transaction_date_jst = transaction_date_jst
-            self.db.add(utxo)
+            utxo = self.db.query(UTXO). \
+                filter(UTXO.transaction_hash == transaction_hash). \
+                first()
+            if utxo is None:
+                utxo = UTXO()
+                utxo.transaction_hash = transaction_hash
+                utxo.account_address = account_address
+                utxo.token_address = token_address
+                utxo.amount = amount
+                utxo.block_timestamp = block_timestamp
+                utxo.transaction_date_jst = transaction_date_jst
+                self.db.add(utxo)
         else:
-            utxo_list = self.db.query(UTXO).\
-                filter(UTXO.account_address == account_address).\
-                filter(UTXO.token_address == token_address).\
-                filter(UTXO.amount > 0).\
-                order_by(UTXO.block_timestamp).\
+            utxo_list = self.db.query(UTXO). \
+                filter(UTXO.account_address == account_address). \
+                filter(UTXO.token_address == token_address). \
+                filter(UTXO.amount > 0). \
+                order_by(UTXO.block_timestamp). \
                 all()
             spend_amount = amount
             for utxo in utxo_list:
@@ -120,6 +141,7 @@ class DBSink:
                     self.db.merge(utxo)
                 else:
                     utxo.amount = utxo_amount - spend_amount
+                    spend_amount = 0
                     self.db.merge(utxo)
 
     def on_bond_ledger(self, token):
@@ -132,7 +154,7 @@ class DBSink:
         # 社債の情報
         #########################################
         ledger_template = self.db.query(CorporateBondLedgerTemplate). \
-            filter(CorporateBondLedgerTemplate.token_address == token.address).\
+            filter(CorporateBondLedgerTemplate.token_address == token.address). \
             first()
 
         if ledger_template is not None:
@@ -152,12 +174,12 @@ class DBSink:
             bond_description = {
                 "社債名称": "",
                 "社債の説明": "",
-                "社債の総額": "",
-                "各社債の金額": "",
+                "社債の総額": None,
+                "各社債の金額": None,
                 "払込情報": {
-                    "払込金額": "",
+                    "払込金額": None,
                     "払込日": "",
-                    "払込状況": ""
+                    "払込状況": None
                 },
                 "社債の種類": ""
             }
@@ -183,20 +205,12 @@ class DBSink:
         #########################################
         issuer_address = token.functions.owner().call()
         face_value = token.functions.faceValue().call()
-        issuer = self.db.query(Issuer).filter(Issuer.eth_account == issuer_address).first()
-        personal_info_contract_address = token.functions.personalInfoAddress().call()
-        personal_info_contract = ContractUtils.get_contract('PersonalInfo', personal_info_contract_address)
-        cipher = None
-        try:
-            key = RSA.importKey(issuer.encrypted_rsa_private_key, Config.RSA_PASSWORD)
-            cipher = PKCS1_OAEP.new(key)
-        except Exception as err:
-            logging.error(f"Cannot open the private key: {err}")
 
-        utxo_list = self.db.query(UTXO.account_address, UTXO.token_address, func.sum(UTXO.amount), UTXO.transaction_date_jst).\
-            filter(UTXO.token_address == token.address).\
-            filter(UTXO.amount > 0).\
-            group_by(UTXO.account_address, UTXO.token_address, UTXO.transaction_date_jst).\
+        utxo_list = self.db.query(UTXO.account_address, UTXO.token_address, func.sum(UTXO.amount),
+                                  UTXO.transaction_date_jst). \
+            filter(UTXO.token_address == token.address). \
+            filter(UTXO.amount > 0). \
+            group_by(UTXO.account_address, UTXO.token_address, UTXO.transaction_date_jst). \
             all()
 
         creditors = []
@@ -228,40 +242,29 @@ class DBSink:
                 "備考": "-"
             }
 
-            try:
-                # 暗号化個人情報取得
-                personal_info = personal_info_contract.functions.\
-                    personal_info(account_address, issuer_address).\
-                    call()
-                encrypted_personal_info = personal_info[2]
+            # 個人情報取得
+            personal_info_json = self.__get_personalinfo_from_db(
+                account_address=account_address,
+                issuer_address=issuer_address
+            )
+            if personal_info_json is None:  # DBに情報が登録されていない場合はコントラクトから情報を取得する
+                personal_info_contract_address = token.functions.personalInfoAddress().call()
+                personal_info_json = self.__get_personalinfo_from_contract(
+                    account_address=account_address,
+                    issuer_address=issuer_address,
+                    personal_info_contract_address=personal_info_contract_address
+                )
 
-                if encrypted_personal_info != '' and cipher is not None:  # 情報が空の場合、デフォルト値を設定
-                    # 個人情報復号化
-                    ciphertext = base64.decodebytes(encrypted_personal_info.encode('utf-8'))
-                    # NOTE:
-                    # JavaScriptでRSA暗号化する際に、先頭が0x00の場合は00を削った状態でデータが連携される。
-                    # そのままdecryptすると、ValueError（Ciphertext with incorrect length）になるため、
-                    # 先頭に再度00を加えて、decryptを行う。
-                    if len(ciphertext) == 1279:
-                        hex_fixed = "00" + ciphertext.hex()
-                        ciphertext = base64.b16decode(hex_fixed.upper())
-                    message = cipher.decrypt(ciphertext)
-                    personal_info_json = json.loads(message)
+            if personal_info_json is not None:
+                name = personal_info_json.get("name", "")  # 氏名
+                address = personal_info_json.get("address", "")  # 住所
+            else:
+                name = ""
+                address = ""
 
-                    # 氏名
-                    name = personal_info_json.get("name", "")
-                    # 住所
-                    address_details = personal_info_json.get("address", {})
-                    address = f'{address_details.get("prefecture", "")}' \
-                              f'{address_details.get("city", "")} ' \
-                              f'{address_details.get("address1", "")} ' \
-                              f'{address_details.get("address2", "")}'
-                    # 保有者情報設定
-                    details["氏名または名称"] = name
-                    details["住所"] = address
-            except Exception as err:
-                logging.error(f"Failed to decrypt: {err} : account_address = {account_address}")
-
+            # 保有者情報設定
+            details["氏名または名称"] = name
+            details["住所"] = address
             creditors.append(details)
 
         # 原簿保管
@@ -271,12 +274,75 @@ class DBSink:
             "社債原簿管理人": ledger_admin,
             "社債権者": creditors
         }
-        logging.debug(ledger)
         bond_ledger = BondLedger(
             token_address=token.address,
             ledger=json.dumps(ledger, ensure_ascii=False).encode()
         )
         self.db.add(bond_ledger)
+
+    def __get_personalinfo_from_db(self, account_address: str, issuer_address: str):
+        """個人情報取得（DB）
+
+        :param account_address: アカウントアドレス
+        :param issuer_address: 発行体アドレス
+        :return: 個人情報JSON
+        """
+        # 個人情報取得
+        personal_info_record = self.db.query(PersonalInfoModel). \
+            filter(PersonalInfoModel.account_address == to_checksum_address(account_address)). \
+            filter(PersonalInfoModel.issuer_address == to_checksum_address(issuer_address)). \
+            first()
+        if personal_info_record is not None:
+            personal_info_json = personal_info_record.personal_info
+        else:
+            personal_info_json = None
+
+        return personal_info_json
+
+    def __get_personalinfo_from_contract(self, account_address: str, issuer_address: str,
+                                         personal_info_contract_address: str):
+        """個人情報取得（コントラクト）
+
+        :param account_address: アカウントアドレス
+        :param issuer_address: 発行体アドレス
+        :param personal_info_contract_address: 個人情報コントラクトアドレス
+        :return: 個人情報JSON
+        """
+        personal_info_json = None
+
+        try:
+            issuer = self.db.query(Issuer).filter(Issuer.eth_account == issuer_address).first()
+
+            personal_info_contract = ContractUtils.get_contract('PersonalInfo', personal_info_contract_address)
+            cipher = None
+            try:
+                key = RSA.importKey(issuer.encrypted_rsa_private_key, Config.RSA_PASSWORD)
+                cipher = PKCS1_OAEP.new(key)
+            except Exception as err:
+                logging.error(f"Cannot open the private key: {err}")
+
+            # 暗号化個人情報取得
+            personal_info = personal_info_contract.functions. \
+                personal_info(account_address, issuer_address). \
+                call()
+            encrypted_personal_info = personal_info[2]
+
+            if encrypted_personal_info != '' and cipher is not None:  # 情報が空の場合、デフォルト値を設定
+                # 個人情報復号化
+                ciphertext = base64.decodebytes(encrypted_personal_info.encode('utf-8'))
+                # NOTE:
+                # JavaScriptでRSA暗号化する際に、先頭が0x00の場合は00を削った状態でデータが連携される。
+                # そのままdecryptすると、ValueError（Ciphertext with incorrect length）になるため、
+                # 先頭に再度00を加えて、decryptを行う。
+                if len(ciphertext) == 1279:
+                    hex_fixed = "00" + ciphertext.hex()
+                    ciphertext = base64.b16decode(hex_fixed.upper())
+                message = cipher.decrypt(ciphertext)
+                personal_info_json = json.loads(message)
+        except Exception as err:
+            logging.error(f"Failed to decrypt: {err} : account_address = {account_address}")
+
+        return personal_info_json
 
     def flush(self):
         self.db.commit()
@@ -307,8 +373,8 @@ class Processor:
         :return: None
         """
         self.token_list = []
-        issued_tokens = self.db.query(Token).\
-            filter(Token.template_id == Config.TEMPLATE_ID_SB).\
+        issued_tokens = self.db.query(Token). \
+            filter(Token.template_id == Config.TEMPLATE_ID_SB). \
             all()
         for issued_token in issued_tokens:
             if issued_token.token_address is not None:
@@ -363,7 +429,7 @@ class Processor:
             block_timestamp = datetime.fromtimestamp(
                 web3.eth.getBlock(event['blockNumber'])['timestamp']
             )
-            block_timestamp_jst = block_timestamp.replace(tzinfo=timezone.utc).\
+            block_timestamp_jst = block_timestamp.replace(tzinfo=timezone.utc). \
                 astimezone(JST)
             transaction_date_jst = block_timestamp_jst.strftime("%Y/%m/%d")
 
@@ -410,5 +476,5 @@ while True:
     except Exception as ex:
         logging.exception(ex)
 
-    # 10分間隔で実行
-    time.sleep(600)
+    # 1分間隔で実行
+    time.sleep(60)

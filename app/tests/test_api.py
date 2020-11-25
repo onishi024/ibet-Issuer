@@ -1,4 +1,22 @@
-# -*- coding:utf-8 -*-
+"""
+Copyright BOOSTRY Co., Ltd.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+
+You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed onan "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
+See the License for the specific language governing permissions and
+limitations under the License.
+
+SPDX-License-Identifier: Apache-2.0
+"""
+
 import base64
 import json
 from datetime import datetime
@@ -19,13 +37,8 @@ from .utils.contract_utils_personal_info import register_personal_info
 issuer_personal_info_json = {
     "key_manager": "4010001203704",
     "name": "株式会社１",
-    "address": {
-        "postal_code": "1234567",
-        "prefecture": "東京都",
-        "city": "中央区",
-        "address1": "日本橋11-1",
-        "address2": "東京マンション１０１"
-    },
+    "postal_code": "1234567",
+    "address": "東京都中央区　日本橋11-1　東京マンション１０１",
     "email": "abcd1234@aaa.bbb.cc",
     "birth": "20190902"
 }
@@ -33,18 +46,13 @@ key = RSA.importKey(open('data/rsa/public.pem').read())
 cipher = PKCS1_OAEP.new(key)
 issuer_encrypted_info = base64.encodebytes(cipher.encrypt(json.dumps(issuer_personal_info_json).encode('utf-8')))
 
+# \uff0d: 「－」FULLWIDTH HYPHEN-MINUS。半角ハイフン変換対象。
+# \u30fc: 「ー」KATAKANA-HIRAGANA PROLONGED SOUND MARK。半角ハイフン変換対象外。
 trader_personal_info_json = {
     "key_manager": "4010001203704",
     "name": "ﾀﾝﾀｲﾃｽﾄ",
-    "address": {
-        "postal_code": "1040053",
-        "prefecture": "東京都",
-        "city": "中央区",
-        # \uff0d: 「－」FULLWIDTH HYPHEN-MINUS。半角ハイフン変換対象。
-        # \u30fc: 「ー」KATAKANA-HIRAGANA PROLONGED SOUND MARK。半角ハイフン変換対象外。
-        "address1": "勝どき1丁目１\uff0d２\u30fc３",
-        "address2": ""
-    },
+    "postal_code": "1040053",
+    "address": "東京都中央区　勝どき1丁目１\uff0d２\u30fc３",
     "email": "abcd1234@aaa.bbb.cc",
     "birth": "20191102"
 }
@@ -53,16 +61,22 @@ trader_encrypted_info = base64.encodebytes(cipher.encrypt(json.dumps(trader_pers
 
 @pytest.fixture(scope="class", autouse=True)
 def setup(db, shared_contract):
-    # PersonalInfo登録
+    # PersonalInfo登録（発行体：Issuer）
     register_personal_info(
-        eth_account['issuer'],
-        shared_contract['PersonalInfo'],
-        issuer_encrypted_info
+        db=db,
+        invoker=eth_account["issuer"],
+        contract_address=shared_contract["PersonalInfo"]["address"],
+        info=issuer_personal_info_json,
+        encrypted_info=issuer_encrypted_info
     )
+
+    # PersonalInfo登録（投資家：Trader）
     register_personal_info(
-        eth_account['trader'],
-        shared_contract['PersonalInfo'],
-        trader_encrypted_info
+        db=db,
+        invoker=eth_account["trader"],
+        contract_address=shared_contract["PersonalInfo"]["address"],
+        info=trader_personal_info_json,
+        encrypted_info=trader_encrypted_info
     )
 
     # 銀行口座情報登録

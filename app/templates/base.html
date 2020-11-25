@@ -255,7 +255,7 @@ desired effect
   <!-- Main Footer -->
   <footer class="main-footer">
     <!-- Default to the left -->
-    <strong>Copyright &copy; 2020 BOOSTRY Co., Ltd.</strong> All rights reserved.&nbsp;&nbsp;&nbsp;<div class="pull-right">@verison 0.17</div>
+    <strong>Copyright &copy; 2020 BOOSTRY Co., Ltd.</strong> All rights reserved.&nbsp;&nbsp;&nbsp;<div class="pull-right">@verison 0.18</div>
   </footer>
   <!-- /.control-sidebar -->
   <!-- Add the sidebar's background. This div must be placed
@@ -349,6 +349,16 @@ desired effect
     function viewAddress() {
         $('#modal-address').modal('show');
     }
+</script>
+<!-- Button Loading -->
+<script type="text/javascript">
+$('#load.btn').on('click', function() {
+    var $this = $(this);
+    $this.button('loading');
+    setTimeout(function() {
+        $this.button('reset');
+    }, 30000);
+});
 </script>
 {% endblock %}
 

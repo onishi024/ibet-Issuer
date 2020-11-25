@@ -1,8 +1,28 @@
-# -*- coding:utf-8 -*-
+"""
+Copyright BOOSTRY Co., Ltd.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+
+You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed onan "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
+See the License for the specific language governing permissions and
+limitations under the License.
+
+SPDX-License-Identifier: Apache-2.0
+"""
+
 import difflib
 import getpass
 import os
 import re
+import secrets
+import string
 import sys
 from collections import OrderedDict
 from Crypto.PublicKey import RSA
@@ -24,7 +44,7 @@ manager = Manager(app)
 
 
 ###############################################
-# Interactive shell
+# 対話シェル
 ###############################################
 def make_shell_context():
     return {'app': app, 'db': db, 'User': User, 'Role': Role}
@@ -33,14 +53,14 @@ def make_shell_context():
 manager.add_command("shell", Shell(make_context=make_shell_context))
 
 ###############################################
-# Migrate database
+# DBマイグレーション
 ###############################################
 migrate = Migrate(app, db, compare_type=True)
 manager.add_command("db", MigrateCommand)
 
 
 ###############################################
-# Reset database
+# DBリセット（AlembicVersionテーブルの削除）
 ###############################################
 class DropAlembicVersion(Command):
     def run(self):
@@ -51,16 +71,28 @@ manager.add_command("resetdb", DropAlembicVersion())
 
 
 ###############################################
-# Create roles and an initial admin user
+# ログインユーザ・ロールの作成
 ###############################################
 @manager.command
-def create_user(eth_account):
-    """Create Initial Login User
-    :param eth_account: EOA
-    :return: None
+def create_user(login_id, eth_account):
+    """初期ログインユーザの作成
+
+    :param login_id: ログインID
+    :param eth_account: 発行体のアカウントアドレス
+    :return: なし
     """
 
-    # Create role
+    # login_id 設定可能文字種チェック
+    # 設定可能文字種：半角英数字およびアンダースコア
+    alnum_Reg = re.compile(r"^[a-zA-Z0-9_]+$")
+    if alnum_Reg.match(login_id) is not None:
+        pass
+    else:
+        print("ERROR: Only alphanumeric characters and underscores are allowed for login_id.")
+        return
+
+    # ロールの作成
+    # 既存のデータが存在しない場合にのみレコードを作成する
     roles = ["admin", "user"]
     for r in roles:
         role = Role.query.filter_by(name=r).first()
@@ -68,14 +100,18 @@ def create_user(eth_account):
             role = Role(name=r)
         db.session.add(role)
 
-    # Create an initial admin user
+    # 初期パスワード生成（12桁）
+    chars = string.ascii_uppercase + string.ascii_lowercase + string.digits
+    init_password = ''.join(secrets.choice(chars) for x in range(12))
+
+    # ログインユーザ（管理者権限）の作成
     users = [
         {
             "eth_account": eth_account,
-            "login_id": "admin",
+            "login_id": login_id,
             "user_name": "管理者",
             "role_id": 1,
-            "password": "admin"
+            "password": init_password
         },
     ]
     for u_dict in users:
@@ -85,19 +121,25 @@ def create_user(eth_account):
             for key, value in u_dict.items():
                 setattr(user, key, value)
             db.session.add(user)
+        else:
+            print("ERROR: login_id is already used.")
+            db.session.rollback()
+            return
 
     db.session.commit()
+    print("Successfully created.")
+    print(f"Initial password = {init_password}")
 
 
 ###############################################
-# Create RSA key
+# RSA鍵の作成
 ###############################################
 @manager.command
 def create_rsakey(pass_phrase):
-    """
-    Generate RSA key file
-    private key file: data/rsa/private.pem
-    public key file: data/rsa/public.pem
+    """RSA鍵ファイルの作成
+
+    - private key file: data/rsa/private.pem
+    - public key file: data/rsa/public.pem
     """
     random_func = Random.new().read
     rsa = RSA.generate(10240, random_func)
@@ -114,20 +156,20 @@ def create_rsakey(pass_phrase):
 
 
 ###############################################
-# Create secure parameter encryption key
+# セキュアパラメータ暗号化鍵の作成
 ###############################################
 @manager.command
 def create_enckey():
-    """
-    Generates SECURE_PARAMETER_ENCRYPTION_KEY.
-    SECURE_PARAMETER_ENCRYPTION_KEY is used to encrypt/decrypt the issuer's secure parameter.
+    """セキュアパラメータ暗号化鍵の作成
+
+    - セキュアパレメータ暗号化鍵はDBに保存される発行体のセキュアパラメータを暗号化・復号化するために利用される
     """
     secret_key = Fernet.generate_key().decode()
     print(f'SECURE_PARAMETER_ENCRYPTION_KEY="{secret_key}"')
 
 
 ###############################################
-# Issuer settings
+# 発行体設定
 ###############################################
 def _represent_odict(dumper, instance):
     return dumper.represent_mapping('tag:yaml.org,2002:map', instance.items())
@@ -272,7 +314,7 @@ def issuer_save(issuer_file, rsa_privatekey, eoa_keyfile_password):
 
 
 ###############################################
-# Test
+# テスト実行
 ###############################################
 @manager.option('-v', dest='v_opt', action="store_true", help='pytest -v option add.', default=False, required=False)
 @manager.option('-s', dest='s_opt', action="store_true", help='pytest -s option add.', default=False, required=False)

@@ -1,4 +1,22 @@
-# -*- coding:utf-8 -*-
+"""
+Copyright BOOSTRY Co., Ltd.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+
+You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed onan "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
+See the License for the specific language governing permissions and
+limitations under the License.
+
+SPDX-License-Identifier: Apache-2.0
+"""
+
 import base64
 import json
 from datetime import datetime
@@ -185,43 +203,6 @@ class Issuer(db.Model):
         return '<Issuer %s>' % self.eth_account
 
 
-class CorporateBondLedgerTemplate(db.Model):
-    """社債原簿基本情報"""
-    __tablename__ = 'corporate_bond_ledger_template'
-
-    # シーケンスID
-    id = db.Column(db.Integer, primary_key=True)
-    # トークンアドレス
-    token_address = db.Column(db.String(42), index=True)
-    # アカウントアドレス
-    eth_account = db.Column(db.String(42), index=True)
-    # 社債名称
-    bond_name = db.Column(db.String(200), nullable=False)
-    # 社債の説明
-    bond_description = db.Column(db.String(1000), nullable=False)
-    # 社債の種類
-    bond_type = db.Column(db.String(1000), nullable=False)
-    # 社債の総額
-    total_amount = db.Column(db.BigInteger, nullable=False)
-    # 各社債の金額
-    face_value = db.Column(db.Integer, nullable=False)
-    # 払込情報_払込金額
-    payment_amount = db.Column(db.BigInteger, nullable=False)
-    # 払込情報_払込日
-    payment_date = db.Column(db.String(8), nullable=False)
-    # 払込情報_払込状況
-    payment_status = db.Column(db.Boolean, nullable=False)
-    # 原簿管理人_名称
-    ledger_admin_name = db.Column(db.String(200), nullable=False)
-    # 原簿管理人_住所
-    ledger_admin_address = db.Column(db.String(200), nullable=False)
-    # 原簿管理人_事務取扱場所
-    ledger_admin_location = db.Column(db.String(200), nullable=False)
-
-    def __repr__(self):
-        return f'<CorporateBondLedgerTemplate({self.token_address}, {self.eth_account})>'
-
-
 ########################################################
 # トークン管理
 ########################################################
@@ -260,30 +241,62 @@ class Token(db.Model):
         return Token.id
 
 
-class CouponBulkTransfer(db.Model):
-    """クーポン割当一括登録"""
-    __tablename__ = 'coupon_bulk_transfer'
+class BulkTransferUpload(db.Model):
+    """一括強制移転アップロード"""
+    __tablename__ = 'bulk_transfer_upload'
+
+    # アップロードID
+    upload_id = db.Column(db.String(36), primary_key=True)
+    # 発行体アカウントアドレス
+    eth_account = db.Column(db.String(42), nullable=False, index=True)
+    # トークンアドレス
+    token_address = db.Column(db.String(42), nullable=False)
+    # トークン名称
+    token_name = db.Column(db.String(200))
+    # トークン種別
+    template_id = db.Column(db.Integer, nullable=False)
+    # 実行承認ステータス
+    approved = db.Column(db.Boolean, default=False)
+    # 作成タイムスタンプ
+    created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    # 更新タイムスタンプ
+    modified = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<BulkTransferUpload(id={self.id}, eth_account={self.eth_account}, token_address={self.token_address}, approved={self.approved})>"
+
+
+class BulkTransfer(db.Model):
+    """一括強制移転"""
+    __tablename__ = 'bulk_transfer'
 
     # シーケンスID
     id = db.Column(db.Integer, primary_key=True)
-    # アカウントアドレス
-    eth_account = db.Column(db.String(42), nullable=False)
+    # 発行体アカウントアドレス
+    eth_account = db.Column(db.String(42), nullable=False, index=True)
+    # アップロードID
+    upload_id = db.Column(db.String(36), index=True)
     # トークンアドレス
     token_address = db.Column(db.String(42), nullable=False)
-    # 割当先アドレス
+    # トークン種別
+    template_id = db.Column(db.Integer, nullable=False)
+    # 移転元アドレス
+    from_address = db.Column(db.String(42), nullable=False)
+    # 移転先アドレス
     to_address = db.Column(db.String(42), nullable=False)
-    # 割当数量
+    # 移転数量
     amount = db.Column(db.Integer, nullable=False)
-    # 割当状態
-    transferred = db.Column(db.Boolean, default=False)
+    # 実行承認ステータス
+    approved = db.Column(db.Boolean, default=False, index=True)
+    # 実行状態（未処理：0、正常終了：1、異常終了：2）
+    status = db.Column(db.Integer, nullable=False, index=True)
+    # 作成タイムスタンプ
+    created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    # 更新タイムスタンプ
+    modified = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     def __repr__(self):
-        return "<CouponBulkTransfer('token_address'='%s', 'to_address'='%s', 'amount'='%s', 'transferred'='%s')>" % \
-               (self.token_address, self.to_address, self.amount, self.transferred)
-
-    @classmethod
-    def get_id(cls):
-        return CouponBulkTransfer.id
+        return f"<BulkTransfer(id={self.id}, eth_account={self.eth_account}, upload_id={self.upload_id}, token_address={self.token_address})>"
 
 
 class Certification(db.Model):
@@ -360,7 +373,7 @@ class BondLedger(db.Model):
 
 
 class BondLedgerBlockNumber(db.Model):
-    """債券原簿blockNumber"""
+    """債券原簿の同期済blockNumber"""
     __tablename__ = "bond_ledger_block_number"
 
     # シーケンスID
@@ -374,6 +387,43 @@ class AddressType(Enum):
     OTHERS = 0
     ISSUER = 1
     EXCHANGE = 2
+
+
+class CorporateBondLedgerTemplate(db.Model):
+    """社債原簿基本情報"""
+    __tablename__ = 'corporate_bond_ledger_template'
+
+    # シーケンスID
+    id = db.Column(db.Integer, primary_key=True)
+    # トークンアドレス
+    token_address = db.Column(db.String(42), index=True)
+    # アカウントアドレス
+    eth_account = db.Column(db.String(42), index=True)
+    # 社債名称
+    bond_name = db.Column(db.String(200), nullable=False)
+    # 社債の説明
+    bond_description = db.Column(db.String(1000), nullable=False)
+    # 社債の種類
+    bond_type = db.Column(db.String(1000), nullable=False)
+    # 社債の総額
+    total_amount = db.Column(db.BigInteger, nullable=False)
+    # 各社債の金額
+    face_value = db.Column(db.Integer, nullable=False)
+    # 払込情報_払込金額
+    payment_amount = db.Column(db.BigInteger)
+    # 払込情報_払込日
+    payment_date = db.Column(db.String(8))
+    # 払込情報_払込状況
+    payment_status = db.Column(db.Boolean, nullable=False)
+    # 原簿管理人_名称
+    ledger_admin_name = db.Column(db.String(200), nullable=False)
+    # 原簿管理人_住所
+    ledger_admin_address = db.Column(db.String(200), nullable=False)
+    # 原簿管理人_事務取扱場所
+    ledger_admin_location = db.Column(db.String(200), nullable=False)
+
+    def __repr__(self):
+        return f'<CorporateBondLedgerTemplate({self.token_address}, {self.eth_account})>'
 
 
 ########################################################
@@ -545,19 +595,63 @@ class AgreementStatus(Enum):
 
 
 ########################################################
+# 購入者情報
+########################################################
+class PersonalInfo(db.Model):
+    """購入者個人情報（復号化済）"""
+    __tablename__ = 'personalinfo'
+
+    # シーケンスID
+    id = db.Column(db.Integer, primary_key=True)
+    # アカウントアドレス
+    account_address = db.Column(db.String(42), index=True)
+    # 発行体アドレス
+    issuer_address = db.Column(db.String(42), index=True)
+    # 個人情報
+    #   {
+    #       "key_manager": "string",
+    #       "name": "string",
+    #       "postal_code": "string",
+    #       "address": "string",
+    #       "email": "string",
+    #       "birth": "string"
+    #   }
+    personal_info = db.Column(db.JSON, nullable=False)
+    # 作成タイムスタンプ
+    created = db.Column(db.DateTime, nullable=False, default=datetime.now)
+    # 更新タイムスタンプ
+    modified = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
+
+    def __repr__(self):
+        return f"<PersonalInfo('account_address'={self.account_address}, 'issuer_address'={self.issuer_address}>"
+
+
+class PersonalInfoBlockNumber(db.Model):
+    """購入者個人情報の同期済blockNumber"""
+    __tablename__ = "personalinfo_block_number"
+
+    # シーケンスID
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    # 直近blockNumber
+    latest_block_number = db.Column(db.Integer)
+
+
+########################################################
 # コントラクト
 ########################################################
 class PersonalInfoContract:
     """PersonalInfoコントラクト"""
 
     def __init__(self, issuer_address: str, custom_personal_info_address=None):
-        issuer = Issuer.query.filter(Issuer.eth_account == issuer_address).first()
+        issuer = Issuer.query. \
+            filter(Issuer.eth_account == to_checksum_address(issuer_address)). \
+            first()
+        self.issuer = issuer
+
         if custom_personal_info_address is None:
             contract_address = issuer.personal_info_contract_address
         else:
             contract_address = to_checksum_address(custom_personal_info_address)
-        self.issuer = issuer
-
         contract_file = f"contracts/PersonalInfo.json"
         contract_json = json.load(open(contract_file, "r"))
         self.personal_info_contract = web3.eth.contract(
@@ -589,13 +683,8 @@ class PersonalInfoContract:
             "account_address": account_address,
             "key_manager": default_value,
             "name": default_value,
-            "address": {
-                "postal_code": default_value,
-                "prefecture": default_value,
-                "city": default_value,
-                "address1": default_value,
-                "address2": default_value
-            },
+            "postal_code": default_value,
+            "address": default_value,
             "email": default_value,
             "birth": default_value
         }
@@ -622,13 +711,8 @@ class PersonalInfoContract:
 
                 personal_info["key_manager"] = decrypted_info.get("key_manager", default_value)
                 personal_info["name"] = decrypted_info.get("name", default_value)
-                address = decrypted_info.get("address")
-                if address is not None:
-                    personal_info["address"]["postal_code"] = address.get("postal_code", default_value)
-                    personal_info["address"]["prefecture"] = address.get("prefecture", default_value)
-                    personal_info["address"]["city"] = address.get("city", default_value)
-                    personal_info["address"]["address1"] = address.get("address1", default_value)
-                    personal_info["address"]["address2"] = address.get("address2", default_value)
+                personal_info["postal_code"] = decrypted_info.get("postal_code", default_value)
+                personal_info["address"] = decrypted_info.get("address", default_value)
                 personal_info["email"] = decrypted_info.get("email", default_value)
                 personal_info["birth"] = decrypted_info.get("birth", default_value)
                 return personal_info
@@ -648,30 +732,14 @@ class PersonalInfoContract:
         if not Web3.isAddress(account_address):
             abort(404)
 
-        # デフォルト値
         personal_info = {
             "key_manager": data.get("key_manager", default_value),
             "name": data.get("name", default_value),
-            "address": {
-                "postal_code": default_value,
-                "prefecture": default_value,
-                "city": default_value,
-                "address1": default_value,
-                "address2": default_value
-            },
-            "email": default_value,
-            "birth": default_value
+            "postal_code": data.get("postal_code", default_value),
+            "address": data.get("address", default_value),
+            "email": data.get("email", default_value),
+            "birth": data.get("birth", default_value)
         }
-
-        address = data.get("address")
-        if address is not None:
-            personal_info["address"]["postal_code"] = address.get("postal_code", default_value)
-            personal_info["address"]["prefecture"] = address.get("prefecture", default_value)
-            personal_info["address"]["city"] = address.get("city", default_value)
-            personal_info["address"]["address1"] = address.get("address1", default_value)
-            personal_info["address"]["address2"] = address.get("address2", default_value)
-        personal_info["email"] = data.get("email", default_value)
-        personal_info["birth"] = data.get("birth", default_value)
 
         # 個人情報暗号化用RSA公開鍵の取得
         rsa_public_key = None

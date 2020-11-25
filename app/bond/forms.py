@@ -1,12 +1,29 @@
-# -*- coding:utf-8 -*-
+"""
+Copyright BOOSTRY Co., Ltd.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+
+You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed onan "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
+See the License for the specific language governing permissions and
+limitations under the License.
+
+SPDX-License-Identifier: Apache-2.0
+"""
+
 import math
 from decimal import Decimal
 
 from flask import session
 from flask_wtf import FlaskForm as Form
-
 from wtforms import IntegerField, StringField, TextAreaField, \
-    SubmitField, HiddenField, DecimalField, SelectField
+    SubmitField, HiddenField, DecimalField, SelectField, FileField
 from wtforms.validators import DataRequired, URL, Optional, Length, Regexp, \
     NumberRange, InputRequired
 from wtforms import ValidationError
@@ -30,7 +47,6 @@ def decimalPlaces(places, message='小数点以下の桁数が多すぎます。
     def _check_decimal_places(form, field):
         """
         有効小数点桁数チェック
-        :param places: 小数点以下有効桁数：整数
         :param field: 桁数チェックを行う変数：小数（Form）
         :return: 真偽値
         """
@@ -768,14 +784,14 @@ class CorporateBondLedgerTemplateForm(Form):
     payment_amount = IntegerField(
         "払込金額",
         validators=[
-            InputRequired('払込金額は必須です。'),
+            Optional(),
             NumberRange(min=0, max=1_000_000_000_000, message='払込金額は1,000,000,000,000が上限です。'),
         ]
     )
     payment_date = StringField(
         "払込日",
         validators=[
-            DataRequired("払込日は必須です。"),
+            Optional(),
             Regexp(yyyymmdd_regexp, message='償還日はYYYYMMDDで入力してください。')
         ]
     )
@@ -812,3 +828,17 @@ class CorporateBondLedgerTemplateForm(Form):
         self.payment_status.choices = [('True', '完了'), ('False', '未完了')]
         self.description = {
         }
+
+
+# 一括移転ファイルアップロード
+class BulkTransferUploadForm(Form):
+    transfer_csv = FileField(
+        "CSVファイル",
+        validators=[
+            DataRequired('ファイルを選択してください。')
+        ]
+    )
+    submit = SubmitField('アップロード')
+
+    def __init__(self, *args, **kwargs):
+        super(BulkTransferUploadForm, self).__init__(*args, **kwargs)

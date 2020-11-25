@@ -3,10 +3,10 @@
 {{ super() }}
 <link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
 {% endblock %}
-{% set active_page = "coupon_bulk_transfer" %}
+{% set active_page = "membership_bulk_transfer" %}
 
 {% block title %}一括強制移転 - {% endblock %}
-{% block page_header %}一括強制移転 <span class="badge bg-secondary">クーポン</span>{% endblock %}
+{% block page_header %}一括強制移転 <span class="badge bg-secondary">会員権</span>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
 <li><a href="{{ url_for('index.index') }}">トップ</a></li>
@@ -24,7 +24,7 @@
                 </form>
             </div>
         </div>
-        <form method="POST" action="{{ url_for('coupon.bulk_transfer') }}" enctype="multipart/form-data">
+        <form method="POST" action="{{ url_for('membership.bulk_transfer') }}" enctype="multipart/form-data">
             {{ form.csrf_token }}
             <div class="box-body">
                 <div class="form-group">
@@ -76,8 +76,8 @@
 <script src="/static/adminlte/bower_components/datatables.net/js/jquery.dataTables.min.js"></script>
 <script src="/static/adminlte/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
 <script>
-    bulk_transfer_history = '{{ url_for("coupon.bulk_transfer_history") }}';
-    bulk_transfer_approval_base = '{{ url_for("coupon.bulk_transfer_approval", upload_id="upload_id") }}';
+    bulk_transfer_history = '{{ url_for("membership.bulk_transfer_history") }}';
+    bulk_transfer_approval_base = '{{ url_for("membership.bulk_transfer_approval", upload_id="upload_id") }}';
     $(function () {
         $('#data_table').DataTable({
             columns: [
