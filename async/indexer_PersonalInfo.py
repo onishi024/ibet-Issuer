@@ -46,7 +46,7 @@ from eth_utils import to_checksum_address
 
 # NOTE:ログフォーマットはメッセージ監視が出来るように設定する必要がある。
 dictConfig(Config.LOG_CONFIG)
-log_fmt = 'INDEXER-PersonalInfo [%(asctime)s] [%(process)d] [%(levelname)s] %(message)s'
+log_fmt = '[%(asctime)s] [INDEXER-PersonalInfo] [%(process)d] [%(levelname)s] %(message)s'
 logging.basicConfig(format=log_fmt)
 
 # 設定の取得
