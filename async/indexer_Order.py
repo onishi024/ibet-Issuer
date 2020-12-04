@@ -37,7 +37,7 @@ from web3.middleware import geth_poa_middleware
 
 # NOTE:ログフォーマットはメッセージ監視が出来るように設定する必要がある。
 dictConfig(Config.LOG_CONFIG)
-log_fmt = 'INDEXER-Order [%(asctime)s] [%(process)d] [%(levelname)s] %(message)s'
+log_fmt = '[%(asctime)s] [INDEXER-Order] [%(process)d] [%(levelname)s] %(message)s'
 logging.basicConfig(format=log_fmt)
 
 # 設定の取得
@@ -148,8 +148,7 @@ class DBSink:
 
 
 class Processor:
-    def __init__(self, web3, sink, db):
-        self.web3 = web3
+    def __init__(self, sink, db):
         self.sink = sink
         self.latest_block = web3.eth.blockNumber
         self.db = db
@@ -186,7 +185,17 @@ class Processor:
 
     def initial_sync(self):
         self.get_exchange_list()
-        self.__sync_all(0, self.latest_block)
+        # 1,000,000ブロックずつ同期処理を行う
+        _to_block = 999999
+        _from_block = 0
+        if self.latest_block > 999999:
+            while _to_block < self.latest_block:
+                self.__sync_all(_from_block, _to_block)
+                _to_block += 1000000
+                _from_block += 1000000
+            self.__sync_all(_from_block, self.latest_block)
+        else:
+            self.__sync_all(_from_block, self.latest_block)
 
     def sync_new_logs(self):
         self.get_exchange_list()
@@ -228,11 +237,9 @@ class Processor:
                             amount=args['amount'],
                             agent_address=args['agentAddress'],
                         )
-                self.web3.eth.uninstallFilter(event_filter.filter_id)
-
+                web3.eth.uninstallFilter(event_filter.filter_id)
             except Exception as e:
                 logging.error(e)
-                pass
 
     # CancelOrder Event
     def __sync_cancel_order(self, block_from, block_to):
@@ -249,11 +256,9 @@ class Processor:
                         exchange_address=exchange_contract.address,
                         order_id=event['args']['orderId']
                     )
-                self.web3.eth.uninstallFilter(event_filter.filter_id)
-
+                web3.eth.uninstallFilter(event_filter.filter_id)
             except Exception as e:
                 logging.error(e)
-                pass
 
     # Agree Event
     def __sync_agree(self, block_from, block_to):
@@ -278,17 +283,15 @@ class Processor:
                             order_id=event['args']['orderId'],
                             order_amount=order_amount
                         )
-
-                self.web3.eth.uninstallFilter(event_filter.filter_id)
-
+                web3.eth.uninstallFilter(event_filter.filter_id)
             except Exception as e:
                 logging.error(e)
-                pass
 
-sink = Sinks()
-sink.register(ConsoleSink())
-sink.register(DBSink(db_session))
-processor = Processor(web3, sink, db_session)
+
+_sink = Sinks()
+_sink.register(ConsoleSink())
+_sink.register(DBSink(db_session))
+processor = Processor(sink=_sink, db=db_session)
 
 processor.initial_sync()
 while True:
