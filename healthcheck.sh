@@ -35,4 +35,4 @@ for i in ${PROC_LIST}; do
   fi
 done
 
-curl -D - -s -o /dev/null http://127.0.0.1:5000/ | grep "HTTP/1.1 200 OK"
+curl -D - -s -o /dev/null http://127.0.0.1:5000/auth/login | grep "HTTP/1.1 200 OK"
