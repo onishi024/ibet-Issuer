@@ -62,9 +62,9 @@ COPY . /app/ibet-Issuer
 RUN chown -R apl:apl /app/ibet-Issuer && \
     chmod 755 /app/ibet-Issuer
 USER apl
-COPY run.sh /app/
+COPY run.sh healthcheck.sh /app/
 
 EXPOSE 5000
 
 CMD /app/run.sh
-
+HEALTHCHECK --interval=10s CMD /app/healthcheck.sh
