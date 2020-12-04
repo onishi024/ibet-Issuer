@@ -30,7 +30,7 @@ from sqlalchemy import and_
 class UserForm(Form):
     login_id = StringField("ログインID", validators=[
         DataRequired('ログインIDは必須です。'),
-        Length(min=4, max=12, message='ログインIDは4文字以上12文字までです。'),
+        Length(min=4, max=30, message='ログインIDは4文字以上30文字までです。'),
         Regexp(r'^[a-z0-9_]+$', message='ログインIDは半角英数アンダースコアのみ使用可能です。'),
     ])
     user_name = StringField("ユーザー名", validators=[DataRequired('ユーザー名は必須です。')])
