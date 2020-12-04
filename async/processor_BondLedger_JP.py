@@ -45,7 +45,7 @@ from config import Config
 
 # NOTE:ログフォーマットはメッセージ監視が出来るように設定する必要がある。
 dictConfig(Config.LOG_CONFIG)
-log_fmt = 'PROCESSOR-BondLedger [%(asctime)s] [%(process)d] [%(levelname)s] %(message)s'
+log_fmt = '[%(asctime)s] [PROCESSOR-BondLedger] [%(process)d] [%(levelname)s] %(message)s'
 logging.basicConfig(format=log_fmt)
 
 # 設定の取得

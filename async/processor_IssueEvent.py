@@ -39,7 +39,7 @@ from logging.config import dictConfig
 
 # NOTE:ログフォーマットはメッセージ監視が出来るように設定する必要がある。
 dictConfig(Config.LOG_CONFIG)
-log_fmt = 'PROCESSOR-IssueEvent [%(asctime)s] [%(process)d] [%(levelname)s] %(message)s'
+log_fmt = '[%(asctime)s] [PROCESSOR-IssueEvent] [%(process)d] [%(levelname)s] %(message)s'
 logging.basicConfig(format=log_fmt)
 
 while True:
