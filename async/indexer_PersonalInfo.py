@@ -214,6 +214,7 @@ class DBSink:
         if record is not None:
             record.personal_info = personal_info
             record.modified = timestamp
+            self.db.merge(record)
         else:
             record = PersonalInfoModel()
             record.account_address = account_address
@@ -221,7 +222,7 @@ class DBSink:
             record.personal_info = personal_info
             record.created = timestamp
             record.modified = timestamp
-            self.db.merge(record)
+            self.db.add(record)
 
     def on_personalinfo_modify(self, account_address, issuer_address, personal_info, timestamp):
         record = self.db.query(PersonalInfoModel). \
@@ -231,6 +232,7 @@ class DBSink:
         if record is not None:
             record.personal_info = personal_info
             record.modified = timestamp
+            self.db.merge(record)
 
     def flush(self):
         self.db.commit()
