@@ -8,7 +8,7 @@ You may obtain a copy of the License at
 http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing,
-software distributed under the License is distributed onan "AS IS" BASIS,
+software distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 
 See the License for the specific language governing permissions and
@@ -334,6 +334,7 @@ class TestBond(TestBase):
         response = client.post(
             url_setting,
             data={
+                'faceValue': 950,  # 初期データから変更登録
                 'interestRate': "1.243",  # 初期データから変更登録
                 'interestPaymentDate1': '0111',  # 初期データから変更登録
                 'interestPaymentDate2': '0211',  # 初期データから変更登録
@@ -347,6 +348,7 @@ class TestBond(TestBase):
                 'interestPaymentDate10': '1011',  # 初期データから変更登録
                 'interestPaymentDate11': '1111',  # 初期データから変更登録
                 'interestPaymentDate12': '1211',  # 初期データから変更登録
+                'redemptionValue': 9500,  # 初期データから変更登録
                 'transferable': 'False',  # 初期データから変更登録
                 'image_1': 'https://test.com/image_1.jpg',
                 'image_2': 'https://test.com/image_2.jpg',
@@ -377,6 +379,7 @@ class TestBond(TestBase):
         response = client.post(
             url_setting,
             data={
+                'faceValue': 1000,
                 'interestRate': 100,
                 'interestPaymentDate1': '0101',
                 'interestPaymentDate2': '0201',
@@ -390,6 +393,7 @@ class TestBond(TestBase):
                 'interestPaymentDate10': '1001',
                 'interestPaymentDate11': '1101',
                 'interestPaymentDate12': '1201',
+                'redemptionValue': 10000,
                 'transferable': 'True',
                 'image_1': 'https://test.com/image_1.jpg',
                 'image_2': 'https://test.com/image_2.jpg',
