@@ -106,7 +106,7 @@ class IssueForm(Form):
     )
 
     faceValue = IntegerField(
-        "額面（円） *",
+        "額面（円）",
         validators=[
             InputRequired('額面は必須です。'),
             NumberRange(min=0, max=5000000000, message='額面は5,000,000,000円が上限です。')
@@ -227,7 +227,7 @@ class IssueForm(Form):
     )
 
     redemptionValue = IntegerField(
-        "償還金額（額面当り） *",
+        "償還金額（額面当り）",
         validators=[
             Optional(),
             NumberRange(min=0, max=5000000000, message='償還金額は5,000,000,000円が上限です。')
@@ -364,12 +364,23 @@ class IssueForm(Form):
 class SettingForm(Form):
     mmdd_regexp = '^(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])$'
 
+    # トークンアドレス
     token_address = StringField("トークンアドレス", validators=[])
+    # トークン名称
     name = StringField("名称", validators=[])
+    # トークン略称
     symbol = StringField("略称", validators=[])
+    # 総発行数量
     totalSupply = IntegerField("総発行量", validators=[])
-    faceValue = IntegerField("額面（円）", validators=[])
-
+    # 額面金額
+    faceValue = IntegerField(
+        "額面（円）",
+        validators=[
+            InputRequired('額面は必須です。'),
+            NumberRange(min=0, max=5000000000, message='額面は5,000,000,000円が上限です。')
+        ]
+    )
+    # 年利
     interestRate = DecimalField(
         "年利（税引前）（%）",
         places=4,
@@ -379,7 +390,7 @@ class SettingForm(Form):
             decimalPlaces(4, message='年利は小数点4桁以下で入力してください。')
         ]
     )
-
+    # 利払日１
     interestPaymentDate1 = StringField(
         "利払日１",
         validators=[
@@ -387,7 +398,7 @@ class SettingForm(Form):
             Regexp(mmdd_regexp, message='利払日１はMMDDで入力してください。'),
         ]
     )
-
+    # 利払日２
     interestPaymentDate2 = StringField(
         "利払日２",
         validators=[
@@ -395,7 +406,7 @@ class SettingForm(Form):
             Regexp(mmdd_regexp, message='利払日２はMMDDで入力してください。'),
         ]
     )
-
+    # 利払日３
     interestPaymentDate3 = StringField(
         "利払日３",
         validators=[
@@ -403,7 +414,7 @@ class SettingForm(Form):
             Regexp(mmdd_regexp, message='利払日３はMMDDで入力してください。'),
         ]
     )
-
+    # 利払日４
     interestPaymentDate4 = StringField(
         "利払日４",
         validators=[
@@ -411,7 +422,7 @@ class SettingForm(Form):
             Regexp(mmdd_regexp, message='利払日４はMMDDで入力してください。'),
         ]
     )
-
+    # 利払日５
     interestPaymentDate5 = StringField(
         "利払日５",
         validators=[
@@ -419,7 +430,7 @@ class SettingForm(Form):
             Regexp(mmdd_regexp, message='利払日５はMMDDで入力してください。'),
         ]
     )
-
+    # 利払日６
     interestPaymentDate6 = StringField(
         "利払日６",
         validators=[
@@ -427,7 +438,7 @@ class SettingForm(Form):
             Regexp(mmdd_regexp, message='利払日６はMMDDで入力してください。'),
         ]
     )
-
+    # 利払日７
     interestPaymentDate7 = StringField(
         "利払日７",
         validators=[
@@ -435,7 +446,7 @@ class SettingForm(Form):
             Regexp(mmdd_regexp, message='利払日７はMMDDで入力してください。'),
         ]
     )
-
+    # 利払日８
     interestPaymentDate8 = StringField(
         "利払日８",
         validators=[
@@ -443,7 +454,7 @@ class SettingForm(Form):
             Regexp(mmdd_regexp, message='利払日８はMMDDで入力してください。'),
         ]
     )
-
+    # 利払日９
     interestPaymentDate9 = StringField(
         "利払日９",
         validators=[
@@ -451,7 +462,7 @@ class SettingForm(Form):
             Regexp(mmdd_regexp, message='利払日９はMMDDで入力してください。'),
         ]
     )
-
+    # 利払日１０
     interestPaymentDate10 = StringField(
         "利払日１０",
         validators=[
@@ -459,7 +470,7 @@ class SettingForm(Form):
             Regexp(mmdd_regexp, message='利払日１０はMMDDで入力してください。'),
         ]
     )
-
+    # 利払日１１
     interestPaymentDate11 = StringField(
         "利払日１１",
         validators=[
@@ -467,7 +478,7 @@ class SettingForm(Form):
             Regexp(mmdd_regexp, message='利払日１１はMMDDで入力してください。'),
         ]
     )
-
+    # 利払日１２
     interestPaymentDate12 = StringField(
         "利払日１２",
         validators=[
@@ -475,26 +486,38 @@ class SettingForm(Form):
             Regexp(mmdd_regexp, message='利払日１２はMMDDで入力してください。'),
         ]
     )
+    # 償還日
     redemptionDate = StringField("償還日", validators=[])
-    redemptionValue = IntegerField("償還金額（額面当り）", validators=[])
+    # 償還金額
+    redemptionValue = IntegerField(
+        "償還金額（額面当り）",
+        validators=[
+            Optional(),
+            NumberRange(min=0, max=5000000000, message='償還金額は5,000,000,000円が上限です。')
+        ]
+    )
+    # 特典付与日
     returnDate = StringField("特典付与日", validators=[])
+    # 特典内容
     returnDetails = TextAreaField("特典内容", validators=[])
+    # 発行目的
     purpose = TextAreaField("発行目的", validators=[])
+    # メモ欄
     memo = TextAreaField("メモ", validators=[])
-
+    # 譲渡制限
     transferable = SelectField(
         '譲渡制限',
         choices=[(True, 'True'), (False, 'False')],
         default='True'
     )
-
+    # 画像１
     image_1 = StringField(
         "画像（１）URL",
         validators=[
             Optional(), URL(message='画像（１）URLは無効なURLです。')
         ]
     )
-
+    # 画像２
     image_2 = StringField(
         "画像（２）URL",
         validators=[
@@ -502,7 +525,7 @@ class SettingForm(Form):
             URL(message='画像（２）URLは無効なURLです。')
         ]
     )
-
+    # 画像３
     image_3 = StringField(
         "画像（３）URL",
         validators=[
@@ -510,37 +533,39 @@ class SettingForm(Form):
             URL(message='画像（３）URLは無効なURLです。')
         ]
     )
-
+    # DEXコントラクトアドレス
     tradableExchange = StringField(
         "DEXアドレス",
         validators=[
             address("DEXアドレスは有効なアドレスではありません。")
         ]
     )
-
+    # 個人情報コントラクトアドレス
     personalInfoAddress = StringField(
         "個人情報コントラクト",
         validators=[
             address('個人情報コントラクトは有効なアドレスではありません。')
         ]
     )
-
+    # 問い合わせ先
     contact_information = TextAreaField(
         "問い合わせ先",
         validators=[
             Length(max=2000, message='問い合わせ先は2,000文字以内で入力してください。')
         ]
     )
-
+    # プライバシーポリシー
     privacy_policy = TextAreaField(
         "プライバシーポリシー",
         validators=[
             Length(max=5000, message='プライバシーポリシーは5,000文字以内で入力してください。')
         ]
     )
-
+    # コントラクトABI
     abi = TextAreaField("インターフェース", validators=[])
+    # コントラクトバイトコード
     bytecode = TextAreaField("バイトコード", validators=[])
+
     submit = SubmitField('設定変更')
 
     def __init__(self, token_setting=None, *args, **kwargs):

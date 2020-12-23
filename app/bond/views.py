@@ -33,6 +33,7 @@ from sqlalchemy import func, desc
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 from eth_utils import to_checksum_address
+from eth_typing import ChecksumAddress
 
 from app import db
 from app.exceptions import EthRuntimeError
@@ -758,7 +759,7 @@ def holder(token_address, account_address):
 ####################################################
 @bond.route('/setting/<string:token_address>', methods=['GET', 'POST'])
 @login_required
-def setting(token_address):
+def setting(token_address: ChecksumAddress):
     logger.info('bond/setting')
 
     # 指定したトークンが存在しない場合、エラーを返す
@@ -786,8 +787,8 @@ def setting(token_address):
     interestRate_int = TokenContract.functions.interestRate().call()
     interestRate = interestRate_int * 0.0001
     interestPaymentDate_string = TokenContract.functions.interestPaymentDate().call()
-    interestPaymentDate = json.loads(
-        interestPaymentDate_string.replace("'", '"').replace('True', 'true').replace('False', 'false')) \
+    interestPaymentDate = \
+        json.loads(interestPaymentDate_string.replace("'", '"').replace('True', 'true').replace('False', 'false')) \
         if interestPaymentDate_string else default_interest_payment_date()
     redemptionDate = TokenContract.functions.redemptionDate().call()
     redemptionValue = TokenContract.functions.redemptionValue().call()
@@ -816,8 +817,55 @@ def setting(token_address):
         is_released = True
 
     form = SettingForm()
+
+    ####################################
+    # GET
+    ####################################
+    if request.method == 'GET':
+        form.token_address.data = token.token_address
+        form.name.data = name
+        form.symbol.data = symbol
+        form.totalSupply.data = totalSupply
+        form.faceValue.data = faceValue
+        form.interestRate.data = interestRate
+        map_interest_payment_date(form, interestPaymentDate)
+        form.redemptionDate.data = redemptionDate
+        form.redemptionValue.data = redemptionValue
+        form.returnDate.data = returnDate
+        form.returnDetails.data = returnDetails
+        form.purpose.data = purpose
+        form.memo.data = memo
+        form.transferable.data = transferable
+        form.image_1.data = image_1
+        form.image_2.data = image_2
+        form.image_3.data = image_3
+        form.tradableExchange.data = tradableExchange
+        form.personalInfoAddress.data = personalInfoAddress
+        form.contact_information.data = contact_information
+        form.privacy_policy.data = privacy_policy
+        form.abi.data = token.abi
+        form.bytecode.data = token.bytecode
+        return render_template(
+            'bond/setting.html',
+            form=form,
+            token_address=token_address,
+            token_name=name,
+            is_released=is_released,
+            initial_offering_status=initial_offering_status,
+            is_redeemed=is_redeemed
+        )
+
+    ####################################
+    # POST
+    ####################################
     if request.method == 'POST':
         if form.validate():  # Validationチェック
+            # 額面金額変更
+            if form.faceValue.data != faceValue:
+                tx = TokenContract.functions.setFaceValue(form.faceValue.data). \
+                    buildTransaction({'from': session['eth_account'], 'gas': Config.TX_GAS_LIMIT})
+                ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
+
             # 年利変更
             formInterestRate = int(form.interestRate.data * 10000)
             if formInterestRate != interestRate_int:
@@ -840,14 +888,25 @@ def setting(token_address):
                 'interestPaymentDate11': form.interestPaymentDate11.data,
                 'interestPaymentDate12': form.interestPaymentDate12.data
             }
+
             isInterestPaymentDateChanged = False
+
             for date in newInterestPaymentDate.keys():
                 if interestPaymentDate.get(date, '') != newInterestPaymentDate[date]:
                     isInterestPaymentDateChanged = True
                     break
+
             if isInterestPaymentDateChanged:
                 newInterestPaymentDate_string = json.dumps(newInterestPaymentDate)
                 tx = TokenContract.functions.setInterestPaymentDate(newInterestPaymentDate_string). \
+                    buildTransaction({'from': session['eth_account'], 'gas': Config.TX_GAS_LIMIT})
+                ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
+
+            # 償還金額変更
+            if form.redemptionValue.data != redemptionValue:
+                if form.redemptionValue.data is None:
+                    form.redemptionValue.data = 0
+                tx = TokenContract.functions.setRedemptionValue(form.redemptionValue.data). \
                     buildTransaction({'from': session['eth_account'], 'gas': Config.TX_GAS_LIMIT})
                 ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
 
@@ -914,53 +973,22 @@ def setting(token_address):
             form.name.data = name
             form.symbol.data = symbol
             form.totalSupply.data = totalSupply
-            form.faceValue.data = faceValue
             form.redemptionDate.data = redemptionDate
-            form.redemptionValue.data = redemptionValue
             form.returnDate.data = returnDate
             form.returnDetails.data = returnDetails
             form.purpose.data = purpose
             form.abi.data = token.abi
             form.bytecode.data = token.bytecode
+
             return render_template(
                 'bond/setting.html',
-                form=form, token_address=token_address,
-                token_name=name, is_released=is_released, is_redeemed=is_redeemed,
+                form=form,
+                token_address=token_address,
+                token_name=name,
+                is_released=is_released,
+                is_redeemed=is_redeemed,
                 initial_offering_status=initial_offering_status
             )
-    else:  # GET
-        form.token_address.data = token.token_address
-        form.name.data = name
-        form.symbol.data = symbol
-        form.totalSupply.data = totalSupply
-        form.faceValue.data = faceValue
-        form.interestRate.data = interestRate
-        map_interest_payment_date(form, interestPaymentDate)
-        form.redemptionDate.data = redemptionDate
-        form.redemptionValue.data = redemptionValue
-        form.returnDate.data = returnDate
-        form.returnDetails.data = returnDetails
-        form.purpose.data = purpose
-        form.memo.data = memo
-        form.transferable.data = transferable
-        form.image_1.data = image_1
-        form.image_2.data = image_2
-        form.image_3.data = image_3
-        form.tradableExchange.data = tradableExchange
-        form.personalInfoAddress.data = personalInfoAddress
-        form.contact_information.data = contact_information
-        form.privacy_policy.data = privacy_policy
-        form.abi.data = token.abi
-        form.bytecode.data = token.bytecode
-        return render_template(
-            'bond/setting.html',
-            form=form,
-            token_address=token_address,
-            token_name=name,
-            is_released=is_released,
-            initial_offering_status=initial_offering_status,
-            is_redeemed=is_redeemed
-        )
 
 
 ####################################################
