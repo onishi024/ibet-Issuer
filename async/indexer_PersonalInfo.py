@@ -8,7 +8,7 @@ You may obtain a copy of the License at
 http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing,
-software distributed under the License is distributed onan "AS IS" BASIS,
+software distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 
 See the License for the specific language governing permissions and
@@ -46,7 +46,7 @@ from eth_utils import to_checksum_address
 
 # NOTE:ログフォーマットはメッセージ監視が出来るように設定する必要がある。
 dictConfig(Config.LOG_CONFIG)
-log_fmt = 'INDEXER-PersonalInfo [%(asctime)s] [%(process)d] [%(levelname)s] %(message)s'
+log_fmt = '[%(asctime)s] [INDEXER-PersonalInfo] [%(process)d] [%(levelname)s] %(message)s'
 logging.basicConfig(format=log_fmt)
 
 # 設定の取得
@@ -214,6 +214,7 @@ class DBSink:
         if record is not None:
             record.personal_info = personal_info
             record.modified = timestamp
+            self.db.merge(record)
         else:
             record = PersonalInfoModel()
             record.account_address = account_address
@@ -221,7 +222,7 @@ class DBSink:
             record.personal_info = personal_info
             record.created = timestamp
             record.modified = timestamp
-            self.db.merge(record)
+            self.db.add(record)
 
     def on_personalinfo_modify(self, account_address, issuer_address, personal_info, timestamp):
         record = self.db.query(PersonalInfoModel). \
@@ -231,6 +232,7 @@ class DBSink:
         if record is not None:
             record.personal_info = personal_info
             record.modified = timestamp
+            self.db.merge(record)
 
     def flush(self):
         self.db.commit()

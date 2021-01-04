@@ -8,7 +8,7 @@ You may obtain a copy of the License at
 http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing,
-software distributed under the License is distributed onan "AS IS" BASIS,
+software distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 
 See the License for the specific language governing permissions and
@@ -184,7 +184,7 @@ class TestAccountRegist(TestBase):
         )
         assert response.status_code == 200
         assert '<title>アカウント追加'.encode('utf-8') in response.data
-        assert 'ログインIDは4文字以上12文字までです。'.encode('utf-8') in response.data
+        assert 'ログインIDは4文字以上30文字までです。'.encode('utf-8') in response.data
 
     # ＜エラー系3-2＞
     # 登録（POST）：入力誤り
@@ -726,8 +726,7 @@ class TestIssuerInfo(TestBase):
         response = client.get(self.url_bankinfo)
         assert response.status_code == 200
         assert '<title>発行体情報登録'.encode('utf-8') in response.data
-        assert '<input class="form-control" id="issuer_name" name="issuer_name" type="text" value="発行体１">'. \
-               encode('utf-8') in response.data
+        assert 'value="発行体１'.encode('utf-8') in response.data
 
     # ＜正常系2＞
     # 登録　→　正常参照
@@ -741,8 +740,7 @@ class TestIssuerInfo(TestBase):
         )
         assert response.status_code == 200
         assert '<title>発行体情報登録'.encode('utf-8') in response.data
-        assert '<input class="form-control" id="issuer_name" name="issuer_name" type="text" value="発行体名１２３４５６７８９０１２３４５６７８９０１２３４５６７８９０１２３４５６７８９０１２３４５６７８９０１２３４５６７８９０">'.encode(
-            'utf-8') in response.data
+        assert 'value="発行体名１２３４５６７８９０１２３４５６７８９０１２３４５６７８９０１２３４５６７８９０１２３４５６７８９０１２３４５６７８９０"'.encode('utf-8') in response.data
 
     # ＜正常系3＞
     # 入力なし
@@ -756,8 +754,7 @@ class TestIssuerInfo(TestBase):
         )
         assert response.status_code == 200
         assert '<title>発行体情報登録'.encode('utf-8') in response.data
-        assert '<input class="form-control" id="issuer_name" name="issuer_name" type="text" value="">'.encode(
-            'utf-8') in response.data
+        assert 'value=""'.encode('utf-8') in response.data
 
     # ＜エラー系1-1＞
     # 桁数系(1文字オーバー)

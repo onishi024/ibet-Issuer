@@ -8,7 +8,7 @@ You may obtain a copy of the License at
 http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing,
-software distributed under the License is distributed onan "AS IS" BASIS,
+software distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 
 See the License for the specific language governing permissions and
@@ -39,7 +39,7 @@ from logging.config import dictConfig
 
 # NOTE:ログフォーマットはメッセージ監視が出来るように設定する必要がある。
 dictConfig(Config.LOG_CONFIG)
-log_fmt = 'PROCESSOR-IssueEvent [%(asctime)s] [%(process)d] [%(levelname)s] %(message)s'
+log_fmt = '[%(asctime)s] [PROCESSOR-IssueEvent] [%(process)d] [%(levelname)s] %(message)s'
 logging.basicConfig(format=log_fmt)
 
 while True:

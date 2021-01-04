@@ -8,7 +8,7 @@ You may obtain a copy of the License at
 http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing,
-software distributed under the License is distributed onan "AS IS" BASIS,
+software distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 
 See the License for the specific language governing permissions and
@@ -30,7 +30,7 @@ from sqlalchemy import and_
 class UserForm(Form):
     login_id = StringField("ログインID", validators=[
         DataRequired('ログインIDは必須です。'),
-        Length(min=4, max=12, message='ログインIDは4文字以上12文字までです。'),
+        Length(min=4, max=30, message='ログインIDは4文字以上30文字までです。'),
         Regexp(r'^[a-z0-9_]+$', message='ログインIDは半角英数アンダースコアのみ使用可能です。'),
     ])
     user_name = StringField("ユーザー名", validators=[DataRequired('ユーザー名は必須です。')])
