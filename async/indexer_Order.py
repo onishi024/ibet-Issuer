@@ -67,10 +67,6 @@ class Sinks:
         for sink in self.sinks:
             sink.on_cancel_order(*args, **kwargs)
 
-    def on_agree(self, *args, **kwargs):
-        for sink in self.sinks:
-            sink.on_agree(*args, **kwargs)
-
     def flush(self, *args, **kwargs):
         for sink in self.sinks:
             sink.flush(*args, **kwargs)
@@ -90,14 +86,6 @@ class ConsoleSink:
     def on_cancel_order(exchange_address, order_id):
         logging.info(
             "CancelOrder: exchange_address={}, order_id={}".format(
-                exchange_address, order_id
-            )
-        )
-
-    @staticmethod
-    def on_agree(exchange_address, order_id, order_amount):
-        logging.info(
-            "Agree: exchange_address={}, order_id={}".format(
                 exchange_address, order_id
             )
         )
@@ -131,11 +119,6 @@ class DBSink:
         order = self.__get_order(exchange_address, order_id)
         if order is not None:
             order.is_cancelled = True
-
-    def on_agree(self, exchange_address, order_id, order_amount):
-        order = self.__get_order(exchange_address, order_id)
-        if order is not None:
-            order.amount = order_amount
 
     def flush(self):
         self.db.commit()
@@ -209,7 +192,6 @@ class Processor:
         logging.debug("syncing from={}, to={}".format(block_from, block_to))
         self.__sync_new_order(block_from, block_to)
         self.__sync_cancel_order(block_from, block_to)
-        self.__sync_agree(block_from, block_to)
         self.sink.flush()
 
     # Order Event
@@ -256,33 +238,6 @@ class Processor:
                         exchange_address=exchange_contract.address,
                         order_id=event['args']['orderId']
                     )
-                web3.eth.uninstallFilter(event_filter.filter_id)
-            except Exception as e:
-                logging.error(e)
-
-    # Agree Event
-    def __sync_agree(self, block_from, block_to):
-        for exchange_contract in self.exchange_list:
-            try:
-                event_filter = exchange_contract.eventFilter(
-                    'Agree', {
-                        'fromBlock': block_from,
-                        'toBlock': block_to,
-                    }
-                )
-                for event in event_filter.get_all_entries():
-                    args = event['args']
-                    if args['amount'] > sys.maxsize:
-                        pass
-                    else:
-                        order_id = args['orderId']
-                        order = exchange_contract.functions.getOrder(order_id).call()
-                        order_amount = order[2]
-                        self.sink.on_agree(
-                            exchange_address=exchange_contract.address,
-                            order_id=event['args']['orderId'],
-                            order_amount=order_amount
-                        )
                 web3.eth.uninstallFilter(event_filter.filter_id)
             except Exception as e:
                 logging.error(e)

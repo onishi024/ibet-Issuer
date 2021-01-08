@@ -120,18 +120,18 @@ class TestShare(TestBase):
         'contact_information': '問い合わせ先ABCDEFG',
         'privacy_policy': 'プライバシーポリシーXYZ'
     }
-    # Token_2：2番目に発行されるトークン。imageなし, transferable:False
+    # Token_2：2番目に発行されるトークン。必須項目のみ, transferable:False
     token_data2 = {
         'name': '2件目株式',
         'symbol': '2KENME',
         'totalSupply': 2000000,
         'issuePrice': 2000,
-        'dividends': 20.50,
-        'dividendRecordDate': '20220412',
-        'dividendPaymentDate': '20220512',
+        'dividends': '',
+        'dividendRecordDate': '',
+        'dividendPaymentDate': '',
         'cancellationDate': '',
         'transferable': 'False',
-        'memo': '2memo',
+        'memo': '',
         'referenceUrls_1': '',
         'referenceUrls_2': '',
         'referenceUrls_3': '',
@@ -271,7 +271,7 @@ class TestShare(TestBase):
 
     # ＜正常系3_1＞
     # ＜株式一覧（複数件）＞
-    #   新規発行（画像URLなし）　→　詳細設定画面の参照
+    #   新規発行（必須項目のみ）　→　詳細設定画面の参照
     def test_normal_3_1(self, app, db):
         client = self.client_with_admin_login(app)
 
@@ -293,7 +293,19 @@ class TestShare(TestBase):
         assert response.status_code == 200
         assert '<title>株式詳細設定'.encode('utf-8') in response.data
         for value in self.token_data2.values():
-            assert str(value).encode('utf-8') in response.data
+            if value != '':
+                assert str(value).encode('utf-8') in response.data
+        # 未設定項目のassert
+        assert 'name="dividends" type="text" value="0.00"'.encode('utf-8') in response.data
+        assert 'name="dividendRecordDate" type="text" value=""'.encode('utf-8') in response.data
+        assert 'name="dividendPaymentDate" type="text" value=""'.encode('utf-8') in response.data
+        assert 'name="cancellationDate" type="text" value=""'.encode('utf-8') in response.data
+        assert 'id="memo" name="memo"></textarea>'.encode('utf-8') in response.data
+        assert 'name="referenceUrls_1" type="text" value=""'.encode('utf-8') in response.data
+        assert 'name="referenceUrls_2" type="text" value=""'.encode('utf-8') in response.data
+        assert 'name="referenceUrls_3" type="text" value=""'.encode('utf-8') in response.data
+        assert 'id="contact_information" name="contact_information"></textarea>'.encode('utf-8') in response.data
+        assert 'id="privacy_policy" name="privacy_policy"></textarea>'.encode('utf-8') in response.data
         # セレクトボックスのassert（譲渡制限）
         assert '<option selected value="False">あり</option>'.encode('utf-8') in response.data
 
