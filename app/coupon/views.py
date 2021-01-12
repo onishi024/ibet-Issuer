@@ -668,7 +668,6 @@ def positions():
                     filter(Order.account_address == owner). \
                     filter(Order.is_buy == False). \
                     filter(Order.is_cancelled == False). \
-                    filter(Order.amount > 0). \
                     first()
                 if order is not None:
                     on_sale = True

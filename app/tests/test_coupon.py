@@ -39,7 +39,6 @@ from ..models import Token, Transfer
 
 
 class TestCoupon(TestBase):
-
     #############################################################################
     # テスト対象URL
     #############################################################################
@@ -162,7 +161,7 @@ class TestCoupon(TestBase):
                 'symbol': 'COUPON',
                 'totalSupply': 2000000,
                 'expirationDate': '20191231',
-                'transferable': True,
+                'transferable': 'True',
                 'details': 'details詳細',
                 'return_details': 'return詳細',
                 'memo': 'memoメモ',
@@ -195,7 +194,7 @@ class TestCoupon(TestBase):
         processor_issue_event(db)
 
         # 詳細設定画面の参照
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
         response = client.get(self.url_setting + tokens[0].token_address)
         assert response.status_code == 200
         assert '<title>クーポン詳細設定'.encode('utf-8') in response.data
@@ -226,7 +225,7 @@ class TestCoupon(TestBase):
                 'symbol': 'COUPON',
                 'totalSupply': 2000000,
                 'expirationDate': '20191231',
-                'transferable': False,
+                'transferable': 'False',
                 'details': 'details詳細',
                 'return_details': 'return詳細',
                 'memo': 'memoメモ',
@@ -243,8 +242,9 @@ class TestCoupon(TestBase):
         processor_issue_event(db)
 
         # 詳細設定画面の参照
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
         response = client.get(self.url_setting + tokens[1].token_address)
+
         assert response.status_code == 200
         assert '<title>クーポン詳細設定'.encode('utf-8') in response.data
         assert 'テストクーポン'.encode('utf-8') in response.data
@@ -276,7 +276,7 @@ class TestCoupon(TestBase):
     # ＜1件確認＞
     #   発行済一覧画面の参照(1件)
     def test_normal_3_1(self, app):
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
         token = tokens[0]
         client = self.client_with_admin_login(app)
         response = client.get(self.url_list)
@@ -291,7 +291,7 @@ class TestCoupon(TestBase):
     # ＜1件確認＞
     #   売出管理画面の参照(1件)
     def test_normal_3_2(self, app):
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
         token = tokens[0]
         client = self.client_with_admin_login(app)
         response = client.get(self.url_positions)
@@ -299,14 +299,14 @@ class TestCoupon(TestBase):
         assert '<title>売出管理'.encode('utf-8') in response.data
         assert 'テストクーポン'.encode('utf-8') in response.data
         assert token.token_address.encode('utf-8') in response.data
-        assert '<td>2,000,000</td>\n                <td>2,000,000</td>\n                <td>0</td>'.\
+        assert '<td>2,000,000</td>\n                <td>2,000,000</td>\n                <td>0</td>'. \
                    encode('utf-8') in response.data
 
     # ＜正常系4＞
     # ＜設定変更＞
     #   クーポン設定変更　→　詳細設定画面で確認
     def test_normal_4(self, app, shared_contract):
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
         url_setting = self.url_setting + tokens[0].token_address
         client = self.client_with_admin_login(app)
 
@@ -366,7 +366,7 @@ class TestCoupon(TestBase):
     # ＜有効化・無効化＞
     #   無効化　→　発行済一覧で確認
     def test_normal_5_1(self, app):
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
         client = self.client_with_admin_login(app)
 
         # 無効化
@@ -390,7 +390,7 @@ class TestCoupon(TestBase):
     # ＜有効化・無効化＞
     #   有効化　→　発行済一覧で確認
     def test_normal_5_2(self, app):
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
         client = self.client_with_admin_login(app)
 
         # 有効化
@@ -414,7 +414,7 @@ class TestCoupon(TestBase):
     # ＜追加発行＞
     #   追加発行 →　詳細背定画面で確認
     def test_normal_6(self, app):
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
         url_add_supply = self.url_add_supply + tokens[0].token_address
         url_setting = self.url_setting + tokens[0].token_address
         client = self.client_with_admin_login(app)
@@ -447,7 +447,7 @@ class TestCoupon(TestBase):
     # ＜割当＞
     #   クーポン割当　→　保有者一覧で確認
     def test_normal_7_1(self, app):
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
         client = self.client_with_admin_login(app)
 
         # 割当処理
@@ -513,7 +513,7 @@ class TestCoupon(TestBase):
     # ＜保有者詳細＞
     #   保有者詳細
     def test_normal_8(self, app):
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
         client = self.client_with_admin_login(app)
 
         # 保有者詳細画面の参照
@@ -534,7 +534,7 @@ class TestCoupon(TestBase):
     # ＜売出＞
     #   新規売出画面の参照
     def test_normal_9_1(self, app, shared_contract):
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
         token = tokens[0]
 
         # 売出画面の参照
@@ -554,7 +554,7 @@ class TestCoupon(TestBase):
     #   売出 → 売出管理画面で確認
     def test_normal_9_2(self, app):
         client = self.client_with_admin_login(app)
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
         token = tokens[0]
         url_sell = self.url_sell + token.token_address
 
@@ -574,7 +574,7 @@ class TestCoupon(TestBase):
         assert '新規売出を受け付けました。売出開始までに数分程かかることがあります。'.encode('utf-8') in response.data
         assert 'テストクーポン'.encode('utf-8') in response.data
         # 売出中の数量が存在する
-        assert '<td>2,000,100</td>\n                <td>0</td>\n                <td>2,000,000</td>'.\
+        assert '<td>2,000,100</td>\n                <td>0</td>\n                <td>2,000,000</td>'. \
                    encode('utf-8') in response.data
 
     # ＜正常系9_3＞
@@ -582,7 +582,7 @@ class TestCoupon(TestBase):
     #   売出停止 → 売出管理画面で確認
     def test_normal_9_3(self, app):
         client = self.client_with_admin_login(app)
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
         token = tokens[0]
 
         # 売出停止処理
@@ -597,7 +597,7 @@ class TestCoupon(TestBase):
         assert '<title>売出管理'.encode('utf-8') in response.data
         assert 'テストクーポン'.encode('utf-8') in response.data
         # 売出中の数量が0
-        assert '<td>2,000,100</td>\n                <td>2,000,000</td>\n                <td>0</td>'.\
+        assert '<td>2,000,100</td>\n                <td>2,000,000</td>\n                <td>0</td>'. \
                    encode('utf-8') in response.data
 
     # ＜正常系10_1＞
@@ -605,7 +605,7 @@ class TestCoupon(TestBase):
     #   所有者移転画面の参照
     def test_normal_10_1(self, app):
         client = self.client_with_admin_login(app)
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
         token = tokens[0]
         issuer_address = \
             to_checksum_address(eth_account['issuer']['account_address'])
@@ -622,7 +622,7 @@ class TestCoupon(TestBase):
     #   所有者移転処理　→　保有者一覧の参照
     def test_normal_10_2(self, app):
         client = self.client_with_admin_login(app)
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
         token = tokens[0]
         issuer_address = \
             to_checksum_address(eth_account['issuer']['account_address'])
@@ -681,7 +681,7 @@ class TestCoupon(TestBase):
     #   公開処理　→　公開済状態になること
     def test_normal_11(self, app):
         client = self.client_with_admin_login(app)
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
         token = tokens[0]
 
         # 公開処理
@@ -706,7 +706,7 @@ class TestCoupon(TestBase):
     #   ※Token_1が対象
     def test_normal_12_1(self, app):
         client = self.client_with_admin_login(app)
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
         token = tokens[0]
 
         # 詳細設定画面の参照
@@ -722,7 +722,7 @@ class TestCoupon(TestBase):
     #   ※Token_1が対象
     def test_normal_12_2(self, app):
         client = self.client_with_admin_login(app)
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
         token = tokens[0]
 
         # 募集申込開始
@@ -748,7 +748,7 @@ class TestCoupon(TestBase):
     #   ※Token_1が対象
     def test_normal_12_3(self, app):
         client = self.client_with_admin_login(app)
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
         token = tokens[0]
 
         # 募集申込停止
@@ -782,7 +782,7 @@ class TestCoupon(TestBase):
     #   ※Token_1が対象
     def test_normal_13_1(self, app):
         client = self.client_with_admin_login(app)
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
         token = tokens[0]
 
         # 募集申込一覧参照
@@ -797,7 +797,7 @@ class TestCoupon(TestBase):
     #   ※Token_1が対象
     def test_normal_13_2(self, db, app):
         client = self.client_with_admin_login(app)
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
         token = tokens[0]
 
         token_address = str(token.token_address)
@@ -825,7 +825,7 @@ class TestCoupon(TestBase):
     #   ※Token_1が対象
     def test_normal_14_1(self, app):
         client = self.client_with_admin_login(app)
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
         token = tokens[0]
 
         token_address = str(token.token_address)
@@ -846,7 +846,7 @@ class TestCoupon(TestBase):
     #   ※Token_1が対象
     def test_normal_14_2(self, db, app):
         client = self.client_with_admin_login(app)
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
         token = tokens[0]
 
         token_address = str(token.token_address)
@@ -910,7 +910,7 @@ class TestCoupon(TestBase):
     #   保有者一覧CSVが取得できること
     def test_normal_15(self, app):
         client = self.client_with_admin_login(app)
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
         token = tokens[0]
         token_address = str(token.token_address)
 
@@ -922,7 +922,7 @@ class TestCoupon(TestBase):
     # ＜正常系16＞
     #   トークン追跡
     def test_normal_16(self, app):
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
         token = tokens[0]
         client = self.client_with_admin_login(app)
 
@@ -942,7 +942,7 @@ class TestCoupon(TestBase):
     #   クーポン利用履歴画面が表示できること
     def test_normal_17_1(self, app):
         client = self.client_with_admin_login(app)
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
         token = tokens[0]
 
         token_address = str(token.token_address)
@@ -956,7 +956,7 @@ class TestCoupon(TestBase):
     #   クーポン利用履歴が取得できること（0件）
     def test_normal_17_2(self, app):
         client = self.client_with_admin_login(app)
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
         token = tokens[0]
 
         token_address = str(token.token_address)
@@ -972,7 +972,7 @@ class TestCoupon(TestBase):
     #   クーポン利用履歴が取得できること（1件）
     def test_normal_17_3(self, app, db):
         client = self.client_with_admin_login(app)
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
         token = tokens[0]
         trader_account = eth_account['trader']['account_address']
         balance = 7
@@ -1010,7 +1010,7 @@ class TestCoupon(TestBase):
     #   クーポン利用履歴CSVが取得できること
     def test_normal_17_4(self, app, db):
         client = self.client_with_admin_login(app)
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
         token = tokens[0]
         trader_account = eth_account['trader']['account_address']
         balance = 7
@@ -1070,7 +1070,7 @@ class TestCoupon(TestBase):
     # ＜エラー系2＞
     #   追加発行（必須エラー）
     def test_error_1_2(self, app):
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
         url_add_supply = self.url_add_supply + tokens[0].token_address
         client = self.client_with_admin_login(app)
         # 新規発行
@@ -1100,7 +1100,7 @@ class TestCoupon(TestBase):
     # ＜入力値チェック＞
     #   売出（必須エラー）
     def test_error_1_4(self, app):
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
         token = tokens[0]
         # 売出
         client = self.client_with_admin_login(app)
@@ -1130,7 +1130,7 @@ class TestCoupon(TestBase):
                 'symbol': 'COUPON',
                 'totalSupply': 2000000,
                 'expirationDate': '20191231',
-                'transferable': True,
+                'transferable': 'True',
                 'details': 'details詳細',
                 'memo': 'memoメモ',
                 'image_1': 'https://test.com/image_1.jpg',
@@ -1148,7 +1148,7 @@ class TestCoupon(TestBase):
     #   設定画面（DEXアドレス形式エラー）
     def test_error_2_2(self, app):
         error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
         url_setting = self.url_setting + tokens[0].token_address
         client = self.client_with_admin_login(app)
         response = client.post(
@@ -1168,7 +1168,7 @@ class TestCoupon(TestBase):
     # ＜エラー系2_3＞
     #   追加発行（上限エラー）
     def test_error_2_3(self, app):
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
         url_add_supply = self.url_add_supply + tokens[0].token_address
         url_setting = self.url_setting + tokens[0].token_address
         client = self.client_with_admin_login(app)
@@ -1229,7 +1229,7 @@ class TestCoupon(TestBase):
         error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
 
         client = self.client_with_admin_login(app)
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
         token = tokens[0]
         trader_address = \
             to_checksum_address(eth_account['trader']['account_address'])
@@ -1249,7 +1249,7 @@ class TestCoupon(TestBase):
     #   入力値チェック：必須チェック
     def test_error_3_3(self, app):
         client = self.client_with_admin_login(app)
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
         token = tokens[0]
         issuer_address = \
             to_checksum_address(eth_account['issuer']['account_address'])
@@ -1270,7 +1270,7 @@ class TestCoupon(TestBase):
     def test_error_3_4(self, app):
         error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
         client = self.client_with_admin_login(app)
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
         token = tokens[0]
         issuer_address = \
             to_checksum_address(eth_account['issuer']['account_address'])
@@ -1291,7 +1291,7 @@ class TestCoupon(TestBase):
     #   入力値チェック：amountが上限超過
     def test_error_3_5(self, app):
         client = self.client_with_admin_login(app)
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
         token = tokens[0]
         issuer_address = \
             to_checksum_address(eth_account['issuer']['account_address'])
@@ -1314,7 +1314,7 @@ class TestCoupon(TestBase):
     #   入力値チェック：amountが残高超
     def test_error_3_6(self, app):
         client = self.client_with_admin_login(app)
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
         token = tokens[0]
         issuer_address = \
             to_checksum_address(eth_account['issuer']['account_address'])
@@ -1453,7 +1453,7 @@ class TestCoupon(TestBase):
     # ＜エラー系5_4＞
     #   割当（残高エラー）
     def test_error_5_4(self, app):
-        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).all()
+        tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
         token = tokens[1]
         total_supply = 2000000
 
@@ -1494,7 +1494,7 @@ class TestCoupon(TestBase):
         tokens = Token.query.filter_by(
             template_id=Config.TEMPLATE_ID_COUPON,
             admin_address=eth_account['issuer']['account_address'].lower()
-        ).all()
+        ).order_by(Token.created).all()
         token = tokens[0]
 
         # 発行体2でログイン
@@ -1511,7 +1511,7 @@ class TestCoupon(TestBase):
         tokens = Token.query.filter_by(
             template_id=Config.TEMPLATE_ID_COUPON,
             admin_address=eth_account['issuer']['account_address'].lower()
-        ).all()
+        ).order_by(Token.created).all()
         token = tokens[0]
 
         # 発行体2でログイン
@@ -1533,7 +1533,7 @@ class TestCoupon(TestBase):
         tokens = Token.query.filter_by(
             template_id=Config.TEMPLATE_ID_COUPON,
             admin_address=eth_account['issuer']['account_address'].lower()
-        ).all()
+        ).order_by(Token.created).all()
         token = tokens[0]
 
         # 発行体2でログイン
@@ -1550,7 +1550,7 @@ class TestCoupon(TestBase):
         tokens = Token.query.filter_by(
             template_id=Config.TEMPLATE_ID_COUPON,
             admin_address=eth_account['issuer']['account_address'].lower()
-        ).all()
+        ).order_by(Token.created).all()
         token = tokens[0]
 
         # 発行体2でログイン
@@ -1572,7 +1572,7 @@ class TestCoupon(TestBase):
         tokens = Token.query.filter_by(
             template_id=Config.TEMPLATE_ID_COUPON,
             admin_address=eth_account['issuer']['account_address'].lower()
-        ).all()
+        ).order_by(Token.created).all()
         token = tokens[0]
 
         # 発行体2でログイン
@@ -1597,7 +1597,7 @@ class TestCoupon(TestBase):
         tokens = Token.query.filter_by(
             template_id=Config.TEMPLATE_ID_COUPON,
             admin_address=eth_account['issuer']['account_address'].lower()
-        ).all()
+        ).order_by(Token.created).all()
         token = tokens[0]
 
         # 発行体2でログイン
@@ -1630,7 +1630,7 @@ class TestCoupon(TestBase):
         tokens = Token.query.filter_by(
             template_id=Config.TEMPLATE_ID_COUPON,
             admin_address=eth_account['issuer']['account_address'].lower()
-        ).all()
+        ).order_by(Token.created).all()
         token = tokens[0]
 
         # 発行体2でログイン
@@ -1655,7 +1655,7 @@ class TestCoupon(TestBase):
         tokens = Token.query.filter_by(
             template_id=Config.TEMPLATE_ID_COUPON,
             admin_address=eth_account['issuer']['account_address'].lower()
-        ).all()
+        ).order_by(Token.created).all()
         token = tokens[0]
 
         # 発行体2でログイン
@@ -1679,7 +1679,7 @@ class TestCoupon(TestBase):
         tokens = Token.query.filter_by(
             template_id=Config.TEMPLATE_ID_COUPON,
             admin_address=eth_account['issuer']['account_address'].lower()
-        ).all()
+        ).order_by(Token.created).all()
         token = tokens[0]
 
         # 発行体2でログイン
@@ -1704,7 +1704,7 @@ class TestCoupon(TestBase):
         tokens = Token.query.filter_by(
             template_id=Config.TEMPLATE_ID_COUPON,
             admin_address=eth_account['issuer']['account_address'].lower()
-        ).all()
+        ).order_by(Token.created).all()
         token = tokens[0]
 
         # 発行体2でログイン
@@ -1730,7 +1730,7 @@ class TestCoupon(TestBase):
         tokens = Token.query.filter_by(
             template_id=Config.TEMPLATE_ID_COUPON,
             admin_address=eth_account['issuer']['account_address'].lower()
-        ).all()
+        ).order_by(Token.created).all()
         token = tokens[0]
 
         # 発行体2でログイン
@@ -1756,7 +1756,7 @@ class TestCoupon(TestBase):
         tokens = Token.query.filter_by(
             template_id=Config.TEMPLATE_ID_COUPON,
             admin_address=eth_account['issuer']['account_address'].lower()
-        ).all()
+        ).order_by(Token.created).all()
         token = tokens[0]
 
         # 発行体2でログイン
@@ -1773,7 +1773,7 @@ class TestCoupon(TestBase):
         tokens = Token.query.filter_by(
             template_id=Config.TEMPLATE_ID_COUPON,
             admin_address=eth_account['issuer']['account_address'].lower()
-        ).all()
+        ).order_by(Token.created).all()
         token = tokens[0]
 
         # 発行体2でログイン
@@ -1795,7 +1795,7 @@ class TestCoupon(TestBase):
         tokens = Token.query.filter_by(
             template_id=Config.TEMPLATE_ID_COUPON,
             admin_address=eth_account['issuer']['account_address'].lower()
-        ).all()
+        ).order_by(Token.created).all()
         token = tokens[0]
 
         # 発行体2でログイン
@@ -1817,7 +1817,7 @@ class TestCoupon(TestBase):
         tokens = Token.query.filter_by(
             template_id=Config.TEMPLATE_ID_COUPON,
             admin_address=eth_account['issuer']['account_address'].lower()
-        ).all()
+        ).order_by(Token.created).all()
         token = tokens[0]
 
         # 発行体2でログイン
@@ -1834,7 +1834,7 @@ class TestCoupon(TestBase):
         tokens = Token.query.filter_by(
             template_id=Config.TEMPLATE_ID_COUPON,
             admin_address=eth_account['issuer']['account_address'].lower()
-        ).all()
+        ).order_by(Token.created).all()
         token = tokens[0]
 
         # 発行体2でログイン
@@ -1851,7 +1851,7 @@ class TestCoupon(TestBase):
         tokens = Token.query.filter_by(
             template_id=Config.TEMPLATE_ID_COUPON,
             admin_address=eth_account['issuer']['account_address'].lower()
-        ).all()
+        ).order_by(Token.created).all()
         token = tokens[0]
 
         # 発行体2でログイン
@@ -1876,7 +1876,7 @@ class TestCoupon(TestBase):
         tokens = Token.query.filter_by(
             template_id=Config.TEMPLATE_ID_COUPON,
             admin_address=eth_account['issuer']['account_address'].lower()
-        ).all()
+        ).order_by(Token.created).all()
         token = tokens[0]
 
         # 発行体2でログイン
@@ -1898,7 +1898,7 @@ class TestCoupon(TestBase):
         tokens = Token.query.filter_by(
             template_id=Config.TEMPLATE_ID_COUPON,
             admin_address=eth_account['issuer']['account_address'].lower()
-        ).all()
+        ).order_by(Token.created).all()
         token = tokens[0]
 
         # 発行体2でログイン
@@ -1920,7 +1920,7 @@ class TestCoupon(TestBase):
         tokens = Token.query.filter_by(
             template_id=Config.TEMPLATE_ID_COUPON,
             admin_address=eth_account['issuer']['account_address'].lower()
-        ).all()
+        ).order_by(Token.created).all()
         token = tokens[0]
 
         # 発行体2でログイン
@@ -1942,7 +1942,7 @@ class TestCoupon(TestBase):
         tokens = Token.query.filter_by(
             template_id=Config.TEMPLATE_ID_COUPON,
             admin_address=eth_account['issuer']['account_address'].lower()
-        ).all()
+        ).order_by(Token.created).all()
         token = tokens[0]
 
         # 発行体2でログイン
