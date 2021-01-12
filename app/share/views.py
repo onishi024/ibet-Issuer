@@ -926,7 +926,6 @@ def holders_csv_download():
         'account_address,' + \
         'key_manager,' + \
         'balance,' + \
-        'commitment,' + \
         'name,' + \
         'birth_date,' + \
         'postal_code,' + \
@@ -944,7 +943,7 @@ def holders_csv_download():
         data_row = \
             token_name + ',' + token_address + ',' + \
             holder["account_address"] + ',' + holder["key_manager"] + ','  + \
-            str(holder["balance"]) + ',' + str(holder["commitment"]) + ',' + \
+            str(holder["balance"]) + ',' + \
             holder["name"] + ',' + holder["birth_date"] + ',' + \
             holder["postal_code"] + ',' + holder_address + ',' + \
             holder["email"] + '\n'
@@ -1074,7 +1073,6 @@ def get_holders(token_address):
     except Exception as err:
         logger.error(f"Failed to get token attributes: {err}")
         tradable_exchange = Config.ZERO_ADDRESS
-    dex_contract = ContractUtils.get_contract('IbetOTCExchange', tradable_exchange)
 
     # Transferイベントを検索
     # →　残高を保有している可能性のあるアドレスを抽出
@@ -1096,13 +1094,7 @@ def get_holders(token_address):
     _holders = []
     for account_address in holders_uniq:
         balance = TokenContract.functions.balanceOf(account_address).call()
-        try:
-            commitment = dex_contract.functions.commitmentOf(account_address, token_address).call()
-        except Exception as err:
-            logger.warning(f"Failed to get commitment: {err}")
-            commitment = 0
-
-        if balance > 0 or commitment > 0:  # 残高（balance）、または注文中の残高（commitment）が存在する情報を抽出
+        if balance > 0:  # 残高（balance）が存在する情報を抽出
             # アドレス種別判定
             if account_address == token_owner:
                 address_type = AddressType.ISSUER.value
@@ -1121,7 +1113,6 @@ def get_holders(token_address):
                 'address': DEFAULT_VALUE,
                 'birth_date': DEFAULT_VALUE,
                 'balance': balance,
-                'commitment': commitment,
                 'address_type': address_type
             }
 
@@ -1151,7 +1142,6 @@ def get_holders(token_address):
                         'email': email,
                         'birth_date': birth_date,
                         'balance': balance,
-                        'commitment': commitment,
                         'address_type': address_type
                     }
 

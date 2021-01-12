@@ -44,7 +44,6 @@
                     <th></th>
                     <th></th>
                     <th></th>
-                    <th></th>
                 </tr>
                 </thead>
                 <tbody>
@@ -132,16 +131,6 @@
                     <td></td>
                 </tr>
                 <tr>
-                    <td>注文中数量</td>
-                    <td>2</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>保有数量合計</td>
-                    <td>12</td>
-                    <td>保有数量と注文中数量の合計</td>
-                </tr>
-                <tr>
                     <td>保有金額合計</td>
                     <td>1200</td>
                     <td></td>
@@ -225,10 +214,6 @@ $(function () {
             orderable: true,
             title: "保有数量"
         }, {
-            data: "commitment",
-            orderable: true,
-            title: "注文中数量"
-        }, {
             data: "holder_detail",
             orderable: false,
             className: "text-center",
@@ -259,7 +244,6 @@ $(function () {
                     key_manager : json[index]['key_manager'] ? json[index]['key_manager'] : '--',
                     name: json[index]['name'] ? json[index]['name'] : '--',
                     balance: balance,
-                    commitment: json[index]['commitment'] ? json[index]['commitment'].toLocaleString() : 0,
                     holder_detail: json[index]['account_address'] ? holder_detail_url_base.replace('account_address', json[index]['account_address']) : '--',
                     token_transfer: json[index]['account_address'] ? holder_transfer_url_base.replace('account_address', json[index]['account_address']) : '--'
                 };
