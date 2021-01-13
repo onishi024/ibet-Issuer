@@ -1874,6 +1874,7 @@ def get_ledger_history(token_address):
         abort(404)
 
     records = BondLedger.query. \
+        with_entities(BondLedger.id, BondLedger.token_address, BondLedger.created). \
         filter(BondLedger.token_address == token_address). \
         order_by(desc(BondLedger.created)). \
         all()
