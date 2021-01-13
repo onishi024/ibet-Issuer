@@ -443,6 +443,8 @@ def get_holders(token_address: str):
         logger.error(f"Failed to get token attributes: {err}")
         tradable_exchange = Config.ZERO_ADDRESS
 
+    logger.info("check-1")
+
     # Transferイベントを検索
     # →　残高を保有している可能性のあるアドレスを抽出
     # →　保有者リストをユニークにする
@@ -450,19 +452,30 @@ def get_holders(token_address: str):
         distinct(Transfer.account_address_to). \
         filter(Transfer.token_address == token_address).all()
 
+    logger.info("check-2")
+
     holders_temp = [token_owner]  # 発行体アドレスをリストに追加
     for event in transfer_events:
         holders_temp.append(event.account_address_to)
+
+    logger.info("check-3")
 
     holders_uniq = []
     for x in holders_temp:
         if x not in holders_uniq:
             holders_uniq.append(x)
 
+    logger.info("check-4")
+
     # 保有者情報を取得
     _holders = []
     for account_address in holders_uniq:
+        logger.info("check-5-1")
+
         balance = TokenContract.functions.balanceOf(account_address).call()
+
+        logger.info("check-5-2")
+
         if balance > 0:  # 残高（balance）が存在する情報を抽出
             # アドレス種別判定
             if account_address == token_owner:
@@ -484,6 +497,8 @@ def get_holders(token_address: str):
                 'balance': balance,
                 'address_type': address_type
             }
+
+            logger.info("check-5-3")
 
             if address_type == AddressType.ISSUER.value:  # 保有者が発行体の場合
                 _holder["name"] = issuer.issuer_name or DEFAULT_VALUE
@@ -515,6 +530,8 @@ def get_holders(token_address: str):
                     }
 
                 _holders.append(_holder)
+
+            logger.info("check-5-4")
 
     return jsonify(_holders)
 
