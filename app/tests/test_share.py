@@ -544,13 +544,13 @@ class TestShare(TestBase):
         response_data = json.loads(response.data)
 
         assert response.status_code == 200
-        assert eth_account['issuer']['account_address'] == response_data[0]['account_address']
-        assert '発行体１' == response_data[0]['name']
-        assert '--' == response_data[0]['postal_code']
-        assert '--' == response_data[0]['address']
-        assert '--' == response_data[0]['email']
-        assert '--' == response_data[0]['birth_date']
-        assert 1000010 == response_data[0]['balance']
+        assert eth_account['issuer']['account_address'] == response_data['data'][0]['account_address']
+        assert '発行体１' == response_data['data'][0]['name']
+        assert '--' == response_data['data'][0]['postal_code']
+        assert '--' == response_data['data'][0]['address']
+        assert '--' == response_data['data'][0]['email']
+        assert '--' == response_data['data'][0]['birth_date']
+        assert 1000010 == response_data['data'][0]['balance']
 
         # トークン名APIの参照
         response = client.get(self.url_get_token_name + token.token_address)
@@ -602,7 +602,7 @@ class TestShare(TestBase):
 
         # 保有者一覧APIの参照
         response = client.get(self.url_get_holders + token.token_address)
-        response_data_list = json.loads(response.data)
+        response_data_list = json.loads(response.data)['data']
 
         for response_data in response_data_list:
             if eth_account['issuer']['account_address'] == response_data['account_address']:  # issuer
@@ -704,7 +704,7 @@ class TestShare(TestBase):
 
         # 保有者一覧APIの参照
         response = client.get(self.url_get_holders + token.token_address)
-        response_data_list = json.loads(response.data)
+        response_data_list = json.loads(response.data)['data']
         assert response.status_code == 200
 
         assert len(response_data_list) == 2
@@ -994,7 +994,7 @@ class TestShare(TestBase):
 
         # 保有者一覧APIの参照
         response = client.get(self.url_get_holders + token.token_address)
-        response_data = json.loads(response.data)
+        response_data = json.loads(response.data)['data']
         assert response.status_code == 200
 
         # issuer
