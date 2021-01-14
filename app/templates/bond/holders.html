@@ -232,7 +232,6 @@
                 url: holders_list_url,
                 dataSrc: function (json) {
                     returnJson = [];
-                    console.log(json.data)
                     json = json.data;
                     for (index in json) {
                         if (json[index]['address_type'] == 2) {
