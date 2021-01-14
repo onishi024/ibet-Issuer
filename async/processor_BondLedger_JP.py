@@ -363,7 +363,9 @@ class Processor:
             pass
         else:
             for token in self.token_list:
-                self.__process_transfer(token, ledger_block_number, latest_block)
+                event_triggered = self.__create_utxo(token, ledger_block_number, latest_block)
+                if event_triggered:  # UTXOの更新イベントが発生している場合
+                    self.__create_ledger(token)
             self.__set_ledger_blocknumber(latest_block)
             self.sink.flush()
 
@@ -406,14 +408,15 @@ class Processor:
             ledger_block.latest_block_number = block_number
         self.db.merge(ledger_block)
 
-    def __process_transfer(self, token, from_block: int, to_block: int):
-        """台帳作成（Transferイベント発生時）
+    def __create_utxo(self, token, from_block: int, to_block: int) -> bool:
+        """UTXO作成（Transferイベント発生時）
 
         :param token: token contract
         :param from_block: from block number
         :param to_block:  to block number
-        :return: None
+        :return: event_triggered イベント発生
         """
+        event_triggered = False
         event_filter = token.eventFilter(
             "Transfer", {
                 "fromBlock": from_block,
@@ -421,6 +424,8 @@ class Processor:
             }
         )
         for event in event_filter.get_all_entries():
+            event_triggered = True
+
             transaction_hash = event["transactionHash"].hex()
             args = event["args"]
             from_account = args.get("from", Config.ZERO_ADDRESS)
@@ -456,12 +461,21 @@ class Processor:
                     transaction_date_jst=transaction_date_jst
                 )
 
-                # Ledgeデータの作成
-                self.sink.on_bond_ledger(
-                    token=token
-                )
+                # # Ledgeデータの作成
+                # self.sink.on_bond_ledger(
+                #     token=token
+                # )
 
         web3.eth.uninstallFilter(event_filter.filter_id)
+
+        return event_triggered
+
+    def __create_ledger(self, token):
+        """原簿作成
+
+        :param token: token contract
+        """
+        self.sink.on_bond_ledger(token=token)
 
 
 sinks = Sinks()

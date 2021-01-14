@@ -225,6 +225,7 @@ $(function () {
             url: holders_list_url,
             dataSrc : function (json) {
             returnJson = [];
+            json = json.data
             for(index in json){
                 if (json[index]['address_type'] == 2) {
                     balance = '(' + json[index]['balance'].toLocaleString() + ')'
@@ -249,13 +250,14 @@ $(function () {
                 return returnJson;
             }
         },
-        'paging': true,
+        'processing': true,
+        'serverSide': true,
         'lengthChange': true,
-        'searching': true,
+        'searching': false,
         'info': true,
         'autoWidth': true,
         'pagingType': "full_numbers",
-        'order': [1, 'asc'],
+        'ordering': false,
         'language': {
             'info': "_TOTAL_ 件中 _START_ 〜 _END_ 件目",
             'lengthMenu': "表示件数 _MENU_ 件",
