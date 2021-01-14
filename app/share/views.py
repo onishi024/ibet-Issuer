@@ -29,7 +29,7 @@ import time
 from flask_wtf import FlaskForm as Form
 from flask import request, redirect, url_for, flash, make_response, render_template, abort, jsonify, session
 from flask_login import login_required
-from sqlalchemy import desc
+from sqlalchemy import desc, or_
 
 from app import db
 from app.models import Token, Transfer, AddressType, ApplyFor, Issuer, HolderList, PersonalInfoContract, BulkTransfer, \
@@ -1048,8 +1048,8 @@ def holders_csv_history_download():
 @share.route('/get_holders/<string:token_address>', methods=['GET'])
 @login_required
 def get_holders(token_address):
-    """
-    保有者一覧取得
+    """保有者一覧取得
+
     :param token_address: トークンアドレス
     :return: トークンの保有者一覧
     """
@@ -1061,9 +1061,18 @@ def get_holders(token_address):
     draw = int(request.args.get("draw")) if request.args.get("draw") else None  # record the number of operations
     start = int(request.args.get("start")) if request.args.get("start") else None  # start position
     length = int(request.args.get("length")) if request.args.get("length") else None  # length of each page
+    search_address = request.args.get("search[value]")  # search keyword
 
     token_owner = session['eth_account']
     issuer = Issuer.query.get(session['issuer_id'])
+
+    # 発行体が管理するトークンかチェック
+    token = Token.query. \
+        filter(Token.token_address == token_address). \
+        filter(Token.admin_address == session['eth_account'].lower()). \
+        first()
+    if token is None:
+        abort(404)
 
     # Tokenコントラクト接続
     TokenContract = TokenUtils.get_contract(
@@ -1082,9 +1091,16 @@ def get_holders(token_address):
     # Transferイベントを検索
     # →　残高を保有している可能性のあるアドレスを抽出
     # →　保有者リストをユニークにする
-    transfer_events = Transfer.query. \
+    query = Transfer.query. \
         distinct(Transfer.account_address_to). \
-        filter(Transfer.token_address == token_address).all()
+        filter(Transfer.token_address == token_address)
+    if search_address:
+        transfer_events = query.filter(or_(
+            Transfer.account_address_from.like(f"%{search_address}%"),
+            Transfer.account_address_to.like(f"%{search_address}%"))
+        ).all()
+    else:
+        transfer_events = query.all()
 
     holders_temp = [token_owner]  # 発行体アドレスをリストに追加
     for event in transfer_events:
@@ -1093,7 +1109,10 @@ def get_holders(token_address):
     holders_uniq = []
     for x in holders_temp:
         if x not in holders_uniq:
-            holders_uniq.append(x)
+            if search_address is None:
+                holders_uniq.append(x)
+            elif search_address in x:
+                holders_uniq.append(x)
 
     # 保有者情報を取得
     _holders = []
