@@ -349,7 +349,7 @@ def holders_csv_download():
     logger.info('bond/holders_csv_download')
 
     token_address = request.form.get('token_address')
-    holders = json.loads(get_holders(token_address).data)
+    holders = get_holders(token_address)["data"]
     token_name = json.loads(get_token_name(token_address).data)
 
     # Tokenコントラクト接続
@@ -418,6 +418,11 @@ def get_holders(token_address: str):
 
     DEFAULT_VALUE = "--"
 
+    # query parameters
+    draw = int(request.args.get("draw")) if request.args.get("draw") else None  # record the number of operations
+    start = int(request.args.get("start")) if request.args.get("start") else None  # start position
+    length = int(request.args.get("length")) if request.args.get("length") else None  # length of each page
+
     token_owner = session['eth_account']
     issuer = Issuer.query.get(session['issuer_id'])
 
@@ -461,9 +466,16 @@ def get_holders(token_address: str):
 
     # 保有者情報を取得
     _holders = []
+    cursor = -1  # 開始位置
+    count = 0  # 取得レコード
     for account_address in holders_uniq:
-        balance = TokenContract.functions.balanceOf(account_address).call()
-        if balance > 0:  # 残高（balance）が存在する情報を抽出
+        cursor += 1
+        if ((start is not None and cursor >= start) and (length is not None and count < length)) or (start is None and length is None):
+            count += 1
+
+            # 残高取得
+            balance = TokenContract.functions.balanceOf(account_address).call()
+
             # アドレス種別判定
             if account_address == token_owner:
                 address_type = AddressType.ISSUER.value
@@ -512,10 +524,21 @@ def get_holders(token_address: str):
                         'balance': balance,
                         'address_type': address_type
                     }
-
                 _holders.append(_holder)
+        elif length is not None and count >= length:
+            break
 
-    return jsonify(_holders)
+    records_total = len(holders_uniq)
+    records_filtered = records_total
+
+    res_body = {
+        "draw": draw,
+        "recordsTotal": records_total,
+        "recordsFiltered": records_filtered,
+        "data": _holders
+    }
+
+    return res_body
 
 
 ####################################################
