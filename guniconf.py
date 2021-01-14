@@ -24,4 +24,4 @@ from config import Config
 workers = Config.WORKER_COUNT
 max_requests = 500
 max_requests_jitter = 200
-timeout = 90
+timeout = 300
