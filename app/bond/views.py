@@ -16,6 +16,8 @@ limitations under the License.
 
 SPDX-License-Identifier: Apache-2.0
 """
+
+from typing import Dict
 import csv
 import io
 import json
@@ -29,7 +31,7 @@ from flask import request, redirect, url_for, flash, make_response, \
     render_template, abort, jsonify, session
 from flask_login import login_required
 
-from sqlalchemy import func, desc
+from sqlalchemy import func, desc, or_
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 from eth_utils import to_checksum_address
@@ -359,7 +361,6 @@ def holders_csv_download():
     except Exception as e:
         logger.error(e)
         face_value = 0
-        pass
 
     f = io.StringIO()
 
@@ -378,6 +379,7 @@ def holders_csv_download():
         'email\n'
     f.write(data_header)
 
+    # 明細行
     for holder in holders:
         # Unicodeの各種ハイフン文字を半角ハイフン（U+002D）に変換する
         try:
@@ -402,15 +404,16 @@ def holders_csv_download():
     res.data = csvdata.encode('sjis', 'ignore')
     res.headers['Content-Type'] = 'text/plain'
     res.headers['Content-Disposition'] = f"attachment; filename={now.strftime('%Y%m%d%H%M%S')}bond_holders_list.csv"
+
     return res
 
 
 # 保有者リスト取得
 @bond.route('/get_holders/<string:token_address>', methods=['GET'])
 @login_required
-def get_holders(token_address: str):
-    """
-    保有者一覧取得
+def get_holders(token_address: str) -> Dict:
+    """保有者一覧取得
+
     :param token_address: トークンアドレス
     :return: トークンの保有者一覧
     """
@@ -422,6 +425,7 @@ def get_holders(token_address: str):
     draw = int(request.args.get("draw")) if request.args.get("draw") else None  # record the number of operations
     start = int(request.args.get("start")) if request.args.get("start") else None  # start position
     length = int(request.args.get("length")) if request.args.get("length") else None  # length of each page
+    search_address = request.args.get("search[value]")  # search keyword
 
     token_owner = session['eth_account']
     issuer = Issuer.query.get(session['issuer_id'])
@@ -436,9 +440,9 @@ def get_holders(token_address: str):
 
     # Tokenコントラクトに接続
     TokenContract = TokenUtils.get_contract(
-        token_address,
-        token_owner,
-        Config.TEMPLATE_ID_SB
+        token_address=token_address,
+        issuer_address=token_owner,
+        template_id=Config.TEMPLATE_ID_SB
     )
 
     # DEXアドレスを取得
@@ -451,9 +455,16 @@ def get_holders(token_address: str):
     # Transferイベントを検索
     # →　残高を保有している可能性のあるアドレスを抽出
     # →　保有者リストをユニークにする
-    transfer_events = Transfer.query. \
+    query = Transfer.query. \
         distinct(Transfer.account_address_to). \
-        filter(Transfer.token_address == token_address).all()
+        filter(Transfer.token_address == token_address)
+    if search_address:
+        transfer_events = query.filter(or_(
+            Transfer.account_address_from.like(f"%{search_address}%"),
+            Transfer.account_address_to.like(f"%{search_address}%"))
+        ).all()
+    else:
+        transfer_events = query.all()
 
     holders_temp = [token_owner]  # 発行体アドレスをリストに追加
     for event in transfer_events:
@@ -462,7 +473,10 @@ def get_holders(token_address: str):
     holders_uniq = []
     for x in holders_temp:
         if x not in holders_uniq:
-            holders_uniq.append(x)
+            if search_address is None:
+                holders_uniq.append(x)
+            elif search_address in x:
+                holders_uniq.append(x)
 
     # 保有者情報を取得
     _holders = []
