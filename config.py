@@ -117,6 +117,9 @@ class Config:
     WEB3_HTTP_PROVIDER = os.environ.get('WEB3_HTTP_PROVIDER') or 'http://localhost:8545'
     web3 = Web3(Web3.HTTPProvider(WEB3_HTTP_PROVIDER))
 
+    # Transaction Gas Limit
+    TX_GAS_LIMIT = int(os.environ.get("TX_GAS_LIMIT")) if os.environ.get("TX_GAS_LIMIT") else 6000000
+
     # EOA (Ethereum Account)
     if os.environ.get('ETH_ACCOUNT') is not None:
         ETH_ACCOUNT = to_checksum_address(os.environ.get('ETH_ACCOUNT'))

@@ -1229,10 +1229,8 @@ def transfer_ownership(token_address, account_address):
                     account_address=account_address,
                     form=form
                 )
-            gas = TokenContract.functions.transferFrom(from_address, to_address, amount).\
-                estimateGas({'from': Config.ETH_ACCOUNT})
             tx = TokenContract.functions.transferFrom(from_address, to_address, amount). \
-                buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': gas})
+                buildTransaction({'from': Config.ETH_ACCOUNT, 'gas': Config.TX_GAS_LIMIT})
             ContractUtils.send_transaction(transaction=tx)
             # NOTE: 保有者一覧が非同期で更新されるため、5秒待つ
             time.sleep(5)
