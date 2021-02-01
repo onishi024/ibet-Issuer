@@ -27,25 +27,24 @@
                 <div class="pull-right box-tools">
                     <button id="csv_download" type="submit" class="btn btn-success" disabled>ダウンロード</button>
                     <a href="{{ url_for('bond.holders_csv_history', token_address=token_address) }}"
-                       class="btn btn-default">保有者履歴</a>
+                        class="btn btn-default">保有者履歴</a>
                     <a href="{{ url_for('bond.ledger_history', token_address=token_address) }}"
-                       class="btn btn-default">原簿履歴</a>
+                        class="btn btn-default">原簿履歴</a>
                 </div>
             </form>
         </div>
         <div class="box-body">
             <table id="data_table" class="table table-bordered table-hover">
                 <thead>
-                <tr>
-                    <th></th>
-                    <th></th>
-                    <th></th>
-                    <th></th>
-                    <th></th>
-                    <th></th>
-                    <th></th>
-                    <th></th>
-                </tr>
+                    <tr>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                    </tr>
                 </thead>
                 <tbody>
                 </tbody>
@@ -99,78 +98,68 @@
             </div>
             <table class="table table-bordered">
                 <thead>
-                <tr>
-                    <th>項目名</th>
-                    <th>サンプル値</th>
-                    <th>補足</th>
-                </tr>
+                    <tr>
+                        <th>項目名</th>
+                        <th>サンプル値</th>
+                        <th>補足</th>
+                    </tr>
                 </thead>
                 <tbody>
-                <tr>
-                    <td>債券名</td>
-                    <td>ibet債券</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>債券アドレス</td>
-                    <td>0xF37aF18966609eCaDe3E4D1831996853c637cfF3</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>アカウントアドレス</td>
-                    <td>0x0b3c7F97383bCFf942E6b1038a47B9AA5377A252</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>鍵管理機関</td>
-                    <td>4010001203704</td>
-                    <td>法人番号</td>
-                </tr>
-                <tr>
-                    <td>保有数量</td>
-                    <td>10</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>注文中数量</td>
-                    <td>2</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>保有数量合計</td>
-                    <td>12</td>
-                    <td>保有数量と注文中数量の合計</td>
-                </tr>
-                <tr>
-                    <td>保有金額合計</td>
-                    <td>1200</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>保有者氏名</td>
-                    <td>中本哲史</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>保有者生年月日</td>
-                    <td>20081031</td>
-                    <td>YYYYMMDD</td>
-                </tr>
-                <tr>
-                    <td>保有者郵便番号</td>
-                    <td>1000001</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>保有者住所</td>
-                    <td>東京都千代田区大手町１</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>保有者メールアドレス</td>
-                    <td>ibet@ibet.jp</td>
-                    <td></td>
-                </tr>
+                    <tr>
+                        <td>債券名</td>
+                        <td>ibet債券</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>債券アドレス</td>
+                        <td>0xF37aF18966609eCaDe3E4D1831996853c637cfF3</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>アカウントアドレス</td>
+                        <td>0x0b3c7F97383bCFf942E6b1038a47B9AA5377A252</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>鍵管理機関</td>
+                        <td>4010001203704</td>
+                        <td>法人番号</td>
+                    </tr>
+                    <tr>
+                        <td>保有数量</td>
+                        <td>10</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>保有金額合計</td>
+                        <td>1200</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>保有者氏名</td>
+                        <td>中本哲史</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>保有者生年月日</td>
+                        <td>20081031</td>
+                        <td>YYYYMMDD</td>
+                    </tr>
+                    <tr>
+                        <td>保有者郵便番号</td>
+                        <td>1000001</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>保有者住所</td>
+                        <td>東京都千代田区大手町１</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>保有者メールアドレス</td>
+                        <td>ibet@ibet.jp</td>
+                        <td></td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -186,127 +175,124 @@
 <script src="/static/adminlte/bower_components/datatables.net/js/jquery.dataTables.min.js"></script>
 <script src="/static/adminlte/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
 <script>
-token_address = {{ token_address | tojson }};
-token_name_url = '{{ url_for("bond.get_token_name", token_address=token_address) }}';
-holders_list_url = '{{ url_for("bond.get_holders", token_address=token_address) }}';
-holder_detail_url_base = '{{ url_for("bond.holder", token_address=token_address, account_address="account_address") }}';
-holder_transfer_url_base = '{{ url_for("bond.transfer_ownership", token_address=token_address, account_address="account_address") }}';
-$(function () {
-    $('#data_table').DataTable({
-        columns: [
-        {
-            data: 'address_type',
-            title: '',
-            render: function (data) {
-                if (data == 0) {
-                    return '<div align="center"></div>'
-                } else if (data == 1) {
-                    return '<div align="center"><span class="badge bg-green">発行体</span></div>'
-                } else {
-                    return '<div align="center"><span class="badge bg-default">DEX</span></div>'
+    token_address = {{ token_address | tojson }};
+    token_name_url = '{{ url_for("bond.get_token_name", token_address=token_address) }}';
+    holders_list_url = '{{ url_for("bond.get_holders", token_address=token_address) }}';
+    holder_detail_url_base = '{{ url_for("bond.holder", token_address=token_address, account_address="account_address") }}';
+    holder_transfer_url_base = '{{ url_for("bond.transfer_ownership", token_address=token_address, account_address="account_address") }}';
+    $(function () {
+        $('#data_table').DataTable({
+            columns: [
+                {
+                    data: 'address_type',
+                    title: '',
+                    render: function (data) {
+                        if (data == 0) {
+                            return '<div align="center"></div>'
+                        } else if (data == 1) {
+                            return '<div align="center"><span class="badge bg-green">発行体</span></div>'
+                        } else {
+                            return '<div align="center"><span class="badge bg-default">DEX</span></div>'
+                        }
+                    }
+                }, {
+                    data: 'account_address',
+                    title: 'アカウントアドレス',
+                    className: 'tableAddress',
+                    render: function (data) {
+                        return '<small>' + data + '</small>'
+                    }
+                }, {
+                    data: 'key_manager',
+                    title: '鍵管理機関'
+                }, {
+                    data: "name",
+                    orderable: true,
+                    title: "氏名"
+                }, {
+                    data: "balance",
+                    orderable: true,
+                    title: "保有数量"
+                }, {
+                    data: "holder_detail",
+                    orderable: false,
+                    className: "text-center",
+                    render: function (data) {
+                        return `<a href="${data}" />詳細`;
+                    }
+                }, {
+                    data: "token_transfer",
+                    orderable: false,
+                    className: "text-center",
+                    render: function (data) {
+                        return `<button type="button" class="btn btn-success btn-sm" onclick='location.href= "${data}"' />移転`;
+                    }
+                }],
+            ajax: {
+                url: holders_list_url,
+                dataSrc: function (json) {
+                    returnJson = [];
+                    json = json.data;
+                    for (index in json) {
+                        if (json[index]['address_type'] == 2) {
+                            balance = '(' + json[index]['balance'].toLocaleString() + ')'
+                        } else {
+                            balance = json[index]['balance'].toLocaleString()
+                        }
+                        returnJsonRaw = {
+                            address_type: json[index]['address_type'] ? json[index]['address_type'] : 0,
+                            account_address: json[index]['account_address'] ? json[index]['account_address'] : '--',
+                            key_manager: json[index]['key_manager'] ? json[index]['key_manager'] : '--',
+                            name: json[index]['name'] ? json[index]['name'] : '--',
+                            balance: balance,
+                            holder_detail: json[index]['account_address'] ? holder_detail_url_base.replace('account_address', json[index]['account_address']) : '--',
+                            token_transfer: json[index]['account_address'] ? holder_transfer_url_base.replace('account_address', json[index]['account_address']) : '--'
+                        };
+                        returnJson.push(returnJsonRaw)
+                    }
+                    if (json) {
+                        $("#csv_download").prop("disabled", false);
+                        $("div.overlay").remove();
+                    }
+                    return returnJson;
                 }
-            }
-        }, {
-            data: 'account_address',
-            title: 'アカウントアドレス',
-            className: 'tableAddress',
-            render: function (data) {
-            return '<small>' + data + '</small>'
-            }
-        }, {
-            data: 'key_manager',
-            title: '鍵管理機関'
-        }, {
-            data: "name",
-            orderable: true,
-            title: "氏名"
-        }, {
-            data: "balance",
-            orderable: true,
-            title: "保有数量"
-        }, {
-            data: "commitment",
-            orderable: true,
-            title: "注文中数量"
-        }, {
-            data: "holder_detail",
-            orderable: false,
-            className: "text-center",
-            render: function (data) {
-            return `<a href="${data}" />詳細`;
-            }
-        }, {
-            data: "token_transfer",
-            orderable: false,
-            className: "text-center",
-            render: function (data) {
-            return `<button type="button" class="btn btn-success btn-sm" onclick='location.href= "${data}"' />移転`;
-            }
-        }],
-        ajax: {
-            url: holders_list_url,
-            dataSrc : function (json) {
-            returnJson = [];
-            for(index in json){
-                if (json[index]['address_type'] == 2) {
-                    balance = '(' + json[index]['balance'].toLocaleString() + ')'
-                } else {
-                    balance = json[index]['balance'].toLocaleString()
-                }
-                returnJsonRaw = {
-                    address_type : json[index]['address_type'] ? json[index]['address_type'] : 0,
-                    account_address : json[index]['account_address'] ? json[index]['account_address'] : '--',
-                    key_manager : json[index]['key_manager'] ? json[index]['key_manager'] : '--',
-                    name: json[index]['name'] ? json[index]['name'] : '--',
-                    balance: balance,
-                    commitment: json[index]['commitment'] ? json[index]['commitment'].toLocaleString() : 0,
-                    holder_detail: json[index]['account_address'] ? holder_detail_url_base.replace('account_address', json[index]['account_address']) : '--',
-                    token_transfer: json[index]['account_address'] ? holder_transfer_url_base.replace('account_address', json[index]['account_address']) : '--'
-                };
-                returnJson.push(returnJsonRaw)
-            }
-            if (json) {
-                $("#csv_download").prop("disabled", false);
-                $("div.overlay").remove();
-            }
-                return returnJson;
-            }
-        },
-        'paging': true,
-        'lengthChange': true,
-        'searching': true,
-        'info': true,
-        'autoWidth': true,
-        'pagingType': "full_numbers",
-        'order': [1, 'asc'],
-        'language': {
-            'info': "_TOTAL_ 件中 _START_ 〜 _END_ 件目",
-            'lengthMenu': "表示件数 _MENU_ 件",
-            'search': "検索:",
-            'paginate': {
-            'first': "最初へ",
-            'previous': "前へ",
-            'next': "次へ",
-            'last': "最後へ"
             },
-            "emptyTable": "データが存在しません",
-            "sInfoEmpty": " 0 件中 0 から 0 まで表示"
-        }
-    }),
-    window.onload = function getTokenName() {
-        $.ajax({
-            type: 'GET',
-            url: token_name_url,
-            dataType: 'json',
-            contentType: 'application/json'
-        }).then(function (res) {
-            document.getElementById('token_name').innerHTML = res + '　<small>' + token_address + '</small>';
-        },
-        function () {
-            alert('データ取得に失敗しました');
-        });
-    }
-})
+            'processing': true,
+            'serverSide': true,
+            'lengthChange': true,
+            'searching': true,
+            'info': true,
+            'autoWidth': true,
+            'pagingType': "full_numbers",
+            'ordering': false,
+            'language': {
+                'info': "_TOTAL_ 件中 _START_ 〜 _END_ 件目",
+                'lengthMenu': "表示件数 _MENU_ 件",
+                'search': "アカウントアドレス（部分一致）",
+                'paginate': {
+                    'first': "最初へ",
+                    'previous': "前へ",
+                    'next': "次へ",
+                    'last': "最後へ"
+                },
+                "emptyTable": "データが存在しません",
+                "sInfoEmpty": " 0 件中 0 から 0 まで表示"
+            }
+        }),
+            window.onload = function getTokenName() {
+                $.ajax({
+                    type: 'GET',
+                    url: token_name_url,
+                    dataType: 'json',
+                    contentType: 'application/json'
+                }).then(function (res) {
+                    document.getElementById('token_name').innerHTML = res + '　<small>' + token_address + '</small>';
+                },
+                    function () {
+                        alert('データ取得に失敗しました');
+                    });
+            }
+    })
 
 
 </script>

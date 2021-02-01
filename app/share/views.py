@@ -29,7 +29,7 @@ import time
 from flask_wtf import FlaskForm as Form
 from flask import request, redirect, url_for, flash, make_response, render_template, abort, jsonify, session
 from flask_login import login_required
-from sqlalchemy import desc
+from sqlalchemy import desc, or_
 
 from app import db
 from app.models import Token, Transfer, AddressType, ApplyFor, Issuer, HolderList, PersonalInfoContract, BulkTransfer, \
@@ -97,24 +97,15 @@ def issue():
                 return render_template('share/issue.html', form=form, form_description=form.description)
 
             # トークン発行（トークンコントラクトのデプロイ）
-            # bool型に変換
-            bool_transferable = form.transferable.data != 'False'
-
             arguments = [
                 form.name.data,
                 form.symbol.data,
-                to_checksum_address(form.tradableExchange.data),
-                to_checksum_address(form.personalInfoAddress.data),
                 form.issuePrice.data,
                 form.totalSupply.data,
                 int(form.dividends.data * 100),
                 form.dividendRecordDate.data,
                 form.dividendPaymentDate.data,
-                form.cancellationDate.data,
-                form.contact_information.data,
-                form.privacy_policy.data,
-                form.memo.data,
-                bool_transferable
+                form.cancellationDate.data
             ]
 
             _, bytecode, bytecode_runtime = ContractUtils.get_contract_info('IbetShare')
@@ -132,23 +123,58 @@ def issue():
             token.bytecode_runtime = bytecode_runtime
             db.session.add(token)
 
-            # 関連URLの登録処理
-            if form.referenceUrls_1.data != '' or form.referenceUrls_2.data != '' or form.referenceUrls_3.data != '':
-                # トークンが正常にデプロイされた後に画像URLの登録処理を実行する
-                if contract_address is not None:
-                    TokenContract = web3.eth.contract(address=contract_address, abi=abi)
-                    if form.referenceUrls_1.data != '':
-                        tx = TokenContract.functions.setReferenceUrls(0, form.referenceUrls_1.data). \
-                            buildTransaction({'from': session["eth_account"], 'gas': Config.TX_GAS_LIMIT})
-                        ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
-                    if form.referenceUrls_2.data != '':
-                        tx = TokenContract.functions.setReferenceUrls(1, form.referenceUrls_2.data). \
-                            buildTransaction({'from': session["eth_account"], 'gas': Config.TX_GAS_LIMIT})
-                        ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
-                    if form.referenceUrls_3.data != '':
-                        tx = TokenContract.functions.setReferenceUrls(2, form.referenceUrls_3.data). \
-                            buildTransaction({'from': session["eth_account"], 'gas': Config.TX_GAS_LIMIT})
-                        ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
+            # トークンが正常にデプロイされた後に各種設定値の登録処理を実行する
+            if contract_address is not None:
+                TokenContract = web3.eth.contract(address=contract_address, abi=abi)
+
+                # 補足情報の登録処理
+                if form.memo.data != '':
+                    tx = TokenContract.functions.setMemo(form.memo.data). \
+                        buildTransaction({'from': session["eth_account"], 'gas': Config.TX_GAS_LIMIT})
+                    ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
+
+                # 譲渡制限の登録処理(bool型に変換)
+                bool_transferable = form.transferable.data != 'False'
+                tx = TokenContract.functions.setTransferable(bool_transferable). \
+                    buildTransaction({'from': session["eth_account"], 'gas': Config.TX_GAS_LIMIT})
+                ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
+
+                # 関連URLの登録処理
+                if form.referenceUrls_1.data != '':
+                    tx = TokenContract.functions.setReferenceUrls(0, form.referenceUrls_1.data). \
+                        buildTransaction({'from': session["eth_account"], 'gas': Config.TX_GAS_LIMIT})
+                    ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
+                if form.referenceUrls_2.data != '':
+                    tx = TokenContract.functions.setReferenceUrls(1, form.referenceUrls_2.data). \
+                        buildTransaction({'from': session["eth_account"], 'gas': Config.TX_GAS_LIMIT})
+                    ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
+                if form.referenceUrls_3.data != '':
+                    tx = TokenContract.functions.setReferenceUrls(2, form.referenceUrls_3.data). \
+                        buildTransaction({'from': session["eth_account"], 'gas': Config.TX_GAS_LIMIT})
+                    ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
+
+                # 問い合わせ先の登録処理
+                if form.contact_information.data != '':
+                    tx = TokenContract.functions.setContactInformation(form.contact_information.data). \
+                        buildTransaction({'from': session["eth_account"], 'gas': Config.TX_GAS_LIMIT})
+                    ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
+
+                # プライバシーポリシーの登録処理
+                if form.privacy_policy.data != '':
+                    tx = TokenContract.functions.setPrivacyPolicy(form.privacy_policy.data). \
+                        buildTransaction({'from': session["eth_account"], 'gas': Config.TX_GAS_LIMIT})
+                    ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
+
+                # DEXアドレスの登録処理
+                tx = TokenContract.functions.setTradableExchange(to_checksum_address(form.tradableExchange.data)). \
+                    buildTransaction({'from': session["eth_account"], 'gas': Config.TX_GAS_LIMIT})
+                ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
+
+                # 個人情報コントラクトの登録処理
+                tx = TokenContract.functions.setPersonalInfoAddress(to_checksum_address(form.personalInfoAddress.data)). \
+                    buildTransaction({'from': session["eth_account"], 'gas': Config.TX_GAS_LIMIT})
+                ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
+
             flash('新規発行を受け付けました。発行完了までに数分程かかることがあります。', 'success')
             return redirect(url_for('.list'))
         else:
@@ -888,7 +914,7 @@ def holders_csv_download():
     logger.info('share/holders_csv_download')
 
     token_address = request.form.get('token_address')
-    holders = json.loads(get_holders(token_address).data)
+    holders = get_holders(token_address)["data"]
     token_name = json.loads(get_token_name(token_address).data)
 
     f = io.StringIO()
@@ -900,7 +926,6 @@ def holders_csv_download():
         'account_address,' + \
         'key_manager,' + \
         'balance,' + \
-        'commitment,' + \
         'name,' + \
         'birth_date,' + \
         'postal_code,' + \
@@ -918,7 +943,7 @@ def holders_csv_download():
         data_row = \
             token_name + ',' + token_address + ',' + \
             holder["account_address"] + ',' + holder["key_manager"] + ','  + \
-            str(holder["balance"]) + ',' + str(holder["commitment"]) + ',' + \
+            str(holder["balance"]) + ',' + \
             holder["name"] + ',' + holder["birth_date"] + ',' + \
             holder["postal_code"] + ',' + holder_address + ',' + \
             holder["email"] + '\n'
@@ -1023,8 +1048,8 @@ def holders_csv_history_download():
 @share.route('/get_holders/<string:token_address>', methods=['GET'])
 @login_required
 def get_holders(token_address):
-    """
-    保有者一覧取得
+    """保有者一覧取得
+
     :param token_address: トークンアドレス
     :return: トークンの保有者一覧
     """
@@ -1032,8 +1057,22 @@ def get_holders(token_address):
 
     DEFAULT_VALUE = "--"
 
+    # query parameters
+    draw = int(request.args.get("draw")) if request.args.get("draw") else None  # record the number of operations
+    start = int(request.args.get("start")) if request.args.get("start") else None  # start position
+    length = int(request.args.get("length")) if request.args.get("length") else None  # length of each page
+    search_address = request.args.get("search[value]")  # search keyword
+
     token_owner = session['eth_account']
     issuer = Issuer.query.get(session['issuer_id'])
+
+    # 発行体が管理するトークンかチェック
+    token = Token.query. \
+        filter(Token.token_address == token_address). \
+        filter(Token.admin_address == session['eth_account'].lower()). \
+        first()
+    if token is None:
+        abort(404)
 
     # Tokenコントラクト接続
     TokenContract = TokenUtils.get_contract(
@@ -1048,14 +1087,20 @@ def get_holders(token_address):
     except Exception as err:
         logger.error(f"Failed to get token attributes: {err}")
         tradable_exchange = Config.ZERO_ADDRESS
-    dex_contract = ContractUtils.get_contract('IbetOTCExchange', tradable_exchange)
 
     # Transferイベントを検索
     # →　残高を保有している可能性のあるアドレスを抽出
     # →　保有者リストをユニークにする
-    transfer_events = Transfer.query. \
+    query = Transfer.query. \
         distinct(Transfer.account_address_to). \
-        filter(Transfer.token_address == token_address).all()
+        filter(Transfer.token_address == token_address)
+    if search_address:
+        transfer_events = query.filter(or_(
+            Transfer.account_address_from.like(f"%{search_address}%"),
+            Transfer.account_address_to.like(f"%{search_address}%"))
+        ).all()
+    else:
+        transfer_events = query.all()
 
     holders_temp = [token_owner]  # 発行体アドレスをリストに追加
     for event in transfer_events:
@@ -1064,19 +1109,23 @@ def get_holders(token_address):
     holders_uniq = []
     for x in holders_temp:
         if x not in holders_uniq:
-            holders_uniq.append(x)
+            if search_address is None:
+                holders_uniq.append(x)
+            elif search_address in x:
+                holders_uniq.append(x)
 
     # 保有者情報を取得
     _holders = []
+    cursor = -1  # 開始位置
+    count = 0  # 取得レコード
     for account_address in holders_uniq:
-        balance = TokenContract.functions.balanceOf(account_address).call()
-        try:
-            commitment = dex_contract.functions.commitmentOf(account_address, token_address).call()
-        except Exception as err:
-            logger.warning(f"Failed to get commitment: {err}")
-            commitment = 0
+        cursor += 1
+        if ((start is not None and cursor >= start) and (length is not None and count < length)) or (start is None and length is None):
+            count += 1
 
-        if balance > 0 or commitment > 0:  # 残高（balance）、または注文中の残高（commitment）が存在する情報を抽出
+            # 残高取得
+            balance = TokenContract.functions.balanceOf(account_address).call()
+
             # アドレス種別判定
             if account_address == token_owner:
                 address_type = AddressType.ISSUER.value
@@ -1095,7 +1144,6 @@ def get_holders(token_address):
                 'address': DEFAULT_VALUE,
                 'birth_date': DEFAULT_VALUE,
                 'balance': balance,
-                'commitment': commitment,
                 'address_type': address_type
             }
 
@@ -1125,13 +1173,24 @@ def get_holders(token_address):
                         'email': email,
                         'birth_date': birth_date,
                         'balance': balance,
-                        'commitment': commitment,
                         'address_type': address_type
                     }
 
                 _holders.append(_holder)
+        elif length is not None and count >= length:
+            break
 
-    return jsonify(_holders)
+    records_total = len(holders_uniq)
+    records_filtered = records_total
+
+    res_body = {
+        "draw": draw,
+        "recordsTotal": records_total,
+        "recordsFiltered": records_filtered,
+        "data": _holders
+    }
+
+    return res_body
 
 
 ####################################################

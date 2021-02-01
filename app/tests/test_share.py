@@ -120,18 +120,18 @@ class TestShare(TestBase):
         'contact_information': '問い合わせ先ABCDEFG',
         'privacy_policy': 'プライバシーポリシーXYZ'
     }
-    # Token_2：2番目に発行されるトークン。imageなし, transferable:False
+    # Token_2：2番目に発行されるトークン。必須項目のみ, transferable:False
     token_data2 = {
         'name': '2件目株式',
         'symbol': '2KENME',
         'totalSupply': 2000000,
         'issuePrice': 2000,
-        'dividends': 20.50,
-        'dividendRecordDate': '20220412',
-        'dividendPaymentDate': '20220512',
+        'dividends': '',
+        'dividendRecordDate': '',
+        'dividendPaymentDate': '',
         'cancellationDate': '',
         'transferable': 'False',
-        'memo': '2memo',
+        'memo': '',
         'referenceUrls_1': '',
         'referenceUrls_2': '',
         'referenceUrls_3': '',
@@ -271,7 +271,7 @@ class TestShare(TestBase):
 
     # ＜正常系3_1＞
     # ＜株式一覧（複数件）＞
-    #   新規発行（画像URLなし）　→　詳細設定画面の参照
+    #   新規発行（必須項目のみ）　→　詳細設定画面の参照
     def test_normal_3_1(self, app, db):
         client = self.client_with_admin_login(app)
 
@@ -293,7 +293,19 @@ class TestShare(TestBase):
         assert response.status_code == 200
         assert '<title>株式詳細設定'.encode('utf-8') in response.data
         for value in self.token_data2.values():
-            assert str(value).encode('utf-8') in response.data
+            if value != '':
+                assert str(value).encode('utf-8') in response.data
+        # 未設定項目のassert
+        assert 'name="dividends" type="text" value="0.00"'.encode('utf-8') in response.data
+        assert 'name="dividendRecordDate" type="text" value=""'.encode('utf-8') in response.data
+        assert 'name="dividendPaymentDate" type="text" value=""'.encode('utf-8') in response.data
+        assert 'name="cancellationDate" type="text" value=""'.encode('utf-8') in response.data
+        assert 'id="memo" name="memo"></textarea>'.encode('utf-8') in response.data
+        assert 'name="referenceUrls_1" type="text" value=""'.encode('utf-8') in response.data
+        assert 'name="referenceUrls_2" type="text" value=""'.encode('utf-8') in response.data
+        assert 'name="referenceUrls_3" type="text" value=""'.encode('utf-8') in response.data
+        assert 'id="contact_information" name="contact_information"></textarea>'.encode('utf-8') in response.data
+        assert 'id="privacy_policy" name="privacy_policy"></textarea>'.encode('utf-8') in response.data
         # セレクトボックスのassert（譲渡制限）
         assert '<option selected value="False">あり</option>'.encode('utf-8') in response.data
 
@@ -532,14 +544,13 @@ class TestShare(TestBase):
         response_data = json.loads(response.data)
 
         assert response.status_code == 200
-        assert eth_account['issuer']['account_address'] == response_data[0]['account_address']
-        assert '発行体１' == response_data[0]['name']
-        assert '--' == response_data[0]['postal_code']
-        assert '--' == response_data[0]['address']
-        assert '--' == response_data[0]['email']
-        assert '--' == response_data[0]['birth_date']
-        assert 1000010 == response_data[0]['balance']
-        assert 0 == response_data[0]['commitment']
+        assert eth_account['issuer']['account_address'] == response_data['data'][0]['account_address']
+        assert '発行体１' == response_data['data'][0]['name']
+        assert '--' == response_data['data'][0]['postal_code']
+        assert '--' == response_data['data'][0]['address']
+        assert '--' == response_data['data'][0]['email']
+        assert '--' == response_data['data'][0]['birth_date']
+        assert 1000010 == response_data['data'][0]['balance']
 
         # トークン名APIの参照
         response = client.get(self.url_get_token_name + token.token_address)
@@ -591,7 +602,7 @@ class TestShare(TestBase):
 
         # 保有者一覧APIの参照
         response = client.get(self.url_get_holders + token.token_address)
-        response_data_list = json.loads(response.data)
+        response_data_list = json.loads(response.data)['data']
 
         for response_data in response_data_list:
             if eth_account['issuer']['account_address'] == response_data['account_address']:  # issuer
@@ -601,7 +612,6 @@ class TestShare(TestBase):
                 assert '--' == response_data['email']
                 assert '--' == response_data['birth_date']
                 assert 999990 == response_data['balance']
-                assert 0 == response_data['commitment']
             elif eth_account['trader']['account_address'] == response_data['account_address']:  # trader
                 assert 'ﾀﾝﾀｲﾃｽﾄ' == response_data['name']
                 assert '1040053' == response_data['postal_code']
@@ -609,7 +619,6 @@ class TestShare(TestBase):
                 assert 'abcd1234@aaa.bbb.cc' == response_data['email']
                 assert '20191102' == response_data['birth_date']
                 assert 20 == response_data['balance']
-                assert 0 == response_data['commitment']
             else:
                 pytest.raises(AssertionError)
 
@@ -695,7 +704,7 @@ class TestShare(TestBase):
 
         # 保有者一覧APIの参照
         response = client.get(self.url_get_holders + token.token_address)
-        response_data_list = json.loads(response.data)
+        response_data_list = json.loads(response.data)['data']
         assert response.status_code == 200
 
         assert len(response_data_list) == 2
@@ -707,7 +716,6 @@ class TestShare(TestBase):
                 assert '--' == response_data['email']
                 assert '--' == response_data['birth_date']
                 assert 999980 == response_data['balance']
-                assert 0 == response_data['commitment']
             elif eth_account['trader']['account_address'] == response_data['account_address']:  # trader
                 assert 'ﾀﾝﾀｲﾃｽﾄ' == response_data['name']
                 assert '1040053' == response_data['postal_code']
@@ -715,7 +723,6 @@ class TestShare(TestBase):
                 assert 'abcd1234@aaa.bbb.cc' == response_data['email']
                 assert '20191102' == response_data['birth_date']
                 assert 30 == response_data['balance']
-                assert 0 == response_data['commitment']
             else:
                 pytest.raises(AssertionError)
 
@@ -741,19 +748,19 @@ class TestShare(TestBase):
         # CSVヘッダ
         csv_header = ",".join([
             'token_name', 'token_address', 'account_address', 'key_manager',
-            'balance', 'commitment',
+            'balance',
             'name', 'birth_date', 'postal_code', 'address', 'email'
         ])
         # CSVデータ（発行体）
         csv_row_issuer = ','.join([
             self.token_data1['name'], token.token_address, eth_account['issuer']['account_address'], '--',
-            '999980', '0',
+            '999980',
             '発行体１', '--', '--', '--', '--'
         ])
         # CSVデータ（投資家）
         csv_row_trader = ','.join([
             self.token_data1['name'], token.token_address, eth_account['trader']['account_address'], '4010001203704',
-            '30', '0',
+            '30',
             'ﾀﾝﾀｲﾃｽﾄ', '20191102', '1040053', '東京都中央区　勝どき1丁目１\u002d２\u30fc３', 'abcd1234@aaa.bbb.cc'
         ])
 
@@ -987,7 +994,7 @@ class TestShare(TestBase):
 
         # 保有者一覧APIの参照
         response = client.get(self.url_get_holders + token.token_address)
-        response_data = json.loads(response.data)
+        response_data = json.loads(response.data)['data']
         assert response.status_code == 200
 
         # issuer
@@ -998,7 +1005,6 @@ class TestShare(TestBase):
         assert '--' == response_data[0]['email']
         assert '--' == response_data[0]['birth_date']
         assert 999970 == response_data[0]['balance']
-        assert 0 == response_data[0]['commitment']
 
         # trader
         assert trader_address == response_data[1]['account_address']
@@ -1008,7 +1014,6 @@ class TestShare(TestBase):
         assert 'abcd1234@aaa.bbb.cc' == response_data[1]['email']
         assert '20191102' == response_data[1]['birth_date']
         assert 40 == response_data[1]['balance']
-        assert 0 == response_data[1]['commitment']
 
         # トークン名APIの参照
         response = client.get(self.url_get_token_name + token.token_address)

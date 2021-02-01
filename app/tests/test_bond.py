@@ -454,14 +454,13 @@ class TestBond(TestBase):
         response_data = json.loads(response.data)
 
         assert response.status_code == 200
-        assert eth_account['issuer']['account_address'] == response_data[0]['account_address']
-        assert '発行体１' == response_data[0]['name']
-        assert '--' == response_data[0]['postal_code']
-        assert '--' == response_data[0]['address']
-        assert '--' == response_data[0]['email']
-        assert '--' == response_data[0]['birth_date']
-        assert 1000000 == response_data[0]['balance']
-        assert 0 == response_data[0]['commitment']
+        assert eth_account['issuer']['account_address'] == response_data['data'][0]['account_address']
+        assert '発行体１' == response_data['data'][0]['name']
+        assert '--' == response_data['data'][0]['postal_code']
+        assert '--' == response_data['data'][0]['address']
+        assert '--' == response_data['data'][0]['email']
+        assert '--' == response_data['data'][0]['birth_date']
+        assert 1000000 == response_data['data'][0]['balance']
 
         # トークン名APIの参照
         response = client.get(self.url_get_token_name + token.token_address)
@@ -487,13 +486,13 @@ class TestBond(TestBase):
             # CSVヘッダ
             ",".join([
                 'token_name', 'token_address', 'account_address', 'key_manager',
-                'balance', 'commitment', 'total_balance', 'total_holdings',
+                'balance', 'total_holdings',
                 'name', 'birth_date', 'postal_code', 'address', 'email'
             ]),
             # CSVデータ
             ','.join([
                 'テスト債券', token.token_address, eth_account['issuer']['account_address'], '--',
-                '1000000', '0', '1000000', '1000000000',
+                '1000000', '1000000000',
                 '発行体１', '--', '--', '--', '--'
             ])
         ]) + '\n'
@@ -733,7 +732,7 @@ class TestBond(TestBase):
 
         # 保有者一覧の参照
         response = client.get(self.url_get_holders + token.token_address)
-        response_data_list = json.loads(response.data)
+        response_data_list = json.loads(response.data)["data"]
 
         assert response.status_code == 200
         count = 0
@@ -745,7 +744,6 @@ class TestBond(TestBase):
                 assert '--' == response_data['email']
                 assert '--' == response_data['birth_date']
                 assert 999990 == response_data['balance']
-                assert 0 == response_data['commitment']
                 count += 1
             elif eth_account['trader']['account_address'] == response_data['account_address']:  # trader
                 assert 'ﾀﾝﾀｲﾃｽﾄ' == response_data['name']
@@ -754,7 +752,6 @@ class TestBond(TestBase):
                 assert 'abcd1234@aaa.bbb.cc' == response_data['email']
                 assert '20191102' == response_data['birth_date']
                 assert 10 == response_data['balance']
-                assert 0 == response_data['commitment']
                 count += 1
             else:
                 pytest.raises(AssertionError)

@@ -16,6 +16,8 @@ limitations under the License.
 
 SPDX-License-Identifier: Apache-2.0
 """
+
+from typing import Dict
 import csv
 import io
 import json
@@ -29,7 +31,7 @@ from flask import request, redirect, url_for, flash, make_response, \
     render_template, abort, jsonify, session
 from flask_login import login_required
 
-from sqlalchemy import func, desc
+from sqlalchemy import func, desc, or_
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 from eth_utils import to_checksum_address
@@ -349,7 +351,7 @@ def holders_csv_download():
     logger.info('bond/holders_csv_download')
 
     token_address = request.form.get('token_address')
-    holders = json.loads(get_holders(token_address).data)
+    holders = get_holders(token_address)["data"]
     token_name = json.loads(get_token_name(token_address).data)
 
     # Tokenコントラクト接続
@@ -359,7 +361,6 @@ def holders_csv_download():
     except Exception as e:
         logger.error(e)
         face_value = 0
-        pass
 
     f = io.StringIO()
 
@@ -370,8 +371,6 @@ def holders_csv_download():
         'account_address,' + \
         'key_manager,' + \
         'balance,' + \
-        'commitment,' + \
-        'total_balance,' + \
         'total_holdings,' + \
         'name,' + \
         'birth_date,' + \
@@ -380,22 +379,20 @@ def holders_csv_download():
         'email\n'
     f.write(data_header)
 
+    # 明細行
     for holder in holders:
         # Unicodeの各種ハイフン文字を半角ハイフン（U+002D）に変換する
         try:
             holder_address = re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', holder["address"])
         except TypeError:  # データ変換エラー
             holder_address = ""
-        # 保有数量合計
-        total_balance = holder["balance"] + holder["commitment"]
         # 保有金額合計
-        total_holdings = total_balance * face_value
+        total_holdings = holder["balance"] * face_value
         # データ行
         data_row = \
             token_name + ',' + token_address + ',' + \
             holder["account_address"] + ',' + holder["key_manager"] + ',' + \
-            str(holder["balance"]) + ',' + str(holder["commitment"]) + ',' + \
-            str(total_balance) + ',' + str(total_holdings) + ',' + \
+            str(holder["balance"]) + ',' + str(total_holdings) + ',' + \
             holder["name"] + ',' + holder["birth_date"] + ',' + \
             holder["postal_code"] + ',' + holder_address + ',' + \
             holder["email"] + '\n'
@@ -407,15 +404,16 @@ def holders_csv_download():
     res.data = csvdata.encode('sjis', 'ignore')
     res.headers['Content-Type'] = 'text/plain'
     res.headers['Content-Disposition'] = f"attachment; filename={now.strftime('%Y%m%d%H%M%S')}bond_holders_list.csv"
+
     return res
 
 
 # 保有者リスト取得
 @bond.route('/get_holders/<string:token_address>', methods=['GET'])
 @login_required
-def get_holders(token_address: str):
-    """
-    保有者一覧取得
+def get_holders(token_address: str) -> Dict:
+    """保有者一覧取得
+
     :param token_address: トークンアドレス
     :return: トークンの保有者一覧
     """
@@ -423,30 +421,50 @@ def get_holders(token_address: str):
 
     DEFAULT_VALUE = "--"
 
+    # query parameters
+    draw = int(request.args.get("draw")) if request.args.get("draw") else None  # record the number of operations
+    start = int(request.args.get("start")) if request.args.get("start") else None  # start position
+    length = int(request.args.get("length")) if request.args.get("length") else None  # length of each page
+    search_address = request.args.get("search[value]")  # search keyword
+
     token_owner = session['eth_account']
     issuer = Issuer.query.get(session['issuer_id'])
 
+    # 発行体が管理するトークンかチェック
+    token = Token.query. \
+        filter(Token.token_address == token_address). \
+        filter(Token.admin_address == session['eth_account'].lower()). \
+        first()
+    if token is None:
+        abort(404)
+
     # Tokenコントラクトに接続
     TokenContract = TokenUtils.get_contract(
-        token_address,
-        token_owner,
-        Config.TEMPLATE_ID_SB
+        token_address=token_address,
+        issuer_address=token_owner,
+        template_id=Config.TEMPLATE_ID_SB
     )
 
-    # DEXコントラクト接続
+    # DEXアドレスを取得
     try:
         tradable_exchange = TokenContract.functions.tradableExchange().call()
     except Exception as err:
         logger.error(f"Failed to get token attributes: {err}")
         tradable_exchange = Config.ZERO_ADDRESS
-    dex_contract = ContractUtils.get_contract('IbetStraightBondExchange', tradable_exchange)
 
     # Transferイベントを検索
     # →　残高を保有している可能性のあるアドレスを抽出
     # →　保有者リストをユニークにする
-    transfer_events = Transfer.query. \
+    query = Transfer.query. \
         distinct(Transfer.account_address_to). \
-        filter(Transfer.token_address == token_address).all()
+        filter(Transfer.token_address == token_address)
+    if search_address:
+        transfer_events = query.filter(or_(
+            Transfer.account_address_from.like(f"%{search_address}%"),
+            Transfer.account_address_to.like(f"%{search_address}%"))
+        ).all()
+    else:
+        transfer_events = query.all()
 
     holders_temp = [token_owner]  # 発行体アドレスをリストに追加
     for event in transfer_events:
@@ -455,19 +473,23 @@ def get_holders(token_address: str):
     holders_uniq = []
     for x in holders_temp:
         if x not in holders_uniq:
-            holders_uniq.append(x)
+            if search_address is None:
+                holders_uniq.append(x)
+            elif search_address in x:
+                holders_uniq.append(x)
 
     # 保有者情報を取得
     _holders = []
+    cursor = -1  # 開始位置
+    count = 0  # 取得レコード
     for account_address in holders_uniq:
-        balance = TokenContract.functions.balanceOf(account_address).call()
-        try:
-            commitment = dex_contract.functions.commitmentOf(account_address, token_address).call()
-        except Exception as err:
-            logger.warning(f"Failed to get commitment: {err}")
-            commitment = 0
+        cursor += 1
+        if ((start is not None and cursor >= start) and (length is not None and count < length)) or (start is None and length is None):
+            count += 1
 
-        if balance > 0 or commitment > 0:  # 残高（balance）、または注文中の残高（commitment）が存在する情報を抽出
+            # 残高取得
+            balance = TokenContract.functions.balanceOf(account_address).call()
+
             # アドレス種別判定
             if account_address == token_owner:
                 address_type = AddressType.ISSUER.value
@@ -486,10 +508,8 @@ def get_holders(token_address: str):
                 'address': DEFAULT_VALUE,
                 'birth_date': DEFAULT_VALUE,
                 'balance': balance,
-                'commitment': commitment,
                 'address_type': address_type
             }
-
             if address_type == AddressType.ISSUER.value:  # 保有者が発行体の場合
                 _holder["name"] = issuer.issuer_name or DEFAULT_VALUE
                 _holders.append(_holder)
@@ -516,13 +536,23 @@ def get_holders(token_address: str):
                         'email': email,
                         'birth_date': birth_date,
                         'balance': balance,
-                        'commitment': commitment,
                         'address_type': address_type
                     }
-
                 _holders.append(_holder)
+        elif length is not None and count >= length:
+            break
 
-    return jsonify(_holders)
+    records_total = len(holders_uniq)
+    records_filtered = records_total
+
+    res_body = {
+        "draw": draw,
+        "recordsTotal": records_total,
+        "recordsFiltered": records_filtered,
+        "data": _holders
+    }
+
+    return res_body
 
 
 ####################################################
@@ -1313,7 +1343,6 @@ def positions():
                     filter(Order.account_address == owner). \
                     filter(Order.is_buy == False). \
                     filter(Order.is_cancelled == False). \
-                    filter(Order.amount > 0). \
                     first()
                 if order is not None:
                     on_sale = True
@@ -1882,6 +1911,7 @@ def get_ledger_history(token_address):
         abort(404)
 
     records = BondLedger.query. \
+        with_entities(BondLedger.id, BondLedger.token_address, BondLedger.created). \
         filter(BondLedger.token_address == token_address). \
         order_by(desc(BondLedger.created)). \
         all()

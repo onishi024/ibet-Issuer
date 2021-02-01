@@ -42,7 +42,6 @@
                     <th></th>
                     <th></th>
                     <th></th>
-                    <th></th>
                 </tr>
                 </thead>
                 <tbody>
@@ -130,11 +129,6 @@
                     <td></td>
                 </tr>
                 <tr>
-                    <td>注文中数量</td>
-                    <td>2</td>
-                    <td></td>
-                </tr>
-                <tr>
                     <td>保有者氏名</td>
                     <td>中本哲史</td>
                     <td></td>
@@ -213,10 +207,6 @@ $(function () {
             orderable: true,
             title: "保有数量"
         }, {
-            data: "commitment",
-            orderable: true,
-            title: "注文中数量"
-        }, {
             data: "holder_detail",
             orderable: false,
             className: "text-center",
@@ -235,6 +225,7 @@ $(function () {
             url: holders_list_url,
             dataSrc : function (json) {
             returnJson = [];
+            json = json.data
             for(index in json){
                 if (json[index]['address_type'] == 2) {
                     balance = '(' + json[index]['balance'].toLocaleString() + ')'
@@ -247,7 +238,6 @@ $(function () {
                     key_manager : json[index]['key_manager'] ? json[index]['key_manager'] : '--',
                     name: json[index]['name'] ? json[index]['name'] : '--',
                     balance: balance,
-                    commitment: json[index]['commitment'] ? json[index]['commitment'].toLocaleString() : 0,
                     holder_detail: json[index]['account_address'] ? holder_detail_url_base.replace('account_address', json[index]['account_address']) : '--',
                     token_transfer: json[index]['account_address'] ? holder_transfer_url_base.replace('account_address', json[index]['account_address']) : '--'
                 };
@@ -260,17 +250,18 @@ $(function () {
                 return returnJson;
             }
         },
-        'paging': true,
+        'processing': true,
+        'serverSide': true,
         'lengthChange': true,
         'searching': true,
         'info': true,
         'autoWidth': true,
         'pagingType': "full_numbers",
-        'order': [1, 'asc'],
+        'ordering': false,
         'language': {
             'info': "_TOTAL_ 件中 _START_ 〜 _END_ 件目",
             'lengthMenu': "表示件数 _MENU_ 件",
-            'search': "検索:",
+            'search': "アカウントアドレス（部分一致）",
             'paginate': {
             'first': "最初へ",
             'previous': "前へ",

@@ -30,7 +30,7 @@ path = os.path.join(os.path.dirname(__file__), '../')
 sys.path.append(path)
 
 from web3 import Web3
-from app.models import Token, Agreement, AgreementStatus
+from app.models import Token, Agreement, AgreementStatus, Order
 from app.utils import ContractUtils
 from config import Config
 from web3.middleware import geth_poa_middleware
@@ -95,7 +95,7 @@ class ConsoleSink:
         )
 
     @staticmethod
-    def on_settlement_ng(exchange_address, order_id, agreement_id):
+    def on_settlement_ng(exchange_address, order_id, agreement_id, order_amount):
         logging.info(
             "SettlementNG: exchange_address={}, orderId={}, agreementId={}".format(
                 exchange_address, order_id, agreement_id
@@ -133,10 +133,16 @@ class DBSink:
         if agreement is not None:
             agreement.status = AgreementStatus.DONE.value
 
-    def on_settlement_ng(self, exchange_address, order_id, agreement_id):
+    def on_settlement_ng(self, exchange_address, order_id, agreement_id, order_amount):
         agreement = self.__get_agreement(exchange_address, order_id, agreement_id)
         if agreement is not None:
             agreement.status = AgreementStatus.CANCELED.value
+        order = self.db.query(Order). \
+            filter(Order.exchange_address == exchange_address). \
+            filter(Order.order_id == order_id). \
+            first()
+        if order is not None and not order.is_buy:
+            order.amount = order_amount
 
     def flush(self):
         self.db.commit()
@@ -277,10 +283,13 @@ class Processor:
                 )
                 for event in event_filter.get_all_entries():
                     args = event['args']
+                    order_id=args['orderId']
+                    order = exchange_contract.functions.getOrder(order_id).call()
                     self.sink.on_settlement_ng(
                         exchange_address=exchange_contract.address,
-                        order_id=args['orderId'],
-                        agreement_id=args['agreementId']
+                        order_id=order_id,
+                        agreement_id=args['agreementId'],
+                        order_amount=order[2]
                     )
                 web3.eth.uninstallFilter(event_filter.filter_id)
             except Exception as e:
