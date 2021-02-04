@@ -633,8 +633,9 @@ def token_tracker(token_address):
     track = []
     for row in tracks:
         try:
-            timestamp_jst: datetime = _to_jst(row.block_timestamp)
-            block_timestamp = timestamp_jst.strftime("%Y/%m/%d %H:%M:%S %z")
+            # utc→jst の変換
+            block_timestamp = row.block_timestamp.replace(tzinfo=timezone.utc).astimezone(JST). \
+                strftime("%Y/%m/%d %H:%M:%S %z")
             track.append({
                 'id': row.id,
                 'transaction_hash': row.transaction_hash,
@@ -653,6 +654,66 @@ def token_tracker(token_address):
         token_address=token_address,
         track=track
     )
+
+
+# トークン追跡（CSVダウンロード）
+@share.route('/token/tracks_csv_download', methods=['POST'])
+@login_required
+def token_tracker_csv():
+    logger.info('share/token_tracker_csv')
+
+    token_address = request.form.get('token_address')
+
+    # アドレスフォーマットのチェック
+    if not Web3.isAddress(token_address):
+        abort(404)
+
+    # 発行体が管理するトークンかチェック
+    token = Token.query. \
+        filter(Token.token_address == token_address). \
+        filter(Token.admin_address == session['eth_account'].lower()). \
+        first()
+    if token is None:
+        abort(404)
+
+    tracks = Transfer.query.filter(Transfer.token_address == token_address). \
+        order_by(desc(Transfer.block_timestamp)). \
+        all()
+
+    f = io.StringIO()
+
+    # ヘッダー行
+    data_header = \
+        'transaction_hash,' + \
+        'token_address,' + \
+        'account_address_from,' + \
+        'account_address_to,' + \
+        'transfer_amount,' + \
+        'block_timestamp\n'
+    f.write(data_header)
+
+    for track in tracks:
+        # utc→jst の変換
+        block_timestamp = track.block_timestamp.replace(tzinfo=timezone.utc).astimezone(JST). \
+            strftime("%Y/%m/%d %H:%M:%S %z")
+        # データ行
+        data_row = \
+            track.transaction_hash + ',' + \
+            track.token_address + ',' + \
+            track.account_address_from + ',' + \
+            track.account_address_to + ',' + \
+            str(track.transfer_amount) + ',' + \
+            block_timestamp + '\n'
+        f.write(data_row)
+
+    now = datetime.now(tz=JST)
+    res = make_response()
+    csvdata = f.getvalue()
+    res.data = csvdata.encode('sjis', 'ignore')
+    res.headers['Content-Type'] = 'text/plain'
+    res.headers['Content-Disposition'] = f"attachment; filename={now.strftime('%Y%m%d%H%M%S')}_share_tracks.csv"
+
+    return res
 
 
 ####################################################
