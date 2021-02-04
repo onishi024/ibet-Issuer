@@ -19,10 +19,14 @@
 <section class="content">
     <div class="box box-default">
         <div class="box-header">
-            <h3 class="box-title"><small>{{ token_address }}</small></h3>
-            <div class="pull-right box-tools">
-               <button type="button" class="btn btn-default btn-sm" style="width: 120px" onclick="location.href='{{ url_for("bond.list") }}'">戻る</button>
-            </div>
+            <form method="post" action="{{ url_for('bond.token_tracker_csv') }}" enctype="multipart/form-data">
+                <h3 class="box-title"><small>{{ token_address }}</small></h3>
+                <input type="text" name="token_address" style="display:none;" value="{{ token_address }}">
+                <div class="pull-right box-tools">
+                    <button type="button" class="btn btn-default btn-sm" style="width: 120px" onclick="location.href='{{ url_for('bond.list') }}'">戻る</button>
+                    <button id="csv_download" type="submit" class="btn btn-success btn-sm" style="width: 120px">ダウンロード</button>
+                </div>
+            </form>
         </div>
         <div class="box-body">
             <table id="data_table" class="table table-bordered table-hover">
