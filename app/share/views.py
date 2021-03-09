@@ -28,7 +28,7 @@ import time
 
 from flask_wtf import FlaskForm as Form
 from flask import request, redirect, url_for, flash, make_response, render_template, abort, jsonify, session
-from flask_login import login_required
+from flask_login import login_required, current_user
 from sqlalchemy import desc, or_
 
 from app import db
@@ -69,7 +69,7 @@ def flash_errors(form: Form):
 @share.route('/get_token_name/<string:token_address>', methods=['GET'])
 @login_required
 def get_token_name(token_address):
-    logger.info('share/get_token_name')
+    logger.info(f'[{current_user.login_id}] share/get_token_name')
     TokenContract = TokenUtils.get_contract(token_address, session['eth_account'], Config.TEMPLATE_ID_SHARE)
     token_name = TokenContract.functions.name().call()
 
@@ -82,7 +82,7 @@ def get_token_name(token_address):
 @share.route('/issue', methods=['GET', 'POST'])
 @login_required
 def issue():
-    logger.info('share/issue')
+    logger.info(f'[{current_user.login_id}] share/issue')
     form = IssueForm()
 
     if request.method == 'POST':
@@ -193,7 +193,7 @@ def issue():
 @share.route('/list', methods=['GET'])
 @login_required
 def list():
-    logger.info('share/list')
+    logger.info(f'[{current_user.login_id}] share/list')
 
     # 発行済トークンの情報をDBから取得する
     tokens = Token.query.filter_by(
@@ -246,7 +246,7 @@ def list():
 @share.route('/setting/<string:token_address>', methods=['GET', 'POST'])
 @login_required
 def setting(token_address):
-    logger.info('share/setting')
+    logger.info(f'[{current_user.login_id}] share/setting')
 
     # 指定したトークンが存在しない場合、エラーを返す
     token = Token.query. \
@@ -452,7 +452,7 @@ def setting(token_address):
 @share.route('/release', methods=['POST'])
 @login_required
 def release():
-    logger.info('share/release')
+    logger.info(f'[{current_user.login_id}] share/release')
     token_address = request.form.get('token_address')
 
     # 発行体が管理するトークンかチェック
@@ -484,7 +484,7 @@ def release():
 @share.route('/start_offering', methods=['POST'])
 @login_required
 def start_offering():
-    logger.info('share/start_offering')
+    logger.info(f'[{current_user.login_id}] share/start_offering')
     token_address = request.form.get('token_address')
     _set_offering_status(token_address, True)
     return redirect(url_for('.setting', token_address=token_address))
@@ -493,7 +493,7 @@ def start_offering():
 @share.route('/stop_offering', methods=['POST'])
 @login_required
 def stop_offering():
-    logger.info('share/stop_offering')
+    logger.info(f'[{current_user.login_id}] share/stop_offering')
     token_address = request.form.get('token_address')
     _set_offering_status(token_address, False)
     return redirect(url_for('.setting', token_address=token_address))
@@ -523,7 +523,7 @@ def _set_offering_status(token_address, status):
 @share.route('/valid', methods=['POST'])
 @login_required
 def valid():
-    logger.info('share/valid')
+    logger.info(f'[{current_user.login_id}] share/valid')
     token_address = request.form.get('token_address')
     _set_validity(token_address, True)
     return redirect(url_for('.setting', token_address=token_address))
@@ -532,7 +532,7 @@ def valid():
 @share.route('/invalid', methods=['POST'])
 @login_required
 def invalid():
-    logger.info('share/invalid')
+    logger.info(f'[{current_user.login_id}] share/invalid')
     token_address = request.form.get('token_address')
     _set_validity(token_address, False)
     return redirect(url_for('.setting', token_address=token_address))
@@ -562,7 +562,7 @@ def _set_validity(token_address, isvalid):
 @share.route('/add_supply/<string:token_address>', methods=['GET', 'POST'])
 @login_required
 def add_supply(token_address):
-    logger.info('share/add_supply')
+    logger.info(f'[{current_user.login_id}] share/add_supply')
 
     TokenContract = TokenUtils.get_contract(token_address, session['eth_account'], template_id=Config.TEMPLATE_ID_SHARE)
 
@@ -612,7 +612,7 @@ def add_supply(token_address):
 @share.route('/token/track/<string:token_address>', methods=['GET'])
 @login_required
 def token_tracker(token_address):
-    logger.info('share/token_tracker')
+    logger.info(f'[{current_user.login_id}] share/token_tracker')
 
     # アドレスフォーマットのチェック
     if not Web3.isAddress(token_address):
@@ -660,7 +660,7 @@ def token_tracker(token_address):
 @share.route('/token/tracks_csv_download', methods=['POST'])
 @login_required
 def token_tracker_csv():
-    logger.info('share/token_tracker_csv')
+    logger.info(f'[{current_user.login_id}] share/token_tracker_csv')
 
     token_address = request.form.get('token_address')
 
@@ -723,7 +723,7 @@ def token_tracker_csv():
 @share.route('/applications/<string:token_address>', methods=['GET'])
 @login_required
 def applications(token_address):
-    logger.info('share/applications')
+    logger.info(f'[{current_user.login_id}] share/applications')
     return render_template(
         'share/applications.html',
         token_address=token_address,
@@ -734,7 +734,7 @@ def applications(token_address):
 @share.route('/applications_csv_download', methods=['POST'])
 @login_required
 def applications_csv_download():
-    logger.info('share/applications_csv_download')
+    logger.info(f'[{current_user.login_id}] share/applications_csv_download')
 
     token_address = request.form.get('token_address')
     application = json.loads(get_applications(token_address).data)
@@ -840,7 +840,7 @@ def allot(token_address, account_address):
     :param token_address: トークンアドレス
     :param account_address: 割当対象のアカウントアドレス
     """
-    logger.info('share/allot')
+    logger.info(f'[{current_user.login_id}] share/allot')
 
     # アドレスのフォーマットチェック
     if not Web3.isAddress(account_address) or not Web3.isAddress(token_address):
@@ -897,7 +897,7 @@ def transfer_allotment(token_address, account_address):
     :param token_address: トークンアドレス
     :param account_address: 移転先のアカウントアドレス
     """
-    logger.info('share/transfer_allotment')
+    logger.info(f'[{current_user.login_id}] share/transfer_allotment')
 
     # アドレスのフォーマットチェック
     if not Web3.isAddress(account_address) or not Web3.isAddress(token_address):
@@ -960,7 +960,7 @@ def _render_transfer_allotment(token_address: str, account_address: str, form: T
 @share.route('/holders/<string:token_address>', methods=['GET'])
 @login_required
 def holders(token_address):
-    logger.info('share/holders')
+    logger.info(f'[{current_user.login_id}] share/holders')
 
     return render_template(
         'share/holders.html',
@@ -972,7 +972,7 @@ def holders(token_address):
 @share.route('/holders_csv_download', methods=['POST'])
 @login_required
 def holders_csv_download():
-    logger.info('share/holders_csv_download')
+    logger.info(f'[{current_user.login_id}] share/holders_csv_download')
 
     token_address = request.form.get('token_address')
     holders = get_holders(token_address)["data"]
@@ -1025,7 +1025,7 @@ def holders_csv_download():
 @share.route('/holders_csv_history/<string:token_address>', methods=['GET'])
 @login_required
 def holders_csv_history(token_address):
-    logger.info('share/holders_csv_history')
+    logger.info(f'[{current_user.login_id}] share/holders_csv_history')
 
     # アドレスフォーマットのチェック
     if not Web3.isAddress(token_address):
@@ -1041,7 +1041,7 @@ def holders_csv_history(token_address):
 @share.route('/get_holders_csv_history/<string:token_address>', methods=['GET'])
 @login_required
 def get_holders_csv_history(token_address):
-    logger.info('share/get_holders_csv_history')
+    logger.info(f'[{current_user.login_id}] share/get_holders_csv_history')
 
     # アドレスフォーマットのチェック
     if not Web3.isAddress(token_address):
@@ -1079,7 +1079,7 @@ def get_holders_csv_history(token_address):
 @share.route('/holders_csv_history_download', methods=['POST'])
 @login_required
 def holders_csv_history_download():
-    logger.info('share/holders_csv_history_download')
+    logger.info(f'[{current_user.login_id}] share/holders_csv_history_download')
 
     token_address = request.form.get('token_address')
     csv_id = request.form.get('csv_id')
@@ -1114,7 +1114,7 @@ def get_holders(token_address):
     :param token_address: トークンアドレス
     :return: トークンの保有者一覧
     """
-    logger.info('share/get_holders')
+    logger.info(f'[{current_user.login_id}] share/get_holders')
 
     DEFAULT_VALUE = "--"
 
@@ -1260,7 +1260,7 @@ def get_holders(token_address):
 @share.route('/transfer_ownership/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
 @login_required
 def transfer_ownership(token_address, account_address):
-    logger.info('share/transfer_ownership')
+    logger.info(f'[{current_user.login_id}] share/transfer_ownership')
 
     # アドレスフォーマットのチェック
     if not Web3.isAddress(account_address) or not Web3.isAddress(token_address):
@@ -1357,7 +1357,7 @@ def holder(token_address, account_address):
     # GET：参照
     #########################
     if request.method == "GET":
-        logger.info('share/holder')
+        logger.info(f'[{current_user.login_id}] share/holder')
         personal_info = personal_info_contract.get_info(
             account_address=account_address,
             default_value="--"
@@ -1374,7 +1374,7 @@ def holder(token_address, account_address):
     #########################
     if request.method == "POST":
         if request.form.get('_method') == 'DELETE':  # 個人情報初期化
-            logger.info('share/holder(DELETE)')
+            logger.info(f'[{current_user.login_id}] share/holder(DELETE)')
             try:
                 personal_info_contract.modify_info(
                     account_address=account_address,
@@ -1411,14 +1411,14 @@ def bulk_transfer():
     # GET：アップロード画面参照
     #########################
     if request.method == "GET":
-        logger.info("share/bulk_transfer(GET)")
+        logger.info(f"[{current_user.login_id}] share/bulk_transfer(GET)")
         return render_template("share/bulk_transfer.html", form=form)
 
     #########################
     # POST：ファイルアップロード
     #########################
     if request.method == "POST":
-        logger.info("share/bulk_transfer(POST)")
+        logger.info(f"[{current_user.login_id}] share/bulk_transfer(POST)")
 
         # Formバリデート
         if form.validate() is False:
@@ -1545,7 +1545,7 @@ def bulk_transfer():
 @share.route('/bulk_transfer/sample', methods=['POST'])
 @login_required
 def bulk_transfer_sample():
-    logger.info("share/bulk_transfer_sample")
+    logger.info(f"[{current_user.login_id}] share/bulk_transfer_sample")
 
     f = io.StringIO()
 
@@ -1568,7 +1568,7 @@ def bulk_transfer_sample():
 @share.route('/bulk_transfer_history', methods=['GET'])
 @login_required
 def bulk_transfer_history():
-    logger.info('share/bulk_transfer_history')
+    logger.info(f'[{current_user.login_id}] share/bulk_transfer_history')
 
     records = BulkTransferUpload.query. \
         filter(BulkTransferUpload.eth_account == session["eth_account"]). \
@@ -1601,7 +1601,7 @@ def bulk_transfer_approval(upload_id):
     # GET：移転指示データ参照
     #########################
     if request.method == "GET":
-        logger.info("share/bulk_transfer_approval(GET)")
+        logger.info(f"[{current_user.login_id}] share/bulk_transfer_approval(GET)")
 
         # 移転指示明細データを取得
         bulk_transfer_records = BulkTransfer.query. \
@@ -1640,7 +1640,7 @@ def bulk_transfer_approval(upload_id):
     # POST：移転指示データ承認
     #########################
     if request.method == "POST":
-        logger.info('share/bulk_transfer_approval(POST)')
+        logger.info(f'[{current_user.login_id}] share/bulk_transfer_approval(POST)')
 
         upload_id = request.form.get("upload_id")
 

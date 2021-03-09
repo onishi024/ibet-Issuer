@@ -26,7 +26,7 @@ from datetime import datetime, timezone, timedelta
 
 from flask_wtf import FlaskForm as Form
 from flask import request, redirect, url_for, flash, make_response, render_template, abort, jsonify, session
-from flask_login import login_required
+from flask_login import login_required, current_user
 from sqlalchemy import func, desc
 
 from app import db
@@ -79,7 +79,7 @@ def transfer_token(token_contract, from_address, to_address, amount):
 @membership.route('/list', methods=['GET'])
 @login_required
 def list():
-    logger.info('membership/list')
+    logger.info(f'[{current_user.login_id}] membership/list')
 
     # 発行済トークンの情報をDBから取得する
     tokens = Token.query.filter_by(
@@ -135,7 +135,7 @@ def list():
 @membership.route('/token/track/<string:token_address>', methods=['GET'])
 @login_required
 def token_tracker(token_address):
-    logger.info('membership/token_tracker')
+    logger.info(f'[{current_user.login_id}] membership/token_tracker')
 
     # アドレスフォーマットのチェック
     if not Web3.isAddress(token_address):
@@ -182,7 +182,7 @@ def token_tracker(token_address):
 @membership.route('/token/tracks_csv_download', methods=['POST'])
 @login_required
 def token_tracker_csv():
-    logger.info('membership/token_tracker_csv')
+    logger.info(f'[{current_user.login_id}] membership/token_tracker_csv')
 
     token_address = request.form.get('token_address')
 
@@ -245,7 +245,7 @@ def token_tracker_csv():
 @membership.route('/applications/<string:token_address>', methods=['GET'])
 @login_required
 def applications(token_address):
-    logger.info('membership/applications')
+    logger.info(f'[{current_user.login_id}] membership/applications')
     return render_template(
         'membership/applications.html',
         token_address=token_address,
@@ -256,7 +256,7 @@ def applications(token_address):
 @membership.route('/applications_csv_download', methods=['POST'])
 @login_required
 def applications_csv_download():
-    logger.info('membership/applications_csv_download')
+    logger.info(f'[{current_user.login_id}] membership/applications_csv_download')
 
     token_address = request.form.get('token_address')
     application = json.loads(get_applications(token_address).data)
@@ -342,7 +342,7 @@ def get_applications(token_address):
 @membership.route('/allocate/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
 @login_required
 def allocate(token_address, account_address):
-    logger.info('membership/allocate')
+    logger.info(f'[{current_user.login_id}] membership/allocate')
 
     # アドレスのフォーマットチェック
     if not Web3.isAddress(account_address) or not Web3.isAddress(token_address):
@@ -400,7 +400,7 @@ def allocate(token_address, account_address):
 @membership.route('/holders/<string:token_address>', methods=['GET'])
 @login_required
 def holders(token_address):
-    logger.info('membership/holders')
+    logger.info(f'[{current_user.login_id}] membership/holders')
     return render_template(
         'membership/holders.html',
         token_address=token_address
@@ -411,7 +411,7 @@ def holders(token_address):
 @membership.route('/holders_csv_download', methods=['POST'])
 @login_required
 def holders_csv_download():
-    logger.info('membership/holders_csv_download')
+    logger.info(f'[{current_user.login_id}] membership/holders_csv_download')
 
     token_address = request.form.get('token_address')
     holders = json.loads(get_holders(token_address).data)
@@ -466,7 +466,7 @@ def get_holders(token_address):
     :param token_address: トークンアドレス
     :return: トークンの保有者一覧
     """
-    logger.info('membership/get_holders')
+    logger.info(f'[{current_user.login_id}] membership/get_holders')
 
     DEFAULT_VALUE = "--"
 
@@ -587,7 +587,7 @@ def get_token_name(token_address):
 @membership.route('/holders_csv_history/<string:token_address>', methods=['GET'])
 @login_required
 def holders_csv_history(token_address):
-    logger.info('membership/holders_csv_history')
+    logger.info(f'[{current_user.login_id}] membership/holders_csv_history')
 
     # アドレスフォーマットのチェック
     if not Web3.isAddress(token_address):
@@ -603,7 +603,7 @@ def holders_csv_history(token_address):
 @membership.route('/get_holders_csv_history/<string:token_address>', methods=['GET'])
 @login_required
 def get_holders_csv_history(token_address):
-    logger.info('membership/get_holders_csv_history')
+    logger.info(f'[{current_user.login_id}] membership/get_holders_csv_history')
 
     # アドレスフォーマットのチェック
     if not Web3.isAddress(token_address):
@@ -641,7 +641,7 @@ def get_holders_csv_history(token_address):
 @membership.route('/holders_csv_history_download', methods=['POST'])
 @login_required
 def holders_csv_history_download():
-    logger.info('membership/holders_csv_history_download')
+    logger.info(f'[{current_user.login_id}] membership/holders_csv_history_download')
 
     token_address = request.form.get('token_address')
     csv_id = request.form.get('csv_id')
@@ -673,7 +673,7 @@ def holders_csv_history_download():
 @membership.route('/transfer_ownership/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
 @login_required
 def transfer_ownership(token_address, account_address):
-    logger.info('membership/transfer_ownership')
+    logger.info(f'[{current_user.login_id}] membership/transfer_ownership')
 
     # アドレスフォーマットのチェック
     if not Web3.isAddress(account_address) or not Web3.isAddress(token_address):
@@ -760,7 +760,7 @@ def holder(token_address, account_address):
     # GET：参照
     #########################
     if request.method == "GET":
-        logger.info('membership/holder(GET)')
+        logger.info(f'[{current_user.login_id}] membership/holder(GET)')
         personal_info = personal_info_contract.get_info(
             account_address=account_address,
             default_value="--"
@@ -777,7 +777,7 @@ def holder(token_address, account_address):
     #########################
     if request.method == "POST":
         if request.form.get('_method') == 'DELETE':  # 個人情報初期化
-            logger.info('membership/holder(DELETE)')
+            logger.info(f'[{current_user.login_id}] membership/holder(DELETE)')
             try:
                 personal_info_contract.modify_info(
                     account_address=account_address,
@@ -806,7 +806,7 @@ def holder(token_address, account_address):
 @membership.route('/setting/<string:token_address>', methods=['GET', 'POST'])
 @login_required
 def setting(token_address):
-    logger.info('membership.setting')
+    logger.info(f'[{current_user.login_id}] membership.setting')
 
     # 指定したトークンが存在しない場合、エラーを返す
     token = Token.query. \
@@ -973,7 +973,7 @@ def setting(token_address):
 @membership.route('/release', methods=['POST'])
 @login_required
 def release():
-    logger.info('membership/release')
+    logger.info(f'[{current_user.login_id}] membership/release')
     token_address = request.form.get('token_address')
 
     # 発行体が管理するトークンかチェック
@@ -1003,7 +1003,7 @@ def release():
 @membership.route('/issue', methods=['GET', 'POST'])
 @login_required
 def issue():
-    logger.info('membership.issue')
+    logger.info(f'[{current_user.login_id}] membership.issue')
     form = IssueForm()
 
     if request.method == 'POST':
@@ -1080,7 +1080,7 @@ def issue():
 @membership.route('/positions', methods=['GET'])
 @login_required
 def positions():
-    logger.info('membership/positions')
+    logger.info(f'[{current_user.login_id}] membership/positions')
 
     # 自社が発行したトークンの一覧を取得
     tokens = Token.query.filter_by(
@@ -1180,7 +1180,7 @@ def positions():
 @membership.route('/sell/<string:token_address>', methods=['GET', 'POST'])
 @login_required
 def sell(token_address):
-    logger.info('membership/sell')
+    logger.info(f'[{current_user.login_id}] membership/sell')
     form = SellForm()
 
     token = Token.query. \
@@ -1262,7 +1262,7 @@ def sell(token_address):
 @membership.route('/cancel_order/<string:token_address>/<int:order_id>', methods=['GET', 'POST'])
 @login_required
 def cancel_order(token_address, order_id):
-    logger.info('membership/cancel_order')
+    logger.info(f'[{current_user.login_id}] membership/cancel_order')
     form = CancelOrderForm()
 
     # Tokenコントラクト接続
@@ -1312,7 +1312,7 @@ def cancel_order(token_address, order_id):
 @membership.route('/add_supply/<string:token_address>', methods=['GET', 'POST'])
 @login_required
 def add_supply(token_address):
-    logger.info('membership/add_supply')
+    logger.info(f'[{current_user.login_id}] membership/add_supply')
 
     # Tokenコントラクト接続
     TokenContract = TokenUtils.get_contract(token_address, session['eth_account'])
@@ -1353,7 +1353,7 @@ def add_supply(token_address):
 @membership.route('/valid', methods=['POST'])
 @login_required
 def valid():
-    logger.info('membership/valid')
+    logger.info(f'[{current_user.login_id}] membership/valid')
     token_address = request.form.get('token_address')
     _set_validity(token_address, True)
     return redirect(url_for('.setting', token_address=token_address))
@@ -1362,7 +1362,7 @@ def valid():
 @membership.route('/invalid', methods=['POST'])
 @login_required
 def invalid():
-    logger.info('membership/invalid')
+    logger.info(f'[{current_user.login_id}] membership/invalid')
     token_address = request.form.get('token_address')
     _set_validity(token_address, False)
     return redirect(url_for('.setting', token_address=token_address))
@@ -1394,7 +1394,7 @@ def _set_validity(token_address, isvalid):
 @membership.route('/start_initial_offering', methods=['POST'])
 @login_required
 def start_initial_offering():
-    logger.info('membership/start_initial_offering')
+    logger.info(f'[{current_user.login_id}] membership/start_initial_offering')
     token_address = request.form.get('token_address')
     _set_offering_status(token_address, True)
     return redirect(url_for('.setting', token_address=token_address))
@@ -1403,7 +1403,7 @@ def start_initial_offering():
 @membership.route('/stop_initial_offering', methods=['POST'])
 @login_required
 def stop_initial_offering():
-    logger.info('membership/stop_initial_offering')
+    logger.info(f'[{current_user.login_id}] membership/stop_initial_offering')
     token_address = request.form.get('token_address')
     _set_offering_status(token_address, False)
     return redirect(url_for('.setting', token_address=token_address))
@@ -1443,14 +1443,14 @@ def bulk_transfer():
     # GET：アップロード画面参照
     #########################
     if request.method == "GET":
-        logger.info("membership/bulk_transfer(GET)")
+        logger.info(f"[{current_user.login_id}] membership/bulk_transfer(GET)")
         return render_template("membership/bulk_transfer.html", form=form)
 
     #########################
     # POST：ファイルアップロード
     #########################
     if request.method == "POST":
-        logger.info("membership/bulk_transfer(POST)")
+        logger.info(f"[{current_user.login_id}] membership/bulk_transfer(POST)")
 
         # Formバリデート
         if form.validate() is False:
@@ -1577,7 +1577,7 @@ def bulk_transfer():
 @membership.route('/bulk_transfer/sample', methods=['POST'])
 @login_required
 def bulk_transfer_sample():
-    logger.info("membership/bulk_transfer_sample")
+    logger.info(f"[{current_user.login_id}] membership/bulk_transfer_sample")
 
     f = io.StringIO()
 
@@ -1600,7 +1600,7 @@ def bulk_transfer_sample():
 @membership.route('/bulk_transfer_history', methods=['GET'])
 @login_required
 def bulk_transfer_history():
-    logger.info('membership/bulk_transfer_history')
+    logger.info(f'[{current_user.login_id}] membership/bulk_transfer_history')
 
     records = BulkTransferUpload.query. \
         filter(BulkTransferUpload.eth_account == session["eth_account"]). \
@@ -1633,7 +1633,7 @@ def bulk_transfer_approval(upload_id):
     # GET：移転指示データ参照
     #########################
     if request.method == "GET":
-        logger.info("membership/bulk_transfer_approval(GET)")
+        logger.info(f"[{current_user.login_id}] membership/bulk_transfer_approval(GET)")
 
         # 移転指示明細データを取得
         bulk_transfer_records = BulkTransfer.query. \
@@ -1672,7 +1672,7 @@ def bulk_transfer_approval(upload_id):
     # POST：移転指示データ承認
     #########################
     if request.method == "POST":
-        logger.info('membership/bulk_transfer_approval(POST)')
+        logger.info(f'[{current_user.login_id}] membership/bulk_transfer_approval(POST)')
 
         upload_id = request.form.get("upload_id")
 

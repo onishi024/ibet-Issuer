@@ -20,7 +20,7 @@ SPDX-License-Identifier: Apache-2.0
 import json
 
 from flask import render_template, jsonify, session
-from flask_login import login_required
+from flask_login import login_required, current_user
 
 from . import dashboard
 from config import Config
@@ -42,7 +42,7 @@ web3.middleware_stack.inject(geth_poa_middleware, layer=0)
 @dashboard.route('/main', methods=['GET'])
 @login_required
 def main():
-    logger.info('dashboard/main')
+    logger.info(f'[{current_user.login_id}] dashboard/main')
 
     return render_template(
         'dashboard/main.html',
