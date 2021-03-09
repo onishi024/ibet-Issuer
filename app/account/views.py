@@ -72,7 +72,7 @@ def flash_errors(form: Form):
 @login_required
 @admin_required
 def list():
-    logger.info('list')
+    logger.info(f'[{current_user.login_id}] account/list')
     users = User.query.filter_by(eth_account=session['eth_account']).all()
 
     for user in users:
@@ -232,7 +232,7 @@ def delete():
 @login_required
 @admin_required
 def bankinfo():
-    logger.info('account/bankinfo')
+    logger.info(f'[{current_user.login_id}] account/bankinfo')
     form = BankInfoForm()
     if request.method == 'POST':
         if form.validate():
@@ -358,7 +358,7 @@ def bank_account_regist(form):
 @login_required
 @admin_required
 def issuerinfo():
-    logger.info('account/issuerinfo')
+    logger.info(f'[{current_user.login_id}] account/issuerinfo')
     form = IssuerInfoForm()
     if request.method == 'POST':
         if form.validate():

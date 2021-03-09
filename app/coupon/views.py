@@ -27,7 +27,7 @@ from datetime import datetime, timezone, timedelta
 
 from flask_wtf import FlaskForm as Form
 from flask import request, redirect, url_for, flash, make_response, render_template, abort, jsonify, session
-from flask_login import login_required
+from flask_login import login_required, current_user
 from sqlalchemy import func, desc
 
 from app import db
@@ -81,7 +81,7 @@ def transfer_token(token_contract, from_address, to_address, amount):
 @coupon.route('/issue', methods=['GET', 'POST'])
 @login_required
 def issue():
-    logger.info('coupon/issue')
+    logger.info(f'[{current_user.login_id}] coupon/issue')
     form = IssueCouponForm()
 
     if request.method == 'POST':
@@ -162,7 +162,7 @@ def issue():
 @coupon.route('/list', methods=['GET', 'POST'])
 @login_required
 def list():
-    logger.info('coupon/list')
+    logger.info(f'[{current_user.login_id}] coupon/list')
 
     # 発行済トークンの情報をDBから取得する
     tokens = Token.query.filter_by(
@@ -213,7 +213,7 @@ def list():
 @coupon.route('/token/track/<string:token_address>', methods=['GET'])
 @login_required
 def token_tracker(token_address):
-    logger.info('coupon/token_tracker')
+    logger.info(f'[{current_user.login_id}] coupon/token_tracker')
 
     # アドレスフォーマットのチェック
     if not Web3.isAddress(token_address):
@@ -260,7 +260,7 @@ def token_tracker(token_address):
 @coupon.route('/token/tracks_csv_download', methods=['POST'])
 @login_required
 def token_tracker_csv():
-    logger.info('coupon/token_tracker_csv')
+    logger.info(f'[{current_user.login_id}] coupon/token_tracker_csv')
 
     token_address = request.form.get('token_address')
 
@@ -323,7 +323,7 @@ def token_tracker_csv():
 @coupon.route('/applications/<string:token_address>', methods=['GET'])
 @login_required
 def applications(token_address):
-    logger.info('coupon/applications')
+    logger.info(f'[{current_user.login_id}] coupon/applications')
     return render_template('coupon/applications.html', token_address=token_address)
 
 
@@ -331,7 +331,7 @@ def applications(token_address):
 @coupon.route('/applications_csv_download', methods=['POST'])
 @login_required
 def applications_csv_download():
-    logger.info('coupon/applications_csv_download')
+    logger.info(f'[{current_user.login_id}] coupon/applications_csv_download')
 
     token_address = request.form.get('token_address')
     application = json.loads(get_applications(token_address).data)
@@ -417,7 +417,7 @@ def get_applications(token_address):
 @coupon.route('/release', methods=['POST'])
 @login_required
 def release():
-    logger.info('coupon/release')
+    logger.info(f'[{current_user.login_id}] coupon/release')
     token_address = request.form.get('token_address')
 
     # 発行体が管理するトークンかチェック
@@ -448,7 +448,7 @@ def release():
 @coupon.route('/add_supply/<string:token_address>', methods=['GET', 'POST'])
 @login_required
 def add_supply(token_address):
-    logger.info('coupon/add_supply')
+    logger.info(f'[{current_user.login_id}] coupon/add_supply')
 
     # Tokenコントラクト接続
     TokenContract = TokenUtils.get_contract(token_address, session['eth_account'])
@@ -493,7 +493,7 @@ def add_supply(token_address):
 @coupon.route('/setting/<string:token_address>', methods=['GET', 'POST'])
 @login_required
 def setting(token_address):
-    logger.info('coupon/setting')
+    logger.info(f'[{current_user.login_id}] coupon/setting')
 
     # 指定したトークンが存在しない場合、エラーを返す
     token = Token.query. \
@@ -678,7 +678,7 @@ def positions():
     保有トークン一覧
     :return: 保有トークン情報
     """
-    logger.info('coupon/positions')
+    logger.info(f'[{current_user.login_id}] coupon/positions')
 
     # 自社が発行したトークンの一覧を取得
     tokens = Token.query.filter_by(
@@ -776,7 +776,7 @@ def positions():
 @coupon.route('/sell/<string:token_address>', methods=['GET', 'POST'])
 @login_required
 def sell(token_address):
-    logger.info('coupon/sell')
+    logger.info(f'[{current_user.login_id}] coupon/sell')
     form = SellForm()
 
     token = Token.query. \
@@ -858,7 +858,7 @@ def sell(token_address):
 @coupon.route('/cancel_order/<string:token_address>/<int:order_id>', methods=['GET', 'POST'])
 @login_required
 def cancel_order(token_address, order_id):
-    logger.info('coupon/cancel_order')
+    logger.info(f'[{current_user.login_id}] coupon/cancel_order')
     form = CancelOrderForm()
 
     # Tokenコントラクト接続
@@ -907,7 +907,7 @@ def cancel_order(token_address, order_id):
 @coupon.route('/transfer', methods=['GET', 'POST'])
 @login_required
 def transfer():
-    logger.info('coupon/transfer')
+    logger.info(f'[{current_user.login_id}] coupon/transfer')
     form = TransferForm()
 
     if request.method == 'POST':
@@ -959,7 +959,7 @@ def transfer():
 @coupon.route('/allocate/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
 @login_required
 def allocate(token_address, account_address):
-    logger.info('coupon/allocate')
+    logger.info(f'[{current_user.login_id}] coupon/allocate')
 
     # アドレスのフォーマットチェック
     if not Web3.isAddress(account_address) or not Web3.isAddress(token_address):
@@ -1016,7 +1016,7 @@ def allocate(token_address, account_address):
 @coupon.route('/transfer_ownership/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
 @login_required
 def transfer_ownership(token_address, account_address):
-    logger.info('coupon/transfer_ownership')
+    logger.info(f'[{current_user.login_id}] coupon/transfer_ownership')
 
     # アドレスフォーマットのチェック
     if not Web3.isAddress(account_address) or not Web3.isAddress(token_address):
@@ -1077,7 +1077,7 @@ def transfer_ownership(token_address, account_address):
 @coupon.route('/usage_history/<string:token_address>', methods=['GET'])
 @login_required
 def usage_history(token_address):
-    logger.info('coupon/usage_history')
+    logger.info(f'[{current_user.login_id}] coupon/usage_history')
 
     return render_template(
         'coupon/usage_history.html',
@@ -1118,7 +1118,7 @@ def get_usage_history(token_address):
 @coupon.route('/used_csv_download', methods=['POST'])
 @login_required
 def used_csv_download():
-    logger.info('coupon/used_csv_download')
+    logger.info(f'[{current_user.login_id}] coupon/used_csv_download')
 
     token_address = request.form.get('token_address')
     # 発行体が管理するトークンかチェック
@@ -1188,7 +1188,7 @@ def holders(token_address):
     :param token_address:
     :return: 保有者一覧画面
     """
-    logger.info('coupon/holders')
+    logger.info(f'[{current_user.login_id}] coupon/holders')
     return render_template(
         'coupon/holders.html',
         token_address=token_address
@@ -1203,7 +1203,7 @@ def holders_csv_download():
     保有者一覧CSVダウンロード
     :return: 保有者一覧（CSV）
     """
-    logger.info('coupon/holders_csv_download')
+    logger.info(f'[{current_user.login_id}] coupon/holders_csv_download')
 
     token_address = request.form.get('token_address')
     holders = json.loads(get_holders(token_address).data)
@@ -1259,7 +1259,7 @@ def get_holders(token_address):
     :param token_address: トークンアドレス
     :return: トークンの保有者一覧
     """
-    logger.info('coupon/get_holders')
+    logger.info(f'[{current_user.login_id}] coupon/get_holders')
 
     DEFAULT_VALUE = "--"
 
@@ -1401,7 +1401,7 @@ def holder(token_address, account_address):
     # GET：参照
     #########################
     if request.method == "GET":
-        logger.info('coupon/holder(GET)')
+        logger.info(f'[{current_user.login_id}] coupon/holder(GET)')
         personal_info = personal_info_contract.get_info(
             account_address=account_address,
             default_value="--"
@@ -1418,7 +1418,7 @@ def holder(token_address, account_address):
     #########################
     if request.method == "POST":
         if request.form.get('_method') == 'DELETE':  # 個人情報初期化
-            logger.info('coupon/holder(DELETE)')
+            logger.info(f'[{current_user.login_id}] coupon/holder(DELETE)')
             try:
                 personal_info_contract.modify_info(
                     account_address=account_address,
@@ -1447,7 +1447,7 @@ def holder(token_address, account_address):
 @coupon.route('/valid', methods=['POST'])
 @login_required
 def valid():
-    logger.info('coupon/valid')
+    logger.info(f'[{current_user.login_id}] coupon/valid')
     token_address = request.form.get('token_address')
     _set_validity(token_address, True)
     return redirect(url_for('.setting', token_address=token_address))
@@ -1456,7 +1456,7 @@ def valid():
 @coupon.route('/invalid', methods=['POST'])
 @login_required
 def invalid():
-    logger.info('coupon/invalid')
+    logger.info(f'[{current_user.login_id}] coupon/invalid')
     token_address = request.form.get('token_address')
     _set_validity(token_address, False)
     return redirect(url_for('.setting', token_address=token_address))
@@ -1487,7 +1487,7 @@ def _set_validity(token_address, status):
 @coupon.route('/start_initial_offering', methods=['POST'])
 @login_required
 def start_initial_offering():
-    logger.info('coupon/start_initial_offering')
+    logger.info(f'[{current_user.login_id}] coupon/start_initial_offering')
     token_address = request.form.get('token_address')
     _set_offering_status(token_address, True)
     return redirect(url_for('.setting', token_address=token_address))
@@ -1496,7 +1496,7 @@ def start_initial_offering():
 @coupon.route('/stop_initial_offering', methods=['POST'])
 @login_required
 def stop_initial_offering():
-    logger.info('coupon/stop_initial_offering')
+    logger.info(f'[{current_user.login_id}] coupon/stop_initial_offering')
     token_address = request.form.get('token_address')
     _set_offering_status(token_address, False)
     return redirect(url_for('.setting', token_address=token_address))
@@ -1535,14 +1535,14 @@ def bulk_transfer():
     # GET：アップロード画面参照
     #########################
     if request.method == "GET":
-        logger.info("coupon/bulk_transfer(GET)")
+        logger.info(f"[{current_user.login_id}] coupon/bulk_transfer(GET)")
         return render_template("coupon/bulk_transfer.html", form=form)
 
     #########################
     # POST：ファイルアップロード
     #########################
     if request.method == "POST":
-        logger.info("coupon/bulk_transfer(POST)")
+        logger.info(f"[{current_user.login_id}] coupon/bulk_transfer(POST)")
 
         # Formバリデート
         if form.validate() is False:
@@ -1669,7 +1669,7 @@ def bulk_transfer():
 @coupon.route('/bulk_transfer/sample', methods=['POST'])
 @login_required
 def bulk_transfer_sample():
-    logger.info("coupon/bulk_transfer_sample")
+    logger.info(f"[{current_user.login_id}] coupon/bulk_transfer_sample")
 
     f = io.StringIO()
 
@@ -1692,7 +1692,7 @@ def bulk_transfer_sample():
 @coupon.route('/bulk_transfer_history', methods=['GET'])
 @login_required
 def bulk_transfer_history():
-    logger.info('coupon/bulk_transfer_history')
+    logger.info(f'[{current_user.login_id}] coupon/bulk_transfer_history')
 
     records = BulkTransferUpload.query. \
         filter(BulkTransferUpload.eth_account == session["eth_account"]). \
@@ -1725,7 +1725,7 @@ def bulk_transfer_approval(upload_id):
     # GET：移転指示データ参照
     #########################
     if request.method == "GET":
-        logger.info("coupon/bulk_transfer_approval(GET)")
+        logger.info(f"[{current_user.login_id}] coupon/bulk_transfer_approval(GET)")
 
         # 移転指示明細データを取得
         bulk_transfer_records = BulkTransfer.query. \
@@ -1764,7 +1764,7 @@ def bulk_transfer_approval(upload_id):
     # POST：移転指示データ承認
     #########################
     if request.method == "POST":
-        logger.info('coupon/bulk_transfer_approval(POST)')
+        logger.info(f'[{current_user.login_id}] coupon/bulk_transfer_approval(POST)')
 
         upload_id = request.form.get("upload_id")
 

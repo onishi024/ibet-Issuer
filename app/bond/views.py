@@ -29,7 +29,7 @@ import time
 from flask_wtf import FlaskForm as Form
 from flask import request, redirect, url_for, flash, make_response, \
     render_template, abort, jsonify, session
-from flask_login import login_required
+from flask_login import login_required, current_user
 
 from sqlalchemy import func, desc, or_
 from web3 import Web3
@@ -117,7 +117,7 @@ def map_interest_payment_date(form, interestPaymentDate):
 @bond.route('/get_token_name/<string:token_address>', methods=['GET'])
 @login_required
 def get_token_name(token_address):
-    logger.info('bond/get_token_name')
+    logger.info(f'[{current_user.login_id}] bond/get_token_name')
 
     TokenContract = TokenUtils.get_contract(token_address, session['eth_account'])
     token_name = TokenContract.functions.name().call()
@@ -132,7 +132,7 @@ def get_token_name(token_address):
 @bond.route('/issue', methods=['GET', 'POST'])
 @login_required
 def issue():
-    logger.info('bond/issue')
+    logger.info(f'[{current_user.login_id}] bond/issue')
     form = IssueForm()
 
     if request.method == 'POST':
@@ -286,7 +286,7 @@ def issue():
 @bond.route('/list', methods=['GET'])
 @login_required
 def list():
-    logger.info('bond/list')
+    logger.info(f'[{current_user.login_id}] bond/list')
 
     # 発行済トークンの情報をDBから取得する
     tokens = Token.query.filter_by(
@@ -340,7 +340,7 @@ def list():
 @bond.route('/holders/<string:token_address>', methods=['GET'])
 @login_required
 def holders(token_address):
-    logger.info('bond/holders')
+    logger.info(f'[{current_user.login_id}] bond/holders')
     return render_template('bond/holders.html', token_address=token_address)
 
 
@@ -348,7 +348,7 @@ def holders(token_address):
 @bond.route('/holders_csv_download', methods=['POST'])
 @login_required
 def holders_csv_download():
-    logger.info('bond/holders_csv_download')
+    logger.info(f'[{current_user.login_id}] bond/holders_csv_download')
 
     token_address = request.form.get('token_address')
     holders = get_holders(token_address)["data"]
@@ -417,7 +417,7 @@ def get_holders(token_address: str) -> Dict:
     :param token_address: トークンアドレス
     :return: トークンの保有者一覧
     """
-    logger.info('bond/get_holders')
+    logger.info(f'[{current_user.login_id}] bond/get_holders')
 
     DEFAULT_VALUE = "--"
 
@@ -561,7 +561,7 @@ def get_holders(token_address: str) -> Dict:
 @bond.route('/holders_csv_history/<string:token_address>', methods=['GET'])
 @login_required
 def holders_csv_history(token_address):
-    logger.info('bond/holders_csv_history')
+    logger.info(f'[{current_user.login_id}] bond/holders_csv_history')
 
     # アドレスフォーマットのチェック
     if not Web3.isAddress(token_address):
@@ -577,7 +577,7 @@ def holders_csv_history(token_address):
 @bond.route('/get_holders_csv_history/<string:token_address>', methods=['GET'])
 @login_required
 def get_holders_csv_history(token_address):
-    logger.info('bond/get_holders_csv_history')
+    logger.info(f'[{current_user.login_id}] bond/get_holders_csv_history')
 
     # アドレスフォーマットのチェック
     if not Web3.isAddress(token_address):
@@ -615,7 +615,7 @@ def get_holders_csv_history(token_address):
 @bond.route('/holders_csv_history_download', methods=['POST'])
 @login_required
 def holders_csv_history_download():
-    logger.info('bond/holders_csv_history_download')
+    logger.info(f'[{current_user.login_id}] bond/holders_csv_history_download')
 
     token_address = request.form.get('token_address')
     csv_id = request.form.get('csv_id')
@@ -647,7 +647,7 @@ def holders_csv_history_download():
 @bond.route('/transfer_ownership/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
 @login_required
 def transfer_ownership(token_address, account_address):
-    logger.info('bond/transfer_ownership')
+    logger.info(f'[{current_user.login_id}] bond/transfer_ownership')
 
     # アドレスフォーマットのチェック
     if not Web3.isAddress(account_address) or not Web3.isAddress(token_address):
@@ -744,7 +744,7 @@ def holder(token_address, account_address):
     # GET：参照
     #########################
     if request.method == "GET":
-        logger.info('bond/holder(GET)')
+        logger.info(f'[{current_user.login_id}] bond/holder(GET)')
         personal_info = personal_info_contract.get_info(
             account_address=account_address,
             default_value="--"
@@ -761,7 +761,7 @@ def holder(token_address, account_address):
     #########################
     if request.method == "POST":
         if request.form.get('_method') == 'DELETE':  # 個人情報初期化
-            logger.info('bond/holder(DELETE)')
+            logger.info(f'[{current_user.login_id}] bond/holder(DELETE)')
             try:
                 personal_info_contract.modify_info(
                     account_address=account_address,
@@ -790,7 +790,7 @@ def holder(token_address, account_address):
 @bond.route('/setting/<string:token_address>', methods=['GET', 'POST'])
 @login_required
 def setting(token_address: ChecksumAddress):
-    logger.info('bond/setting')
+    logger.info(f'[{current_user.login_id}] bond/setting')
 
     # 指定したトークンが存在しない場合、エラーを返す
     token = Token.query. \
@@ -1027,7 +1027,7 @@ def setting(token_address: ChecksumAddress):
 @bond.route('/request_signature/<string:token_address>', methods=['GET', 'POST'])
 @login_required
 def request_signature(token_address):
-    logger.info('bond/request_signature')
+    logger.info(f'[{current_user.login_id}] bond/request_signature')
 
     # Tokenコントラクト接続
     TokenContract = TokenUtils.get_contract(token_address, session['eth_account'])
@@ -1084,7 +1084,7 @@ def request_signature(token_address):
 @bond.route('/corporate_bond_ledger_template/<string:token_address>', methods=['GET', 'POST'])
 @login_required
 def corporate_bond_ledger_template(token_address):
-    logger.info('bond/corporate_bond_ledger_template')
+    logger.info(f'[{current_user.login_id}] bond/corporate_bond_ledger_template')
 
     form = CorporateBondLedgerTemplateForm()
 
@@ -1183,7 +1183,7 @@ def corporate_bond_ledger_template(token_address):
 @bond.route('/release', methods=['POST'])
 @login_required
 def release():
-    logger.info('bond/release')
+    logger.info(f'[{current_user.login_id}] bond/release')
     token_address = request.form.get('token_address')
 
     # 発行体が管理するトークンかチェック
@@ -1215,7 +1215,7 @@ def release():
 @bond.route('/redeem', methods=['POST'])
 @login_required
 def redeem():
-    logger.info('bond/redeem')
+    logger.info(f'[{current_user.login_id}] bond/redeem')
 
     # Tokenコントラクト接続
     token_address = request.form.get('token_address')
@@ -1239,7 +1239,7 @@ def redeem():
 @bond.route('/add_supply/<string:token_address>', methods=['GET', 'POST'])
 @login_required
 def add_supply(token_address):
-    logger.info('bond/add_supply')
+    logger.info(f'[{current_user.login_id}] bond/add_supply')
 
     # Tokenコントラクト接続
     TokenContract = TokenUtils.get_contract(token_address, session['eth_account'])
@@ -1290,7 +1290,7 @@ def add_supply(token_address):
 @bond.route('/positions', methods=['GET'])
 @login_required
 def positions():
-    logger.info('bond/positions')
+    logger.info(f'[{current_user.login_id}] bond/positions')
 
     # 自社が発行したトークンの一覧を取得
     tokens = Token.query.filter_by(
@@ -1392,7 +1392,7 @@ def positions():
 @bond.route('/sell/<string:token_address>', methods=['GET', 'POST'])
 @login_required
 def sell(token_address):
-    logger.info('bond/sell')
+    logger.info(f'[{current_user.login_id}] bond/sell')
     form = SellTokenForm()
 
     token = Token.query. \
@@ -1503,7 +1503,7 @@ def sell(token_address):
 @bond.route('/cancel_order/<string:token_address>/<int:order_id>', methods=['GET', 'POST'])
 @login_required
 def cancel_order(token_address, order_id):
-    logger.info('bond/cancel_order')
+    logger.info(f'[{current_user.login_id}] bond/cancel_order')
     form = CancelOrderForm()
 
     # Tokenコントラクト接続
@@ -1555,7 +1555,7 @@ def cancel_order(token_address, order_id):
 @bond.route('/start_initial_offering', methods=['POST'])
 @login_required
 def start_initial_offering():
-    logger.info('bond/start_initial_offering')
+    logger.info(f'[{current_user.login_id}] bond/start_initial_offering')
     token_address = request.form.get('token_address')
     _set_offering_status(token_address, True)
     return redirect(url_for('.setting', token_address=token_address))
@@ -1564,7 +1564,7 @@ def start_initial_offering():
 @bond.route('/stop_initial_offering', methods=['POST'])
 @login_required
 def stop_initial_offering():
-    logger.info('bond/stop_initial_offering')
+    logger.info(f'[{current_user.login_id}] bond/stop_initial_offering')
     token_address = request.form.get('token_address')
     _set_offering_status(token_address, False)
     return redirect(url_for('.setting', token_address=token_address))
@@ -1577,7 +1577,7 @@ def _set_offering_status(token_address, status):
     :param status: 変更後ステータス
     :return: なし
     """
-    logger.info('bond/set_initial_offering_status')
+    logger.info(f'[{current_user.login_id}] bond/set_initial_offering_status')
 
     # Tokenコントラクト接続
     TokenContract = TokenUtils.get_contract(token_address, session['eth_account'])
@@ -1599,7 +1599,7 @@ def _set_offering_status(token_address, status):
 @bond.route('/applications/<string:token_address>', methods=['GET'])
 @login_required
 def applications(token_address):
-    logger.info('bond/applications')
+    logger.info(f'[{current_user.login_id}] bond/applications')
     return render_template(
         'bond/applications.html',
         token_address=token_address,
@@ -1610,7 +1610,7 @@ def applications(token_address):
 @bond.route('/applications_csv_download', methods=['POST'])
 @login_required
 def applications_csv_download():
-    logger.info('bond/applications_csv_download')
+    logger.info(f'[{current_user.login_id}] bond/applications_csv_download')
 
     token_address = request.form.get('token_address')
     application = json.loads(get_applications(token_address).data)
@@ -1713,7 +1713,7 @@ def get_applications(token_address):
 @bond.route('/allot/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
 @login_required
 def allot(token_address, account_address):
-    logger.info('bond/allot')
+    logger.info(f'[{current_user.login_id}] bond/allot')
 
     # アドレスのフォーマットチェック
     if not Web3.isAddress(account_address) or not Web3.isAddress(token_address):
@@ -1764,7 +1764,7 @@ def allot(token_address, account_address):
 @bond.route('/transfer_allotment/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
 @login_required
 def transfer_allotment(token_address, account_address):
-    logger.info('bond/transfer_allotment')
+    logger.info(f'[{current_user.login_id}] bond/transfer_allotment')
 
     # アドレスのフォーマットチェック
     if not Web3.isAddress(account_address) or not Web3.isAddress(token_address):
@@ -1833,7 +1833,7 @@ def transfer_allotment(token_address, account_address):
 @bond.route('/token/track/<string:token_address>', methods=['GET'])
 @login_required
 def token_tracker(token_address):
-    logger.info('bond/token_tracker')
+    logger.info(f'[{current_user.login_id}] bond/token_tracker')
 
     # アドレスフォーマットのチェック
     if not Web3.isAddress(token_address):
@@ -1881,7 +1881,7 @@ def token_tracker(token_address):
 @bond.route('/token/tracks_csv_download', methods=['POST'])
 @login_required
 def token_tracker_csv():
-    logger.info('bond/token_tracker_csv')
+    logger.info(f'[{current_user.login_id}] bond/token_tracker_csv')
 
     token_address = request.form.get('token_address')
 
@@ -1943,7 +1943,7 @@ def token_tracker_csv():
 @bond.route('/ledger_history/<string:token_address>', methods=['GET'])
 @login_required
 def ledger_history(token_address: str):
-    logger.info('bond/ledger_history')
+    logger.info(f'[{current_user.login_id}] bond/ledger_history')
 
     # アドレスフォーマットチェック
     if not Web3.isAddress(token_address):
@@ -1956,7 +1956,7 @@ def ledger_history(token_address: str):
 @bond.route('/get_ledger_history/<string:token_address>', methods=['GET'])
 @login_required
 def get_ledger_history(token_address):
-    logger.info('bond/get_ledger_history')
+    logger.info(f'[{current_user.login_id}] bond/get_ledger_history')
 
     # アドレスフォーマットチェック
     if not Web3.isAddress(token_address):
@@ -1995,7 +1995,7 @@ def get_ledger_history(token_address):
 @bond.route('/ledger_download', methods=['POST'])
 @login_required
 def ledger_download():
-    logger.info('bond/ledger_download')
+    logger.info(f'[{current_user.login_id}] bond/ledger_download')
 
     token_address = request.form.get('token_address')
     ledger_id = request.form.get('ledger_id')
@@ -2121,14 +2121,14 @@ def bulk_transfer():
     # GET：アップロード画面参照
     #########################
     if request.method == "GET":
-        logger.info("bond/bulk_transfer(GET)")
+        logger.info(f"[{current_user.login_id}] bond/bulk_transfer(GET)")
         return render_template("bond/bulk_transfer.html", form=form)
 
     #########################
     # POST：ファイルアップロード
     #########################
     if request.method == "POST":
-        logger.info("bond/bulk_transfer(POST)")
+        logger.info(f"[{current_user.login_id}] bond/bulk_transfer(POST)")
 
         # Formバリデート
         if form.validate() is False:
@@ -2255,7 +2255,7 @@ def bulk_transfer():
 @bond.route('/bulk_transfer/sample', methods=['POST'])
 @login_required
 def bulk_transfer_sample():
-    logger.info("bond/bulk_transfer_sample")
+    logger.info(f"[{current_user.login_id}] bond/bulk_transfer_sample")
 
     f = io.StringIO()
 
@@ -2278,7 +2278,7 @@ def bulk_transfer_sample():
 @bond.route('/bulk_transfer_history', methods=['GET'])
 @login_required
 def bulk_transfer_history():
-    logger.info('bond/bulk_transfer_history')
+    logger.info(f'[{current_user.login_id}] bond/bulk_transfer_history')
 
     records = BulkTransferUpload.query. \
         filter(BulkTransferUpload.eth_account == session["eth_account"]). \
@@ -2310,7 +2310,7 @@ def bulk_transfer_approval(upload_id):
     # GET：移転指示データ参照
     #########################
     if request.method == "GET":
-        logger.info("bond/bulk_transfer_approval(GET)")
+        logger.info(f"[{current_user.login_id}] bond/bulk_transfer_approval(GET)")
 
         # 移転指示明細データを取得
         bulk_transfer_records = BulkTransfer.query. \
@@ -2349,7 +2349,7 @@ def bulk_transfer_approval(upload_id):
     # POST：移転指示データ承認
     #########################
     if request.method == "POST":
-        logger.info('bond/bulk_transfer_approval(POST)')
+        logger.info(f'[{current_user.login_id}] bond/bulk_transfer_approval(POST)')
 
         upload_id = request.form.get("upload_id")
 
