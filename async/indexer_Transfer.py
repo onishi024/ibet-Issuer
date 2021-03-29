@@ -137,7 +137,7 @@ class Processor:
     def sync_new_logs(self):
         self.get_token_list()
         blockTo = web3.eth.blockNumber
-        if blockTo == self.latest_block:
+        if blockTo <= self.latest_block:
             return
         self.__sync_all(self.latest_block + 1, blockTo)
         self.latest_block = blockTo

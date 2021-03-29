@@ -250,10 +250,10 @@ class Processor:
         block_number = self.__get_blocknumber()  # DB同期済の直近のblockNumber
         latest_block = web3.eth.blockNumber  # 現在の最新のblockNumber
         logging.debug("Syncing from={}, to={}".format(block_number, latest_block))
-        if block_number == latest_block:
+        if block_number >= latest_block:
             logging.debug("Skip Process")
         else:
-            self.__sync_all(block_number, latest_block)
+            self.__sync_all(block_number + 1, latest_block)
             self.__set_blocknumber(latest_block)
             self.sink.flush()
 
