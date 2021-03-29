@@ -363,7 +363,7 @@ class Processor:
             pass
         else:
             for token in self.token_list:
-                event_triggered = self.__create_utxo(token, ledger_block_number, latest_block)
+                event_triggered = self.__create_utxo(token, ledger_block_number + 1, latest_block)
                 if event_triggered:  # UTXOの更新イベントが発生している場合
                     self.__create_ledger(token)
             self.__set_ledger_blocknumber(latest_block)
