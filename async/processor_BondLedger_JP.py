@@ -358,7 +358,7 @@ class Processor:
         self.__refresh_token_list()
         ledger_block_number = self.__get_ledger_blocknumber()
         latest_block = web3.eth.blockNumber
-        if ledger_block_number == latest_block:
+        if ledger_block_number >= latest_block:
             logging.debug("skip process")
             pass
         else:
