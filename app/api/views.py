@@ -47,7 +47,7 @@ def share_holders(token_address):
     株式_保有者一覧取得
     :param token_address: トークンアドレス
     """
-    logger.info('api/share/holders')
+    logger.info(f'[{current_identity._get_current_object()}] api/share/holders')
 
     # API実行ユーザの取得
     # LocalProxy (current_identity) のままSQLAlchemyに渡すとエラーになるためプロキシ先オブジェクトを取得する
@@ -193,7 +193,7 @@ def bond_holders(token_address):
     債券_保有者一覧取得
     :param token_address: トークンアドレス
     """
-    logger.info('api/bond/holders')
+    logger.info(f'[{current_identity._get_current_object()}] api/bond/holders')
 
     # API実行ユーザの取得
     # LocalProxy (current_identity) のままSQLAlchemyに渡すとエラーになるためプロキシ先オブジェクトを取得する
@@ -346,7 +346,7 @@ def membership_holders(token_address):
     会員権_保有者一覧取得
     :param token_address: トークンアドレス
     """
-    logger.info('api/membership/holders')
+    logger.info(f'[{current_identity._get_current_object()}] api/membership/holders')
 
     # API実行ユーザの取得
     # LocalProxy (current_identity) のままSQLAlchemyに渡すとエラーになるためプロキシ先オブジェクトを取得する

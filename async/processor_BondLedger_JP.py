@@ -358,12 +358,12 @@ class Processor:
         self.__refresh_token_list()
         ledger_block_number = self.__get_ledger_blocknumber()
         latest_block = web3.eth.blockNumber
-        if ledger_block_number == latest_block:
+        if ledger_block_number >= latest_block:
             logging.debug("skip process")
             pass
         else:
             for token in self.token_list:
-                event_triggered = self.__create_utxo(token, ledger_block_number, latest_block)
+                event_triggered = self.__create_utxo(token, ledger_block_number + 1, latest_block)
                 if event_triggered:  # UTXOの更新イベントが発生している場合
                     self.__create_ledger(token)
             self.__set_ledger_blocknumber(latest_block)
