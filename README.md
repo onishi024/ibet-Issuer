@@ -5,7 +5,7 @@
 # ibet for Issuer
 
 <p>
-  <img alt="Version" src="https://img.shields.io/badge/version-21.3-blue.svg?cacheSeconds=2592000" />
+  <img alt="Version" src="https://img.shields.io/badge/version-21.4-blue.svg?cacheSeconds=2592000" />
   <a href="#" target="_blank">
     <img alt="License: Apache--2.0" src="https://img.shields.io/badge/License-Apache--2.0-yellow.svg" />
   </a>
@@ -19,7 +19,7 @@ It supports the tokens developed by [ibet-SmartContract](https://github.com/Boos
 
 ## Supported contract version
 
-* ibet-SmartContract: version 1.1.0
+* ibet-SmartContract: version 21.4.0
 
 
 ## Starting the Server
