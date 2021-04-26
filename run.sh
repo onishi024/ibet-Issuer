@@ -21,16 +21,16 @@ source ~/.bash_profile
 
 cd /app/ibet-Issuer
 
-# async
-python async/processor_IssueEvent.py &
-python async/processor_BatchTransfer.py &
-python async/processor_BondLedger_JP.py &
-python async/indexer_Transfer.py &
-python async/indexer_ApplyFor.py &
-python async/indexer_Consume.py &
-python async/indexer_Order.py &
-python async/indexer_Agreement.py &
-python async/indexer_PersonalInfo.py &
+# batch
+python batch/processor_IssueEvent.py &
+python batch/processor_BatchTransfer.py &
+python batch/processor_BondLedger_JP.py &
+python batch/indexer_Transfer.py &
+python batch/indexer_ApplyFor.py &
+python batch/indexer_Consume.py &
+python batch/indexer_Order.py &
+python batch/indexer_Agreement.py &
+python batch/indexer_PersonalInfo.py &
 
 #run server
 gunicorn -b 0.0.0.0:5000 --reload manage:app --config guniconf.py
