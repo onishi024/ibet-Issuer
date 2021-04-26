@@ -10,7 +10,7 @@ from config import Config
 
 logger = getLogger('api')
 web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
-web3.middleware_stack.inject(geth_poa_middleware, layer=0)
+web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
 
 def processor_issue_event(db):
@@ -32,7 +32,7 @@ def processor_issue_event(db):
             if tx_receipt is not None:
                 # ブロックの状態を確認して、コントラクトアドレスが登録されているかを確認する。
                 if 'contractAddress' in tx_receipt.keys():
-                    admin_address = tx_receipt['from']
+                    admin_address = tx_receipt['from'].lower()
                     contract_address = tx_receipt['contractAddress']
 
                     # 登録済みトークン情報に発行者のアドレスと、トークンアドレスの登録を行う。

@@ -17,15 +17,15 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-PROC_LIST="${PROC_LIST} async/indexer_Agreement.py"
-PROC_LIST="${PROC_LIST} async/indexer_ApplyFor.py"
-PROC_LIST="${PROC_LIST} async/indexer_Consume.py"
-PROC_LIST="${PROC_LIST} async/indexer_Order.py"
-PROC_LIST="${PROC_LIST} async/indexer_PersonalInfo.py"
-PROC_LIST="${PROC_LIST} async/indexer_Transfer.py"
-PROC_LIST="${PROC_LIST} async/processor_BatchTransfer.py"
-PROC_LIST="${PROC_LIST} async/processor_BondLedger_JP.py"
-PROC_LIST="${PROC_LIST} async/processor_IssueEvent.py"
+PROC_LIST="${PROC_LIST} batch/indexer_Agreement.py"
+PROC_LIST="${PROC_LIST} batch/indexer_ApplyFor.py"
+PROC_LIST="${PROC_LIST} batch/indexer_Consume.py"
+PROC_LIST="${PROC_LIST} batch/indexer_Order.py"
+PROC_LIST="${PROC_LIST} batch/indexer_PersonalInfo.py"
+PROC_LIST="${PROC_LIST} batch/indexer_Transfer.py"
+PROC_LIST="${PROC_LIST} batch/processor_BatchTransfer.py"
+PROC_LIST="${PROC_LIST} batch/processor_BondLedger_JP.py"
+PROC_LIST="${PROC_LIST} batch/processor_IssueEvent.py"
 
 for i in ${PROC_LIST}; do
   # shellcheck disable=SC2009

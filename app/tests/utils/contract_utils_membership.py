@@ -7,7 +7,7 @@ from config import Config
 from app.utils import ContractUtils
 
 web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
-web3.middleware_stack.inject(geth_poa_middleware, layer=0)
+web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
 
 # 直近注文IDを取得
@@ -27,9 +27,6 @@ def get_latest_agreementid(membership_exchange, order_id):
 
 # 会員権トークンの買いTake注文
 def take_buy(invoker, membership_exchange, order_id, amount):
-    web3.eth.defaultAccount = invoker['account_address']
-    web3.personal.unlockAccount(invoker['account_address'], invoker['password'])
-
     ExchangeContract = ContractUtils.get_contract('IbetMembershipExchange', membership_exchange['address'])
     tx_hash = ExchangeContract.functions.executeOrder(order_id, amount, True). \
         transact({'from': invoker['account_address'], 'gas': Config.TX_GAS_LIMIT})
@@ -38,13 +35,8 @@ def take_buy(invoker, membership_exchange, order_id, amount):
 
 # 会員権約定の資金決済
 def confirm_agreement(invoker, membership_exchange, order_id, agreement_id):
-    web3.eth.defaultAccount = invoker['account_address']
-    web3.personal.unlockAccount(invoker['account_address'],
-                                invoker['password'])
-
     ExchangeContract = ContractUtils.get_contract(
         'IbetMembershipExchange', membership_exchange['address'])
-
     tx_hash = ExchangeContract.functions. \
         confirmAgreement(order_id, agreement_id). \
         transact({'from': invoker['account_address'], 'gas': Config.TX_GAS_LIMIT})
@@ -53,8 +45,6 @@ def confirm_agreement(invoker, membership_exchange, order_id, agreement_id):
 
 # 会員権：募集申込
 def apply_for_offering(db, invoker, token_address):
-    web3.eth.defaultAccount = invoker['account_address']
-    web3.personal.unlockAccount(invoker['account_address'], invoker['password'])
     TokenContract = ContractUtils.get_contract('IbetMembership', token_address)
     tx_hash = TokenContract.functions.applyForOffering('abcdefgh'). \
         transact({'from': invoker['account_address'], 'gas': Config.TX_GAS_LIMIT})

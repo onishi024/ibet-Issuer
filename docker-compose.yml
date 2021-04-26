@@ -14,7 +14,9 @@ services:
     ports:
       - "8545:8545"
   ibet-issuer:
-    build: "."
+    build:
+      context: ./
+      dockerfile: ./app/tests/Dockerfile
     environment:
       - FLASK_CONFIG=testing
       - WEB3_HTTP_PROVIDER=http://quorum:8545

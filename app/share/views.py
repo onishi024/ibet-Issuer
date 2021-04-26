@@ -87,7 +87,7 @@ logger = getLogger('api')
 JST = timezone(timedelta(hours=+9), 'JST')
 
 web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
-web3.middleware_stack.inject(geth_poa_middleware, layer=0)
+web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
 
 ####################################################
