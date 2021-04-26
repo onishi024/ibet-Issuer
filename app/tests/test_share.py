@@ -29,6 +29,10 @@ from Crypto.PublicKey import RSA
 from eth_utils import to_checksum_address
 
 from config import Config
+from app.models import (
+    Token,
+    HolderList
+)
 from .conftest import TestBase
 from .utils.account_config import eth_account
 from .utils.contract_utils_common import (
@@ -44,10 +48,6 @@ from .utils.contract_utils_share import (
     take_buy,
     confirm_agreement,
     apply_for_offering
-)
-from ..models import (
-    Token,
-    HolderList
 )
 
 

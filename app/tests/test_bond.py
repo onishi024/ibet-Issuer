@@ -16,23 +16,28 @@ limitations under the License.
 
 SPDX-License-Identifier: Apache-2.0
 """
-
 from datetime import datetime, timezone
-
-import time
-import pytest
 import json
 import base64
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 
+import pytest
 from eth_utils import to_checksum_address
 
 from config import Config
-from app.models import Token, HolderList, BondLedger
+from app.models import (
+    Token,
+    HolderList,
+    BondLedger
+)
 from .conftest import TestBase
 from .utils.account_config import eth_account
-from .utils.contract_utils_common import processor_issue_event, index_transfer_event, clean_issue_event
+from .utils.contract_utils_common import (
+    processor_issue_event,
+    index_transfer_event,
+    clean_issue_event
+)
 from .utils.contract_utils_bond import bond_apply_for_offering
 from .utils.contract_utils_payment_gateway import register_payment_account
 from .utils.contract_utils_personal_info import register_personal_info
@@ -192,7 +197,6 @@ class TestBond(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(10)
 
         # DB登録処理
         processor_issue_event(db)
@@ -358,7 +362,6 @@ class TestBond(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(10)
 
         # 詳細設定画面を参照
         response = client.get(url_setting)
@@ -403,7 +406,6 @@ class TestBond(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(10)
 
     # ＜正常系10＞
     #   公開 →　詳細設定画面で確認
@@ -420,7 +422,6 @@ class TestBond(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(3)
 
         # 債券詳細設定
         url_setting = self.url_setting + token.token_address
@@ -578,7 +579,6 @@ class TestBond(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(3)
 
         # 詳細設定画面の参照
         url_setting = self.url_setting + token.token_address
@@ -672,7 +672,6 @@ class TestBond(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(3)
 
         # 債券一覧を参照
         client = self.client_with_admin_login(app)
