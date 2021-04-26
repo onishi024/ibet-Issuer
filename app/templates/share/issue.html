@@ -49,6 +49,12 @@
                     </div>
                 </div>
                 <div class="form-group">
+                    {{ form.principalValue.label(class="col-md-2 control-label") }}
+                    <div class="col-md-5">
+                        {{ form.principalValue(class="form-control comma-separate", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="（必須）例：100,000", title=form_description['principalValue'] )}}
+                    </div>
+                </div>
+                <div class="form-group">
                     {{ form.dividends.label(class="col-md-2 control-label") }}
                     <div class="col-md-5">
                         {{ form.dividends(class="form-control comma-separate", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right",placeholder="例：100.00", title=form_description['dividends'] )}}
@@ -82,6 +88,12 @@
                     {{ form.transferable.label(class="col-md-2 control-label") }}
                     <div class="col-md-4">
                         {{ form.transferable(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right", title=form_description['transferable'] )}}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.transferApprovalRequired.label(class="col-md-2 control-label") }}
+                    <div class="col-md-4">
+                        {{ form.transferApprovalRequired(class="form-control", autocomplete="off", data_toggle="tooltip", data_container="body", data_placement="right", title=form_description['transferApprovalRequired'] )}}
                     </div>
                 </div>
                 <div class="form-group">
