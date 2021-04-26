@@ -28,7 +28,6 @@ from collections import OrderedDict
 from Crypto.PublicKey import RSA
 from Crypto import Random
 
-import pytest
 import yaml
 from cryptography.fernet import Fernet
 from eth_utils import to_checksum_address
@@ -323,6 +322,8 @@ def issuer_save(issuer_file, rsa_privatekey, eoa_keyfile_password):
 @manager.option('--cov', dest='cov', action="store_true", help='coverage mode on.', default=False, required=False)
 @manager.option('--pdb', dest='pdb', action="store_true", help='debug mode on.', default=False, required=False)
 def test(v_opt, s_opt, x_opt, module, cov, pdb):
+    import pytest
+
     """ Runs pytest """
     pytest_args = []
     if v_opt:
