@@ -112,6 +112,12 @@
                     </div>
                 </div>
                 <div class="form-group">
+                    {{ form.principalValue.label(class="col-md-2 control-label") }}
+                    <div class="col-md-5">
+                        {{ form.principalValue(class="form-control", autocomplete="off") }}
+                    </div>
+                </div>
+                <div class="form-group">
                     {{ form.dividends.label(class="col-md-2 control-label") }}
                     <div class="col-md-5">
                         {{ form.dividends(class="form-control comma-separate", autocomplete="off") }}
@@ -154,6 +160,12 @@
                     {{ form.transferable.label(class="col-md-2 control-label") }}
                     <div class="col-md-4">
                         {{ form.transferable(class="form-control") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    {{ form.transferApprovalRequired.label(class="col-md-2 control-label") }}
+                    <div class="col-md-4">
+                        {{ form.transferApprovalRequired(class="form-control") }}
                     </div>
                 </div>
                 <div class="form-group">

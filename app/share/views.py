@@ -20,38 +20,74 @@ import csv
 import json
 import re
 import uuid
-from datetime import datetime, timezone, timedelta
-
-JST = timezone(timedelta(hours=+9), 'JST')
+from datetime import (
+    datetime,
+    timezone,
+    timedelta
+)
 import io
 import time
 
 from flask_wtf import FlaskForm as Form
-from flask import request, redirect, url_for, flash, make_response, render_template, abort, jsonify, session
-from flask_login import login_required, current_user
-from sqlalchemy import desc, or_
-
-from app import db
-from app.models import Token, Transfer, AddressType, ApplyFor, Issuer, HolderList, PersonalInfoContract, BulkTransfer, \
-    BulkTransferUpload
-from app.models import PersonalInfo as PersonalInfoModel
-from app.utils import ContractUtils, TokenUtils
-from app.exceptions import EthRuntimeError
-from config import Config
-from . import share
-from .forms import IssueForm, SettingForm, AddSupplyForm, TransferOwnershipForm, TransferForm, AllotForm, \
-    BulkTransferUploadForm
-
+from flask import (
+    request,
+    redirect,
+    url_for,
+    flash,
+    make_response,
+    render_template,
+    abort,
+    jsonify,
+    session
+)
+from flask_login import (
+    login_required,
+    current_user
+)
+from sqlalchemy import (
+    desc,
+    or_
+)
 from web3 import Web3
 from eth_utils import to_checksum_address
 from web3.middleware import geth_poa_middleware
 
-web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
-web3.middleware_stack.inject(geth_poa_middleware, layer=0)
-
+from config import Config
 from logging import getLogger
+from app import db
+from . import share
+from app.share.forms import (
+    IssueForm,
+    SettingForm,
+    AddSupplyForm,
+    TransferOwnershipForm,
+    TransferForm,
+    AllotForm,
+    BulkTransferUploadForm
+)
+from app.models import (
+    Token,
+    Transfer,
+    AddressType,
+    ApplyFor,
+    Issuer,
+    HolderList,
+    PersonalInfoContract,
+    BulkTransfer,
+    BulkTransferUpload,
+    PersonalInfo as PersonalInfoModel
+)
+from app.utils import (
+    ContractUtils,
+    TokenUtils
+)
+from app.exceptions import EthRuntimeError
 
 logger = getLogger('api')
+JST = timezone(timedelta(hours=+9), 'JST')
+
+web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
+web3.middleware_stack.inject(geth_poa_middleware, layer=0)
 
 
 ####################################################
@@ -105,12 +141,15 @@ def issue():
                 int(form.dividends.data * 100),
                 form.dividendRecordDate.data,
                 form.dividendPaymentDate.data,
-                form.cancellationDate.data
+                form.cancellationDate.data,
+                form.principalValue.data
             ]
-
             _, bytecode, bytecode_runtime = ContractUtils.get_contract_info('IbetShare')
-            contract_address, abi, tx_hash = \
-                ContractUtils.deploy_contract('IbetShare', arguments, session["eth_account"])
+            contract_address, abi, tx_hash = ContractUtils.deploy_contract(
+                contract_name='IbetShare',
+                args=arguments,
+                deployer=session["eth_account"]
+            )
 
             # 発行情報をDBに登録
             token = Token()
@@ -135,9 +174,17 @@ def issue():
 
                 # 譲渡制限の登録処理(bool型に変換)
                 bool_transferable = form.transferable.data != 'False'
-                tx = TokenContract.functions.setTransferable(bool_transferable). \
-                    buildTransaction({'from': session["eth_account"], 'gas': Config.TX_GAS_LIMIT})
-                ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
+                if bool_transferable is True:
+                    tx = TokenContract.functions.setTransferable(bool_transferable). \
+                        buildTransaction({'from': session["eth_account"], 'gas': Config.TX_GAS_LIMIT})
+                    ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
+
+                # 移転承諾要否の登録処理(bool型に変換)
+                bool_transferApprovalRequired = form.transferApprovalRequired.data != 'False'
+                if bool_transferApprovalRequired is True:
+                    tx = TokenContract.functions.setTransferApprovalRequired(bool_transferApprovalRequired). \
+                        buildTransaction({'from': session["eth_account"], 'gas': Config.TX_GAS_LIMIT})
+                    ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
 
                 # 関連URLの登録処理
                 if form.referenceUrls_1.data != '':
@@ -270,10 +317,12 @@ def setting(token_address):
     symbol = TokenContract.functions.symbol().call()
     totalSupply = TokenContract.functions.totalSupply().call()
     issuePrice = TokenContract.functions.issuePrice().call()
+    principalValue = TokenContract.functions.principalValue().call()
     dividends, dividendRecordDate, dividendPaymentDate = TokenContract.functions.dividendInformation().call()
     dividends = dividends * 0.01
     cancellationDate = TokenContract.functions.cancellationDate().call()
     transferable = str(TokenContract.functions.transferable().call())
+    transferApprovalRequired = str(TokenContract.functions.transferApprovalRequired().call())
     memo = TokenContract.functions.memo().call()
     referenceUrls_1 = TokenContract.functions.referenceUrls(0).call()
     referenceUrls_2 = TokenContract.functions.referenceUrls(1).call()
@@ -332,6 +381,14 @@ def setting(token_address):
                 ).buildTransaction({'from': session["eth_account"], 'gas': Config.TX_GAS_LIMIT})
                 ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
 
+            # １口あたりの元本額変更
+            if form.principalValue.data is None:
+                form.principalValue.data = 0
+            if form.principalValue.data != principalValue:
+                tx = TokenContract.functions.setPrincipalValue(form.principalValue.data). \
+                    buildTransaction({'from': session["eth_account"], 'gas': Config.TX_GAS_LIMIT})
+                ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
+
             # 消却日欄変更
             if form.cancellationDate.data != cancellationDate:
                 tx = TokenContract.functions.setCancellationDate(form.cancellationDate.data). \
@@ -350,6 +407,15 @@ def setting(token_address):
                 if form.transferable.data == 'False':
                     transferable_bool = False
                 tx = TokenContract.functions.setTransferable(transferable_bool). \
+                    buildTransaction({'from': session["eth_account"], 'gas': Config.TX_GAS_LIMIT})
+                ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
+
+            # 移転承諾要否変更
+            if form.transferApprovalRequired.data != transferApprovalRequired:
+                bool_transferApprovalRequired = True
+                if form.transferApprovalRequired.data == 'False':
+                    bool_transferApprovalRequired = False
+                tx = TokenContract.functions.setTransferApprovalRequired(bool_transferApprovalRequired). \
                     buildTransaction({'from': session["eth_account"], 'gas': Config.TX_GAS_LIMIT})
                 ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
 
@@ -420,11 +486,13 @@ def setting(token_address):
         form.symbol.data = symbol
         form.totalSupply.data = totalSupply
         form.issuePrice.data = issuePrice
+        form.principalValue.data = principalValue
         form.dividends.data = dividends
         form.dividendRecordDate.data = dividendRecordDate
         form.dividendPaymentDate.data = dividendPaymentDate
         form.cancellationDate.data = cancellationDate
         form.transferable.data = transferable
+        form.transferApprovalRequired.data = transferApprovalRequired
         form.memo.data = memo
         form.referenceUrls_1.data = referenceUrls_1
         form.referenceUrls_2.data = referenceUrls_2
@@ -542,7 +610,7 @@ def _set_validity(token_address, isvalid):
     """
     取扱ステータス変更
     :param token_address: トークンアドレス
-    :param status: 変更後ステータス
+    :param isvalid: 変更後ステータス
     :return: なし
     """
     TokenContract = TokenUtils.get_contract(token_address, session['eth_account'], template_id=Config.TEMPLATE_ID_SHARE)

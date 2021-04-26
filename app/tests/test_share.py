@@ -16,13 +16,14 @@ limitations under the License.
 
 SPDX-License-Identifier: Apache-2.0
 """
-
 import base64
 import json
-from datetime import datetime, timezone
+from datetime import (
+    datetime,
+    timezone
+)
 
 import pytest
-import time
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
 from eth_utils import to_checksum_address
@@ -30,11 +31,24 @@ from eth_utils import to_checksum_address
 from config import Config
 from .conftest import TestBase
 from .utils.account_config import eth_account
-from .utils.contract_utils_common import processor_issue_event, index_transfer_event, clean_issue_event
+from .utils.contract_utils_common import (
+    processor_issue_event,
+    index_transfer_event,
+    clean_issue_event
+)
 from .utils.contract_utils_personal_info import register_personal_info
-from .utils.contract_utils_share import create_order, get_latest_orderid, get_latest_agreementid, take_buy, \
-    confirm_agreement, apply_for_offering
-from ..models import Token, HolderList
+from .utils.contract_utils_share import (
+    create_order,
+    get_latest_orderid,
+    get_latest_agreementid,
+    take_buy,
+    confirm_agreement,
+    apply_for_offering
+)
+from ..models import (
+    Token,
+    HolderList
+)
 
 
 class TestShare(TestBase):
@@ -108,11 +122,13 @@ class TestShare(TestBase):
         'symbol': 'SHARE',
         'totalSupply': 1000000,
         'issuePrice': 1000,
+        'principalValue': 1000,
         'dividends': 100.25,
         'dividendRecordDate': '20200401',
         'dividendPaymentDate': '20200501',
         'cancellationDate': '20200601',
         'transferable': 'True',
+        'transferApprovalRequired': 'False',
         'memo': 'メモ1234',
         'referenceUrls_1': 'http://example.com',
         'referenceUrls_2': 'http://image.png',
@@ -120,17 +136,20 @@ class TestShare(TestBase):
         'contact_information': '問い合わせ先ABCDEFG',
         'privacy_policy': 'プライバシーポリシーXYZ'
     }
-    # Token_2：2番目に発行されるトークン。必須項目のみ, transferable:False
+    # Token_2：2番目に発行されるトークン。
+    # 必須項目のみ, transferable:False, transferApprovalRequired:True
     token_data2 = {
         'name': '2件目株式',
         'symbol': '2KENME',
         'totalSupply': 2000000,
         'issuePrice': 2000,
+        'principalValue': 1000,
         'dividends': '',
         'dividendRecordDate': '',
         'dividendPaymentDate': '',
         'cancellationDate': '',
         'transferable': 'False',
+        'transferApprovalRequired': 'True',
         'memo': '',
         'referenceUrls_1': '',
         'referenceUrls_2': '',
@@ -144,11 +163,13 @@ class TestShare(TestBase):
         'symbol': '3KENME',
         'totalSupply': 3000000,
         'issuePrice': 3000,
+        'principalValue': 3000,
         'dividends': 30.75,
         'dividendRecordDate': '20230412',
         'dividendPaymentDate': '20230512',
         'cancellationDate': '20230612',
         'transferable': 'False',
+        'transferApprovalRequired': 'True',
         'memo': '3memo',
         'referenceUrls_1': 'http://hoge3.co.jp/foo',
         'referenceUrls_2': '',
@@ -238,8 +259,6 @@ class TestShare(TestBase):
         assert response.status_code == 302
         assert response.headers.get('Location').endswith(self.url_list)
 
-        time.sleep(10)
-
         # DB登録処理
         processor_issue_event(db)
 
@@ -281,8 +300,6 @@ class TestShare(TestBase):
             data=self.token_data2
         )
         assert response.status_code == 302
-
-        time.sleep(10)
 
         # DB登録処理
         processor_issue_event(db)
@@ -348,7 +365,6 @@ class TestShare(TestBase):
             data=self.token_data3
         )
         assert response.status_code == 302
-        time.sleep(10)
 
         # 詳細設定画面の参照
         response = client.get(url_setting)
@@ -375,7 +391,6 @@ class TestShare(TestBase):
             data=self.token_data1
         )
         assert response.status_code == 302
-        time.sleep(10)
 
     # ＜正常系4_2＞
     # ＜詳細設定＞
@@ -391,7 +406,6 @@ class TestShare(TestBase):
             data=self.token_data1
         )
         assert response.status_code == 302
-        time.sleep(10)
 
         # 詳細設定画面の参照
         response = client.get(url_setting)
@@ -508,7 +522,6 @@ class TestShare(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(10)
 
         # 詳細設定画面の参照
         url_setting = self.url_setting + token.token_address
