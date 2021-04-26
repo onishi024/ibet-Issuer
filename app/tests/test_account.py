@@ -16,13 +16,11 @@ limitations under the License.
 
 SPDX-License-Identifier: Apache-2.0
 """
-
 import pytest
-import time
 
+from app.models import User
 from .conftest import TestBase
 from .utils.account_config import eth_account
-from ..models import User
 
 
 # 初期設定ユーザ
@@ -572,9 +570,6 @@ class TestBankInfo(TestBase):
         assert '<input class="form-control" id="account_holder" name="account_holder" type="text" value="ABCDEFGHIJKLMNOPQRSTUVWXYZ-ﾞﾟｱｲｳｴｵｶｷｸｹｺｱ">'.encode(
             'utf-8') in response.data
 
-        # 待機
-        time.sleep(10)
-
     # ＜正常系3＞
     # 通常参照（登録済）
     def test_normal_3(self, app):
@@ -615,9 +610,6 @@ class TestBankInfo(TestBase):
             'utf-8') in response.data
         assert '<input class="form-control" id="account_holder" name="account_holder" type="text" value="ﾃｽﾄ">'.encode(
             'utf-8') in response.data
-
-        # 待機
-        time.sleep(10)
 
     # ＜エラー系1-1＞
     # 必須系

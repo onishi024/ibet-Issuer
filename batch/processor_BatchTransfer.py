@@ -16,17 +16,18 @@ limitations under the License.
 
 SPDX-License-Identifier: Apache-2.0
 """
-
-import sys
-import os
 import json
-import time
 import logging
 from logging.config import dictConfig
+import os
+import sys
+import time
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, scoped_session
-
+from sqlalchemy.orm import (
+    sessionmaker,
+    scoped_session
+)
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 
@@ -34,7 +35,10 @@ path = os.path.join(os.path.dirname(__file__), '../')
 sys.path.append(path)
 
 from app.utils import ContractUtils
-from app.models import BulkTransfer, Token
+from app.models import (
+    BulkTransfer,
+    Token
+)
 from config import Config
 
 # NOTE:ログフォーマットはメッセージ監視が出来るように設定する必要がある。
@@ -48,7 +52,7 @@ URI = os.environ.get('DATABASE_URL') or 'postgresql://issueruser:issuerpass@loca
 
 # 初期化
 web3 = Web3(Web3.HTTPProvider(WEB3_HTTP_PROVIDER))
-web3.middleware_stack.inject(geth_poa_middleware, layer=0)
+web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 engine = create_engine(URI, echo=False)
 db_session = scoped_session(sessionmaker())
 db_session.configure(bind=engine)

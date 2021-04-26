@@ -134,8 +134,8 @@ python ./app/tests/script/INSERT_token_holders.py 3 IbetStraightBond
 上記を実行後に以下を実行する。
 
 ```bash
-python async/processor_IssueEvent.py
-python async/indexer_Transfer.py
+python batch/processor_IssueEvent.py
+python batch/indexer_Transfer.py
 ```
 
 #### クーポン利用履歴登録
@@ -149,8 +149,8 @@ python ./app/tests/script/INSERT_coupon_consume.py 3
 上記を実行後に以下を実行する。
 
 ```bash
-python async/processor_IssueEvent.py
-python async/indexer_Transfer.py
-python async/indexer_Consume.py
+python batch/processor_IssueEvent.py
+python batch/indexer_Transfer.py
+python batch/indexer_Consume.py
 ```
 
