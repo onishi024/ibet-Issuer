@@ -9,7 +9,7 @@ from app.models import PersonalInfo as PersonalInfoModel
 from .account_config import eth_account
 
 web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
-web3.middleware_stack.inject(geth_poa_middleware, layer=0)
+web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
 
 def register_personal_info(db, invoker: dict, contract_address: str, info: dict, encrypted_info: bytes):
@@ -23,8 +23,6 @@ def register_personal_info(db, invoker: dict, contract_address: str, info: dict,
     :return:
     """
     web3.eth.defaultAccount = invoker['account_address']
-    web3.personal.unlockAccount(invoker['account_address'], invoker['password'])
-
     PersonalInfoContract = ContractUtils.get_contract('PersonalInfo', contract_address)
 
     issuer = eth_account['issuer']

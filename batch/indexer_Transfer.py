@@ -16,45 +16,48 @@ limitations under the License.
 
 SPDX-License-Identifier: Apache-2.0
 """
-
+from datetime import (
+    datetime,
+    timezone,
+    timedelta
+)
 import json
+import logging
+from logging.config import dictConfig
 import os
 import sys
 import time
-import logging
-from logging.config import dictConfig
-
-from datetime import datetime, timezone, timedelta
-JST = timezone(timedelta(hours=+9), "JST")
 
 from eth_utils import to_checksum_address
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy.orm import (
+    sessionmaker,
+    scoped_session
+)
+from web3 import Web3
+from web3.middleware import geth_poa_middleware
 
 path = os.path.join(os.path.dirname(__file__), '../')
 sys.path.append(path)
 
-from app.models import Token, Transfer
 from config import Config
+from app.models import (
+    Token,
+    Transfer
+)
 
-from web3 import Web3
-from web3.middleware import geth_poa_middleware
-
-# NOTE:ログフォーマットはメッセージ監視が出来るように設定する必要がある。
 dictConfig(Config.LOG_CONFIG)
 log_fmt = '[%(asctime)s] [INDEXER-Transfer] [%(process)d] [%(levelname)s] %(message)s'
 logging.basicConfig(format=log_fmt)
 
-# 設定の取得
-WEB3_HTTP_PROVIDER = Config.WEB3_HTTP_PROVIDER
-URI = Config.SQLALCHEMY_DATABASE_URI
+web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
+web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
-# 初期化
-web3 = Web3(Web3.HTTPProvider(WEB3_HTTP_PROVIDER))
-web3.middleware_stack.inject(geth_poa_middleware, layer=0)
-engine = create_engine(URI, echo=False)
+engine = create_engine(Config.SQLALCHEMY_DATABASE_URI, echo=False)
 db_session = scoped_session(sessionmaker())
 db_session.configure(bind=engine)
+
+JST = timezone(timedelta(hours=+9), "JST")
 
 
 class Sinks:
@@ -79,6 +82,7 @@ class DBSink:
 
     def on_transfer(self, transaction_hash, token_address,
                     account_address_from, account_address_to, transfer_amount, block_timestamp):
+        logging.debug(f"Transfer: transaction_hash={transaction_hash}")
         transfer_record = self.__get_record(transaction_hash, token_address)
         if transfer_record is None:
             transfer_record = Transfer()
@@ -89,7 +93,6 @@ class DBSink:
             transfer_record.transfer_amount = transfer_amount
             transfer_record.block_timestamp = block_timestamp
             self.db.merge(transfer_record)
-            logging.info(f"Transfer: transaction_hash={transaction_hash}")
 
     def flush(self):
         self.db.commit()
@@ -143,20 +146,18 @@ class Processor:
         self.latest_block = blockTo
 
     def __sync_all(self, block_from, block_to):
-        logging.debug("syncing from={}, to={}".format(block_from, block_to))
+        logging.info("syncing from={}, to={}".format(block_from, block_to))
         self.__sync_transfer(block_from, block_to)
         self.sink.flush()
 
     def __sync_transfer(self, block_from, block_to):
         for token in self.token_list:
             try:
-                event_filter = token.eventFilter(
-                    'Transfer', {
-                        'fromBlock': block_from,
-                        'toBlock': block_to,
-                    }
+                events = token.events.Transfer.getLogs(
+                    fromBlock=block_from,
+                    toBlock=block_to
                 )
-                for event in event_filter.get_all_entries():
+                for event in events:
                     args = event['args']
                     transaction_hash = event['transactionHash'].hex()
                     block_timestamp = datetime.fromtimestamp(web3.eth.getBlock(event['blockNumber'])['timestamp'], JST)
@@ -171,15 +172,14 @@ class Processor:
                             transfer_amount=args['value'],
                             block_timestamp=block_timestamp
                         )
-                web3.eth.uninstallFilter(event_filter.filter_id)
             except Exception as e:
                 logging.error(e)
-                pass
 
 
 _sink = Sinks()
 _sink.register(DBSink(db_session))
 processor = Processor(sink=_sink, db=db_session)
+logging.info("Service started successfully")
 
 processor.initial_sync()
 while True:

@@ -44,7 +44,7 @@ from .utils import ContractUtils
 logger = getLogger('api')
 
 web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
-web3.middleware_stack.inject(geth_poa_middleware, layer=0)
+web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
 
 @login_manager.user_loader

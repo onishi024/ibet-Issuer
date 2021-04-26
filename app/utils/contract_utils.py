@@ -32,7 +32,7 @@ from logging import getLogger
 logger = getLogger('api')
 
 web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
-web3.middleware_stack.inject(geth_poa_middleware, layer=0)
+web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
 
 class ContractUtils:
@@ -119,7 +119,7 @@ class ContractUtils:
         eth_account_password = fernet.decrypt(issuer.encrypted_account_password.encode()).decode()
 
         if issuer.private_keystore == "GETH":  # keystoreとしてgethを利用する場合
-            web3.personal.unlockAccount(issuer.eth_account, eth_account_password, 60)
+            web3.geth.personal.unlockAccount(issuer.eth_account, eth_account_password, 60)
             tx_hash = web3.eth.sendTransaction(transaction)
         elif issuer.private_keystore == "AWS_SECRETS_MANAGER":  # keystoreとしてAWS Secrets Managerを利用する場合
             nonce = web3.eth.getTransactionCount(issuer.eth_account)

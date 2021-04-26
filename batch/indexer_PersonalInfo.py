@@ -16,49 +16,54 @@ limitations under the License.
 
 SPDX-License-Identifier: Apache-2.0
 """
-
 import base64
+from Crypto.Cipher import PKCS1_OAEP
+from Crypto.PublicKey import RSA
+from datetime import (
+    datetime,
+    timezone,
+    timedelta
+)
 import json
+import logging
+from logging.config import dictConfig
 import os
 import sys
 import time
-import logging
-from logging.config import dictConfig
-from Crypto.Cipher import PKCS1_OAEP
-from Crypto.PublicKey import RSA
-from datetime import datetime, timezone, timedelta
-JST = timezone(timedelta(hours=+9), "JST")
 
+from eth_utils import to_checksum_address
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy.orm import (
+    sessionmaker,
+    scoped_session
+)
+from web3 import Web3
+from web3.middleware import geth_poa_middleware
+from web3.exceptions import BadFunctionCallOutput
 
 path = os.path.join(os.path.dirname(__file__), '../')
 sys.path.append(path)
 
-from app.models import Token, Issuer, PersonalInfoBlockNumber
+from app.models import (
+    Token,
+    Issuer,
+    PersonalInfoBlockNumber
+)
 from app.models import PersonalInfo as PersonalInfoModel
 from config import Config
 
-from web3 import Web3
-from web3.middleware import geth_poa_middleware
-from web3.exceptions import BadFunctionCallOutput
-from eth_utils import to_checksum_address
-
-# NOTE:ログフォーマットはメッセージ監視が出来るように設定する必要がある。
 dictConfig(Config.LOG_CONFIG)
 log_fmt = '[%(asctime)s] [INDEXER-PersonalInfo] [%(process)d] [%(levelname)s] %(message)s'
 logging.basicConfig(format=log_fmt)
 
-# 設定の取得
-WEB3_HTTP_PROVIDER = Config.WEB3_HTTP_PROVIDER
-URI = Config.SQLALCHEMY_DATABASE_URI
+web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
+web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
-# 初期化
-web3 = Web3(Web3.HTTPProvider(WEB3_HTTP_PROVIDER))
-web3.middleware_stack.inject(geth_poa_middleware, layer=0)
-engine = create_engine(URI, echo=False)
+engine = create_engine(Config.SQLALCHEMY_DATABASE_URI, echo=False)
 db_session = scoped_session(sessionmaker())
 db_session.configure(bind=engine)
+
+JST = timezone(timedelta(hours=+9), "JST")
 
 
 class PersonalInfoContract:
@@ -145,13 +150,11 @@ class PersonalInfoContract:
         :param block_to: block to
         :return: event entries
         """
-        event_filter = self.personal_info_contract.eventFilter(
-            "Register", {
-                "fromBlock": block_from,
-                "toBlock": block_to,
-            }
+        events = self.personal_info_contract.events.Register.getLogs(
+            fromBlock=block_from,
+            toBlock=block_to
         )
-        return event_filter.get_all_entries()
+        return events
 
     def get_modify_event(self, block_from, block_to):
         """Modifyイベントの取得
@@ -160,13 +163,11 @@ class PersonalInfoContract:
         :param block_to: block to
         :return: event entries
         """
-        event_filter = self.personal_info_contract.eventFilter(
-            "Modify", {
-                "fromBlock": block_from,
-                "toBlock": block_to,
-            }
+        events = self.personal_info_contract.events.Modify.getLogs(
+            fromBlock=block_from,
+            toBlock=block_to
         )
-        return event_filter.get_all_entries()
+        return events
 
 
 class Sinks:
@@ -189,24 +190,12 @@ class Sinks:
             sink.flush(*args, **kwargs)
 
 
-class ConsoleSink:
-    @staticmethod
-    def on_personalinfo_register(account_address, issuer_address, personal_info, timestamp):
-        logging.info(f"Register: account_address={account_address}, issuer_address={issuer_address}")
-
-    @staticmethod
-    def on_personalinfo_modify(account_address, issuer_address, personal_info, timestamp):
-        logging.info(f"Modify: account_address={account_address}, issuer_address={issuer_address}")
-
-    def flush(self):
-        return
-
-
 class DBSink:
     def __init__(self, db):
         self.db = db
 
     def on_personalinfo_register(self, account_address, issuer_address, personal_info, timestamp):
+        logging.debug(f"Register: account_address={account_address}, issuer_address={issuer_address}")
         record = self.db.query(PersonalInfoModel). \
             filter(PersonalInfoModel.account_address == to_checksum_address(account_address)). \
             filter(PersonalInfoModel.issuer_address == to_checksum_address(issuer_address)). \
@@ -225,6 +214,7 @@ class DBSink:
             self.db.add(record)
 
     def on_personalinfo_modify(self, account_address, issuer_address, personal_info, timestamp):
+        logging.debug(f"Modify: account_address={account_address}, issuer_address={issuer_address}")
         record = self.db.query(PersonalInfoModel). \
             filter(PersonalInfoModel.account_address == to_checksum_address(account_address)). \
             filter(PersonalInfoModel.issuer_address == to_checksum_address(issuer_address)). \
@@ -249,7 +239,7 @@ class Processor:
         self.__refresh_personalinfo_list()
         block_number = self.__get_blocknumber()  # DB同期済の直近のblockNumber
         latest_block = web3.eth.blockNumber  # 現在の最新のblockNumber
-        logging.debug("Syncing from={}, to={}".format(block_number, latest_block))
+        logging.info("syncing from={}, to={}".format(block_number, latest_block))
         if block_number >= latest_block:
             logging.debug("Skip Process")
         else:
@@ -371,9 +361,9 @@ class Processor:
 
 
 _sink = Sinks()
-_sink.register(ConsoleSink())
 _sink.register(DBSink(db_session))
 processor = Processor(sink=_sink, db=db_session)
+logging.info("Service started successfully")
 
 while True:
     try:

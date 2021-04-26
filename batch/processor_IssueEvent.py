@@ -16,31 +16,27 @@ limitations under the License.
 
 SPDX-License-Identifier: Apache-2.0
 """
-
-import sys
+import logging
+from logging.config import dictConfig
 import os
+import sys
 import time
-import sqlalchemy as sa
+
+from sqlalchemy import create_engine
 from web3 import Web3
-
-WEB3_HTTP_PROVIDER = os.environ.get('WEB3_HTTP_PROVIDER') or 'http://localhost:8545'
-web3 = Web3(Web3.HTTPProvider(WEB3_HTTP_PROVIDER))
-
-URI = os.environ.get('DATABASE_URL') or 'postgresql://issueruser:issuerpass@localhost:5432/issuerdb'
-engine = sa.create_engine(URI, echo=False)
 
 path = os.path.join(os.path.dirname(__file__), '../')
 sys.path.append(path)
 
 from config import Config
 
-import logging
-from logging.config import dictConfig
+web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
+engine = create_engine(Config.SQLALCHEMY_DATABASE_URI, echo=False)
 
-# NOTE:ログフォーマットはメッセージ監視が出来るように設定する必要がある。
 dictConfig(Config.LOG_CONFIG)
 log_fmt = '[%(asctime)s] [PROCESSOR-IssueEvent] [%(process)d] [%(levelname)s] %(message)s'
 logging.basicConfig(format=log_fmt)
+
 
 while True:
     # コントラクトアドレスが登録されていないTokenの一覧を抽出
@@ -59,13 +55,14 @@ while True:
 
         try:
             tx_receipt = web3.eth.getTransactionReceipt(tx_hash_hex)
-        except:
+        except Exception as err:
+            logging.exception(err)
             continue
 
-        if tx_receipt is not None :
+        if tx_receipt is not None:
             # ブロックの状態を確認して、コントラクトアドレスが登録されているかを確認する。
             if 'contractAddress' in tx_receipt.keys():
-                admin_address = tx_receipt['from']
+                admin_address = tx_receipt['from'].lower()
                 contract_address = tx_receipt['contractAddress']
 
                 # 登録済みトークン情報に発行者のアドレスと、トークンアドレスの登録を行う。
