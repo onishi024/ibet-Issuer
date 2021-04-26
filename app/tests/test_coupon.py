@@ -16,26 +16,31 @@ limitations under the License.
 
 SPDX-License-Identifier: Apache-2.0
 """
-
-import time
 from datetime import datetime
-
-import pytest
 import json
 import base64
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 
+import pytest
 from eth_utils import to_checksum_address
 
 from config import Config
+from app.models import (
+    Token,
+    Transfer
+)
 from .conftest import TestBase
 from .utils import contract_utils_common
 from .utils.account_config import eth_account
-from .utils.contract_utils_common import processor_issue_event, index_transfer_event, clean_issue_event
+from .utils.contract_utils_common import (
+    processor_issue_event,
+    index_transfer_event,
+    clean_issue_event
+)
 from .utils.contract_utils_coupon import apply_for_offering
 from .utils.contract_utils_personal_info import register_personal_info
-from ..models import Token, Transfer
+
 
 
 class TestCoupon(TestBase):
@@ -172,7 +177,6 @@ class TestCoupon(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(10)
 
     # ＜正常系2_2＞
     # ＜新規発行＞
@@ -236,7 +240,6 @@ class TestCoupon(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(10)
 
         # DB登録処理
         processor_issue_event(db)
@@ -326,7 +329,6 @@ class TestCoupon(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(10)
 
         response = client.get(url_setting)
         assert response.status_code == 200
@@ -360,7 +362,6 @@ class TestCoupon(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(10)
 
     # ＜正常系5_1＞
     # ＜有効化・無効化＞
@@ -434,7 +435,6 @@ class TestCoupon(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(10)
 
         # 詳細設定画面で確認
         response = client.get(url_setting)
@@ -460,7 +460,6 @@ class TestCoupon(TestBase):
             }
         )
         assert response.status_code == 200
-        time.sleep(10)
 
         # 保有者一覧画面の参照
         response = client.get(self.url_holders + tokens[0].token_address)
@@ -1191,7 +1190,6 @@ class TestCoupon(TestBase):
         assert response.status_code == 302
         response = client.get(url_add_supply)
         assert '総発行量と追加発行量の合計は、100,000,000が上限です。'.encode('utf-8') in response.data
-        time.sleep(10)
 
         # 詳細設定画面で確認
         response = client.get(url_setting)

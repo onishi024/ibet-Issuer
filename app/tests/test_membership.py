@@ -16,26 +16,39 @@ limitations under the License.
 
 SPDX-License-Identifier: Apache-2.0
 """
-
-from datetime import datetime, timezone
-
-import time
-import pytest
+from datetime import (
+    datetime,
+    timezone
+)
 import json
 import base64
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 
+import pytest
 from eth_utils import to_checksum_address
 
 from config import Config
+from app.models import (
+    Token,
+    HolderList,
+    Transfer
+)
 from .conftest import TestBase
 from .utils.account_config import eth_account
-from .utils.contract_utils_common import processor_issue_event, index_transfer_event, clean_issue_event
-from .utils.contract_utils_membership import \
-    get_latest_orderid, get_latest_agreementid, take_buy, confirm_agreement, apply_for_offering
+from .utils.contract_utils_common import (
+    processor_issue_event,
+    index_transfer_event,
+    clean_issue_event
+)
+from .utils.contract_utils_membership import (
+    get_latest_orderid,
+    get_latest_agreementid,
+    take_buy,
+    confirm_agreement,
+    apply_for_offering
+)
 from .utils.contract_utils_personal_info import register_personal_info
-from ..models import Token, HolderList, Transfer
 
 
 class TestMembership(TestBase):
@@ -206,8 +219,6 @@ class TestMembership(TestBase):
         )
         assert response.status_code == 302
 
-        time.sleep(10)
-
         # DB登録処理
         processor_issue_event(db)
 
@@ -273,8 +284,6 @@ class TestMembership(TestBase):
             data=self.token_data2
         )
         assert response.status_code == 302
-
-        time.sleep(10)
 
         # DB登録処理
         processor_issue_event(db)
@@ -433,7 +442,6 @@ class TestMembership(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(10)
 
         # 詳細設定：設定変更
         url_setting = self.url_setting + token.token_address
@@ -442,7 +450,6 @@ class TestMembership(TestBase):
             data=self.token_data3
         )
         assert response.status_code == 302
-        time.sleep(10)
 
         # 詳細設定画面の参照
         response = client.get(url_setting)
@@ -468,7 +475,6 @@ class TestMembership(TestBase):
             data=self.token_data1
         )
         assert response.status_code == 302
-        time.sleep(10)
 
     # ＜正常系5_2＞
     # ＜詳細設定＞
@@ -484,7 +490,6 @@ class TestMembership(TestBase):
             data=self.token_data1
         )
         assert response.status_code == 302
-        time.sleep(10)
 
         # 詳細設定画面の参照
         response = client.get(url_setting)
@@ -609,7 +614,6 @@ class TestMembership(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(10)
 
         # 詳細設定画面の参照
         url_setting = self.url_setting + token.token_address
