@@ -872,7 +872,7 @@ def get_applications(token_address):
     for event in apply_for_events:
         account_list.append(event.account_address)
 
-    applications = []
+    _applications = []
     for account_address in account_list:
         # 個人情報取得
         personal_info = personal_info_contract.get_info(
@@ -891,9 +891,9 @@ def get_applications(token_address):
             'data': application_data[2],
             'balance': balance
         }
-        applications.append(application)
+        _applications.append(application)
 
-    return jsonify(applications)
+    return jsonify(_applications)
 
 
 ####################################################
@@ -1025,6 +1025,8 @@ def _render_transfer_allotment(token_address: str, account_address: str, form: T
 ####################################################
 # [株式]保有者一覧
 ####################################################
+
+# （画面）保有者一覧
 @share.route('/holders/<string:token_address>', methods=['GET'])
 @login_required
 def holders(token_address):
@@ -1036,60 +1038,7 @@ def holders(token_address):
     )
 
 
-# 保有者リストCSVダウンロード
-@share.route('/holders_csv_download', methods=['POST'])
-@login_required
-def holders_csv_download():
-    logger.info(f'[{current_user.login_id}] share/holders_csv_download')
-
-    token_address = request.form.get('token_address')
-    holders = get_holders(token_address)["data"]
-    token_name = json.loads(get_token_name(token_address).data)
-
-    f = io.StringIO()
-
-    # ヘッダー行
-    data_header = \
-        'token_name,' + \
-        'token_address,' + \
-        'account_address,' + \
-        'key_manager,' + \
-        'balance,' + \
-        'name,' + \
-        'birth_date,' + \
-        'postal_code,' + \
-        'address,' + \
-        'email\n'
-    f.write(data_header)
-
-    for holder in holders:
-        # Unicodeの各種ハイフン文字を半角ハイフン（U+002D）に変換する
-        try:
-            holder_address = re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', holder["address"])
-        except TypeError:
-            holder_address = ""
-        # データ行
-        data_row = \
-            token_name + ',' + token_address + ',' + \
-            holder["account_address"] + ',' + holder["key_manager"] + ','  + \
-            str(holder["balance"]) + ',' + \
-            holder["name"] + ',' + holder["birth_date"] + ',' + \
-            holder["postal_code"] + ',' + holder_address + ',' + \
-            holder["email"] + '\n'
-        f.write(data_row)
-
-    now = datetime.now(tz=JST)
-    res = make_response()
-    csvdata = f.getvalue()
-    res.data = csvdata.encode('sjis', 'ignore')
-    res.headers['Content-Type'] = 'text/plain'
-    res.headers['Content-Disposition'] = f"attachment; filename={now.strftime('%Y%m%d%H%M%S')}share_holders_list.csv"
-    return res
-
-
-####################################################
-# [株式]保有者リスト履歴
-####################################################
+# （画面）保有者リスト履歴
 @share.route('/holders_csv_history/<string:token_address>', methods=['GET'])
 @login_required
 def holders_csv_history(token_address):
@@ -1105,7 +1054,7 @@ def holders_csv_history(token_address):
     )
 
 
-# 保有者リスト履歴（API）
+# （画面）保有者リスト履歴
 @share.route('/get_holders_csv_history/<string:token_address>', methods=['GET'])
 @login_required
 def get_holders_csv_history(token_address):
@@ -1144,6 +1093,57 @@ def get_holders_csv_history(token_address):
 
 
 # 保有者リストCSVダウンロード
+@share.route('/holders_csv_download', methods=['POST'])
+@login_required
+def holders_csv_download():
+    logger.info(f'[{current_user.login_id}] share/holders_csv_download')
+
+    token_address = request.form.get('token_address')
+    _holders = get_holders(token_address)["data"]
+    token_name = json.loads(get_token_name(token_address).data)
+
+    f = io.StringIO()
+
+    # ヘッダー行
+    data_header = \
+        'token_name,' + \
+        'token_address,' + \
+        'account_address,' + \
+        'key_manager,' + \
+        'balance,' + \
+        'name,' + \
+        'birth_date,' + \
+        'postal_code,' + \
+        'address,' + \
+        'email\n'
+    f.write(data_header)
+
+    for _holder in _holders:
+        # Unicodeの各種ハイフン文字を半角ハイフン（U+002D）に変換する
+        try:
+            holder_address = re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', _holder["address"])
+        except TypeError:
+            holder_address = ""
+        # データ行
+        data_row = \
+            token_name + ',' + token_address + ',' + \
+            _holder["account_address"] + ',' + _holder["key_manager"] + ',' + \
+            str(_holder["balance"]) + ',' + \
+            _holder["name"] + ',' + _holder["birth_date"] + ',' + \
+            _holder["postal_code"] + ',' + holder_address + ',' + \
+            _holder["email"] + '\n'
+        f.write(data_row)
+
+    now = datetime.now(tz=JST)
+    res = make_response()
+    csvdata = f.getvalue()
+    res.data = csvdata.encode('sjis', 'ignore')
+    res.headers['Content-Type'] = 'text/plain'
+    res.headers['Content-Disposition'] = f"attachment; filename={now.strftime('%Y%m%d%H%M%S')}share_holders_list.csv"
+    return res
+
+
+# 保有者リストCSV履歴ダウンロード
 @share.route('/holders_csv_history_download', methods=['POST'])
 @login_required
 def holders_csv_history_download():
@@ -1249,11 +1249,14 @@ def get_holders(token_address):
     count = 0  # 取得レコード
     for account_address in holders_uniq:
         cursor += 1
-        if ((start is not None and cursor >= start) and (length is not None and count < length)) or (start is None and length is None):
+        if ((start is not None and cursor >= start) and (length is not None and count < length)) or \
+                (start is None and length is None):
             count += 1
 
-            # 残高取得
+            # 保有残高取得
             balance = TokenContract.functions.balanceOf(account_address).call()
+            # 移転承諾待ち数量取得
+            pending_transfer = TokenContract.functions.pendingTransfer(account_address).call()
 
             # アドレス種別判定
             if account_address == token_owner:
@@ -1272,7 +1275,7 @@ def get_holders(token_address):
                 'email': DEFAULT_VALUE,
                 'address': DEFAULT_VALUE,
                 'birth_date': DEFAULT_VALUE,
-                'balance': balance,
+                'balance': balance + pending_transfer,
                 'address_type': address_type
             }
 
@@ -1301,7 +1304,7 @@ def get_holders(token_address):
                         'address': address,
                         'email': email,
                         'birth_date': birth_date,
-                        'balance': balance,
+                        'balance': balance + pending_transfer,
                         'address_type': address_type
                     }
 
