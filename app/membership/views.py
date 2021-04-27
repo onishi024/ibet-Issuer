@@ -414,38 +414,43 @@ def holders_csv_download():
     logger.info(f'[{current_user.login_id}] membership/holders_csv_download')
 
     token_address = request.form.get('token_address')
-    holders = json.loads(get_holders(token_address).data)
+    _holders = json.loads(get_holders(token_address).data)
     token_name = json.loads(get_token_name(token_address).data)
 
     f = io.StringIO()
 
     # ヘッダー行
-    data_header = \
-        'token_name,' + \
-        'token_address,' + \
-        'account_address,' + \
-        'balance,' + \
-        'commitment,' + \
-        'name,' + \
-        'birth_date,' + \
-        'postal_code,' + \
-        'address,' + \
-        'email\n'
+    data_header = f"token_name," \
+                  f"token_address," \
+                  f"account_address," \
+                  f"balance," \
+                  f"commitment," \
+                  f"name," \
+                  f"birth_date," \
+                  f"postal_code," \
+                  f"address," \
+                  f"email" \
+                  f"\n"
     f.write(data_header)
 
-    for holder in holders:
+    for _holder in _holders:
         # Unicodeの各種ハイフン文字を半角ハイフン（U+002D）に変換する
         try:
-            holder_address = re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', holder["address"])
+            holder_address = re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', _holder["address"])
         except TypeError:
             holder_address = ""
         # データ行
-        data_row = \
-            token_name + ',' + token_address + ',' + holder["account_address"] + ',' + \
-            str(holder["balance"]) + ',' + str(holder["commitment"]) + ',' + \
-            holder["name"] + ',' + holder["birth_date"] + ',' + \
-            holder["postal_code"] + ',' + holder_address + ',' + \
-            holder["email"] + '\n'
+        data_row = f"{token_name}," \
+                   f"{token_address}," \
+                   f"{_holder['account_address']}," \
+                   f"{str(_holder['balance'])}," \
+                   f"{str(_holder['commitment'])}," \
+                   f"{_holder['name']}," \
+                   f"{_holder['birth_date']}," \
+                   f"{_holder['postal_code']}," \
+                   f"{holder_address}," \
+                   f"{_holder['email']}" \
+                   f"\n"
         f.write(data_row)
 
     now = datetime.now(tz=JST)
@@ -1372,7 +1377,7 @@ def _set_validity(token_address, isvalid):
     """
     取扱ステータス変更
     :param token_address: トークンアドレス
-    :param status: 変更後ステータス
+    :param isvalid: 変更後ステータス
     :return: なし
     """
     # Tokenコントラクト接続
