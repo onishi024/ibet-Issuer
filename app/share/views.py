@@ -717,7 +717,6 @@ def token_tracker(token_address):
             })
         except Exception as e:
             logger.exception(e)
-            pass
 
     return render_template(
         'share/token_tracker.html',
@@ -814,14 +813,22 @@ def list_all_transfer_approvals(token_address):
     resp_transfer_approvals = []
     for _transfer_approval in _transfer_approvals:
         try:
-            _application_datetime = _transfer_approval.application_datetime.\
-                replace(tzinfo=timezone.utc).astimezone(JST).strftime("%Y/%m/%d %H:%M:%S %z")
-            _application_blocktimestamp = _transfer_approval.application_blocktimestamp.\
-                replace(tzinfo=timezone.utc).astimezone(JST).strftime("%Y/%m/%d %H:%M:%S %z")
-            _approval_datetime = _transfer_approval.approval_datetime.\
-                replace(tzinfo=timezone.utc).astimezone(JST).strftime("%Y/%m/%d %H:%M:%S %z")
-            _approval_blocktimestamp = _transfer_approval.approval_blocktimestamp.\
-                replace(tzinfo=timezone.utc).astimezone(JST).strftime("%Y/%m/%d %H:%M:%S %z")
+            _application_datetime = _transfer_approval.application_datetime
+            _application_blocktimestamp = _transfer_approval.application_blocktimestamp
+            _approval_datetime = _transfer_approval.approval_datetime
+            _approval_blocktimestamp = _transfer_approval.approval_blocktimestamp
+            if _application_datetime is not None:
+                _application_datetime = _application_datetime.\
+                    replace(tzinfo=timezone.utc).astimezone(JST).strftime("%Y/%m/%d %H:%M:%S %z")
+            if _application_blocktimestamp is not None:
+                _application_blocktimestamp = _application_blocktimestamp. \
+                    replace(tzinfo=timezone.utc).astimezone(JST).strftime("%Y/%m/%d %H:%M:%S %z")
+            if _approval_datetime is not None:
+                _approval_datetime = _approval_datetime. \
+                    replace(tzinfo=timezone.utc).astimezone(JST).strftime("%Y/%m/%d %H:%M:%S %z")
+            if _approval_blocktimestamp is not None:
+                _approval_blocktimestamp = _approval_blocktimestamp. \
+                    replace(tzinfo=timezone.utc).astimezone(JST).strftime("%Y/%m/%d %H:%M:%S %z")
             resp_transfer_approvals.append({
                 "application_id": _transfer_approval.application_id,
                 "from_address": _transfer_approval.from_address,
@@ -835,7 +842,6 @@ def list_all_transfer_approvals(token_address):
             })
         except Exception as e:
             logger.exception(e)
-            pass
 
     return render_template(
         'share/transfer_approvals.html',
