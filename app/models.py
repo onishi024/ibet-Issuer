@@ -619,6 +619,20 @@ class IDXTransferApproval(db.Model):
     cancelled = db.Column(db.Boolean)
 
 
+class TransferApprovalHistory(db.Model):
+    """Token Transfer Approval History"""
+    __tablename__ = 'transfer_approval_history'
+
+    # Sequence Id
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    # Token Address
+    token_address = db.Column(db.String(42), index=True)
+    # Application Id
+    application_id = db.Column(db.Integer, index=True)
+    # Result (success:1, fail: 2)
+    result = db.Column(db.Integer)
+
+
 ########################################################
 # 購入者情報
 ########################################################
