@@ -70,7 +70,7 @@ class Sinks:
 
     def on_transfer_approval(self, *args, **kwargs):
         for sink in self.sinks:
-            sink.on_transfer(*args, **kwargs)
+            sink.on_transfer_approval(*args, **kwargs)
 
     def flush(self, *args, **kwargs):
         for sink in self.sinks:
