@@ -36,6 +36,7 @@ from sqlalchemy.orm import (
 )
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
+from web3.exceptions import ABIEventFunctionNotFound
 
 path = os.path.join(os.path.dirname(__file__), '../')
 sys.path.append(path)
@@ -224,6 +225,9 @@ class Processor:
                     fromBlock=block_from,
                     toBlock=block_to
                 )
+            except ABIEventFunctionNotFound:
+                continue
+            try:
                 for event in events:
                     args = event["args"]
                     value = args.get("value", 0)
@@ -257,6 +261,9 @@ class Processor:
                     fromBlock=block_from,
                     toBlock=block_to
                 )
+            except ABIEventFunctionNotFound:
+                continue
+            try:
                 for event in events:
                     args = event["args"]
                     self.sink.on_transfer_approval(
@@ -282,6 +289,9 @@ class Processor:
                     fromBlock=block_from,
                     toBlock=block_to
                 )
+            except ABIEventFunctionNotFound:
+                continue
+            try:
                 for event in events:
                     args = event["args"]
                     block_timestamp = self.get_block_timestamp(event=event)
