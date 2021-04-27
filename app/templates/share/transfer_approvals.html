@@ -49,7 +49,7 @@
                     <td style="word-break : break-all;">{{ item.to_address }}</td>
                     <td>{{ item.value }}</td>
                     {% if item.cancelled == true %}
-                    <td align="center"><span class="badge bg-green">取消済</span></td>
+                    <td align="center"><span class="badge bg-red">取消済</span></td>
                     {% elif token.status == false %}
                     <td></td>
                     {% endif %}
