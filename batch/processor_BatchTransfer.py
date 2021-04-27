@@ -41,19 +41,14 @@ from app.models import (
 )
 from config import Config
 
-# NOTE:ログフォーマットはメッセージ監視が出来るように設定する必要がある。
 dictConfig(Config.LOG_CONFIG)
 log_fmt = '[%(asctime)s] [PROCESSOR-BatchTransfer] [%(process)d] [%(levelname)s] %(message)s'
 logging.basicConfig(format=log_fmt)
 
-# 設定情報の取得
-WEB3_HTTP_PROVIDER = os.environ.get('WEB3_HTTP_PROVIDER') or 'http://localhost:8545'
-URI = os.environ.get('DATABASE_URL') or 'postgresql://issueruser:issuerpass@localhost:5432/issuerdb'
-
-# 初期化
-web3 = Web3(Web3.HTTPProvider(WEB3_HTTP_PROVIDER))
+web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
 web3.middleware_onion.inject(geth_poa_middleware, layer=0)
-engine = create_engine(URI, echo=False)
+
+engine = create_engine(Config.SQLALCHEMY_DATABASE_URI, echo=False)
 db_session = scoped_session(sessionmaker())
 db_session.configure(bind=engine)
 
@@ -76,7 +71,7 @@ while True:
             filter(Token.admin_address == record.eth_account.lower()). \
             first()
         if token is None:
-            logging.warning('Cannot handle coupon token address %s', record.token_address)
+            logging.warning('Cannot handle token address %s', record.token_address)
             continue
         token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
         TokenContract = web3.eth.contract(
