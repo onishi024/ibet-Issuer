@@ -69,6 +69,7 @@ from app.share.forms import (
 from app.models import (
     Token,
     Transfer,
+    IDXTransferApproval,
     AddressType,
     ApplyFor,
     Issuer,
@@ -783,6 +784,64 @@ def token_tracker_csv():
     res.headers['Content-Disposition'] = f"attachment; filename={now.strftime('%Y%m%d%H%M%S')}_share_tracks.csv"
 
     return res
+
+
+####################################################
+# トークン移転承諾
+####################################################
+@share.route("/token/transfer_approvals/<string:token_address>", methods=["GET"])
+@login_required
+def list_all_transfer_approvals(token_address):
+    logger.info(f"[{current_user.login_id}] share/list_all_transfer_approvals")
+
+    # Validation
+    if not Web3.isAddress(token_address):
+        abort(404)
+
+    # Check if the token is issued by the issuer
+    token = Token.query. \
+        filter(Token.token_address == token_address). \
+        filter(Token.admin_address == session["eth_account"].lower()). \
+        first()
+    if token is None:
+        abort(404)
+
+    _transfer_approvals = IDXTransferApproval.query.\
+        filter(IDXTransferApproval.token_address == token_address). \
+        order_by(desc(IDXTransferApproval.application_id)). \
+        all()
+
+    resp_transfer_approvals = []
+    for _transfer_approval in _transfer_approvals:
+        try:
+            _application_datetime = _transfer_approval.application_datetime.\
+                replace(tzinfo=timezone.utc).astimezone(JST).strftime("%Y/%m/%d %H:%M:%S %z")
+            _application_blocktimestamp = _transfer_approval.application_blocktimestamp.\
+                replace(tzinfo=timezone.utc).astimezone(JST).strftime("%Y/%m/%d %H:%M:%S %z")
+            _approval_datetime = _transfer_approval.approval_datetime.\
+                replace(tzinfo=timezone.utc).astimezone(JST).strftime("%Y/%m/%d %H:%M:%S %z")
+            _approval_blocktimestamp = _transfer_approval.approval_blocktimestamp.\
+                replace(tzinfo=timezone.utc).astimezone(JST).strftime("%Y/%m/%d %H:%M:%S %z")
+            resp_transfer_approvals.append({
+                "application_id": _transfer_approval.application_id,
+                "from_address": _transfer_approval.from_address,
+                "to_address": _transfer_approval.to_address,
+                "value": _transfer_approval.value,
+                "application_datetime": _application_datetime,
+                "application_blocktimestamp": _application_blocktimestamp,
+                "approval_datetime": _approval_datetime,
+                "approval_blocktimestamp": _approval_blocktimestamp,
+                "cancelled": _transfer_approval.cancelled
+            })
+        except Exception as e:
+            logger.exception(e)
+            pass
+
+    return render_template(
+        'share/transfer_approvals.html',
+        token_address=token_address,
+        transfer_approvals=resp_transfer_approvals
+    )
 
 
 ####################################################
