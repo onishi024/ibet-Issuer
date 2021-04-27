@@ -16,21 +16,26 @@ limitations under the License.
 
 SPDX-License-Identifier: Apache-2.0
 """
-
 import base64
-import json
-from datetime import datetime
-from enum import Enum
-
-import requests
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
+from datetime import datetime
+from enum import Enum
+import json
+import requests
 
-from sqlalchemy.orm import deferred
-from werkzeug.security import generate_password_hash, check_password_hash
-from flask import url_for, redirect, abort
-from flask_login import UserMixin
 from eth_utils import to_checksum_address
+from flask import (
+    url_for,
+    redirect,
+    abort
+)
+from flask_login import UserMixin
+from sqlalchemy.orm import deferred
+from werkzeug.security import (
+    generate_password_hash,
+    check_password_hash
+)
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 
@@ -430,31 +435,23 @@ class CorporateBondLedgerTemplate(db.Model):
 # ブロックチェーンイベントログ
 ########################################################
 class Transfer(db.Model):
-    """トークン移転イベント"""
+    """Token Transfer Events (INDEX)"""
     __tablename__ = 'transfer'
 
-    # シーケンスID
+    # Sequence ID
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    # トランザクションハッシュ
+    # Transaction Hash
     transaction_hash = db.Column(db.String(66), index=True)
-    # トークンアドレス
+    # Token Address
     token_address = db.Column(db.String(42), index=True)
-    # 移転元アドレス
+    # Transfer From
     account_address_from = db.Column(db.String(42), index=True)
-    # 移転先アドレス
+    # Transfer To
     account_address_to = db.Column(db.String(42), index=True)
-    # 移転数量
+    # Transfer Amount
     transfer_amount = db.Column(db.Integer)
-    # ブロックタイムスタンプ
+    # Block Timestamp
     block_timestamp = db.Column(db.DateTime)
-
-    def __repr__(self):
-        return "<Transfer('transaction_hash'='%s', 'token_address'='%s')>" % \
-               (self.transaction_hash, self.token_address)
-
-    @classmethod
-    def get_id(cls):
-        return Transfer.id
 
 
 class ApplyFor(db.Model):
@@ -592,6 +589,34 @@ class AgreementStatus(Enum):
     PENDING = 0
     DONE = 1
     CANCELED = 2
+
+
+class IDXTransferApproval(db.Model):
+    """Token Transfer Approval Events (INDEX)"""
+    __tablename__ = 'transfer_approval'
+
+    # Sequence Id
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    # Token Address
+    token_address = db.Column(db.String(42), index=True)
+    # Application Id
+    application_id = db.Column(db.Integer, index=True)
+    # Transfer From
+    from_address = db.Column(db.String(42))
+    # Transfer To
+    to_address = db.Column(db.String(42))
+    # Transfer Amount
+    value = db.Column(db.Integer)
+    # Application Datetime
+    application_datetime = db.Column(db.DateTime)
+    # Application Blocktimestamp
+    application_blocktimestamp = db.Column(db.DateTime)
+    # Approval Datetime
+    approval_datetime = db.Column(db.DateTime)
+    # Approval Blocktimestamp
+    approval_blocktimestamp = db.Column(db.DateTime)
+    # Cancellation Status
+    cancelled = db.Column(db.Boolean)
 
 
 ########################################################
