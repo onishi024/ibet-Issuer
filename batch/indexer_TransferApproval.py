@@ -170,15 +170,17 @@ class Processor:
 
     def get_token_list(self):
         self.token_list = []
-        issued_token_list = self.db.query(Token).all()
-        for issued_token in issued_token_list:
-            if issued_token.token_address is not None:
-                abi = json.loads(issued_token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
-                token_contract = web3.eth.contract(
-                    address=issued_token.token_address,
-                    abi=abi
-                )
-                self.token_list.append(token_contract)
+        issued_share_tokens = self.db.query(Token).\
+            filter(Token.template_id == Config.TEMPLATE_ID_SHARE).\
+            filter(Token.token_address != None). \
+            all()
+        for issued_token in issued_share_tokens:
+            abi = json.loads(issued_token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
+            token_contract = web3.eth.contract(
+                address=issued_token.token_address,
+                abi=abi
+            )
+            self.token_list.append(token_contract)
 
     def initial_sync(self):
         self.get_token_list()
