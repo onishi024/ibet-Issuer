@@ -31,6 +31,7 @@ from sqlalchemy.orm import (
 )
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
+from eth_utils import to_checksum_address
 
 path = os.path.join(os.path.dirname(__file__), "../")
 sys.path.append(path)
@@ -91,10 +92,10 @@ while True:
             # Approve Transfer
             now = str(datetime.utcnow().timestamp())
             approve_tx = TokenContract.functions.approveTransfer(application.application_id, now). \
-                buildTransaction({"from": token.admin_address, "gas": Config.TX_GAS_LIMIT})
+                buildTransaction({"from": to_checksum_address(token.admin_address), "gas": Config.TX_GAS_LIMIT})
             tx_hash, txn_receipt = ContractUtils.send_transaction(
                 transaction=approve_tx,
-                eth_account=token.admin_address,
+                eth_account=to_checksum_address(token.admin_address),
                 db_session=db_session
             )
             transfer_approve_history = TransferApprovalHistory()
@@ -109,10 +110,10 @@ while True:
             else:  # Fail
                 # Cancel Transfer
                 cancel_tx = TokenContract.functions.cancelTransfer(application.application_id, now). \
-                    buildTransaction({"from": token.admin_address, "gas": Config.TX_GAS_LIMIT})
+                    buildTransaction({"from": to_checksum_address(token.admin_address), "gas": Config.TX_GAS_LIMIT})
                 tx_hash, txn_receipt = ContractUtils.send_transaction(
                     transaction=cancel_tx,
-                    eth_account=token.admin_address,
+                    eth_account=to_checksum_address(token.admin_address),
                     db_session=db_session
                 )
                 transfer_approve_history.result = 2  # Error
