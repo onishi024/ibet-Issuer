@@ -56,15 +56,19 @@ COPY requirements.txt /app/requirements.txt
 RUN . ~/.bash_profile \
  && pip install -r /app/requirements.txt
 
-# app
+# deploy app
 USER root
 COPY . /app/ibet-Issuer
-RUN chown -R apl:apl /app/ibet-Issuer && \
-    chmod 755 /app/ibet-Issuer
+RUN chown -R apl:apl /app/ibet-Issuer \
+    && rm -rf /app/ibet-Issuer/app/tests/ \
+    && chmod 755 /app/ibet-Issuer
+
+# command deploy
 USER apl
 COPY run.sh healthcheck.sh /app/
 
 EXPOSE 5000
 
+# run server
 CMD /app/run.sh
 HEALTHCHECK --interval=10s CMD /app/healthcheck.sh
