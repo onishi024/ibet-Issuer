@@ -50,7 +50,7 @@
                     <td>{{ item.value }}</td>
                     {% if item.cancelled == true %}
                     <td align="center"><span class="badge bg-red">取消済</span></td>
-                    {% elif item.cancelled == false %}
+                    {% else %}
                     <td></td>
                     {% endif %}
                 </tr>
