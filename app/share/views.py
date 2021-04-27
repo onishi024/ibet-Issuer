@@ -48,9 +48,10 @@ from sqlalchemy import (
     desc,
     or_
 )
-from web3 import Web3
 from eth_utils import to_checksum_address
+from web3 import Web3
 from web3.middleware import geth_poa_middleware
+from web3.exceptions import ABIFunctionNotFound
 
 from config import Config
 from logging import getLogger
@@ -1105,17 +1106,17 @@ def holders_csv_download():
     f = io.StringIO()
 
     # ヘッダー行
-    data_header = \
-        'token_name,' + \
-        'token_address,' + \
-        'account_address,' + \
-        'key_manager,' + \
-        'balance,' + \
-        'name,' + \
-        'birth_date,' + \
-        'postal_code,' + \
-        'address,' + \
-        'email\n'
+    data_header = f"token_name," \
+                  f"token_address," \
+                  f"account_address," \
+                  f"key_manager," \
+                  f"balance," \
+                  f"name," \
+                  f"birth_date," \
+                  f"postal_code," \
+                  f"address," \
+                  f"email" \
+                  f"\n"
     f.write(data_header)
 
     for _holder in _holders:
@@ -1125,13 +1126,17 @@ def holders_csv_download():
         except TypeError:
             holder_address = ""
         # データ行
-        data_row = \
-            token_name + ',' + token_address + ',' + \
-            _holder["account_address"] + ',' + _holder["key_manager"] + ',' + \
-            str(_holder["balance"]) + ',' + \
-            _holder["name"] + ',' + _holder["birth_date"] + ',' + \
-            _holder["postal_code"] + ',' + holder_address + ',' + \
-            _holder["email"] + '\n'
+        data_row = f"{token_name}," \
+                   f"{token_address}," \
+                   f"{_holder['account_address']}," \
+                   f"{_holder['key_manager']}," \
+                   f"{str(_holder['balance'])}," \
+                   f"{_holder['name']}," \
+                   f"{_holder['birth_date']}," \
+                   f"{_holder['postal_code']}," \
+                   f"{holder_address}," \
+                   f"{_holder['email']}" \
+                   f"\n"
         f.write(data_row)
 
     now = datetime.now(tz=JST)
@@ -1254,9 +1259,16 @@ def get_holders(token_address):
             count += 1
 
             # 保有残高取得
-            balance = TokenContract.functions.balanceOf(account_address).call()
+            try:
+                balance = TokenContract.functions.balanceOf(account_address).call()
+            except ABIFunctionNotFound:
+                balance = 0
+
             # 移転承諾待ち数量取得
-            pending_transfer = TokenContract.functions.pendingTransfer(account_address).call()
+            try:
+                pending_transfer = TokenContract.functions.pendingTransfer(account_address).call()
+            except ABIFunctionNotFound:
+                pending_transfer = 0
 
             # アドレス種別判定
             if account_address == token_owner:
