@@ -104,6 +104,7 @@ while True:
 
             if txn_receipt["status"] == 1:  # Success
                 transfer_approve_history.result = 1
+                db_session.add(transfer_approve_history)
                 logging.debug(f"Transfer approved: "
                               f"token_address = {application.token_address}, "
                               f"application_id = {application.application_id}")
@@ -117,6 +118,7 @@ while True:
                     db_session=db_session
                 )
                 transfer_approve_history.result = 2  # Error
+                db_session.add(transfer_approve_history)
                 logging.error(f"Transfer was canceled: "
                               f"token_address = {application.token_address}, "
                               f"application_id = {application.application_id}")
