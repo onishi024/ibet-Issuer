@@ -26,6 +26,7 @@ python batch/processor_IssueEvent.py &
 python batch/processor_BatchTransfer.py &
 python batch/processor_BondLedger_JP.py &
 python batch/indexer_Transfer.py &
+python batch/indexer_TransferApproval.py &
 python batch/indexer_ApplyFor.py &
 python batch/indexer_Consume.py &
 python batch/indexer_Order.py &

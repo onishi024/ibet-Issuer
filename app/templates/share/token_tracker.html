@@ -25,6 +25,7 @@
                 <div class="pull-right box-tools">
                     <button type="button" class="btn btn-default btn-sm" style="width: 120px" onclick="location.href='{{ url_for('share.list') }}'">戻る</button>
                     <button id="csv_download" type="submit" class="btn btn-success btn-sm" style="width: 120px">ダウンロード</button>
+                    <button type="button" class="btn btn-success btn-sm" style="width: 120px" onclick="location.href='{{ url_for('share.list_all_transfer_approvals', token_address=token_address) }}'">移転承諾履歴</button>
                 </div>
             </form>
         </div>

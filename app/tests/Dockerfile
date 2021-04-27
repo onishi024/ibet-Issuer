@@ -63,11 +63,12 @@ RUN . ~/.bash_profile \
  && pip install -r /app/requirements2.txt \
  && rm -f /app/requirements2.txt
 
-# app
+# deploy app
 USER root
 COPY . /app/ibet-Issuer
 RUN chown -R apl:apl /app/ibet-Issuer && \
     chmod 755 /app/ibet-Issuer
 
+# run unit test
 USER apl
 CMD /app/ibet-Issuer/app/tests/qa.sh

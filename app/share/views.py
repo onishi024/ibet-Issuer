@@ -48,9 +48,10 @@ from sqlalchemy import (
     desc,
     or_
 )
-from web3 import Web3
 from eth_utils import to_checksum_address
+from web3 import Web3
 from web3.middleware import geth_poa_middleware
+from web3.exceptions import ABIFunctionNotFound
 
 from config import Config
 from logging import getLogger
@@ -68,6 +69,7 @@ from app.share.forms import (
 from app.models import (
     Token,
     Transfer,
+    IDXTransferApproval,
     AddressType,
     ApplyFor,
     Issuer,
@@ -785,6 +787,64 @@ def token_tracker_csv():
 
 
 ####################################################
+# トークン移転承諾
+####################################################
+@share.route("/token/transfer_approvals/<string:token_address>", methods=["GET"])
+@login_required
+def list_all_transfer_approvals(token_address):
+    logger.info(f"[{current_user.login_id}] share/list_all_transfer_approvals")
+
+    # Validation
+    if not Web3.isAddress(token_address):
+        abort(404)
+
+    # Check if the token is issued by the issuer
+    token = Token.query. \
+        filter(Token.token_address == token_address). \
+        filter(Token.admin_address == session["eth_account"].lower()). \
+        first()
+    if token is None:
+        abort(404)
+
+    _transfer_approvals = IDXTransferApproval.query.\
+        filter(IDXTransferApproval.token_address == token_address). \
+        order_by(desc(IDXTransferApproval.application_id)). \
+        all()
+
+    resp_transfer_approvals = []
+    for _transfer_approval in _transfer_approvals:
+        try:
+            _application_datetime = _transfer_approval.application_datetime.\
+                replace(tzinfo=timezone.utc).astimezone(JST).strftime("%Y/%m/%d %H:%M:%S %z")
+            _application_blocktimestamp = _transfer_approval.application_blocktimestamp.\
+                replace(tzinfo=timezone.utc).astimezone(JST).strftime("%Y/%m/%d %H:%M:%S %z")
+            _approval_datetime = _transfer_approval.approval_datetime.\
+                replace(tzinfo=timezone.utc).astimezone(JST).strftime("%Y/%m/%d %H:%M:%S %z")
+            _approval_blocktimestamp = _transfer_approval.approval_blocktimestamp.\
+                replace(tzinfo=timezone.utc).astimezone(JST).strftime("%Y/%m/%d %H:%M:%S %z")
+            resp_transfer_approvals.append({
+                "application_id": _transfer_approval.application_id,
+                "from_address": _transfer_approval.from_address,
+                "to_address": _transfer_approval.to_address,
+                "value": _transfer_approval.value,
+                "application_datetime": _application_datetime,
+                "application_blocktimestamp": _application_blocktimestamp,
+                "approval_datetime": _approval_datetime,
+                "approval_blocktimestamp": _approval_blocktimestamp,
+                "cancelled": _transfer_approval.cancelled
+            })
+        except Exception as e:
+            logger.exception(e)
+            pass
+
+    return render_template(
+        'share/transfer_approvals.html',
+        token_address=token_address,
+        transfer_approvals=resp_transfer_approvals
+    )
+
+
+####################################################
 # [株式]募集申込一覧
 ####################################################
 # 申込一覧画面
@@ -1105,17 +1165,17 @@ def holders_csv_download():
     f = io.StringIO()
 
     # ヘッダー行
-    data_header = \
-        'token_name,' + \
-        'token_address,' + \
-        'account_address,' + \
-        'key_manager,' + \
-        'balance,' + \
-        'name,' + \
-        'birth_date,' + \
-        'postal_code,' + \
-        'address,' + \
-        'email\n'
+    data_header = f"token_name," \
+                  f"token_address," \
+                  f"account_address," \
+                  f"key_manager," \
+                  f"balance," \
+                  f"name," \
+                  f"birth_date," \
+                  f"postal_code," \
+                  f"address," \
+                  f"email" \
+                  f"\n"
     f.write(data_header)
 
     for _holder in _holders:
@@ -1125,13 +1185,17 @@ def holders_csv_download():
         except TypeError:
             holder_address = ""
         # データ行
-        data_row = \
-            token_name + ',' + token_address + ',' + \
-            _holder["account_address"] + ',' + _holder["key_manager"] + ',' + \
-            str(_holder["balance"]) + ',' + \
-            _holder["name"] + ',' + _holder["birth_date"] + ',' + \
-            _holder["postal_code"] + ',' + holder_address + ',' + \
-            _holder["email"] + '\n'
+        data_row = f"{token_name}," \
+                   f"{token_address}," \
+                   f"{_holder['account_address']}," \
+                   f"{_holder['key_manager']}," \
+                   f"{str(_holder['balance'])}," \
+                   f"{_holder['name']}," \
+                   f"{_holder['birth_date']}," \
+                   f"{_holder['postal_code']}," \
+                   f"{holder_address}," \
+                   f"{_holder['email']}" \
+                   f"\n"
         f.write(data_row)
 
     now = datetime.now(tz=JST)
@@ -1254,9 +1318,16 @@ def get_holders(token_address):
             count += 1
 
             # 保有残高取得
-            balance = TokenContract.functions.balanceOf(account_address).call()
+            try:
+                balance = TokenContract.functions.balanceOf(account_address).call()
+            except ABIFunctionNotFound:
+                balance = 0
+
             # 移転承諾待ち数量取得
-            pending_transfer = TokenContract.functions.pendingTransfer(account_address).call()
+            try:
+                pending_transfer = TokenContract.functions.pendingTransfer(account_address).call()
+            except ABIFunctionNotFound:
+                pending_transfer = 0
 
             # アドレス種別判定
             if account_address == token_owner:
