@@ -68,7 +68,7 @@ class Sinks:
     def register(self, sink):
         self.sinks.append(sink)
 
-    def on_transfer(self, *args, **kwargs):
+    def on_transfer_approval(self, *args, **kwargs):
         for sink in self.sinks:
             sink.on_transfer(*args, **kwargs)
 
