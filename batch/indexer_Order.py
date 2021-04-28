@@ -141,15 +141,15 @@ class Processor:
                 continue
             if exchange_address not in exchange_address_list:
                 exchange_address_list.append(exchange_address)
-                if token.template_id == 1:  # 債券トークン
+                if token.template_id == 1:  # BONDトークン
                     self.exchange_list.append(
                         ContractUtils.get_contract('IbetStraightBondExchange', exchange_address)
                     )
-                elif token.template_id == 2:  # クーポントークン
+                elif token.template_id == 2:  # COUPONトークン
                     self.exchange_list.append(
                         ContractUtils.get_contract('IbetCouponExchange', exchange_address)
                     )
-                elif token.template_id == 3:  # 会員権トークン
+                elif token.template_id == 3:  # MEMBERSHIPトークン
                     self.exchange_list.append(
                         ContractUtils.get_contract('IbetMembershipExchange', exchange_address)
                     )

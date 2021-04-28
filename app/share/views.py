@@ -102,7 +102,7 @@ def flash_errors(form: Form):
 
 
 ####################################################
-# [株式]トークン名取得
+# トークン名取得
 ####################################################
 @share.route('/get_token_name/<string:token_address>', methods=['GET'])
 @login_required
@@ -115,7 +115,7 @@ def get_token_name(token_address):
 
 
 ####################################################
-# [株式]新規発行
+# 新規発行
 ####################################################
 @share.route('/issue', methods=['GET', 'POST'])
 @login_required
@@ -237,7 +237,7 @@ def issue():
 
 
 ####################################################
-# [株式]発行済一覧
+# 発行済一覧
 ####################################################
 @share.route('/list', methods=['GET'])
 @login_required
@@ -290,7 +290,7 @@ def list():
 
 
 ####################################################
-# [株式]設定内容修正
+# 設定内容修正
 ####################################################
 @share.route('/setting/<string:token_address>', methods=['GET', 'POST'])
 @login_required
@@ -517,7 +517,7 @@ def setting(token_address):
 
 
 ####################################################
-# [株式]公開
+# 公開
 ####################################################
 @share.route('/release', methods=['POST'])
 @login_required
@@ -549,7 +549,7 @@ def release():
 
 
 ####################################################
-# [株式]募集申込開始/停止
+# 募集申込開始/停止
 ####################################################
 @share.route('/start_offering', methods=['POST'])
 @login_required
@@ -588,7 +588,7 @@ def _set_offering_status(token_address, status):
 
 
 ####################################################
-# [株式]有効化/無効化
+# 有効化/無効化
 ####################################################
 @share.route('/valid', methods=['POST'])
 @login_required
@@ -627,7 +627,7 @@ def _set_validity(token_address, isvalid):
 
 
 ####################################################
-# [株式]追加発行
+# 追加発行
 ####################################################
 @share.route('/add_supply/<string:token_address>', methods=['GET', 'POST'])
 @login_required
@@ -677,7 +677,7 @@ def add_supply(token_address):
 
 
 ####################################################
-# [株式]トークン追跡
+# トークン追跡
 ####################################################
 @share.route('/token/track/<string:token_address>', methods=['GET'])
 @login_required
@@ -851,7 +851,7 @@ def list_all_transfer_approvals(token_address):
 
 
 ####################################################
-# [株式]募集申込一覧
+# 募集申込一覧
 ####################################################
 # 申込一覧画面
 @share.route('/applications/<string:token_address>', methods=['GET'])
@@ -963,7 +963,7 @@ def get_applications(token_address):
 
 
 ####################################################
-# [株式]割当登録
+# 割当登録
 ####################################################
 @share.route('/allot/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
 @login_required
@@ -1020,7 +1020,7 @@ def _render_allot(token_address: str, account_address: str, form: AllotForm):
 
 
 ####################################################
-# [株式]権利移転（募集申込）
+# 権利移転（募集申込）
 ####################################################
 @share.route('/transfer_allotment/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
 @login_required
@@ -1089,7 +1089,7 @@ def _render_transfer_allotment(token_address: str, account_address: str, form: T
 
 
 ####################################################
-# [株式]保有者一覧
+# 保有者一覧
 ####################################################
 
 # （画面）保有者一覧
@@ -1403,7 +1403,7 @@ def get_holders(token_address):
 
 
 ####################################################
-# [株式]保有者移転
+# 保有者移転
 ####################################################
 @share.route('/transfer_ownership/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
 @login_required
@@ -1464,7 +1464,7 @@ def transfer_ownership(token_address, account_address):
 
 
 ####################################################
-# [株式]保有者詳細
+# 保有者詳細
 ####################################################
 @share.route('/holder/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
 @login_required

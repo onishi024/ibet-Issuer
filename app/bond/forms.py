@@ -651,9 +651,9 @@ class RequestSignatureForm(Form):
 # 権利移転（募集申込）
 class TransferForm(Form):
     token_address = StringField(
-        "債券アドレス",
+        "トークンアドレス",
         validators=[
-            DataRequired('債券アドレスは必須です。')
+            DataRequired('トークンアドレスは必須です。')
         ]
     )
 
@@ -680,7 +680,7 @@ class TransferForm(Form):
 
     def validate_token_address(self, field):
         if not Web3.isAddress(field.data):
-            raise ValidationError('債券アドレスは無効なアドレスです。')
+            raise ValidationError('トークンアドレスは無効なアドレスです。')
 
     def validate_to_address(self, field):
         if not Web3.isAddress(field.data):
@@ -690,9 +690,9 @@ class TransferForm(Form):
 # 募集申込割当
 class AllotForm(Form):
     token_address = StringField(
-        "債券アドレス",
+        "トークンアドレス",
         validators=[
-            DataRequired('債券アドレスは必須です。')
+            DataRequired('トークンアドレスは必須です。')
         ]
     )
     to_address = StringField(
