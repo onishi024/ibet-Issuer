@@ -6,8 +6,8 @@
 {% endblock %}
 {% set active_page = "share_list" %}
 
-{% block title %}トークン移転承諾履歴 - {% endblock %}
-{% block page_header %}トークン移転承諾履歴 <span class="badge bg-secondary">株式</span>{% endblock %}
+{% block title %}移転承諾履歴 - {% endblock %}
+{% block page_header %}移転承諾履歴 <span class="badge bg-secondary">株式</span>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
 <li><a href="{{ url_for('index.index') }}">トップ</a></li>
@@ -43,8 +43,16 @@
                 {% for item in transfer_approvals %}
                 <tr>
                     <td>{{ item.application_id }}</td>
+                    {% if item.application_datetime == None %}
+                    <td>--</td>
+                    {% else %}
                     <td>{{ item.application_datetime }}</td>
+                    {% endif %}
+                    {% if item.approval_datetime == None %}
+                    <td>--</td>
+                    {% else %}
                     <td>{{ item.approval_datetime }}</td>
+                    {% endif %}
                     <td style="word-break : break-all;">{{ item.from_address }}</td>
                     <td style="word-break : break-all;">{{ item.to_address }}</td>
                     <td>{{ item.value }}</td>
@@ -74,6 +82,7 @@
       'lengthChange': true,
       'searching'   : true,
       'ordering'    : true,
+      'order': [ [ 0, "desc" ] ],
       'info'        : true,
       'autoWidth'   : true,
       'pagingType': "full_numbers",
