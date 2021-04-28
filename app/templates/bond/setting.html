@@ -6,13 +6,13 @@
 {% endblock %}
 {% set active_page = "bond_list" %}
 
-{% block title %}債券詳細設定 - {% endblock %}
-{% block page_header %}詳細設定 <span class="badge bg-secondary">債券</span>{% endblock %}
+{% block title %}詳細設定 - {% endblock %}
+{% block page_header %}詳細設定 <span class="badge bg-secondary">BOND</span>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
     <li><a href="{{ url_for('index.index') }}">トップ</a></li>
-    <li><a href="{{ url_for('bond.list') }}">債券一覧</a></li>
-    <li class="active">債券詳細設定</li>
+    <li><a href="{{ url_for('bond.list') }}">発行済一覧</a></li>
+    <li class="active">詳細設定</li>
 {% endblock %}
 
 {% block page_content %}
@@ -310,7 +310,7 @@
                     <div class="form-group">
                         <input type="text" class="form-control" autocomplete="off" id="prompt-form" name="name" />
                         <input type="text" name="dummy" style="display:none;">
-                        <p class="text-danger" id="modal-prompt-validate">名称が一致しません。償還対象の債券であることを確認してください。</p>
+                        <p class="text-danger" id="modal-prompt-validate">名称が一致しません。償還対象のトークンであることを確認してください。</p>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -368,7 +368,7 @@
       });
       $('#redeem').click(function(){
         $('#modal-prompt-title').html('償還時確認 <i class="fa fa-exclamation-triangle"></i>');
-        $('#modal-prompt-text').html('この操作は元に戻すことができません。<br>念のため、償還を行う債券の名称を入力してください。');
+        $('#modal-prompt-text').html('この操作は元に戻すことができません。<br>念のため、償還を行うトークンの名称を入力してください。');
         $('#modal-prompt-form').attr('action', "{{ url_for('bond.redeem') }}");
         $('#modal-prompt-validate').hide();
         $('#modal-prompt').modal();

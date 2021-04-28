@@ -914,7 +914,7 @@ def transfer():
         if form.validate():
             # Addressフォーマットチェック（token_address）
             if not Web3.isAddress(form.token_address.data):
-                flash('クーポンアドレスは有効なアドレスではありません。', 'error')
+                flash('トークンアドレスは有効なアドレスではありません。', 'error')
                 return render_template('coupon/transfer.html', form=form)
 
             # Addressフォーマットチェック（send_address）
@@ -927,7 +927,7 @@ def transfer():
             if token is None or \
                     token.template_id != Config.TEMPLATE_ID_COUPON or \
                     token.admin_address != session['eth_account'].lower():
-                flash('無効なクーポンアドレスです。', 'error')
+                flash('無効なトークンアドレスです。', 'error')
                 return render_template('coupon/transfer.html', form=form)
             token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
             TokenContract = web3.eth.contract(address=token.token_address, abi=token_abi)
@@ -1097,7 +1097,7 @@ def get_usage_history(token_address):
     if token is None:
         abort(404)
 
-    # クーポントークンの消費イベント（Consume）を検索
+    # トークンの消費イベント（Consume）を検索
     # Note: token_addressに対して、Couponトークンのものであるかはチェックしていない。
     entries = Consume.query.filter(Consume.token_address == token_address).all()
 
@@ -1131,7 +1131,7 @@ def used_csv_download():
 
     token_name = json.loads(get_token_name(token_address).data)
 
-    # クーポントークンの消費イベント（Consume）を検索
+    # トークンの消費イベント（Consume）を検索
     entries = Consume.query.filter(Consume.token_address == token_address).all()
 
     # リスト作成

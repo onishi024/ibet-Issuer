@@ -236,7 +236,7 @@ def main(data_count, issuer):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="クーポン利用履歴の登録")
+    parser = argparse.ArgumentParser(description="利用履歴の登録")
     parser.add_argument("data_count", type=int, help="登録件数")
     parser.add_argument("--issuer", '-s', type=str, help="発行体アドレス")
     args = parser.parse_args()

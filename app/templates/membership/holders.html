@@ -9,11 +9,11 @@
 {% set active_page = "membership_list" %}
 
 {% block title %}保有者一覧 - {% endblock %}
-{% block page_header %}保有者一覧 <span class="badge bg-secondary">会員権</span>{% endblock %}
+{% block page_header %}保有者一覧 <span class="badge bg-secondary">MEMBERSHIP</span>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
 <li><a href="{{ url_for('index.index') }}">トップ</a></li>
-<li><a href="{{ url_for('membership.list') }}">会員権一覧</a></li>
+<li><a href="{{ url_for('membership.list') }}">発行済一覧</a></li>
 <li class="active">保有者一覧</li>
 {% endblock %}
 
@@ -105,12 +105,12 @@
                 </thead>
                 <tbody>
                 <tr>
-                    <td>会員権名</td>
+                    <td>トークン名</td>
                     <td>ibet会員権</td>
                     <td></td>
                 </tr>
                 <tr>
-                    <td>会員権アドレス</td>
+                    <td>トークンアドレス</td>
                     <td>0xF37aF18966609eCaDe3E4D1831996853c637cfF3</td>
                     <td></td>
                 </tr>

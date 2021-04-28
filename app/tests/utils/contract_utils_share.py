@@ -10,7 +10,7 @@ web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
 web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
 
-# 株式トークンの売出
+# SHAREトークンの売出
 def create_order(issuer, counterpart, share_exchange, token_address, amount, price, agent):
     web3.eth.defaultAccount = issuer['account_address']
     ShareContract = ContractUtils.get_contract('IbetShare', token_address)
@@ -43,7 +43,7 @@ def get_latest_agreementid(share_exchange, order_id):
     return latest_agreementid
 
 
-# 株式トークンの買いTake注文
+# SHAREトークンの買いTake注文
 def take_buy(invoker, share_exchange, order_id):
     web3.eth.defaultAccount = invoker['account_address']
     ExchangeContract = ContractUtils.get_contract('IbetOTCExchange', share_exchange['address'])
@@ -52,7 +52,7 @@ def take_buy(invoker, share_exchange, order_id):
     web3.eth.waitForTransactionReceipt(tx_hash)
 
 
-# 株式約定の資金決済
+# 約定の資金決済
 def confirm_agreement(invoker, share_exchange, order_id, agreement_id):
     web3.eth.defaultAccount = invoker['account_address']
     ExchangeContract = ContractUtils.get_contract(
@@ -64,7 +64,7 @@ def confirm_agreement(invoker, share_exchange, order_id, agreement_id):
     web3.eth.waitForTransactionReceipt(tx_hash)
 
 
-# 株式：募集申込
+# 募集申込
 def apply_for_offering(db, invoker, token_address):
     web3.eth.defaultAccount = invoker['account_address']
     TokenContract = ContractUtils.get_contract('IbetShare', token_address)

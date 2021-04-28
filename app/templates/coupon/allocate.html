@@ -5,20 +5,20 @@
 {% endblock %}
 {% set active_page = "coupon_list" %}
 
-{% block title %}クーポン割当 - {% endblock %}
-{% block page_header %}割当（募集申込） <span class="badge bg-secondary">クーポン</span>{% endblock %}
+{% block title %}割当 - {% endblock %}
+{% block page_header %}割当（募集申込） <span class="badge bg-secondary">COUPON</span>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
     <li><a href="{{ url_for('index.index') }}">トップ</a></li>
-    <li><a href="{{ url_for('coupon.list') }}">クーポン一覧</a></li>
-    <li class="active">割当</li>
+    <li><a href="{{ url_for('coupon.list') }}">発行済一覧</a></li>
+    <li class="active">トークン割当</li>
 {% endblock %}
 
 {% block page_content %}
 <section class="content">
   <div class="box box-default">
     <div class="box-header with-border">
-      <h3 class="box-title">クーポン割当</h3>
+      <h3 class="box-title">トークン割当</h3>
     </div>
     <form class="form-horizontal" method="POST" role="form" action="{{ url_for('coupon.allocate', token_address=token_address, account_address=account_address) }}">
       {{ form.csrf_token }}
