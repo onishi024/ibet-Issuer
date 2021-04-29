@@ -6,13 +6,13 @@
 {% endblock %}
 {% set active_page = "coupon_list" %}
 
-{% block title %}クーポン詳細設定 - {% endblock %}
-{% block page_header %}詳細設定 <span class="badge bg-secondary">クーポン</span>{% endblock %}
+{% block title %}詳細設定 - {% endblock %}
+{% block page_header %}詳細設定 <span class="badge bg-secondary">COUPON</span>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
     <li><a href="{{ url_for('index.index') }}">トップ</a></li>
-    <li><a href="{{ url_for('coupon.list') }}">クーポン一覧</a></li>
-    <li class="active">クーポン詳細設定</li>
+    <li><a href="{{ url_for('coupon.list') }}">発行済一覧</a></li>
+    <li class="active">詳細設定</li>
 {% endblock %}
 
 {% block page_content %}
@@ -62,7 +62,7 @@
                       type="button" class="btn btn-danger btn-sm"
                       data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中"
                       style="width: 120px">
-                      クーポン無効化 <i class="fa fa-exclamation-triangle"></i>
+                      無効化 <i class="fa fa-exclamation-triangle"></i>
                     </button>
                 {% else %}
                     <button
@@ -70,7 +70,7 @@
                       type="button" class="btn btn-success btn-sm"
                       data-loading-text="<i class='fa fa-spinner fa-spin '></i> 処理中"
                       style="width: 120px">
-                      クーポン有効化
+                      有効化
                     </button>
                 {% endif %}
             </div>
@@ -251,17 +251,17 @@
         }, 10000);
       });
       $('#release').click(function(){
-        $("#modal-text").html("このクーポンをウォレット向けに公開します。よろしいですか？");
+        $("#modal-text").html("このトークンをウォレット向けに公開します。よろしいですか？");
         $('#modal-form').attr('action', "{{ url_for('coupon.release') }}");
         $('#modal-confirm').modal();
       });
       $('#invalid').click(function(){
-        $("#modal-text").html("このクーポンを無効化します。よろしいですか？");
+        $("#modal-text").html("このトークンを無効化します。よろしいですか？");
         $('#modal-form').attr('action', "{{ url_for('coupon.invalid') }}");
         $('#modal-confirm').modal();
       });
       $('#valid').click(function(){
-        $("#modal-text").html("このクーポンを有効化します。よろしいですか？");
+        $("#modal-text").html("このトークンを有効化します。よろしいですか？");
         $('#modal-form').attr('action', "{{ url_for('coupon.valid') }}");
         $('#modal-confirm').modal();
       });

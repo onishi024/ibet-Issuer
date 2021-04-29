@@ -189,13 +189,13 @@ class Issuer(db.Model):
     personal_info_contract_address = db.Column(db.String(42))
     # トークンリストコントラクトアドレス
     token_list_contract_address = db.Column(db.String(42))
-    # 株式取引コントラクトアドレス
+    # SHARE取引コントラクトアドレス
     ibet_share_exchange_contract_address = db.Column(db.String(42))
-    # 債券取引コントラクトアドレス
+    # BOND取引コントラクトアドレス
     ibet_sb_exchange_contract_address = db.Column(db.String(42))
-    # 会員権取引コントラクトアドレス
+    # MEMBERSHIP取引コントラクトアドレス
     ibet_membership_exchange_contract_address = db.Column(db.String(42))
-    # クーポン取引コントラクトアドレス
+    # COUPON取引コントラクトアドレス
     ibet_coupon_exchange_contract_address = db.Column(db.String(42))
     # EOA keyfileのパスワード（暗号化済）
     # deferredで暗号化情報が必要なとき以外はDBから取得しないようにする
@@ -305,7 +305,7 @@ class BulkTransfer(db.Model):
 
 
 class Certification(db.Model):
-    """債券認定依頼"""
+    """認定依頼"""
     __tablename__ = 'certification'
 
     # シーケンスID
@@ -617,6 +617,20 @@ class IDXTransferApproval(db.Model):
     approval_blocktimestamp = db.Column(db.DateTime)
     # Cancellation Status
     cancelled = db.Column(db.Boolean)
+
+
+class TransferApprovalHistory(db.Model):
+    """Token Transfer Approval History"""
+    __tablename__ = 'transfer_approval_history'
+
+    # Sequence Id
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    # Token Address
+    token_address = db.Column(db.String(42), index=True)
+    # Application Id
+    application_id = db.Column(db.Integer, index=True)
+    # Result (success:1, fail: 2)
+    result = db.Column(db.Integer)
 
 
 ########################################################

@@ -27,6 +27,7 @@ PROC_LIST="${PROC_LIST} batch/indexer_TransferApproval.py"
 PROC_LIST="${PROC_LIST} batch/processor_BatchTransfer.py"
 PROC_LIST="${PROC_LIST} batch/processor_BondLedger_JP.py"
 PROC_LIST="${PROC_LIST} batch/processor_IssueEvent.py"
+PROC_LIST="${PROC_LIST} batch/processor_ApproveTransfer.py"
 
 for i in ${PROC_LIST}; do
   # shellcheck disable=SC2009

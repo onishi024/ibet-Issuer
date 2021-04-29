@@ -8,7 +8,7 @@ from app.utils import ContractUtils
 web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
 web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
-# クーポン：募集申込
+# 募集申込
 def apply_for_offering(db, invoker, token_address):
     web3.eth.defaultAccount = invoker['account_address']
     TokenContract = ContractUtils.get_contract('IbetCoupon', token_address)

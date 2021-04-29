@@ -5,20 +5,20 @@
 {% endblock %}
 {% set active_page = "membership_list" %}
 
-{% block title %}会員権割当 - {% endblock %}
-{% block page_header %}割当（募集申込） <span class="badge bg-secondary">会員権</span>{% endblock %}
+{% block title %}トークン割当 - {% endblock %}
+{% block page_header %}割当（募集申込） <span class="badge bg-secondary">MEMBERSHIP</span>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
     <li><a href="{{ url_for('index.index') }}">トップ</a></li>
-    <li><a href="{{ url_for('membership.list') }}">会員権一覧</a></li>
-    <li class="active">割当</li>
+    <li><a href="{{ url_for('membership.list') }}">発行済一覧</a></li>
+    <li class="active">トークン割当</li>
 {% endblock %}
 
 {% block page_content %}
 <section class="content">
   <div class="box box-default">
     <div class="box-header with-border">
-      <h3 class="box-title">会員権割当</h3>
+      <h3 class="box-title">トークン割当</h3>
     </div>
     <form class="form-horizontal" method="POST" role="form" action="{{ url_for('membership.allocate', token_address=token_address, account_address=account_address) }}">
       {{ form.csrf_token }}

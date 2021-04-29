@@ -48,10 +48,10 @@ class IssueCouponForm(Form):
     yyyymmdd_regexp = '^(19[0-9]{2}|20[0-9]{2})(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])$'
 
     name = StringField(
-        "クーポン名 *",
+        "名称 *",
         validators=[
-            DataRequired('クーポン名は必須です。'),
-            Length(min=1, max=100, message='クーポン名は100文字以内で入力してください。')
+            DataRequired('名称は必須です。'),
+            Length(min=1, max=100, message='名称は100文字以内で入力してください。')
         ]
     )
 
@@ -177,7 +177,7 @@ class IssueCouponForm(Form):
 
 class SettingCouponForm(Form):
     token_address = StringField("トークンアドレス", validators=[])
-    name = StringField("クーポン名", validators=[])
+    name = StringField("名称", validators=[])
     symbol = StringField("略称", validators=[])
     totalSupply = IntegerField("総発行量", validators=[])
     expirationDate = StringField("有効期限", validators=[])
@@ -269,7 +269,7 @@ class SettingCouponForm(Form):
 
 class AddSupplyForm(Form):
     token_address = StringField("トークンアドレス", validators=[])
-    name = StringField("クーポン名", validators=[])
+    name = StringField("名称", validators=[])
     totalSupply = IntegerField("総発行量", validators=[])
     addSupply = IntegerField(
         "追加発行量",
@@ -287,9 +287,9 @@ class AddSupplyForm(Form):
 
 class TransferForm(Form):
     token_address = StringField(
-        "クーポンアドレス",
+        "トークンアドレス",
         validators=[
-            DataRequired('クーポンアドレスは必須です。')
+            DataRequired('トークンアドレスは必須です。')
         ]
     )
 

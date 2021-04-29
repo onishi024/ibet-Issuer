@@ -415,9 +415,9 @@ class TransferOwnershipForm(Form):
 # 割当
 class TransferForm(Form):
     token_address = StringField(
-        "株式アドレス",
+        "トークンアドレス",
         validators=[
-            DataRequired('株式アドレスは必須です。')
+            DataRequired('トークンアドレスは必須です。')
         ]
     )
 
@@ -446,9 +446,9 @@ class TransferForm(Form):
 # 募集申込割当
 class AllotForm(Form):
     token_address = StringField(
-        "株式アドレス",
+        "トークンアドレス",
         validators=[
-            DataRequired('株式アドレスは必須です。')
+            DataRequired('トークンアドレスは必須です。')
         ]
     )
     to_address = StringField(

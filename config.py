@@ -28,10 +28,10 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 class Config:
     # Tokenテーブルのtemplate_id
-    TEMPLATE_ID_SB = 1  # 債券
-    TEMPLATE_ID_COUPON = 2  # クーポン
-    TEMPLATE_ID_MEMBERSHIP = 3  # 会員権
-    TEMPLATE_ID_SHARE = 4  # 株式
+    TEMPLATE_ID_SB = 1  # BOND
+    TEMPLATE_ID_COUPON = 2  # COUPON
+    TEMPLATE_ID_MEMBERSHIP = 3  # MEMBERSHIP
+    TEMPLATE_ID_SHARE = 4  # SHARE
 
     # gunicornのworker数
     WORKER_COUNT = int(os.environ.get("WORKER_COUNT")) if os.environ.get("WORKER_COUNT") else 4
@@ -75,24 +75,24 @@ class Config:
     }
 
     NAVI_MENU_USER = [
-        ('share', 'glyphicon glyphicon-th', '株式', [
+        ('share', 'glyphicon glyphicon-th', 'SHARE', [
             ('share_issue', 'fa fa-circle-o', '新規発行', 'share.issue'),
             ('share_list', 'fa fa-circle-o', '発行済一覧', 'share.list'),
             ('share_bulk_transfer', 'fa fa-circle-o', '一括強制移転', 'share.bulk_transfer')
         ]),
-        ('bond', 'glyphicon glyphicon-th', '債券', [
+        ('bond', 'glyphicon glyphicon-th', 'BOND', [
             ('bond_issue', 'fa fa-circle-o', '新規発行', 'bond.issue'),
             ('bond_list', 'fa fa-circle-o', '発行済一覧', 'bond.list'),
             ('bond_position', 'fa fa-circle-o', '売出管理', 'bond.positions'),
             ('bond_bulk_transfer', 'fa fa-circle-o', '一括強制移転', 'bond.bulk_transfer')
         ]),
-        ('membership', 'glyphicon glyphicon-th', '会員権', [
+        ('membership', 'glyphicon glyphicon-th', 'MEMBERSHIP', [
             ('membership_issue', 'fa fa-circle-o', '新規発行', 'membership.issue'),
             ('membership_list', 'fa fa-circle-o', '発行済一覧', 'membership.list'),
             ('membership_position', 'fa fa-circle-o', '売出管理', 'membership.positions'),
             ('membership_bulk_transfer', 'fa fa-circle-o', '一括強制移転', 'membership.bulk_transfer')
         ]),
-        ('coupon', 'glyphicon glyphicon-th', 'クーポン', [
+        ('coupon', 'glyphicon glyphicon-th', 'COUPON', [
             ('coupon_issue', 'fa fa-circle-o', '新規発行', 'coupon.issue'),
             ('coupon_list', 'fa fa-circle-o', '発行済一覧', 'coupon.list'),
             ('coupon_position', 'fa fa-circle-o', '売出管理', 'coupon.positions'),

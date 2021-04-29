@@ -6,12 +6,12 @@
 {% endblock %}
 {% set active_page = "bond_position" %}
 
-{% block title %}債券新規売出 - {% endblock %}
-{% block page_header %}新規売出 <span class="badge bg-secondary">債券</span>{% endblock %}
+{% block title %}新規売出 - {% endblock %}
+{% block page_header %}新規売出 <span class="badge bg-secondary">BOND</span>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
     <li><a href="{{ url_for('index.index') }}">トップ</a></li>
-    <li class="active">債券新規売出</li>
+    <li class="active">新規売出</li>
 {% endblock %}
 
 {% block page_content %}
@@ -43,7 +43,7 @@
     </div>
     <div class="box box-default box-solid">
         <div class="box-header with-border">
-            <h3 class="box-title">債券詳細</h3>
+            <h3 class="box-title">詳細</h3>
         </div>
         <div class="box-body">
             <table id="data_table" class="table table-bordered table-hover">

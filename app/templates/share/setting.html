@@ -6,13 +6,13 @@
 {% endblock %}
 {% set active_page = "share_list" %}
 
-{% block title %}株式詳細設定 - {% endblock %}
-{% block page_header %}詳細設定 <span class="badge bg-secondary">株式</span>{% endblock %}
+{% block title %}詳細設定 - {% endblock %}
+{% block page_header %}詳細設定 <span class="badge bg-secondary">SHARE</span>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
     <li><a href="{{ url_for('index.index') }}">トップ</a></li>
-    <li><a href="{{ url_for('share.list') }}">株式一覧</a></li>
-    <li class="active">株式詳細設定</li>
+    <li><a href="{{ url_for('share.list') }}">発行済一覧</a></li>
+    <li class="active">詳細設定</li>
 {% endblock %}
 
 {% block page_content %}
@@ -276,7 +276,7 @@
                     <div class="form-group">
                         <input type="text" class="form-control" autocomplete="off" id="prompt-form" name="name" />
                         <input type="text" name="dummy" style="display:none;">
-                        <p class="text-danger" id="modal-prompt-validate">名称が一致しません。償還対象の株式であることを確認してください。</p>
+                        <p class="text-danger" id="modal-prompt-validate">名称が一致しません。償還対象のトークンであることを確認してください。</p>
                     </div>
                 </div>
                 <div class="modal-footer">

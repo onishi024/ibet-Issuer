@@ -325,9 +325,9 @@ class CancelOrderForm(Form):
 
 class TransferForm(Form):
     token_address = StringField(
-        "会員権アドレス",
+        "トークンアドレス",
         validators=[
-            DataRequired('会員権アドレスは必須です。')
+            DataRequired('トークンアドレスは必須です。')
         ]
     )
 
