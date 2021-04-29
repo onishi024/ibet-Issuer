@@ -471,4 +471,4 @@ while True:
         logging.exception(ex)
 
     # 1分間隔で実行
-    time.sleep(60)
+    time.sleep(Config.INTERVAL_PROCESSOR_BOND_LEDGER_JP)

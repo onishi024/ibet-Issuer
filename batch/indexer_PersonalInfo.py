@@ -372,4 +372,4 @@ while True:
     except Exception as ex:
         logging.exception(ex)
 
-    time.sleep(10)
+    time.sleep(Config.INTERVAL_INDEXER_PERSONAL_INFO)
