@@ -131,4 +131,4 @@ while True:
             continue
 
     logging.debug("Loop Finished")
-    time.sleep(10)
+    time.sleep(Config.INTERVAL_PROCESSOR_APPROVE_TRANSFER)
