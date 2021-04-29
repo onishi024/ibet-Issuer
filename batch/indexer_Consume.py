@@ -194,4 +194,4 @@ logging.info("Service started successfully")
 processor.initial_sync()
 while True:
     processor.sync_new_logs()
-    time.sleep(60)
+    time.sleep(Config.INTERVAL_INDEXER_CONSUME)

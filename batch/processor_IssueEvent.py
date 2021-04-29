@@ -78,4 +78,4 @@ while True:
 
                 logging.info("issued --> " + contract_address)
 
-    time.sleep(10)
+    time.sleep(Config.INTERVAL_PROCESSOR_ISSUE_EVENT)
