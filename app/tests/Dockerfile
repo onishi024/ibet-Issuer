@@ -54,21 +54,21 @@ RUN . ~/.bash_profile \
 # requirements
 COPY requirements.txt /app/requirements.txt
 RUN . ~/.bash_profile \
- && pip install -r /app/requirements.txt
+ && pip install -r /app/requirements.txt \
+ && rm -f /app/requirements.txt
+
+# install python packages 2
+COPY app/tests/requirements.txt /app/requirements2.txt
+RUN . ~/.bash_profile \
+ && pip install -r /app/requirements2.txt \
+ && rm -f /app/requirements2.txt
 
 # deploy app
 USER root
 COPY . /app/ibet-Issuer
-RUN chown -R apl:apl /app/ibet-Issuer \
-    && rm -rf /app/ibet-Issuer/app/tests/ \
-    && chmod 755 /app/ibet-Issuer
+RUN chown -R apl:apl /app/ibet-Issuer && \
+    chmod 755 /app/ibet-Issuer
 
-# command deploy
+# run unit test
 USER apl
-COPY run.sh healthcheck.sh /app/
-
-EXPOSE 5000
-
-# run server
-CMD /app/run.sh
-HEALTHCHECK --interval=10s CMD /app/healthcheck.sh
+CMD /app/ibet-Issuer/app/tests/qa.sh

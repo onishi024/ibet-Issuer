@@ -9,11 +9,11 @@
 {% set active_page = "membership_list" %}
 
 {% block title %}保有者リスト履歴 - {% endblock %}
-{% block page_header %}保有者リスト履歴 <span class="badge bg-secondary">会員権</span>{% endblock %}
+{% block page_header %}保有者リスト履歴 <span class="badge bg-secondary">MEMBERSHIP</span>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
     <li><a href="{{ url_for('index.index') }}">トップ</a></li>
-    <li><a href="{{ url_for('membership.list') }}">会員権一覧</a></li>
+    <li><a href="{{ url_for('membership.list') }}">発行済一覧</a></li>
     <li><a href="{{ url_for('membership.holders', token_address=token_address) }}">保有者一覧</a></li>
     <li class="active">保有者リスト履歴</li>
 {% endblock %}

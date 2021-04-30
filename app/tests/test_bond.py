@@ -16,23 +16,28 @@ limitations under the License.
 
 SPDX-License-Identifier: Apache-2.0
 """
-
 from datetime import datetime, timezone
-
-import time
-import pytest
 import json
 import base64
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 
+import pytest
 from eth_utils import to_checksum_address
 
 from config import Config
-from app.models import Token, HolderList, BondLedger
+from app.models import (
+    Token,
+    HolderList,
+    BondLedger
+)
 from .conftest import TestBase
 from .utils.account_config import eth_account
-from .utils.contract_utils_common import processor_issue_event, index_transfer_event, clean_issue_event
+from .utils.contract_utils_common import (
+    processor_issue_event,
+    index_transfer_event,
+    clean_issue_event
+)
 from .utils.contract_utils_bond import bond_apply_for_offering
 from .utils.contract_utils_payment_gateway import register_payment_account
 from .utils.contract_utils_personal_info import register_personal_info
@@ -138,22 +143,22 @@ class TestBond(TestBase):
         )
 
     # ＜正常系1＞
-    #   債券一覧の参照(0件)
+    #   発行済一覧の参照(0件)
     def test_normal_1(self, app):
-        # 債券一覧
+        # 発行済一覧
         client = self.client_with_admin_login(app)
         response = client.get(self.url_list)
         assert response.status_code == 200
-        assert '<title>債券一覧'.encode('utf-8') in response.data
+        assert '<title>発行済一覧'.encode('utf-8') in response.data
         assert 'データが存在しません'.encode('utf-8') in response.data
 
     # ＜正常系2＞
-    #   債券売出管理(0件)
+    #   売出管理(0件)
     def test_normal_2(self, app):
         client = self.client_with_admin_login(app)
         response = client.get(self.url_positions)
         assert response.status_code == 200
-        assert '<title>債券売出管理'.encode('utf-8') in response.data
+        assert '<title>売出管理'.encode('utf-8') in response.data
         assert 'データが存在しません'.encode('utf-8') in response.data
 
     # ＜正常系3＞
@@ -192,7 +197,6 @@ class TestBond(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(10)
 
         # DB登録処理
         processor_issue_event(db)
@@ -202,7 +206,7 @@ class TestBond(TestBase):
         token = tokens[0]
         response = client.get(self.url_setting + token.token_address)
         assert response.status_code == 200
-        assert '<title>債券詳細設定'.encode('utf-8') in response.data
+        assert '<title>詳細設定'.encode('utf-8') in response.data
         assert 'テスト債券'.encode('utf-8') in response.data
         assert 'BOND'.encode('utf-8') in response.data
         assert '1000000'.encode('utf-8') in response.data
@@ -229,12 +233,12 @@ class TestBond(TestBase):
         assert 'メモ'.encode('utf-8') in response.data
 
     # ＜正常系4＞
-    #   債券一覧の参照(1件)
+    #   発行済一覧の参照(1件)
     def test_normal_4(self, app):
         client = self.client_with_admin_login(app)
         response = client.get(self.url_list)
         assert response.status_code == 200
-        assert '<title>債券一覧'.encode('utf-8') in response.data
+        assert '<title>発行済一覧'.encode('utf-8') in response.data
         assert 'テスト債券'.encode('utf-8') in response.data
         assert 'BOND'.encode('utf-8') in response.data
 
@@ -244,7 +248,7 @@ class TestBond(TestBase):
         client = self.client_with_admin_login(app)
         response = client.get(self.url_positions)
         assert response.status_code == 200
-        assert '<title>債券売出管理'.encode('utf-8') in response.data
+        assert '<title>売出管理'.encode('utf-8') in response.data
         assert 'テスト債券'.encode('utf-8') in response.data
 
     # ＜正常系6＞
@@ -255,7 +259,7 @@ class TestBond(TestBase):
         client = self.client_with_admin_login(app)
         response = client.get(self.url_sell + token.token_address)
         assert response.status_code == 200
-        assert '<title>債券新規売出'.encode('utf-8') in response.data
+        assert '<title>新規売出'.encode('utf-8') in response.data
         assert 'テスト債券'.encode('utf-8') in response.data
         assert 'BOND'.encode('utf-8') in response.data
         assert "{:,}".format(1000000).encode('utf-8') in response.data
@@ -280,7 +284,7 @@ class TestBond(TestBase):
         assert shared_contract['IbetStraightBondExchange']['address'].encode('utf-8') in response.data
 
     # ＜正常系7＞
-    #   売出 → 債券売出管理で確認
+    #   売出 → 売出管理で確認
     def test_normal_7(self, app):
         client = self.client_with_admin_login(app)
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
@@ -296,15 +300,15 @@ class TestBond(TestBase):
         )
         assert response.status_code == 302
 
-        # 債券売出管理を参照
+        # 売出管理を参照
         response = client.get(self.url_positions)
         assert response.status_code == 200
-        assert '<title>債券売出管理'.encode('utf-8') in response.data
+        assert '<title>売出管理'.encode('utf-8') in response.data
         assert '新規売出を受け付けました。売出開始までに数分程かかることがあります。'.encode('utf-8') in response.data
         assert 'テスト債券'.encode('utf-8') in response.data
 
     # ＜正常系8＞
-    #   売出停止 → 債券売出管理で確認
+    #   売出停止 → 売出管理で確認
     def test_normal_8(self, app):
         client = self.client_with_admin_login(app)
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
@@ -316,10 +320,10 @@ class TestBond(TestBase):
         )
         assert response.status_code == 302
 
-        # 債券売出管理を参照
+        # 売出管理を参照
         response = client.get(self.url_positions)
         assert response.status_code == 200
-        assert '<title>債券売出管理'.encode('utf-8') in response.data
+        assert '<title>売出管理'.encode('utf-8') in response.data
         assert 'テスト債券'.encode('utf-8') in response.data
 
     # ＜正常系9＞
@@ -358,12 +362,11 @@ class TestBond(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(10)
 
         # 詳細設定画面を参照
         response = client.get(url_setting)
         assert response.status_code == 200
-        assert '<title>債券詳細設定'.encode('utf-8') in response.data
+        assert '<title>詳細設定'.encode('utf-8') in response.data
         assert 'テスト債券'.encode('utf-8') in response.data
         assert '1.243'.encode('utf-8') in response.data
         # interestPaymentDateの確認
@@ -403,7 +406,6 @@ class TestBond(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(10)
 
     # ＜正常系10＞
     #   公開 →　詳細設定画面で確認
@@ -420,17 +422,16 @@ class TestBond(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(3)
 
-        # 債券詳細設定
+        # 詳細設定
         url_setting = self.url_setting + token.token_address
         response = client.get(url_setting)
         assert response.status_code == 200
-        assert '<title>債券詳細設定'.encode('utf-8') in response.data
+        assert '<title>詳細設定'.encode('utf-8') in response.data
         assert '公開中です。公開開始までに数分程かかることがあります。'.encode('utf-8') in response.data
 
     # ＜正常系11-1＞
-    #   債券保有者一覧
+    #   保有者一覧
     def test_normal_11_1(self, app):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
         token = tokens[0]
@@ -439,11 +440,11 @@ class TestBond(TestBase):
         # 保有者一覧の参照
         response = client.get(self.url_holders + token.token_address)
         assert response.status_code == 200
-        assert '<title>債券保有者一覧'.encode('utf-8') in response.data
+        assert '<title>保有者一覧'.encode('utf-8') in response.data
         assert token.token_address.encode('utf-8') in response.data
 
     # ＜正常系11-2＞
-    #   債券保有者一覧(API)
+    #   保有者一覧(API)
     def test_normal_11_2(self, app):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
         token = tokens[0]
@@ -501,7 +502,7 @@ class TestBond(TestBase):
         assert response_csv == assumed_csv
 
     # ＜正常系12＞
-    #   債券保有者詳細
+    #   保有者詳細
     def test_normal_12(self, app):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
         token = tokens[0]
@@ -510,7 +511,7 @@ class TestBond(TestBase):
         # 保有者詳細の参照
         response = client.get(self.url_holder + token.token_address + '/' + eth_account['issuer']['account_address'])
         assert response.status_code == 200
-        assert '<title>債券保有者詳細'.encode('utf-8') in response.data
+        assert '<title>保有者詳細'.encode('utf-8') in response.data
         assert eth_account['issuer']['account_address'].encode('utf-8') in response.data
         assert '1234567'.encode('utf-8') in response.data
         assert '東京都'.encode('utf-8') in response.data
@@ -541,10 +542,10 @@ class TestBond(TestBase):
         )
         assert response.status_code == 302
 
-        # 債券詳細設定画面を参照
+        # 詳細設定画面を参照
         response = client.get(self.url_setting + token.token_address)
         assert response.status_code == 200
-        assert '<title>債券詳細設定'.encode('utf-8') in response.data
+        assert '<title>詳細設定'.encode('utf-8') in response.data
         assert '認定依頼を受け付けました。'.encode('utf-8') in response.data
 
     # ＜正常系14_1＞
@@ -559,7 +560,7 @@ class TestBond(TestBase):
         url_setting = self.url_setting + token.token_address
         response = client.get(url_setting)
         assert response.status_code == 200
-        assert '<title>債券詳細設定'.encode('utf-8') in response.data
+        assert '<title>詳細設定'.encode('utf-8') in response.data
         assert '募集申込開始'.encode('utf-8') in response.data
 
     # ＜正常系14_2＞
@@ -578,13 +579,12 @@ class TestBond(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(3)
 
         # 詳細設定画面の参照
         url_setting = self.url_setting + token.token_address
         response = client.get(url_setting)
         assert response.status_code == 200
-        assert '<title>債券詳細設定'.encode('utf-8') in response.data
+        assert '<title>詳細設定'.encode('utf-8') in response.data
         assert '募集申込停止'.encode('utf-8') in response.data
 
     # ＜正常系14_3＞
@@ -608,7 +608,7 @@ class TestBond(TestBase):
         url_setting = self.url_setting + token.token_address
         response = client.get(url_setting)
         assert response.status_code == 200
-        assert '<title>債券詳細設定'.encode('utf-8') in response.data
+        assert '<title>詳細設定'.encode('utf-8') in response.data
         assert '募集申込開始'.encode('utf-8') in response.data
 
         # 募集申込状態に戻す
@@ -660,7 +660,7 @@ class TestBond(TestBase):
         assert trader_address.encode('utf-8') in applications.data
 
     # ＜正常系16＞
-    #   償還実施　→　債券一覧で確認
+    #   償還実施　→　発行済一覧で確認
     def test_normal_16(self, app):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
         token = tokens[0]
@@ -672,13 +672,12 @@ class TestBond(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(3)
 
-        # 債券一覧を参照
+        # 発行済一覧を参照
         client = self.client_with_admin_login(app)
         response = client.get(self.url_list)
         assert response.status_code == 200
-        assert '<title>債券一覧'.encode('utf-8') in response.data
+        assert '<title>発行済一覧'.encode('utf-8') in response.data
         assert 'テスト債券'.encode('utf-8') in response.data
         assert 'BOND'.encode('utf-8') in response.data
         assert '償還済'.encode('utf-8') in response.data
@@ -764,7 +763,7 @@ class TestBond(TestBase):
         assert 'テスト債券' == response_data
 
     # ＜正常系18-1＞
-    #   債券保有者リスト履歴
+    #   保有者リスト履歴
     def test_normal_18_1(self, app):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
         token = tokens[0]
@@ -773,11 +772,11 @@ class TestBond(TestBase):
         # 保有者一覧の参照
         response = client.get(self.url_holders_csv_history + token.token_address)
         assert response.status_code == 200
-        assert '<title>債券保有者リスト履歴'.encode('utf-8') in response.data
+        assert '<title>保有者リスト履歴'.encode('utf-8') in response.data
         assert token.token_address.encode('utf-8') in response.data
 
     # ＜正常系18-2＞
-    #   債券保有者リスト履歴（API）
+    #   保有者リスト履歴（API）
     #   0件：保有者リスト履歴
     def test_normal_18_2(self, app):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
@@ -792,7 +791,7 @@ class TestBond(TestBase):
         assert len(response_data) == 0
 
     # ＜正常系18-3＞
-    #   債券保有者リスト履歴（API）
+    #   保有者リスト履歴（API）
     #   1件：保有者リスト履歴
     def test_normal_18_3(self, app, db):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_SB).all()
@@ -923,7 +922,7 @@ class TestBond(TestBase):
     #############################################################################
 
     # ＜エラー系1＞
-    #   債券新規発行（必須エラー）
+    #   新規発行（必須エラー）
     def test_error_1(self, app):
         client = self.client_with_admin_login(app)
         # 新規発行
@@ -933,7 +932,7 @@ class TestBond(TestBase):
             }
         )
         assert response.status_code == 200
-        assert '<title>債券新規発行'.encode('utf-8') in response.data
+        assert '<title>新規発行'.encode('utf-8') in response.data
         assert '名称は必須です。'.encode('utf-8') in response.data
         assert '略称は必須です。'.encode('utf-8') in response.data
         assert '総発行量は必須です。'.encode('utf-8') in response.data
@@ -944,7 +943,7 @@ class TestBond(TestBase):
         assert '個人情報コントラクトアドレスは必須です。'.encode('utf-8') in response.data
 
     # ＜エラー系1＞
-    #   債券新規発行（アドレスのフォーマットエラー）
+    #   新規発行（アドレスのフォーマットエラー）
     def test_error_1_2(self, app):
         error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
 
@@ -981,7 +980,7 @@ class TestBond(TestBase):
             }
         )
         assert response.status_code == 200
-        assert '<title>債券新規発行'.encode('utf-8') in response.data
+        assert '<title>新規発行'.encode('utf-8') in response.data
         assert 'DEXアドレスは有効なアドレスではありません。'.encode('utf-8') in response.data
 
     # ＜エラー系1＞
@@ -1002,7 +1001,7 @@ class TestBond(TestBase):
             }
         )
         assert response.status_code == 200
-        assert '<title>債券詳細設定'.encode('utf-8') in response.data
+        assert '<title>詳細設定'.encode('utf-8') in response.data
         assert 'DEXアドレスは有効なアドレスではありません。'.encode('utf-8') in response.data
         assert '個人情報コントラクトは有効なアドレスではありません。'.encode('utf-8') in response.data
 
@@ -1085,10 +1084,10 @@ class TestBond(TestBase):
             }
         )
         assert response.status_code == 302
-        # 債券新規売出でエラーを確認
+        # 新規売出でエラーを確認
         response = client.get(self.url_sell + token.token_address)
         assert response.status_code == 200
-        assert '<title>債券新規売出'.encode('utf-8') in response.data
+        assert '<title>新規売出'.encode('utf-8') in response.data
         assert '売出価格は必須です。'.encode('utf-8') in response.data
 
     # ＜エラー系3＞

@@ -16,26 +16,31 @@ limitations under the License.
 
 SPDX-License-Identifier: Apache-2.0
 """
-
-import time
 from datetime import datetime
-
-import pytest
 import json
 import base64
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 
+import pytest
 from eth_utils import to_checksum_address
 
 from config import Config
+from app.models import (
+    Token,
+    Transfer
+)
 from .conftest import TestBase
 from .utils import contract_utils_common
 from .utils.account_config import eth_account
-from .utils.contract_utils_common import processor_issue_event, index_transfer_event, clean_issue_event
+from .utils.contract_utils_common import (
+    processor_issue_event,
+    index_transfer_event,
+    clean_issue_event
+)
 from .utils.contract_utils_coupon import apply_for_offering
 from .utils.contract_utils_personal_info import register_personal_info
-from ..models import Token, Transfer
+
 
 
 class TestCoupon(TestBase):
@@ -133,7 +138,7 @@ class TestCoupon(TestBase):
         # 発行済一覧の参照
         response = client.get(self.url_list)
         assert response.status_code == 200
-        assert '<title>クーポン一覧'.encode('utf-8') in response.data
+        assert '<title>発行済一覧'.encode('utf-8') in response.data
         assert 'データが存在しません'.encode('utf-8') in response.data
 
     # ＜正常系1_2＞
@@ -172,7 +177,6 @@ class TestCoupon(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(10)
 
     # ＜正常系2_2＞
     # ＜新規発行＞
@@ -182,7 +186,7 @@ class TestCoupon(TestBase):
         client = self.client_with_admin_login(app)
         response = client.get(self.url_list)
         assert response.status_code == 200
-        assert '<title>クーポン一覧'.encode('utf-8') in response.data
+        assert '<title>発行済一覧'.encode('utf-8') in response.data
 
     # ＜正常系2_3＞
     # ＜新規発行＞
@@ -197,7 +201,7 @@ class TestCoupon(TestBase):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
         response = client.get(self.url_setting + tokens[0].token_address)
         assert response.status_code == 200
-        assert '<title>クーポン詳細設定'.encode('utf-8') in response.data
+        assert '<title>詳細設定'.encode('utf-8') in response.data
         assert 'テストクーポン'.encode('utf-8') in response.data
         assert 'COUPON'.encode('utf-8') in response.data
         assert '2000000'.encode('utf-8') in response.data
@@ -236,7 +240,6 @@ class TestCoupon(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(10)
 
         # DB登録処理
         processor_issue_event(db)
@@ -246,7 +249,7 @@ class TestCoupon(TestBase):
         response = client.get(self.url_setting + tokens[1].token_address)
 
         assert response.status_code == 200
-        assert '<title>クーポン詳細設定'.encode('utf-8') in response.data
+        assert '<title>詳細設定'.encode('utf-8') in response.data
         assert 'テストクーポン'.encode('utf-8') in response.data
         assert 'COUPON'.encode('utf-8') in response.data
         assert '2000000'.encode('utf-8') in response.data
@@ -269,8 +272,8 @@ class TestCoupon(TestBase):
         response = client.get(self.url_issue, )
         assert response.status_code == 200
 
-        assert '<title>クーポン発行'.encode('utf-8') in response.data
-        assert 'クーポン名'.encode('utf-8') in response.data
+        assert '<title>新規発行'.encode('utf-8') in response.data
+        assert '名称'.encode('utf-8') in response.data
 
     # ＜正常系3_1＞
     # ＜1件確認＞
@@ -281,7 +284,7 @@ class TestCoupon(TestBase):
         client = self.client_with_admin_login(app)
         response = client.get(self.url_list)
         assert response.status_code == 200
-        assert '<title>クーポン一覧'.encode('utf-8') in response.data
+        assert '<title>発行済一覧'.encode('utf-8') in response.data
         assert 'テストクーポン'.encode('utf-8') in response.data
         assert 'COUPON'.encode('utf-8') in response.data
         assert '取扱中'.encode('utf-8') in response.data
@@ -304,7 +307,7 @@ class TestCoupon(TestBase):
 
     # ＜正常系4＞
     # ＜設定変更＞
-    #   クーポン設定変更　→　詳細設定画面で確認
+    #   設定変更　→　詳細設定画面で確認
     def test_normal_4(self, app, shared_contract):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
         url_setting = self.url_setting + tokens[0].token_address
@@ -326,11 +329,10 @@ class TestCoupon(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(10)
 
         response = client.get(url_setting)
         assert response.status_code == 200
-        assert '<title>クーポン詳細設定'.encode('utf-8') in response.data
+        assert '<title>詳細設定'.encode('utf-8') in response.data
         assert 'テストクーポン'.encode('utf-8') in response.data
         assert 'COUPON'.encode('utf-8') in response.data
         assert '2000000'.encode('utf-8') in response.data
@@ -360,7 +362,6 @@ class TestCoupon(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(10)
 
     # ＜正常系5_1＞
     # ＜有効化・無効化＞
@@ -381,7 +382,7 @@ class TestCoupon(TestBase):
         # 一覧で確認
         response = client.get(self.url_list)
         assert response.status_code == 200
-        assert '<title>クーポン一覧'.encode('utf-8') in response.data
+        assert '<title>発行済一覧'.encode('utf-8') in response.data
         assert 'テストクーポン'.encode('utf-8') in response.data
         assert 'COUPON'.encode('utf-8') in response.data
         assert '停止中'.encode('utf-8') in response.data
@@ -405,7 +406,7 @@ class TestCoupon(TestBase):
         # 一覧で確認
         response = client.get(self.url_list)
         assert response.status_code == 200
-        assert '<title>クーポン一覧'.encode('utf-8') in response.data
+        assert '<title>発行済一覧'.encode('utf-8') in response.data
         assert 'テストクーポン'.encode('utf-8') in response.data
         assert 'COUPON'.encode('utf-8') in response.data
         assert '取扱中'.encode('utf-8') in response.data
@@ -422,7 +423,7 @@ class TestCoupon(TestBase):
         # 追加発行画面（GET）
         response = client.get(url_add_supply)
         assert response.status_code == 200
-        assert '<title>クーポン追加発行'.encode('utf-8') in response.data
+        assert '<title>追加発行'.encode('utf-8') in response.data
         assert tokens[0].token_address.encode('utf-8') in response.data
         assert '2000000'.encode('utf-8') in response.data
 
@@ -434,18 +435,17 @@ class TestCoupon(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(10)
 
         # 詳細設定画面で確認
         response = client.get(url_setting)
         assert response.status_code == 200
-        assert '<title>クーポン詳細設定'.encode('utf-8') in response.data
+        assert '<title>詳細設定'.encode('utf-8') in response.data
         assert 'テストクーポン'.encode('utf-8') in response.data
         assert '2000100'.encode('utf-8') in response.data
 
     # ＜正常系7_1＞
     # ＜割当＞
-    #   クーポン割当　→　保有者一覧で確認
+    #   割当　→　保有者一覧で確認
     def test_normal_7_1(self, app):
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
         client = self.client_with_admin_login(app)
@@ -460,12 +460,11 @@ class TestCoupon(TestBase):
             }
         )
         assert response.status_code == 200
-        time.sleep(10)
 
         # 保有者一覧画面の参照
         response = client.get(self.url_holders + tokens[0].token_address)
         assert response.status_code == 200
-        assert '<title>クーポン保有者一覧'.encode('utf-8') in response.data
+        assert '<title>保有者一覧'.encode('utf-8') in response.data
 
         # 保有者一覧APIの参照
         response = client.get(self.url_get_holders + tokens[0].token_address)
@@ -500,14 +499,14 @@ class TestCoupon(TestBase):
 
     # ＜正常系7_2＞
     # ＜割当＞
-    #   クーポン割当画面表示
+    #   割当画面表示
     def test_normal_7_2(self, app):
         client = self.client_with_admin_login(app)
 
         # 割当処理
         response = client.get(self.url_transfer)
         assert response.status_code == 200
-        assert '<title>クーポン割当'.encode('utf-8') in response.data
+        assert '<title>トークン割当'.encode('utf-8') in response.data
 
     # ＜正常系8＞
     # ＜保有者詳細＞
@@ -642,7 +641,7 @@ class TestCoupon(TestBase):
         # 保有者一覧の参照
         response = client.get(self.url_holders + token.token_address)
         assert response.status_code == 200
-        assert '<title>クーポン保有者一覧'.encode('utf-8') in response.data
+        assert '<title>保有者一覧'.encode('utf-8') in response.data
 
         # 保有者一覧APIの参照
         response = client.get(self.url_get_holders + token.token_address)
@@ -697,7 +696,7 @@ class TestCoupon(TestBase):
         url_setting = self.url_setting + token.token_address
         response = client.get(url_setting)
         assert response.status_code == 200
-        assert '<title>クーポン詳細設定'.encode('utf-8') in response.data
+        assert '<title>詳細設定'.encode('utf-8') in response.data
         assert '公開済'.encode('utf-8') in response.data
 
     # ＜正常系12_1＞
@@ -713,7 +712,7 @@ class TestCoupon(TestBase):
         url_setting = self.url_setting + token.token_address
         response = client.get(url_setting)
         assert response.status_code == 200
-        assert '<title>クーポン詳細設定'.encode('utf-8') in response.data
+        assert '<title>詳細設定'.encode('utf-8') in response.data
         assert '募集申込開始'.encode('utf-8') in response.data
 
     # ＜正常系12_2＞
@@ -738,7 +737,7 @@ class TestCoupon(TestBase):
         url_setting = self.url_setting + token.token_address
         response = client.get(url_setting)
         assert response.status_code == 200
-        assert '<title>クーポン詳細設定'.encode('utf-8') in response.data
+        assert '<title>詳細設定'.encode('utf-8') in response.data
         assert '募集申込停止'.encode('utf-8') in response.data
 
     # ＜正常系12_3＞
@@ -764,7 +763,7 @@ class TestCoupon(TestBase):
         url_setting = self.url_setting + token.token_address
         response = client.get(url_setting)
         assert response.status_code == 200
-        assert '<title>クーポン詳細設定'.encode('utf-8') in response.data
+        assert '<title>詳細設定'.encode('utf-8') in response.data
         assert '募集申込開始'.encode('utf-8') in response.data
 
         # 募集申込状態に戻す
@@ -835,7 +834,7 @@ class TestCoupon(TestBase):
         url = self.url_allocate + '/' + token_address + '/' + trader_address
         response = client.get(url)
         assert response.status_code == 200
-        assert 'クーポン割当'.encode('utf-8') in response.data
+        assert 'トークン割当'.encode('utf-8') in response.data
         assert token_address.encode('utf-8') in response.data
         assert trader_address.encode('utf-8') in response.data
 
@@ -872,7 +871,7 @@ class TestCoupon(TestBase):
         # 保有者一覧の参照
         response = client.get(self.url_holders + token_address)
         assert response.status_code == 200
-        assert '<title>クーポン保有者一覧'.encode('utf-8') in response.data
+        assert '<title>保有者一覧'.encode('utf-8') in response.data
 
         # 保有者一覧APIの参照
         response = client.get(self.url_get_holders + token_address)
@@ -938,8 +937,8 @@ class TestCoupon(TestBase):
         assert tx_hash.encode('utf-8') in response.data
 
     # ＜正常系17_1＞
-    # ＜クーポン利用履歴画面＞
-    #   クーポン利用履歴画面が表示できること
+    # ＜利用履歴画面＞
+    #   利用履歴画面が表示できること
     def test_normal_17_1(self, app):
         client = self.client_with_admin_login(app)
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
@@ -952,8 +951,8 @@ class TestCoupon(TestBase):
         assert response.status_code == 200
 
     # ＜正常系17_2＞
-    # ＜クーポン利用履歴（API）＞
-    #   クーポン利用履歴が取得できること（0件）
+    # ＜利用履歴（API）＞
+    #   利用履歴が取得できること（0件）
     def test_normal_17_2(self, app):
         client = self.client_with_admin_login(app)
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
@@ -968,8 +967,8 @@ class TestCoupon(TestBase):
         assert len(response_data) == 0
 
     # ＜正常系17_3＞
-    # ＜クーポン利用履歴（API）＞
-    #   クーポン利用履歴が取得できること（1件）
+    # ＜利用履歴（API）＞
+    #   利用履歴が取得できること（1件）
     def test_normal_17_3(self, app, db):
         client = self.client_with_admin_login(app)
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
@@ -1007,7 +1006,7 @@ class TestCoupon(TestBase):
 
     # ＜正常系17_4＞
     # ＜利用履歴CSVダウンロード＞
-    #   クーポン利用履歴CSVが取得できること
+    #   利用履歴CSVが取得できること
     def test_normal_17_4(self, app, db):
         client = self.client_with_admin_login(app)
         tokens = Token.query.filter_by(template_id=Config.TEMPLATE_ID_COUPON).order_by(Token.created).all()
@@ -1061,8 +1060,8 @@ class TestCoupon(TestBase):
             }
         )
         assert response.status_code == 200
-        assert '<title>クーポン発行'.encode('utf-8') in response.data
-        assert 'クーポン名は必須です。'.encode('utf-8') in response.data
+        assert '<title>新規発行'.encode('utf-8') in response.data
+        assert '名称は必須です。'.encode('utf-8') in response.data
         assert '略称は必須です。'.encode('utf-8') in response.data
         assert '総発行量は必須です。'.encode('utf-8') in response.data
         assert 'DEXアドレスは必須です。'.encode('utf-8') in response.data
@@ -1079,7 +1078,7 @@ class TestCoupon(TestBase):
             data={}
         )
         assert response.status_code == 200
-        assert '<title>クーポン追加発行'.encode('utf-8') in response.data
+        assert '<title>追加発行'.encode('utf-8') in response.data
         assert '追加発行量は必須です。'.encode('utf-8') in response.data
 
     # ＜エラー系3＞
@@ -1091,8 +1090,8 @@ class TestCoupon(TestBase):
             data={}
         )
         assert response.status_code == 200
-        assert '<title>クーポン割当'.encode('utf-8') in response.data
-        assert 'クーポンアドレスは必須です。'.encode('utf-8') in response.data
+        assert '<title>トークン割当'.encode('utf-8') in response.data
+        assert 'トークンアドレスは必須です。'.encode('utf-8') in response.data
         assert '割当先アドレスは必須です。'.encode('utf-8') in response.data
         assert '割当数量は必須です。'.encode('utf-8') in response.data
 
@@ -1140,7 +1139,7 @@ class TestCoupon(TestBase):
             }
         )
         assert response.status_code == 200
-        assert '<title>クーポン発行'.encode('utf-8') in response.data
+        assert '<title>新規発行'.encode('utf-8') in response.data
         assert 'DEXアドレスは有効なアドレスではありません。'.encode('utf-8') in response.data
 
     # ＜エラー系2_2＞
@@ -1176,7 +1175,7 @@ class TestCoupon(TestBase):
         # 追加発行画面（GET）
         response = client.get(url_add_supply)
         assert response.status_code == 200
-        assert '<title>クーポン追加発行'.encode('utf-8') in response.data
+        assert '<title>追加発行'.encode('utf-8') in response.data
         assert tokens[0].token_address.encode('utf-8') in response.data
         assert '2000100'.encode('utf-8') in response.data
 
@@ -1191,12 +1190,11 @@ class TestCoupon(TestBase):
         assert response.status_code == 302
         response = client.get(url_add_supply)
         assert '総発行量と追加発行量の合計は、100,000,000が上限です。'.encode('utf-8') in response.data
-        time.sleep(10)
 
         # 詳細設定画面で確認
         response = client.get(url_setting)
         assert response.status_code == 200
-        assert '<title>クーポン詳細設定'.encode('utf-8') in response.data
+        assert '<title>詳細設定'.encode('utf-8') in response.data
         assert 'テストクーポン'.encode('utf-8') in response.data
         assert '2000100'.encode('utf-8') in response.data
 
@@ -1411,8 +1409,8 @@ class TestCoupon(TestBase):
             }
         )
         assert response.status_code == 200
-        assert '<title>クーポン割当'.encode('utf-8') in response.data
-        assert 'クーポンアドレスは有効なアドレスではありません。'.encode('utf-8') in response.data
+        assert '<title>トークン割当'.encode('utf-8') in response.data
+        assert 'トークンアドレスは有効なアドレスではありません。'.encode('utf-8') in response.data
 
     # ＜エラー系5_2＞
     #   割当（割当先アドレス形式エラー）
@@ -1429,7 +1427,7 @@ class TestCoupon(TestBase):
             }
         )
         assert response.status_code == 200
-        assert '<title>クーポン割当'.encode('utf-8') in response.data
+        assert '<title>トークン割当'.encode('utf-8') in response.data
         assert '割当先アドレスは有効なアドレスではありません。'.encode('utf-8') in response.data
 
     # ＜エラー系5_3＞
@@ -1447,7 +1445,7 @@ class TestCoupon(TestBase):
             }
         )
         assert response.status_code == 200
-        assert '<title>クーポン割当'.encode('utf-8') in response.data
+        assert '<title>トークン割当'.encode('utf-8') in response.data
         assert '割当数量は100,000,000が上限です。'.encode('utf-8') in response.data
 
     # ＜エラー系5_4＞
@@ -1467,11 +1465,11 @@ class TestCoupon(TestBase):
             }
         )
         assert response.status_code == 200
-        assert '<title>クーポン割当'.encode('utf-8') in response.data
+        assert '<title>トークン割当'.encode('utf-8') in response.data
         assert '割当数量が残高を超えています。'.encode('utf-8') in response.data
 
     # ＜エラー系5_5＞
-    #   割当（クーポンアドレスが無効）
+    #   割当（トークンアドレスが無効）
     def test_error_5_5(self, app):
         client = self.client_with_admin_login(app)
         response = client.post(
@@ -1483,8 +1481,8 @@ class TestCoupon(TestBase):
             }
         )
         assert response.status_code == 200
-        assert '<title>クーポン割当'.encode('utf-8') in response.data
-        assert '無効なクーポンアドレスです。'.encode('utf-8') in response.data
+        assert '<title>トークン割当'.encode('utf-8') in response.data
+        assert '無効なトークンアドレスです。'.encode('utf-8') in response.data
 
     # ＜エラー系6_1＞
     # ＜発行体相違＞
@@ -1694,7 +1692,7 @@ class TestCoupon(TestBase):
             }
         )
         assert response.status_code == 200
-        assert '無効なクーポンアドレスです。'.encode('utf-8') in response.data
+        assert '無効なトークンアドレスです。'.encode('utf-8') in response.data
 
     # ＜エラー系6_10＞
     # ＜発行体相違＞

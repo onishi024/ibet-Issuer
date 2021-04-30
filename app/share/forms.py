@@ -73,6 +73,14 @@ class IssueForm(Form):
         ]
     )
 
+    principalValue = IntegerField(
+        "１口あたりの元本額",
+        validators = [
+            InputRequired('１口あたりの元本額は必須です。'),
+            NumberRange(min=0, max=5_000_000_000, message='１口あたりの元本額は5,000,000,000円が上限です。')
+        ]
+    )
+
     dividends = DecimalField(
         "１株配当",
         places=2,
@@ -116,6 +124,11 @@ class IssueForm(Form):
     transferable = SelectField(
         '譲渡制限',
         choices=[(True, 'True'), (False, 'False')], default='True'
+    )
+
+    transferApprovalRequired = SelectField(
+        '移転承諾要否',
+        choices=[(True, 'True'), (False, 'False')], default='False'
     )
 
     referenceUrls_1 = StringField(
@@ -178,6 +191,7 @@ class IssueForm(Form):
         super(IssueForm, self).__init__(*args, **kwargs)
         self.issue_token = issue_token
         self.transferable.choices = [('True', 'なし'), ('False', 'あり')]
+        self.transferApprovalRequired.choices = [('True', '必要'), ('False', '不要')]
         self.description = {
             'name': '',
             'symbol': '商品を識別するための略称を設定してください。',
@@ -188,11 +202,13 @@ class IssueForm(Form):
             'dividendPaymentDate': '',
             'cancellationDate': '',
             'transferable': '譲渡可能な場合は「なし」、譲渡不可の場合は「あり」を選択してください。',
+            'transferApprovalRequired': '移転時承諾が必要な場合は「必要」、不要の場合は「不要」を選択してください。',
             'memo': '商品の補足情報を入力してください。',
             'tradableExchange': '商品が取引可能なDEXコントラクトのアドレスを入力してください。',
             'personalInfoAddress': '所有者名義情報を管理するコントラクトのアドレスを入力してください。',
             'contact_information': '商品に関する問い合わせ先情報を入力してください。',
             'privacy_policy': '商品に関するプライバシーポリシーを入力してください。',
+            'principalValue': '',
         }
 
     @staticmethod
@@ -215,6 +231,14 @@ class SettingForm(Form):
     symbol = StringField("略称", validators=[])
     totalSupply = IntegerField("総発行量", validators=[])
     issuePrice = IntegerField("発行価格（円）", validators=[])
+
+    principalValue = IntegerField(
+        "１口あたりの元本額",
+        validators = [
+            Optional(),
+            NumberRange(min=0, max=5_000_000_000, message='１口あたりの元本額は5,000,000,000円が上限です。')
+        ]
+    )
 
     dividends = DecimalField(
         "１株配当",
@@ -260,6 +284,12 @@ class SettingForm(Form):
         '譲渡制限',
         choices=[(True, 'True'), (False, 'False')],
         default='True'
+    )
+
+    transferApprovalRequired = SelectField(
+        '移転承諾要否',
+        choices=[(True, 'True'), (False, 'False')],
+        default='False'
     )
 
     referenceUrls_1 = StringField(
@@ -324,6 +354,7 @@ class SettingForm(Form):
         super(SettingForm, self).__init__(*args, **kwargs)
         self.token_setting = token_setting
         self.transferable.choices = [('True', 'なし'), ('False', 'あり')]
+        self.transferApprovalRequired.choices = [('True', '必要'), ('False', '不要')]
 
     @staticmethod
     def check_decimal_places(places, field):
@@ -384,9 +415,9 @@ class TransferOwnershipForm(Form):
 # 割当
 class TransferForm(Form):
     token_address = StringField(
-        "株式アドレス",
+        "トークンアドレス",
         validators=[
-            DataRequired('株式アドレスは必須です。')
+            DataRequired('トークンアドレスは必須です。')
         ]
     )
 
@@ -415,9 +446,9 @@ class TransferForm(Form):
 # 募集申込割当
 class AllotForm(Form):
     token_address = StringField(
-        "株式アドレス",
+        "トークンアドレス",
         validators=[
-            DataRequired('株式アドレスは必須です。')
+            DataRequired('トークンアドレスは必須です。')
         ]
     )
     to_address = StringField(

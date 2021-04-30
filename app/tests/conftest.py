@@ -16,17 +16,27 @@ limitations under the License.
 
 SPDX-License-Identifier: Apache-2.0
 """
+import json
 
 import pytest
-
 from cryptography.fernet import Fernet
+from flask import url_for
+from web3 import Web3
+from web3.middleware import geth_poa_middleware
 
 from app import create_app
 from app import db as _db
-from app.models import *
-from config import Config
+from app.models import (
+    Role,
+    Issuer,
+    User
+)
 from app.tests.utils.account_config import eth_account
 from app.utils import ContractUtils
+from config import Config
+
+web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
+web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
 
 # ---------------------------------------------------------------------------------------------
@@ -224,16 +234,11 @@ class TestBase(object):
 # ---------------------------------------------------------------------------------------------
 # quorum系
 # ---------------------------------------------------------------------------------------------
-web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
-web3.middleware_stack.inject(geth_poa_middleware, layer=0)
-
-
 def payment_gateway_contract():
     deployer = eth_account['deployer']
     agent = eth_account['agent']
 
     web3.eth.defaultAccount = deployer['account_address']
-    web3.personal.unlockAccount(deployer['account_address'], deployer['password'])
     contract_address, abi, _ = \
         ContractUtils.deploy_contract('PaymentGateway', [], deployer['account_address'])
 
@@ -250,7 +255,6 @@ def payment_gateway_contract():
 def personalinfo_contract():
     deployer = eth_account['deployer']
     web3.eth.defaultAccount = deployer['account_address']
-    web3.personal.unlockAccount(deployer['account_address'], deployer['password'])
 
     contract_address, abi, _ = ContractUtils.deploy_contract(
         'PersonalInfo', [], deployer['account_address'])
@@ -261,7 +265,6 @@ def personalinfo_contract():
 def exchange_regulator_service_contract():
     deployer = eth_account['deployer']
     web3.eth.defaultAccount = deployer['account_address']
-    web3.personal.unlockAccount(deployer['account_address'], deployer['password'])
 
     contract_address, abi, _ = ContractUtils.deploy_contract('ExchangeRegulatorService', [], deployer['account_address'])
 
@@ -278,7 +281,6 @@ def exchange_regulator_service_contract():
 def tokenlist_contract():
     deployer = eth_account['deployer']
     web3.eth.defaultAccount = deployer['account_address']
-    web3.personal.unlockAccount(deployer['account_address'], deployer['password'])
 
     contract_address, abi, _ = ContractUtils.deploy_contract(
         'TokenList', [], deployer['account_address'])
@@ -289,16 +291,8 @@ def tokenlist_contract():
 # Straight Bond Exchange
 def bond_exchange_contract(payment_gateway_address, personalinfo_address, exchange_regulator_service_address):
     deployer = eth_account['deployer']
-    web3.eth.defaultAccount = deployer['account_address']
-    web3.personal.unlockAccount(deployer['account_address'], deployer['password'])
-
     issuer = eth_account['issuer']
-    web3.eth.defaultAccount = issuer['account_address']
-    web3.personal.unlockAccount(issuer['account_address'], issuer['password'])
-
     trader = eth_account['trader']
-    web3.eth.defaultAccount = trader['account_address']
-    web3.personal.unlockAccount(trader['account_address'], trader['password'])
 
     storage_address, _, _ = ContractUtils.deploy_contract('ExchangeStorage', [], deployer['account_address'])
 
@@ -332,7 +326,6 @@ def bond_exchange_contract(payment_gateway_address, personalinfo_address, exchan
 def coupon_exchange_contract(payment_gateway_address):
     deployer = eth_account['deployer']
     web3.eth.defaultAccount = deployer['account_address']
-    web3.personal.unlockAccount(deployer['account_address'], deployer['password'])
 
     storage_address, _, _ = ContractUtils.deploy_contract(
         'ExchangeStorage', [], deployer['account_address'])
@@ -357,7 +350,6 @@ def coupon_exchange_contract(payment_gateway_address):
 def membership_exchange_contract(payment_gateway_address):
     deployer = eth_account['deployer']
     web3.eth.defaultAccount = deployer['account_address']
-    web3.personal.unlockAccount(deployer['account_address'], deployer['password'])
 
     storage_address, _, _ = ContractUtils.deploy_contract(
         'ExchangeStorage', [], deployer['account_address'])
@@ -381,16 +373,8 @@ def membership_exchange_contract(payment_gateway_address):
 # OTC Exchange
 def otc_exchange_contract(payment_gateway_address, personalinfo_address, exchange_regulator_service_address):
     deployer = eth_account['deployer']
-    web3.eth.defaultAccount = deployer['account_address']
-    web3.personal.unlockAccount(deployer['account_address'], deployer['password'])
-
     issuer = eth_account['issuer']
-    web3.eth.defaultAccount = issuer['account_address']
-    web3.personal.unlockAccount(issuer['account_address'], issuer['password'])
-
     trader = eth_account['trader']
-    web3.eth.defaultAccount = trader['account_address']
-    web3.personal.unlockAccount(trader['account_address'], trader['password'])
 
     storage_address, _, _ = ContractUtils.deploy_contract('OTCExchangeStorage', [], deployer['account_address'])
 

@@ -7,11 +7,11 @@
 {% set active_page = "share_list" %}
 
 {% block title %}トークン追跡 - {% endblock %}
-{% block page_header %}トークン追跡 <span class="badge bg-secondary">株式</span>{% endblock %}
+{% block page_header %}トークン追跡 <span class="badge bg-secondary">SHARE</span>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
     <li><a href="{{ url_for('index.index') }}">トップ</a></li>
-    <li><a href="{{ url_for('share.list') }}">株式一覧</a></li>
+    <li><a href="{{ url_for('share.list') }}">発行済一覧</a></li>
     <li class="active">追跡</li>
 {% endblock %}
 
@@ -25,6 +25,7 @@
                 <div class="pull-right box-tools">
                     <button type="button" class="btn btn-default btn-sm" style="width: 120px" onclick="location.href='{{ url_for('share.list') }}'">戻る</button>
                     <button id="csv_download" type="submit" class="btn btn-success btn-sm" style="width: 120px">ダウンロード</button>
+                    <button type="button" class="btn btn-success btn-sm" style="width: 120px" onclick="location.href='{{ url_for('share.list_all_transfer_approvals', token_address=token_address) }}'">移転承諾履歴</button>
                 </div>
             </form>
         </div>

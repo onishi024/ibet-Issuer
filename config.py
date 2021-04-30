@@ -16,139 +16,157 @@ limitations under the License.
 
 SPDX-License-Identifier: Apache-2.0
 """
-
 import os
 import sys
 from datetime import timedelta
-
-from web3 import Web3
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 
 class Config:
-    # Tokenテーブルのtemplate_id
-    TEMPLATE_ID_SB = 1  # 債券
-    TEMPLATE_ID_COUPON = 2  # クーポン
-    TEMPLATE_ID_MEMBERSHIP = 3  # 会員権
-    TEMPLATE_ID_SHARE = 4  # 株式
+    # Token Template ID
+    TEMPLATE_ID_SB = 1  # BOND
+    TEMPLATE_ID_COUPON = 2  # COUPON
+    TEMPLATE_ID_MEMBERSHIP = 3  # MEMBERSHIP
+    TEMPLATE_ID_SHARE = 4  # SHARE
 
-    # gunicornのworker数
+    # Gunicorn Worker Count
     WORKER_COUNT = int(os.environ.get("WORKER_COUNT")) if os.environ.get("WORKER_COUNT") else 4
 
-    # 実行環境
-    APP_ENV = os.getenv('FLASK_CONFIG') or 'default'
+    # App Env
+    APP_ENV = os.getenv("FLASK_CONFIG") or "default"
 
     # Company List
     COMPANY_LIST_URL = {}
     if APP_ENV == "production":
-        COMPANY_LIST_URL['IBET'] = 'https://s3-ap-northeast-1.amazonaws.com/ibet-company-list/company_list.json'
-        COMPANY_LIST_URL['IBETFIN'] = 'https://s3-ap-northeast-1.amazonaws.com/ibet-fin-company-list/company_list.json'
+        COMPANY_LIST_URL["IBET"] = "https://s3-ap-northeast-1.amazonaws.com/ibet-company-list/company_list.json"
+        COMPANY_LIST_URL["IBETFIN"] = "https://s3-ap-northeast-1.amazonaws.com/ibet-fin-company-list/company_list.json"
     else:
-        COMPANY_LIST_URL['IBET'] = 'https://s3-ap-northeast-1.amazonaws.com/ibet-company-list-dev/company_list.json'
-        COMPANY_LIST_URL['IBETFIN'] = 'https://s3-ap-northeast-1.amazonaws.com/ibet-fin-company-list-dev/company_list.json'
+        COMPANY_LIST_URL["IBET"] = "https://s3-ap-northeast-1.amazonaws.com/ibet-company-list-dev/company_list.json"
+        COMPANY_LIST_URL["IBETFIN"] = "https://s3-ap-northeast-1.amazonaws.com/ibet-fin-company-list-dev/company_list.json"
 
     # SSL
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'ZwiTDW52gQlxBQ8Sn34KYaLNQxA0mvpT2_RjYH5j-ZU='
+    SECRET_KEY = os.environ.get("SECRET_KEY") or "ZwiTDW52gQlxBQ8Sn34KYaLNQxA0mvpT2_RjYH5j-ZU="
     SSL_DISABLE = False
     PERMANENT_SESSION_LIFETIME = timedelta(minutes=30)
 
     # JWT (JSON Web Token)
-    JWT_AUTH_URL_RULE = '/api/auth'
-    JWT_AUTH_USERNAME_KEY = 'login_id'
+    JWT_AUTH_URL_RULE = "/api/auth"
+    JWT_AUTH_USERNAME_KEY = "login_id"
 
     # Database / SQL Alchemy
     SQLALCHEMY_DATABASE_URI = \
-        os.environ.get('DATABASE_URL') or 'postgresql://issueruser:issuerpass@localhost:5432/issuerdb'
+        os.environ.get("DATABASE_URL") or "postgresql://issueruser:issuerpass@localhost:5432/issuerdb"
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
     SQLALCHEMY_RECORD_QUERIES = True
     SQLALCHEMY_TRACK_MODIFICATIONS = True
 
     # Navigation Menu
     NAVI_MENU = {
-        'admin': [
-            ('account', 'glyphicon glyphicon-user', 'アカウント管理', [
-                ('account_list', 'fa fa-list', 'アカウント一覧', 'account.list'),
-                ('account_regist', 'fa fa-user-plus', 'アカウント追加', 'account.regist'),
+        "admin": [
+            ("account", "glyphicon glyphicon-user", "アカウント管理", [
+                ("account_list", "fa fa-list", "アカウント一覧", "account.list"),
+                ("account_regist", "fa fa-user-plus", "アカウント追加", "account.regist"),
             ]),
         ]
     }
-
     NAVI_MENU_USER = [
-        ('share', 'glyphicon glyphicon-th', '株式', [
-            ('share_issue', 'fa fa-circle-o', '新規発行', 'share.issue'),
-            ('share_list', 'fa fa-circle-o', '発行済一覧', 'share.list'),
-            ('share_bulk_transfer', 'fa fa-circle-o', '一括強制移転', 'share.bulk_transfer')
+        ("share", "glyphicon glyphicon-th", "SHARE", [
+            ("share_issue", "fa fa-circle-o", "新規発行", "share.issue"),
+            ("share_list", "fa fa-circle-o", "発行済一覧", "share.list"),
+            ("share_bulk_transfer", "fa fa-circle-o", "一括強制移転", "share.bulk_transfer")
         ]),
-        ('bond', 'glyphicon glyphicon-th', '債券', [
-            ('bond_issue', 'fa fa-circle-o', '新規発行', 'bond.issue'),
-            ('bond_list', 'fa fa-circle-o', '発行済一覧', 'bond.list'),
-            ('bond_position', 'fa fa-circle-o', '売出管理', 'bond.positions'),
-            ('bond_bulk_transfer', 'fa fa-circle-o', '一括強制移転', 'bond.bulk_transfer')
+        ("bond", "glyphicon glyphicon-th", "BOND", [
+            ("bond_issue", "fa fa-circle-o", "新規発行", "bond.issue"),
+            ("bond_list", "fa fa-circle-o", "発行済一覧", "bond.list"),
+            ("bond_position", "fa fa-circle-o", "売出管理", "bond.positions"),
+            ("bond_bulk_transfer", "fa fa-circle-o", "一括強制移転", "bond.bulk_transfer")
         ]),
-        ('membership', 'glyphicon glyphicon-th', '会員権', [
-            ('membership_issue', 'fa fa-circle-o', '新規発行', 'membership.issue'),
-            ('membership_list', 'fa fa-circle-o', '発行済一覧', 'membership.list'),
-            ('membership_position', 'fa fa-circle-o', '売出管理', 'membership.positions'),
-            ('membership_bulk_transfer', 'fa fa-circle-o', '一括強制移転', 'membership.bulk_transfer')
+        ("membership", "glyphicon glyphicon-th", "MEMBERSHIP", [
+            ("membership_issue", "fa fa-circle-o", "新規発行", "membership.issue"),
+            ("membership_list", "fa fa-circle-o", "発行済一覧", "membership.list"),
+            ("membership_position", "fa fa-circle-o", "売出管理", "membership.positions"),
+            ("membership_bulk_transfer", "fa fa-circle-o", "一括強制移転", "membership.bulk_transfer")
         ]),
-        ('coupon', 'glyphicon glyphicon-th', 'クーポン', [
-            ('coupon_issue', 'fa fa-circle-o', '新規発行', 'coupon.issue'),
-            ('coupon_list', 'fa fa-circle-o', '発行済一覧', 'coupon.list'),
-            ('coupon_position', 'fa fa-circle-o', '売出管理', 'coupon.positions'),
-            ('coupon_transfer', 'fa fa-circle-o', '個別割当', 'coupon.transfer'),
-            ('coupon_bulk_transfer', 'fa fa-circle-o', '一括強制移転', 'coupon.bulk_transfer')
+        ("coupon", "glyphicon glyphicon-th", "COUPON", [
+            ("coupon_issue", "fa fa-circle-o", "新規発行", "coupon.issue"),
+            ("coupon_list", "fa fa-circle-o", "発行済一覧", "coupon.list"),
+            ("coupon_position", "fa fa-circle-o", "売出管理", "coupon.positions"),
+            ("coupon_transfer", "fa fa-circle-o", "個別割当", "coupon.transfer"),
+            ("coupon_bulk_transfer", "fa fa-circle-o", "一括強制移転", "coupon.bulk_transfer")
         ]),
     ]
-
     NAVI_MENU_ADMIN = [
-        ('account', 'glyphicon glyphicon-cog', 'Settings', [
-            ('account_list', 'fa fa-circle-o', 'アカウント管理', 'account.list'),
-            ('account_bank_info', 'fa fa-circle-o', '銀行口座情報', 'account.bankinfo'),
-            ('account_issuer_info', 'fa fa-circle-o', '発行体情報', 'account.issuerinfo'),
+        ("account", "glyphicon glyphicon-cog", "Settings", [
+            ("account_list", "fa fa-circle-o", "アカウント管理", "account.list"),
+            ("account_bank_info", "fa fa-circle-o", "銀行口座情報", "account.bankinfo"),
+            ("account_issuer_info", "fa fa-circle-o", "発行体情報", "account.issuerinfo"),
         ]),
     ]
 
     # Logging
     LOG_CONFIG = ({
-        'version': 1,
-        'formatters': {'default': {
-            'format': 'WEBAPL [%(asctime)s] [%(process)d] [%(levelname)s] %(message)s [in %(pathname)s:%(lineno)d]',
+        "version": 1,
+        "formatters": {"default": {
+            "format": "WEBAPL [%(asctime)s] [%(process)d] [%(levelname)s] %(message)s [in %(pathname)s:%(lineno)d]",
         }},
-        'handlers': {'console': {
-            'class': 'logging.StreamHandler',
-            'stream': sys.stdout,
-            'formatter': 'default'
+        "handlers": {"console": {
+            "class": "logging.StreamHandler",
+            "stream": sys.stdout,
+            "formatter": "default"
         }},
-        'loggers': {
-            'api': {
-                'handlers': ['console', ],
-                'propagate': False,
+        "loggers": {
+            "api": {
+                "handlers": ["console", ],
+                "propagate": False,
             }},
-        'root': {
-            'level': 'DEBUG',
+        "root": {
+            "level": "DEBUG",
         }
     })
 
     # Web3
-    WEB3_HTTP_PROVIDER = os.environ.get('WEB3_HTTP_PROVIDER') or 'http://localhost:8545'
-    web3 = Web3(Web3.HTTPProvider(WEB3_HTTP_PROVIDER))
+    WEB3_HTTP_PROVIDER = os.environ.get("WEB3_HTTP_PROVIDER") or "http://localhost:8545"
 
     # Transaction Gas Limit
     TX_GAS_LIMIT = int(os.environ.get("TX_GAS_LIMIT")) if os.environ.get("TX_GAS_LIMIT") else 6000000
 
-    # 発行体セキュアパラメータ暗号化共通鍵
-    SECURE_PARAMETER_ENCRYPTION_KEY = os.environ.get('SECURE_PARAMETER_ENCRYPTION_KEY')
+    # Issuer Secure Parameter Encryption Key
+    SECURE_PARAMETER_ENCRYPTION_KEY = os.environ.get("SECURE_PARAMETER_ENCRYPTION_KEY")
 
     # Private Key Store for AWS Secrets Manager
-    AWS_REGION_NAME = 'ap-northeast-1'  # NOTE:現状は固定で設定
-    AWS_SECRET_ID = os.environ.get('AWS_SECRET_ID')
+    AWS_REGION_NAME = "ap-northeast-1"  # NOTE: Currently set to fixed
+    AWS_SECRET_ID = os.environ.get("AWS_SECRET_ID")
 
-    # RSA鍵ファイルのパスワード
-    RSA_PASSWORD = os.environ.get('RSA_PASSWORD')
+    # RSA Key File Password
+    RSA_PASSWORD = os.environ.get("RSA_PASSWORD")
 
     # Zero Address
     ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
+
+    # Batch Processing Interval
+    INTERVAL_INDEXER_AGREEMENT = int(os.environ.get("INTERVAL_INDEXER_AGREEMENT")) \
+        if os.environ.get("INTERVAL_INDEXER_AGREEMENT") else 1
+    INTERVAL_INDEXER_APPLY_FOR = int(os.environ.get("INTERVAL_INDEXER_APPLY_FOR")) \
+        if os.environ.get("INTERVAL_INDEXER_APPLY_FOR") else 60
+    INTERVAL_INDEXER_CONSUME = int(os.environ.get("INTERVAL_INDEXER_CONSUME")) \
+        if os.environ.get("INTERVAL_INDEXER_CONSUME") else 60
+    INTERVAL_INDEXER_ORDER = int(os.environ.get("INTERVAL_INDEXER_ORDER")) \
+        if os.environ.get("INTERVAL_INDEXER_ORDER") else 1
+    INTERVAL_INDEXER_PERSONAL_INFO = int(os.environ.get("INTERVAL_INDEXER_PERSONAL_INFO")) \
+        if os.environ.get("INTERVAL_INDEXER_PERSONAL_INFO") else 10
+    INTERVAL_INDEXER_TRANSFER = int(os.environ.get("INTERVAL_INDEXER_TRANSFER")) \
+        if os.environ.get("INTERVAL_INDEXER_TRANSFER") else 1
+    INTERVAL_INDEXER_TRANSFER_APPROVAL = int(os.environ.get("INTERVAL_INDEXER_TRANSFER_APPROVAL")) \
+        if os.environ.get("INTERVAL_INDEXER_TRANSFER_APPROVAL") else 60
+    INTERVAL_PROCESSOR_APPROVE_TRANSFER = int(os.environ.get("INTERVAL_PROCESSOR_APPROVE_TRANSFER")) \
+        if os.environ.get("INTERVAL_PROCESSOR_APPROVE_TRANSFER") else 60
+    INTERVAL_PROCESSOR_BATCH_TRANSFER = int(os.environ.get("INTERVAL_PROCESSOR_BATCH_TRANSFER")) \
+        if os.environ.get("INTERVAL_PROCESSOR_BATCH_TRANSFER") else 10
+    INTERVAL_PROCESSOR_BOND_LEDGER_JP = int(os.environ.get("INTERVAL_PROCESSOR_BOND_LEDGER_JP")) \
+        if os.environ.get("INTERVAL_PROCESSOR_BOND_LEDGER_JP") else 60
+    INTERVAL_PROCESSOR_ISSUE_EVENT = int(os.environ.get("INTERVAL_PROCESSOR_ISSUE_EVENT")) \
+        if os.environ.get("INTERVAL_PROCESSOR_ISSUE_EVENT") else 10
 
     @staticmethod
     def init_app(app):
@@ -163,28 +181,28 @@ class TestingConfig(Config):
     TESTING = True
     LOGIN_DISABLED = True
     SQLALCHEMY_DATABASE_URI = \
-        os.environ.get('TEST_DATABASE_URL') or 'postgresql://issueruser:issuerpass@localhost:5432/issuerdb_test'
+        os.environ.get("TEST_DATABASE_URL") or "postgresql://issueruser:issuerpass@localhost:5432/issuerdb_test"
     WTF_CSRF_ENABLED = False
 
 
 class ProductionConfig(Config):
     LOG_CONFIG = ({
-        'version': 1,
-        'formatters': {'default': {
-            'format': 'WEBAPL [%(asctime)s] [%(process)d] [%(levelname)s] %(message)s',
+        "version": 1,
+        "formatters": {"default": {
+            "format": "WEBAPL [%(asctime)s] [%(process)d] [%(levelname)s] %(message)s",
         }},
-        'handlers': {'console': {
-            'class': 'logging.StreamHandler',
-            'stream': sys.stdout,
-            'formatter': 'default'
+        "handlers": {"console": {
+            "class": "logging.StreamHandler",
+            "stream": sys.stdout,
+            "formatter": "default"
         }},
-        'loggers': {
-            'api': {
-                'handlers': ['console', ],
-                'propagate': False,
+        "loggers": {
+            "api": {
+                "handlers": ["console", ],
+                "propagate": False,
             }},
-        'root': {
-            'level': 'INFO',
+        "root": {
+            "level": "INFO",
         }
     })
 
@@ -200,9 +218,9 @@ class UnixConfig(ProductionConfig):
 
 
 config = {
-    'development': DevelopmentConfig,
-    'testing': TestingConfig,
-    'production': ProductionConfig,
-    'unix': UnixConfig,
-    'default': DevelopmentConfig
+    "development": DevelopmentConfig,
+    "testing": TestingConfig,
+    "production": ProductionConfig,
+    "unix": UnixConfig,
+    "default": DevelopmentConfig
 }

@@ -6,13 +6,13 @@
 {% endblock %}
 {% set active_page = "membership_list" %}
 
-{% block title %}会員権詳細設定 - {% endblock %}
-{% block page_header %}詳細設定 <span class="badge bg-secondary">会員権</span>{% endblock %}
+{% block title %}詳細設定 - {% endblock %}
+{% block page_header %}詳細設定 <span class="badge bg-secondary">MEMBERSHIP</span>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
     <li><a href="{{ url_for('index.index') }}">トップ</a></li>
-    <li><a href="{{ url_for('membership.list') }}">会員権一覧</a></li>
-    <li class="active">会員権詳細設定</li>
+    <li><a href="{{ url_for('membership.list') }}">発行済一覧</a></li>
+    <li class="active">詳細設定</li>
 {% endblock %}
 
 {% block page_content %}
@@ -247,7 +247,7 @@
           }, 10000);
         });
       $('#release').click(function(){
-        $("#modal-text").html("この会員権をウォレット向けに公開します。よろしいですか？");
+        $("#modal-text").html("このトークンをウォレット向けに公開します。よろしいですか？");
         $('#modal-form').attr('action', "{{ url_for('membership.release') }}");
         $('#modal-confirm').modal();
       });

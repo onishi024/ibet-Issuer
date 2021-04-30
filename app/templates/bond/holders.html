@@ -8,13 +8,13 @@
 {% endblock %}
 {% set active_page = "bond_list" %}
 
-{% block title %}債券保有者一覧 - {% endblock %}
-{% block page_header %}債券保有者一覧 <span class="badge bg-secondary">債券</span>{% endblock %}
+{% block title %}保有者一覧 - {% endblock %}
+{% block page_header %}保有者一覧 <span class="badge bg-secondary">BOND</span>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
 <li><a href="{{ url_for('index.index') }}">トップ</a></li>
-<li><a href="{{ url_for('bond.list') }}">債券一覧</a></li>
-<li class="active">債券保有者一覧</li>
+<li><a href="{{ url_for('bond.list') }}">発行済一覧</a></li>
+<li class="active">保有者一覧</li>
 {% endblock %}
 
 {% block page_content %}
@@ -106,12 +106,12 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td>債券名</td>
+                        <td>トークン名</td>
                         <td>ibet債券</td>
                         <td></td>
                     </tr>
                     <tr>
-                        <td>債券アドレス</td>
+                        <td>トークンアドレス</td>
                         <td>0xF37aF18966609eCaDe3E4D1831996853c637cfF3</td>
                         <td></td>
                     </tr>

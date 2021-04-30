@@ -20,38 +20,76 @@ import csv
 import json
 import re
 import uuid
-from datetime import datetime, timezone, timedelta
-
-JST = timezone(timedelta(hours=+9), 'JST')
+from datetime import (
+    datetime,
+    timezone,
+    timedelta
+)
 import io
 import time
 
 from flask_wtf import FlaskForm as Form
-from flask import request, redirect, url_for, flash, make_response, render_template, abort, jsonify, session
-from flask_login import login_required, current_user
-from sqlalchemy import desc, or_
-
-from app import db
-from app.models import Token, Transfer, AddressType, ApplyFor, Issuer, HolderList, PersonalInfoContract, BulkTransfer, \
-    BulkTransferUpload
-from app.models import PersonalInfo as PersonalInfoModel
-from app.utils import ContractUtils, TokenUtils
-from app.exceptions import EthRuntimeError
-from config import Config
-from . import share
-from .forms import IssueForm, SettingForm, AddSupplyForm, TransferOwnershipForm, TransferForm, AllotForm, \
-    BulkTransferUploadForm
-
-from web3 import Web3
+from flask import (
+    request,
+    redirect,
+    url_for,
+    flash,
+    make_response,
+    render_template,
+    abort,
+    jsonify,
+    session
+)
+from flask_login import (
+    login_required,
+    current_user
+)
+from sqlalchemy import (
+    desc,
+    or_
+)
 from eth_utils import to_checksum_address
+from web3 import Web3
 from web3.middleware import geth_poa_middleware
+from web3.exceptions import ABIFunctionNotFound
 
-web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
-web3.middleware_stack.inject(geth_poa_middleware, layer=0)
-
+from config import Config
 from logging import getLogger
+from app import db
+from . import share
+from app.share.forms import (
+    IssueForm,
+    SettingForm,
+    AddSupplyForm,
+    TransferOwnershipForm,
+    TransferForm,
+    AllotForm,
+    BulkTransferUploadForm
+)
+from app.models import (
+    Token,
+    Transfer,
+    IDXTransferApproval,
+    AddressType,
+    ApplyFor,
+    Issuer,
+    HolderList,
+    PersonalInfoContract,
+    BulkTransfer,
+    BulkTransferUpload,
+    PersonalInfo as PersonalInfoModel
+)
+from app.utils import (
+    ContractUtils,
+    TokenUtils
+)
+from app.exceptions import EthRuntimeError
 
 logger = getLogger('api')
+JST = timezone(timedelta(hours=+9), 'JST')
+
+web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
+web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
 
 ####################################################
@@ -64,7 +102,7 @@ def flash_errors(form: Form):
 
 
 ####################################################
-# [株式]トークン名取得
+# トークン名取得
 ####################################################
 @share.route('/get_token_name/<string:token_address>', methods=['GET'])
 @login_required
@@ -77,7 +115,7 @@ def get_token_name(token_address):
 
 
 ####################################################
-# [株式]新規発行
+# 新規発行
 ####################################################
 @share.route('/issue', methods=['GET', 'POST'])
 @login_required
@@ -105,12 +143,15 @@ def issue():
                 int(form.dividends.data * 100),
                 form.dividendRecordDate.data,
                 form.dividendPaymentDate.data,
-                form.cancellationDate.data
+                form.cancellationDate.data,
+                form.principalValue.data
             ]
-
             _, bytecode, bytecode_runtime = ContractUtils.get_contract_info('IbetShare')
-            contract_address, abi, tx_hash = \
-                ContractUtils.deploy_contract('IbetShare', arguments, session["eth_account"])
+            contract_address, abi, tx_hash = ContractUtils.deploy_contract(
+                contract_name='IbetShare',
+                args=arguments,
+                deployer=session["eth_account"]
+            )
 
             # 発行情報をDBに登録
             token = Token()
@@ -135,9 +176,17 @@ def issue():
 
                 # 譲渡制限の登録処理(bool型に変換)
                 bool_transferable = form.transferable.data != 'False'
-                tx = TokenContract.functions.setTransferable(bool_transferable). \
-                    buildTransaction({'from': session["eth_account"], 'gas': Config.TX_GAS_LIMIT})
-                ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
+                if bool_transferable is True:
+                    tx = TokenContract.functions.setTransferable(bool_transferable). \
+                        buildTransaction({'from': session["eth_account"], 'gas': Config.TX_GAS_LIMIT})
+                    ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
+
+                # 移転承諾要否の登録処理(bool型に変換)
+                bool_transferApprovalRequired = form.transferApprovalRequired.data != 'False'
+                if bool_transferApprovalRequired is True:
+                    tx = TokenContract.functions.setTransferApprovalRequired(bool_transferApprovalRequired). \
+                        buildTransaction({'from': session["eth_account"], 'gas': Config.TX_GAS_LIMIT})
+                    ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
 
                 # 関連URLの登録処理
                 if form.referenceUrls_1.data != '':
@@ -188,7 +237,7 @@ def issue():
 
 
 ####################################################
-# [株式]発行済一覧
+# 発行済一覧
 ####################################################
 @share.route('/list', methods=['GET'])
 @login_required
@@ -241,7 +290,7 @@ def list():
 
 
 ####################################################
-# [株式]設定内容修正
+# 設定内容修正
 ####################################################
 @share.route('/setting/<string:token_address>', methods=['GET', 'POST'])
 @login_required
@@ -270,10 +319,12 @@ def setting(token_address):
     symbol = TokenContract.functions.symbol().call()
     totalSupply = TokenContract.functions.totalSupply().call()
     issuePrice = TokenContract.functions.issuePrice().call()
+    principalValue = TokenContract.functions.principalValue().call()
     dividends, dividendRecordDate, dividendPaymentDate = TokenContract.functions.dividendInformation().call()
     dividends = dividends * 0.01
     cancellationDate = TokenContract.functions.cancellationDate().call()
     transferable = str(TokenContract.functions.transferable().call())
+    transferApprovalRequired = str(TokenContract.functions.transferApprovalRequired().call())
     memo = TokenContract.functions.memo().call()
     referenceUrls_1 = TokenContract.functions.referenceUrls(0).call()
     referenceUrls_2 = TokenContract.functions.referenceUrls(1).call()
@@ -332,6 +383,14 @@ def setting(token_address):
                 ).buildTransaction({'from': session["eth_account"], 'gas': Config.TX_GAS_LIMIT})
                 ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
 
+            # １口あたりの元本額変更
+            if form.principalValue.data is None:
+                form.principalValue.data = 0
+            if form.principalValue.data != principalValue:
+                tx = TokenContract.functions.setPrincipalValue(form.principalValue.data). \
+                    buildTransaction({'from': session["eth_account"], 'gas': Config.TX_GAS_LIMIT})
+                ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
+
             # 消却日欄変更
             if form.cancellationDate.data != cancellationDate:
                 tx = TokenContract.functions.setCancellationDate(form.cancellationDate.data). \
@@ -350,6 +409,15 @@ def setting(token_address):
                 if form.transferable.data == 'False':
                     transferable_bool = False
                 tx = TokenContract.functions.setTransferable(transferable_bool). \
+                    buildTransaction({'from': session["eth_account"], 'gas': Config.TX_GAS_LIMIT})
+                ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
+
+            # 移転承諾要否変更
+            if form.transferApprovalRequired.data != transferApprovalRequired:
+                bool_transferApprovalRequired = True
+                if form.transferApprovalRequired.data == 'False':
+                    bool_transferApprovalRequired = False
+                tx = TokenContract.functions.setTransferApprovalRequired(bool_transferApprovalRequired). \
                     buildTransaction({'from': session["eth_account"], 'gas': Config.TX_GAS_LIMIT})
                 ContractUtils.send_transaction(transaction=tx, eth_account=session['eth_account'])
 
@@ -420,11 +488,13 @@ def setting(token_address):
         form.symbol.data = symbol
         form.totalSupply.data = totalSupply
         form.issuePrice.data = issuePrice
+        form.principalValue.data = principalValue
         form.dividends.data = dividends
         form.dividendRecordDate.data = dividendRecordDate
         form.dividendPaymentDate.data = dividendPaymentDate
         form.cancellationDate.data = cancellationDate
         form.transferable.data = transferable
+        form.transferApprovalRequired.data = transferApprovalRequired
         form.memo.data = memo
         form.referenceUrls_1.data = referenceUrls_1
         form.referenceUrls_2.data = referenceUrls_2
@@ -447,7 +517,7 @@ def setting(token_address):
 
 
 ####################################################
-# [株式]公開
+# 公開
 ####################################################
 @share.route('/release', methods=['POST'])
 @login_required
@@ -479,7 +549,7 @@ def release():
 
 
 ####################################################
-# [株式]募集申込開始/停止
+# 募集申込開始/停止
 ####################################################
 @share.route('/start_offering', methods=['POST'])
 @login_required
@@ -518,7 +588,7 @@ def _set_offering_status(token_address, status):
 
 
 ####################################################
-# [株式]有効化/無効化
+# 有効化/無効化
 ####################################################
 @share.route('/valid', methods=['POST'])
 @login_required
@@ -542,7 +612,7 @@ def _set_validity(token_address, isvalid):
     """
     取扱ステータス変更
     :param token_address: トークンアドレス
-    :param status: 変更後ステータス
+    :param isvalid: 変更後ステータス
     :return: なし
     """
     TokenContract = TokenUtils.get_contract(token_address, session['eth_account'], template_id=Config.TEMPLATE_ID_SHARE)
@@ -557,7 +627,7 @@ def _set_validity(token_address, isvalid):
 
 
 ####################################################
-# [株式]追加発行
+# 追加発行
 ####################################################
 @share.route('/add_supply/<string:token_address>', methods=['GET', 'POST'])
 @login_required
@@ -607,7 +677,7 @@ def add_supply(token_address):
 
 
 ####################################################
-# [株式]トークン追跡
+# トークン追跡
 ####################################################
 @share.route('/token/track/<string:token_address>', methods=['GET'])
 @login_required
@@ -647,7 +717,6 @@ def token_tracker(token_address):
             })
         except Exception as e:
             logger.exception(e)
-            pass
 
     return render_template(
         'share/token_tracker.html',
@@ -717,7 +786,72 @@ def token_tracker_csv():
 
 
 ####################################################
-# [株式]募集申込一覧
+# トークン移転承諾
+####################################################
+@share.route("/token/transfer_approvals/<string:token_address>", methods=["GET"])
+@login_required
+def list_all_transfer_approvals(token_address):
+    logger.info(f"[{current_user.login_id}] share/list_all_transfer_approvals")
+
+    # Validation
+    if not Web3.isAddress(token_address):
+        abort(404)
+
+    # Check if the token is issued by the issuer
+    token = Token.query. \
+        filter(Token.token_address == token_address). \
+        filter(Token.admin_address == session["eth_account"].lower()). \
+        first()
+    if token is None:
+        abort(404)
+
+    _transfer_approvals = IDXTransferApproval.query.\
+        filter(IDXTransferApproval.token_address == token_address). \
+        order_by(desc(IDXTransferApproval.application_id)). \
+        all()
+
+    resp_transfer_approvals = []
+    for _transfer_approval in _transfer_approvals:
+        try:
+            _application_datetime = _transfer_approval.application_datetime
+            _application_blocktimestamp = _transfer_approval.application_blocktimestamp
+            _approval_datetime = _transfer_approval.approval_datetime
+            _approval_blocktimestamp = _transfer_approval.approval_blocktimestamp
+            if _application_datetime is not None:
+                _application_datetime = _application_datetime.\
+                    replace(tzinfo=timezone.utc).astimezone(JST).strftime("%Y/%m/%d %H:%M:%S %z")
+            if _application_blocktimestamp is not None:
+                _application_blocktimestamp = _application_blocktimestamp. \
+                    replace(tzinfo=timezone.utc).astimezone(JST).strftime("%Y/%m/%d %H:%M:%S %z")
+            if _approval_datetime is not None:
+                _approval_datetime = _approval_datetime. \
+                    replace(tzinfo=timezone.utc).astimezone(JST).strftime("%Y/%m/%d %H:%M:%S %z")
+            if _approval_blocktimestamp is not None:
+                _approval_blocktimestamp = _approval_blocktimestamp. \
+                    replace(tzinfo=timezone.utc).astimezone(JST).strftime("%Y/%m/%d %H:%M:%S %z")
+            resp_transfer_approvals.append({
+                "application_id": _transfer_approval.application_id,
+                "from_address": _transfer_approval.from_address,
+                "to_address": _transfer_approval.to_address,
+                "value": _transfer_approval.value,
+                "application_datetime": _application_datetime,
+                "application_blocktimestamp": _application_blocktimestamp,
+                "approval_datetime": _approval_datetime,
+                "approval_blocktimestamp": _approval_blocktimestamp,
+                "cancelled": _transfer_approval.cancelled
+            })
+        except Exception as e:
+            logger.exception(e)
+
+    return render_template(
+        'share/transfer_approvals.html',
+        token_address=token_address,
+        transfer_approvals=resp_transfer_approvals
+    )
+
+
+####################################################
+# 募集申込一覧
 ####################################################
 # 申込一覧画面
 @share.route('/applications/<string:token_address>', methods=['GET'])
@@ -804,7 +938,7 @@ def get_applications(token_address):
     for event in apply_for_events:
         account_list.append(event.account_address)
 
-    applications = []
+    _applications = []
     for account_address in account_list:
         # 個人情報取得
         personal_info = personal_info_contract.get_info(
@@ -823,13 +957,13 @@ def get_applications(token_address):
             'data': application_data[2],
             'balance': balance
         }
-        applications.append(application)
+        _applications.append(application)
 
-    return jsonify(applications)
+    return jsonify(_applications)
 
 
 ####################################################
-# [株式]割当登録
+# 割当登録
 ####################################################
 @share.route('/allot/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
 @login_required
@@ -886,7 +1020,7 @@ def _render_allot(token_address: str, account_address: str, form: AllotForm):
 
 
 ####################################################
-# [株式]権利移転（募集申込）
+# 権利移転（募集申込）
 ####################################################
 @share.route('/transfer_allotment/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
 @login_required
@@ -955,8 +1089,10 @@ def _render_transfer_allotment(token_address: str, account_address: str, form: T
 
 
 ####################################################
-# [株式]保有者一覧
+# 保有者一覧
 ####################################################
+
+# （画面）保有者一覧
 @share.route('/holders/<string:token_address>', methods=['GET'])
 @login_required
 def holders(token_address):
@@ -968,60 +1104,7 @@ def holders(token_address):
     )
 
 
-# 保有者リストCSVダウンロード
-@share.route('/holders_csv_download', methods=['POST'])
-@login_required
-def holders_csv_download():
-    logger.info(f'[{current_user.login_id}] share/holders_csv_download')
-
-    token_address = request.form.get('token_address')
-    holders = get_holders(token_address)["data"]
-    token_name = json.loads(get_token_name(token_address).data)
-
-    f = io.StringIO()
-
-    # ヘッダー行
-    data_header = \
-        'token_name,' + \
-        'token_address,' + \
-        'account_address,' + \
-        'key_manager,' + \
-        'balance,' + \
-        'name,' + \
-        'birth_date,' + \
-        'postal_code,' + \
-        'address,' + \
-        'email\n'
-    f.write(data_header)
-
-    for holder in holders:
-        # Unicodeの各種ハイフン文字を半角ハイフン（U+002D）に変換する
-        try:
-            holder_address = re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', holder["address"])
-        except TypeError:
-            holder_address = ""
-        # データ行
-        data_row = \
-            token_name + ',' + token_address + ',' + \
-            holder["account_address"] + ',' + holder["key_manager"] + ','  + \
-            str(holder["balance"]) + ',' + \
-            holder["name"] + ',' + holder["birth_date"] + ',' + \
-            holder["postal_code"] + ',' + holder_address + ',' + \
-            holder["email"] + '\n'
-        f.write(data_row)
-
-    now = datetime.now(tz=JST)
-    res = make_response()
-    csvdata = f.getvalue()
-    res.data = csvdata.encode('sjis', 'ignore')
-    res.headers['Content-Type'] = 'text/plain'
-    res.headers['Content-Disposition'] = f"attachment; filename={now.strftime('%Y%m%d%H%M%S')}share_holders_list.csv"
-    return res
-
-
-####################################################
-# [株式]保有者リスト履歴
-####################################################
+# （画面）保有者リスト履歴
 @share.route('/holders_csv_history/<string:token_address>', methods=['GET'])
 @login_required
 def holders_csv_history(token_address):
@@ -1037,7 +1120,7 @@ def holders_csv_history(token_address):
     )
 
 
-# 保有者リスト履歴（API）
+# （画面）保有者リスト履歴
 @share.route('/get_holders_csv_history/<string:token_address>', methods=['GET'])
 @login_required
 def get_holders_csv_history(token_address):
@@ -1076,6 +1159,61 @@ def get_holders_csv_history(token_address):
 
 
 # 保有者リストCSVダウンロード
+@share.route('/holders_csv_download', methods=['POST'])
+@login_required
+def holders_csv_download():
+    logger.info(f'[{current_user.login_id}] share/holders_csv_download')
+
+    token_address = request.form.get('token_address')
+    _holders = get_holders(token_address)["data"]
+    token_name = json.loads(get_token_name(token_address).data)
+
+    f = io.StringIO()
+
+    # ヘッダー行
+    data_header = f"token_name," \
+                  f"token_address," \
+                  f"account_address," \
+                  f"key_manager," \
+                  f"balance," \
+                  f"name," \
+                  f"birth_date," \
+                  f"postal_code," \
+                  f"address," \
+                  f"email" \
+                  f"\n"
+    f.write(data_header)
+
+    for _holder in _holders:
+        # Unicodeの各種ハイフン文字を半角ハイフン（U+002D）に変換する
+        try:
+            holder_address = re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', _holder["address"])
+        except TypeError:
+            holder_address = ""
+        # データ行
+        data_row = f"{token_name}," \
+                   f"{token_address}," \
+                   f"{_holder['account_address']}," \
+                   f"{_holder['key_manager']}," \
+                   f"{str(_holder['balance'])}," \
+                   f"{_holder['name']}," \
+                   f"{_holder['birth_date']}," \
+                   f"{_holder['postal_code']}," \
+                   f"{holder_address}," \
+                   f"{_holder['email']}" \
+                   f"\n"
+        f.write(data_row)
+
+    now = datetime.now(tz=JST)
+    res = make_response()
+    csvdata = f.getvalue()
+    res.data = csvdata.encode('sjis', 'ignore')
+    res.headers['Content-Type'] = 'text/plain'
+    res.headers['Content-Disposition'] = f"attachment; filename={now.strftime('%Y%m%d%H%M%S')}share_holders_list.csv"
+    return res
+
+
+# 保有者リストCSV履歴ダウンロード
 @share.route('/holders_csv_history_download', methods=['POST'])
 @login_required
 def holders_csv_history_download():
@@ -1181,11 +1319,21 @@ def get_holders(token_address):
     count = 0  # 取得レコード
     for account_address in holders_uniq:
         cursor += 1
-        if ((start is not None and cursor >= start) and (length is not None and count < length)) or (start is None and length is None):
+        if ((start is not None and cursor >= start) and (length is not None and count < length)) or \
+                (start is None and length is None):
             count += 1
 
-            # 残高取得
-            balance = TokenContract.functions.balanceOf(account_address).call()
+            # 保有残高取得
+            try:
+                balance = TokenContract.functions.balanceOf(account_address).call()
+            except ABIFunctionNotFound:
+                balance = 0
+
+            # 移転承諾待ち数量取得
+            try:
+                pending_transfer = TokenContract.functions.pendingTransfer(account_address).call()
+            except ABIFunctionNotFound:
+                pending_transfer = 0
 
             # アドレス種別判定
             if account_address == token_owner:
@@ -1204,7 +1352,7 @@ def get_holders(token_address):
                 'email': DEFAULT_VALUE,
                 'address': DEFAULT_VALUE,
                 'birth_date': DEFAULT_VALUE,
-                'balance': balance,
+                'balance': balance + pending_transfer,
                 'address_type': address_type
             }
 
@@ -1233,7 +1381,7 @@ def get_holders(token_address):
                         'address': address,
                         'email': email,
                         'birth_date': birth_date,
-                        'balance': balance,
+                        'balance': balance + pending_transfer,
                         'address_type': address_type
                     }
 
@@ -1255,7 +1403,7 @@ def get_holders(token_address):
 
 
 ####################################################
-# [株式]保有者移転
+# 保有者移転
 ####################################################
 @share.route('/transfer_ownership/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
 @login_required
@@ -1316,7 +1464,7 @@ def transfer_ownership(token_address, account_address):
 
 
 ####################################################
-# [株式]保有者詳細
+# 保有者詳細
 ####################################################
 @share.route('/holder/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
 @login_required

@@ -45,7 +45,7 @@ from eth_utils import to_checksum_address
 from web3.middleware import geth_poa_middleware
 
 web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
-web3.middleware_stack.inject(geth_poa_middleware, layer=0)
+web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
 from logging import getLogger
 
@@ -74,7 +74,7 @@ def transfer_token(token_contract, from_address, to_address, amount):
 
 
 ####################################################
-# [会員権]発行済一覧
+# 発行済一覧
 ####################################################
 @membership.route('/list', methods=['GET'])
 @login_required
@@ -130,7 +130,7 @@ def list():
 
 
 ####################################################
-# [会員権]トークン追跡
+# トークン追跡
 ####################################################
 @membership.route('/token/track/<string:token_address>', methods=['GET'])
 @login_required
@@ -239,7 +239,7 @@ def token_tracker_csv():
 
 
 ####################################################
-# [会員権]募集申込一覧
+# 募集申込一覧
 ####################################################
 # 申込一覧画面
 @membership.route('/applications/<string:token_address>', methods=['GET'])
@@ -337,7 +337,7 @@ def get_applications(token_address):
 
 
 ####################################################
-# [会員権]割当（募集申込）
+# 割当（募集申込）
 ####################################################
 @membership.route('/allocate/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
 @login_required
@@ -395,7 +395,7 @@ def allocate(token_address, account_address):
 
 
 ####################################################
-# [会員権]保有者一覧
+# 保有者一覧
 ####################################################
 @membership.route('/holders/<string:token_address>', methods=['GET'])
 @login_required
@@ -414,38 +414,43 @@ def holders_csv_download():
     logger.info(f'[{current_user.login_id}] membership/holders_csv_download')
 
     token_address = request.form.get('token_address')
-    holders = json.loads(get_holders(token_address).data)
+    _holders = json.loads(get_holders(token_address).data)
     token_name = json.loads(get_token_name(token_address).data)
 
     f = io.StringIO()
 
     # ヘッダー行
-    data_header = \
-        'token_name,' + \
-        'token_address,' + \
-        'account_address,' + \
-        'balance,' + \
-        'commitment,' + \
-        'name,' + \
-        'birth_date,' + \
-        'postal_code,' + \
-        'address,' + \
-        'email\n'
+    data_header = f"token_name," \
+                  f"token_address," \
+                  f"account_address," \
+                  f"balance," \
+                  f"commitment," \
+                  f"name," \
+                  f"birth_date," \
+                  f"postal_code," \
+                  f"address," \
+                  f"email" \
+                  f"\n"
     f.write(data_header)
 
-    for holder in holders:
+    for _holder in _holders:
         # Unicodeの各種ハイフン文字を半角ハイフン（U+002D）に変換する
         try:
-            holder_address = re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', holder["address"])
+            holder_address = re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', _holder["address"])
         except TypeError:
             holder_address = ""
         # データ行
-        data_row = \
-            token_name + ',' + token_address + ',' + holder["account_address"] + ',' + \
-            str(holder["balance"]) + ',' + str(holder["commitment"]) + ',' + \
-            holder["name"] + ',' + holder["birth_date"] + ',' + \
-            holder["postal_code"] + ',' + holder_address + ',' + \
-            holder["email"] + '\n'
+        data_row = f"{token_name}," \
+                   f"{token_address}," \
+                   f"{_holder['account_address']}," \
+                   f"{str(_holder['balance'])}," \
+                   f"{str(_holder['commitment'])}," \
+                   f"{_holder['name']}," \
+                   f"{_holder['birth_date']}," \
+                   f"{_holder['postal_code']}," \
+                   f"{holder_address}," \
+                   f"{_holder['email']}" \
+                   f"\n"
         f.write(data_row)
 
     now = datetime.now(tz=JST)
@@ -582,7 +587,7 @@ def get_token_name(token_address):
 
 
 ####################################################
-# [会員権]保有者リスト履歴
+# 保有者リスト履歴
 ####################################################
 @membership.route('/holders_csv_history/<string:token_address>', methods=['GET'])
 @login_required
@@ -668,7 +673,7 @@ def holders_csv_history_download():
 
 
 ####################################################
-# [会員権]保有者移転
+# 保有者移転
 ####################################################
 @membership.route('/transfer_ownership/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
 @login_required
@@ -730,7 +735,7 @@ def transfer_ownership(token_address, account_address):
 
 
 ####################################################
-# [会員権]保有者詳細
+# 保有者詳細
 ####################################################
 @membership.route('/holder/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
 @login_required
@@ -801,7 +806,7 @@ def holder(token_address, account_address):
 
 
 ####################################################
-# [会員権]設定内容修正
+# 設定内容修正
 ####################################################
 @membership.route('/setting/<string:token_address>', methods=['GET', 'POST'])
 @login_required
@@ -968,7 +973,7 @@ def setting(token_address):
 
 
 ####################################################
-# [会員権]公開
+# 公開
 ####################################################
 @membership.route('/release', methods=['POST'])
 @login_required
@@ -998,7 +1003,7 @@ def release():
 
 
 ####################################################
-# [会員権]新規発行
+# 新規発行
 ####################################################
 @membership.route('/issue', methods=['GET', 'POST'])
 @login_required
@@ -1075,7 +1080,7 @@ def issue():
 
 
 ####################################################
-# [会員権]保有一覧（売出管理画面）
+# 保有一覧（売出管理画面）
 ####################################################
 @membership.route('/positions', methods=['GET'])
 @login_required
@@ -1175,7 +1180,7 @@ def positions():
 
 
 ####################################################
-# [会員権]売出
+# 売出
 ####################################################
 @membership.route('/sell/<string:token_address>', methods=['GET', 'POST'])
 @login_required
@@ -1257,7 +1262,7 @@ def sell(token_address):
 
 
 ####################################################
-# [会員権]売出停止
+# 売出停止
 ####################################################
 @membership.route('/cancel_order/<string:token_address>/<int:order_id>', methods=['GET', 'POST'])
 @login_required
@@ -1307,7 +1312,7 @@ def cancel_order(token_address, order_id):
 
 
 ####################################################
-# [会員権]追加発行
+# 追加発行
 ####################################################
 @membership.route('/add_supply/<string:token_address>', methods=['GET', 'POST'])
 @login_required
@@ -1348,7 +1353,7 @@ def add_supply(token_address):
 
 
 ####################################################
-# [会員権]有効化/無効化
+# 有効化/無効化
 ####################################################
 @membership.route('/valid', methods=['POST'])
 @login_required
@@ -1372,7 +1377,7 @@ def _set_validity(token_address, isvalid):
     """
     取扱ステータス変更
     :param token_address: トークンアドレス
-    :param status: 変更後ステータス
+    :param isvalid: 変更後ステータス
     :return: なし
     """
     # Tokenコントラクト接続
@@ -1389,7 +1394,7 @@ def _set_validity(token_address, isvalid):
 
 
 ####################################################
-# [会員権]募集申込開始/停止
+# 募集申込開始/停止
 ####################################################
 @membership.route('/start_initial_offering', methods=['POST'])
 @login_required
@@ -1702,7 +1707,7 @@ def bulk_transfer_approval(upload_id):
 
 
 ####################################################
-# [会員権]権限エラー
+# 権限エラー
 ####################################################
 @membership.route('/PermissionDenied', methods=['GET', 'POST'])
 @login_required

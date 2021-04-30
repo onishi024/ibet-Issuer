@@ -16,49 +16,60 @@ limitations under the License.
 
 SPDX-License-Identifier: Apache-2.0
 """
-
 import base64
+from Crypto.Cipher import PKCS1_OAEP
+from Crypto.PublicKey import RSA
+from datetime import (
+    datetime,
+    timezone,
+    timedelta
+)
 import json
+import logging
+from logging.config import dictConfig
 import os
 import sys
 import time
-import logging
-from logging.config import dictConfig
-from datetime import datetime, timezone, timedelta
-from Crypto.Cipher import PKCS1_OAEP
-from Crypto.PublicKey import RSA
 
-from sqlalchemy import create_engine
-from sqlalchemy import func
-from sqlalchemy.orm import sessionmaker, scoped_session
+from eth_utils import to_checksum_address
+from sqlalchemy import (
+    create_engine,
+    func
+)
+from sqlalchemy.orm import (
+    sessionmaker,
+    scoped_session
+)
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
-from eth_utils import to_checksum_address
 
 path = os.path.join(os.path.dirname(__file__), '../')
 sys.path.append(path)
 
 from app.utils import ContractUtils
-from app.models import Token, UTXO, BondLedger, BondLedgerBlockNumber, Issuer, CorporateBondLedgerTemplate
-from app.models import PersonalInfo as PersonalInfoModel
+from app.models import (
+    Token,
+    UTXO,
+    BondLedger,
+    BondLedgerBlockNumber,
+    Issuer,
+    CorporateBondLedgerTemplate,
+    PersonalInfo as PersonalInfoModel
+)
 from config import Config
 
-# NOTE:ログフォーマットはメッセージ監視が出来るように設定する必要がある。
 dictConfig(Config.LOG_CONFIG)
 log_fmt = '[%(asctime)s] [PROCESSOR-BondLedger] [%(process)d] [%(levelname)s] %(message)s'
 logging.basicConfig(format=log_fmt)
 
-# 設定の取得
-WEB3_HTTP_PROVIDER = Config.WEB3_HTTP_PROVIDER
-URI = Config.SQLALCHEMY_DATABASE_URI
-JST = timezone(timedelta(hours=+9), "JST")
+web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
+web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
-# 初期化
-web3 = Web3(Web3.HTTPProvider(WEB3_HTTP_PROVIDER))
-web3.middleware_stack.inject(geth_poa_middleware, layer=0)
-engine = create_engine(URI, echo=False)
+engine = create_engine(Config.SQLALCHEMY_DATABASE_URI, echo=False)
 db_session = scoped_session(sessionmaker())
 db_session.configure(bind=engine)
+
+JST = timezone(timedelta(hours=+9), "JST")
 
 
 class Sinks:
@@ -81,28 +92,6 @@ class Sinks:
             sink.flush(*args, **kwargs)
 
 
-class ConsoleSink:
-    @staticmethod
-    def on_utxo(spent: bool, transaction_hash: str,
-                account_address: str, token_address: str, amount: int,
-                block_timestamp: datetime, transaction_date_jst: str):
-        if spent is False:
-            logging.info(
-                f"Append UTXO: account_address={account_address}, token_address={token_address}, amount={amount}"
-            )
-        else:
-            logging.info(
-                f"Spend UTXO: account_address={account_address}, token_address={token_address}, amount={amount}"
-            )
-
-    @staticmethod
-    def on_bond_ledger(token):
-        logging.info(f"Create New Ledger: token_address={token.address}")
-
-    def flush(self):
-        return
-
-
 class DBSink:
     def __init__(self, db):
         self.db = db
@@ -111,6 +100,7 @@ class DBSink:
                 account_address: str, token_address: str, amount: int,
                 block_timestamp: datetime, transaction_date_jst: str):
         if spent is False:
+            logging.debug(f"Append UTXO: account_address={account_address}, token_address={token_address}, amount={amount}")
             utxo = self.db.query(UTXO). \
                 filter(UTXO.transaction_hash == transaction_hash). \
                 first()
@@ -124,6 +114,7 @@ class DBSink:
                 utxo.transaction_date_jst = transaction_date_jst
                 self.db.add(utxo)
         else:
+            logging.debug(f"Spend UTXO: account_address={account_address}, token_address={token_address}, amount={amount}")
             utxo_list = self.db.query(UTXO). \
                 filter(UTXO.account_address == account_address). \
                 filter(UTXO.token_address == token_address). \
@@ -362,6 +353,7 @@ class Processor:
             logging.debug("skip process")
             pass
         else:
+            logging.info("syncing from={}, to={}".format(ledger_block_number + 1, latest_block))
             for token in self.token_list:
                 event_triggered = self.__create_utxo(token, ledger_block_number + 1, latest_block)
                 if event_triggered:  # UTXOの更新イベントが発生している場合
@@ -417,13 +409,11 @@ class Processor:
         :return: event_triggered イベント発生
         """
         event_triggered = False
-        event_filter = token.eventFilter(
-            "Transfer", {
-                "fromBlock": from_block,
-                "toBlock": to_block,
-            }
+        events = token.events.Transfer.getLogs(
+            fromBlock=from_block,
+            toBlock=to_block
         )
-        for event in event_filter.get_all_entries():
+        for event in events:
             event_triggered = True
 
             transaction_hash = event["transactionHash"].hex()
@@ -449,7 +439,6 @@ class Processor:
                     block_timestamp=block_timestamp,
                     transaction_date_jst=transaction_date_jst
                 )
-
                 # UTXOの更新（to account）
                 self.sink.on_utxo(
                     spent=False,
@@ -460,14 +449,6 @@ class Processor:
                     block_timestamp=block_timestamp,
                     transaction_date_jst=transaction_date_jst
                 )
-
-                # # Ledgeデータの作成
-                # self.sink.on_bond_ledger(
-                #     token=token
-                # )
-
-        web3.eth.uninstallFilter(event_filter.filter_id)
-
         return event_triggered
 
     def __create_ledger(self, token):
@@ -479,7 +460,6 @@ class Processor:
 
 
 sinks = Sinks()
-sinks.register(ConsoleSink())
 sinks.register(DBSink(db_session))
 processor = Processor(db=db_session, sink=sinks)
 
@@ -491,4 +471,4 @@ while True:
         logging.exception(ex)
 
     # 1分間隔で実行
-    time.sleep(60)
+    time.sleep(Config.INTERVAL_PROCESSOR_BOND_LEDGER_JP)

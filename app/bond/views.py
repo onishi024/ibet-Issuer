@@ -56,7 +56,7 @@ from logging import getLogger
 logger = getLogger('api')
 
 web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
-web3.middleware_stack.inject(geth_poa_middleware, layer=0)
+web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 JST = timezone(timedelta(hours=+9), 'JST')
 
 
@@ -112,7 +112,7 @@ def map_interest_payment_date(form, interestPaymentDate):
 
 
 ####################################################
-# [債券]トークン名取得
+# トークン名取得
 ####################################################
 @bond.route('/get_token_name/<string:token_address>', methods=['GET'])
 @login_required
@@ -126,7 +126,7 @@ def get_token_name(token_address):
 
 
 ####################################################
-# [債券]新規発行
+# 新規発行
 ####################################################
 
 @bond.route('/issue', methods=['GET', 'POST'])
@@ -281,7 +281,7 @@ def issue():
 
 
 ####################################################
-# [債券]発行済一覧
+# 発行済一覧
 ####################################################
 @bond.route('/list', methods=['GET'])
 @login_required
@@ -335,7 +335,7 @@ def list():
 
 
 ####################################################
-# [債券]保有者一覧
+# 保有者一覧
 ####################################################
 @bond.route('/holders/<string:token_address>', methods=['GET'])
 @login_required
@@ -351,7 +351,7 @@ def holders_csv_download():
     logger.info(f'[{current_user.login_id}] bond/holders_csv_download')
 
     token_address = request.form.get('token_address')
-    holders = get_holders(token_address)["data"]
+    _holders = get_holders(token_address)["data"]
     token_name = json.loads(get_token_name(token_address).data)
 
     # Tokenコントラクト接続
@@ -365,37 +365,42 @@ def holders_csv_download():
     f = io.StringIO()
 
     # ヘッダー行
-    data_header = \
-        'token_name,' + \
-        'token_address,' + \
-        'account_address,' + \
-        'key_manager,' + \
-        'balance,' + \
-        'total_holdings,' + \
-        'name,' + \
-        'birth_date,' + \
-        'postal_code,' + \
-        'address,' + \
-        'email\n'
+    data_header = f"token_name," \
+                  f"token_address," \
+                  f"account_address," \
+                  f"key_manager," \
+                  f"balance," \
+                  f"total_holdings," \
+                  f"name," \
+                  f"birth_date," \
+                  f"postal_code," \
+                  f"address," \
+                  f"email" \
+                  f"\n"
     f.write(data_header)
 
     # 明細行
-    for holder in holders:
+    for _holder in _holders:
         # Unicodeの各種ハイフン文字を半角ハイフン（U+002D）に変換する
         try:
-            holder_address = re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', holder["address"])
+            holder_address = re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', _holder["address"])
         except TypeError:  # データ変換エラー
             holder_address = ""
         # 保有金額合計
-        total_holdings = holder["balance"] * face_value
+        total_holdings = _holder["balance"] * face_value
         # データ行
-        data_row = \
-            token_name + ',' + token_address + ',' + \
-            holder["account_address"] + ',' + holder["key_manager"] + ',' + \
-            str(holder["balance"]) + ',' + str(total_holdings) + ',' + \
-            holder["name"] + ',' + holder["birth_date"] + ',' + \
-            holder["postal_code"] + ',' + holder_address + ',' + \
-            holder["email"] + '\n'
+        data_row = f"{token_name}," \
+                   f"{token_address}," \
+                   f"{_holder['account_address']}," \
+                   f"{_holder['key_manager']}," \
+                   f"{str(_holder['balance'])}," \
+                   f"{str(total_holdings)}," \
+                   f"{_holder['name']}," \
+                   f"{_holder['birth_date']}," \
+                   f"{_holder['postal_code']}," \
+                   f"{holder_address}," \
+                   f"{_holder['email']}" \
+                   f"\n"
         f.write(data_row)
 
     now = datetime.now(tz=JST)
@@ -556,7 +561,7 @@ def get_holders(token_address: str) -> Dict:
 
 
 ####################################################
-# [債券]保有者リスト履歴
+# 保有者リスト履歴
 ####################################################
 @bond.route('/holders_csv_history/<string:token_address>', methods=['GET'])
 @login_required
@@ -642,7 +647,7 @@ def holders_csv_history_download():
 
 
 ####################################################
-# [債券]保有者移転
+# 保有者移転
 ####################################################
 @bond.route('/transfer_ownership/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
 @login_required
@@ -703,7 +708,7 @@ def transfer_ownership(token_address, account_address):
 
 
 ####################################################
-# [債券]保有者詳細
+# 保有者詳細
 ####################################################
 @bond.route('/holder/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
 @login_required
@@ -785,7 +790,7 @@ def holder(token_address, account_address):
 
 
 ####################################################
-# [債券]設定内容修正
+# 設定内容修正
 ####################################################
 @bond.route('/setting/<string:token_address>', methods=['GET', 'POST'])
 @login_required
@@ -1022,7 +1027,7 @@ def setting(token_address: ChecksumAddress):
 
 
 ####################################################
-# [債券]第三者認定申請
+# 第三者認定申請
 ####################################################
 @bond.route('/request_signature/<string:token_address>', methods=['GET', 'POST'])
 @login_required
@@ -1178,7 +1183,7 @@ def corporate_bond_ledger_template(token_address):
 
 
 ####################################################
-# [債券]公開
+# 公開
 ####################################################
 @bond.route('/release', methods=['POST'])
 @login_required
@@ -1210,7 +1215,7 @@ def release():
 
 
 ####################################################
-# [債券]償還
+# 償還
 ####################################################
 @bond.route('/redeem', methods=['POST'])
 @login_required
@@ -1234,7 +1239,7 @@ def redeem():
 
 
 ####################################################
-# [債券]追加発行
+# 追加発行
 ####################################################
 @bond.route('/add_supply/<string:token_address>', methods=['GET', 'POST'])
 @login_required
@@ -1285,7 +1290,7 @@ def add_supply(token_address):
 
 
 ####################################################
-# [債券]保有一覧
+# 保有一覧
 ####################################################
 @bond.route('/positions', methods=['GET'])
 @login_required
@@ -1387,7 +1392,7 @@ def positions():
 
 
 ####################################################
-# [債券]売出
+# 売出
 ####################################################
 @bond.route('/sell/<string:token_address>', methods=['GET', 'POST'])
 @login_required
@@ -1498,7 +1503,7 @@ def sell(token_address):
 
 
 ####################################################
-# [債券]売出停止
+# 売出停止
 ####################################################
 @bond.route('/cancel_order/<string:token_address>/<int:order_id>', methods=['GET', 'POST'])
 @login_required
@@ -1550,7 +1555,7 @@ def cancel_order(token_address, order_id):
 
 
 ####################################################
-# [債券]募集申込開始/停止
+# 募集申込開始/停止
 ####################################################
 @bond.route('/start_initial_offering', methods=['POST'])
 @login_required
@@ -1593,7 +1598,7 @@ def _set_offering_status(token_address, status):
 
 
 ####################################################
-# [債券]募集申込一覧
+# 募集申込一覧
 ####################################################
 # 申込一覧画面
 @bond.route('/applications/<string:token_address>', methods=['GET'])
@@ -1708,7 +1713,7 @@ def get_applications(token_address):
 
 
 ####################################################
-# [債券]割当登録
+# 割当登録
 ####################################################
 @bond.route('/allot/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
 @login_required
@@ -1759,7 +1764,7 @@ def allot(token_address, account_address):
 
 
 ####################################################
-# [債券]権利移転（募集申込）
+# 権利移転（募集申込）
 ####################################################
 @bond.route('/transfer_allotment/<string:token_address>/<string:account_address>', methods=['GET', 'POST'])
 @login_required

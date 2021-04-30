@@ -7,4 +7,4 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: run unit test
-        run: docker-compose run ibet-issuer /app/ibet-Issuer/app/tests/qa.sh
+        run: docker-compose run ibet-issuer

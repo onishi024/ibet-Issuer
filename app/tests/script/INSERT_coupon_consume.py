@@ -36,7 +36,7 @@ from config import Config
 
 WEB3_HTTP_PROVIDER = os.environ.get('WEB3_HTTP_PROVIDER') or 'http://localhost:8545'
 web3 = Web3(Web3.HTTPProvider(WEB3_HTTP_PROVIDER))
-web3.middleware_stack.inject(geth_poa_middleware, layer=0)
+web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
 URI = os.environ.get("DATABASE_URL") or 'postgresql://issueruser:issuerpass@localhost:5432/issuerdb'
 engine = create_engine(URI, echo=False)
@@ -141,7 +141,6 @@ def get_latest_agreement_id(ExchangeContract, order_id):
 # トークンの買いTake注文
 def buy_coupon_token(trader_address, ExchangeContract, order_id, amount):
     web3.eth.defaultAccount = trader_address
-    web3.personal.unlockAccount(trader_address, 'password')
     tx_hash = ExchangeContract.functions. \
         executeOrder(order_id, amount, True). \
         transact({'from': trader_address, 'gas': Config.TX_GAS_LIMIT})
@@ -151,7 +150,6 @@ def buy_coupon_token(trader_address, ExchangeContract, order_id, amount):
 # 株主名簿用個人情報登録
 def register_personalinfo(invoker_address, encrypted_info, issuer):
     web3.eth.defaultAccount = invoker_address
-    web3.personal.unlockAccount(invoker_address, 'password')
     PersonalInfoContract = ContractUtils.get_contract('PersonalInfo', issuer.personal_info_contract_address)
 
     tx_hash = PersonalInfoContract.functions.register(issuer.eth_account, encrypted_info). \
@@ -174,16 +172,12 @@ def register_payment_account(invoker_address, invoker_password, encrypted_info, 
 
     # 1) 登録 from Invoker
     web3.eth.defaultAccount = invoker_address
-    web3.personal.unlockAccount(invoker_address, invoker_password)
-
     tx_hash = PaymentGatewayContract.functions.register(agent_address, encrypted_info). \
         transact({'from': invoker_address, 'gas': Config.TX_GAS_LIMIT})
     web3.eth.waitForTransactionReceipt(tx_hash)
 
     # 2) 認可 from Agent
     web3.eth.defaultAccount = agent_address
-    web3.personal.unlockAccount(agent_address, 'password', 10000)
-
     tx_hash = PaymentGatewayContract.functions.approve(invoker_address). \
         transact({'from': agent_address, 'gas': Config.TX_GAS_LIMIT})
     web3.eth.waitForTransactionReceipt(tx_hash)
@@ -194,7 +188,7 @@ def main(data_count, issuer):
     token_type = 'IbetCoupon'
 
     # 収納代行業者（Agent）のアドレス作成 -> PaymentAccountの登録
-    agent_address = web3.personal.newAccount('password')
+    agent_address = web3.geth.personal.newAccount('password')
     eth_account_password = fernet.decrypt(issuer.encrypted_account_password.encode()).decode()
     register_payment_account(issuer.eth_account, eth_account_password, issuer_encrypted_info, agent_address, issuer)
     print("agent_address: " + agent_address)
@@ -216,7 +210,7 @@ def main(data_count, issuer):
     print("order_id: " + str(order_id))
 
     # 投資家アドレスの作成
-    trader_address = web3.personal.newAccount('password')
+    trader_address = web3.geth.personal.newAccount('password')
     register_personalinfo(trader_address, trader_encrypted_info, issuer)
     register_payment_account(trader_address, 'password', trader_encrypted_info, agent_address, issuer)
 
@@ -226,7 +220,6 @@ def main(data_count, issuer):
 
     # 決済承認：収納代行
     web3.eth.defaultAccount = agent_address
-    web3.personal.unlockAccount(agent_address, 'password', 10000)
     ExchangeContract.functions.confirmAgreement(order_id, agreement_id).transact(
         {'from': agent_address, 'gas': Config.TX_GAS_LIMIT}
     )
@@ -235,7 +228,6 @@ def main(data_count, issuer):
     TokenContract = ContractUtils.get_contract(token_type, token_dict['address'])
     for count in range(0, data_count):
         web3.eth.defaultAccount = trader_address
-        web3.personal.unlockAccount(trader_address, 'password', 10000)
         tx_hash = TokenContract.functions.consume(1).transact(
             {'from': trader_address, 'gas': Config.TX_GAS_LIMIT}
         )
@@ -244,7 +236,7 @@ def main(data_count, issuer):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="クーポン利用履歴の登録")
+    parser = argparse.ArgumentParser(description="利用履歴の登録")
     parser.add_argument("data_count", type=int, help="登録件数")
     parser.add_argument("--issuer", '-s', type=str, help="発行体アドレス")
     args = parser.parse_args()

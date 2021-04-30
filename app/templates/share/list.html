@@ -6,19 +6,19 @@
 {% endblock %}
 {% set active_page = "share_list" %}
 
-{% block title %}株式一覧 - {% endblock %}
-{% block page_header %}株式一覧 <span class="badge bg-secondary">株式</span>{% endblock %}
+{% block title %}発行済一覧 - {% endblock %}
+{% block page_header %}発行済一覧 <span class="badge bg-secondary">SHARE</span>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
     <li><a href="{{ url_for('index.index') }}">トップ</a></li>
-    <li class="active">株式一覧</li>
+    <li class="active">発行済一覧</li>
 {% endblock %}
 
 {% block page_content %}
 <section class="content">
     <div class="box box-default">
         <div class="box-header">
-            <h3 class="box-title">株式一覧</h3>
+            <h3 class="box-title">発行済トークン</h3>
         </div>
         <div class="box-body">
             <table id="data_table" class="table table-bordered table-hover">
@@ -96,6 +96,7 @@ $(function () {
         'lengthChange': true,
         'searching'   : true,
         'ordering'    : true,
+        'order': [ [ 2, "desc" ] ],
         'info'        : true,
         'autoWidth'   : true,
         'pagingType': "full_numbers",

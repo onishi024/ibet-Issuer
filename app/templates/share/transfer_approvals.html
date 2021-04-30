@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block head %}
+{{ super() }}
+<!-- DataTables -->
+<link rel="stylesheet" href="/static/adminlte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
+{% endblock %}
+{% set active_page = "share_list" %}
+
+{% block title %}移転承諾履歴 - {% endblock %}
+{% block page_header %}移転承諾履歴 <span class="badge bg-secondary">SHARE</span>{% endblock %}
+{% block page_description %}{% endblock %}
+{% block breadcrumb %}
+<li><a href="{{ url_for('index.index') }}">トップ</a></li>
+<li><a href="{{ url_for('share.list') }}">発行済一覧</a></li>
+<li class="active">移転承諾履歴</li>
+{% endblock %}
+
+{% block page_content %}
+<section class="content">
+    <div class="box box-default">
+        <div class="box-header">
+            <h3 class="box-title"><small>{{ token_address }}</small></h3>
+            <div class="pull-right box-tools">
+                <button type="button" class="btn btn-default btn-sm" style="width: 120px"
+                        onclick="location.href='{{ url_for('share.token_tracker', token_address=token_address) }}'">戻る
+                </button>
+            </div>
+        </div>
+        <div class="box-body">
+            <table id="data_table" class="table table-bordered table-hover">
+                <thead>
+                <tr>
+                    <th>申請ID</th>
+                    <th>申請日時</th>
+                    <th>承諾日時</th>
+                    <th>FROM</th>
+                    <th>TO</th>
+                    <th>数量</th>
+                    <th>取消済</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for item in transfer_approvals %}
+                <tr>
+                    <td>{{ item.application_id }}</td>
+                    {% if item.application_datetime == None %}
+                    <td>--</td>
+                    {% else %}
+                    <td>{{ item.application_datetime }}</td>
+                    {% endif %}
+                    {% if item.approval_datetime == None %}
+                    <td>--</td>
+                    {% else %}
+                    <td>{{ item.approval_datetime }}</td>
+                    {% endif %}
+                    <td style="word-break : break-all;">{{ item.from_address }}</td>
+                    <td style="word-break : break-all;">{{ item.to_address }}</td>
+                    <td>{{ item.value }}</td>
+                    {% if item.cancelled == true %}
+                    <td align="center"><span class="badge bg-red">取消済</span></td>
+                    {% else %}
+                    <td></td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block required_js %}
+{{ super() }}
+<!-- DataTables -->
+<script src="/static/adminlte/bower_components/datatables.net/js/jquery.dataTables.min.js"></script>
+<script src="/static/adminlte/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+<script>
+  $(function () {
+    $('#data_table').DataTable({
+      'paging'      : true,
+      'lengthChange': true,
+      'searching'   : true,
+      'ordering'    : true,
+      'order': [ [ 0, "desc" ] ],
+      'info'        : true,
+      'autoWidth'   : true,
+      'pagingType': "full_numbers",
+      'language': {
+          'info': "_TOTAL_ 件中 _START_ 〜 _END_ 件目",
+          'lengthMenu': "表示件数 _MENU_ 件",
+          'search': "検索:",
+          'paginate': {
+              'first': "最初へ",
+              'previous': "前へ",
+              'next': "次へ",
+              'last': "最後へ",
+          },
+          "emptyTable": "データが存在しません",
+          "sInfoEmpty":	" 0 件中 0 から 0 まで表示"
+      },
+    })
+  })
+
+</script>
+{% endblock %}

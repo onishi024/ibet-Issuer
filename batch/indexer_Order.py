@@ -16,38 +16,38 @@ limitations under the License.
 
 SPDX-License-Identifier: Apache-2.0
 """
-
+import logging
+from logging.config import dictConfig
 import os
 import sys
 import time
-import logging
-from logging.config import dictConfig
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy.orm import (
+    sessionmaker,
+    scoped_session
+)
+from web3 import Web3
+from web3.middleware import geth_poa_middleware
 
 path = os.path.join(os.path.dirname(__file__), '../')
 sys.path.append(path)
 
-from web3 import Web3
-from app.models import Token, Order
+from app.models import (
+    Token,
+    Order
+)
 from app.utils import ContractUtils
 from config import Config
-from web3.middleware import geth_poa_middleware
 
-# NOTE:ログフォーマットはメッセージ監視が出来るように設定する必要がある。
 dictConfig(Config.LOG_CONFIG)
 log_fmt = '[%(asctime)s] [INDEXER-Order] [%(process)d] [%(levelname)s] %(message)s'
 logging.basicConfig(format=log_fmt)
 
-# 設定の取得
-WEB3_HTTP_PROVIDER = Config.WEB3_HTTP_PROVIDER
-URI = Config.SQLALCHEMY_DATABASE_URI
+web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
+web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
-# 初期化
-web3 = Web3(Web3.HTTPProvider(WEB3_HTTP_PROVIDER))
-web3.middleware_stack.inject(geth_poa_middleware, layer=0)
-engine = create_engine(URI, echo=False)
+engine = create_engine(Config.SQLALCHEMY_DATABASE_URI, echo=False)
 db_session = scoped_session(sessionmaker())
 db_session.configure(bind=engine)
 
@@ -76,42 +76,13 @@ class Sinks:
             sink.flush(*args, **kwargs)
 
 
-class ConsoleSink:
-    @staticmethod
-    def on_new_order(token_address, exchange_address,
-                     order_id, account_address, is_buy, price, amount, agent_address):
-        logging.info(
-            "NewOrder: exchange_address={}, order_id={}".format(
-                exchange_address, order_id
-            )
-        )
-
-    @staticmethod
-    def on_cancel_order(exchange_address, order_id):
-        logging.info(
-            "CancelOrder: exchange_address={}, order_id={}".format(
-                exchange_address, order_id
-            )
-        )
-
-    @staticmethod
-    def on_agree(exchange_address, order_id, order_amount):
-        logging.info(
-            "Agree: exchange_address={}, order_id={}".format(
-                exchange_address, order_id
-            )
-        )
-
-    def flush(self):
-        return
-
-
 class DBSink:
     def __init__(self, db):
         self.db = db
 
     def on_new_order(self, token_address, exchange_address, order_id, account_address,
                      is_buy, price, amount, agent_address):
+        logging.debug(f"NewOrder: exchange_address={exchange_address}, order_id={order_id}")
         order = self.__get_order(exchange_address, order_id)
         if order is None:
             order = Order()
@@ -128,11 +99,13 @@ class DBSink:
             self.db.merge(order)
 
     def on_cancel_order(self, exchange_address, order_id):
+        logging.debug(f"CancelOrder: exchange_address={exchange_address}, order_id={order_id}")
         order = self.__get_order(exchange_address, order_id)
         if order is not None:
             order.is_cancelled = True
 
     def on_agree(self, exchange_address, order_id, order_amount):
+        logging.debug(f"Agree: exchange_address={exchange_address}, order_id={order_id}")
         order = self.__get_order(exchange_address, order_id)
         if order is not None:
             order.amount = order_amount
@@ -168,15 +141,15 @@ class Processor:
                 continue
             if exchange_address not in exchange_address_list:
                 exchange_address_list.append(exchange_address)
-                if token.template_id == 1:  # 債券トークン
+                if token.template_id == 1:  # BONDトークン
                     self.exchange_list.append(
                         ContractUtils.get_contract('IbetStraightBondExchange', exchange_address)
                     )
-                elif token.template_id == 2:  # クーポントークン
+                elif token.template_id == 2:  # COUPONトークン
                     self.exchange_list.append(
                         ContractUtils.get_contract('IbetCouponExchange', exchange_address)
                     )
-                elif token.template_id == 3:  # 会員権トークン
+                elif token.template_id == 3:  # MEMBERSHIPトークン
                     self.exchange_list.append(
                         ContractUtils.get_contract('IbetMembershipExchange', exchange_address)
                     )
@@ -206,7 +179,7 @@ class Processor:
         self.latest_block = blockTo
 
     def __sync_all(self, block_from, block_to):
-        logging.debug("syncing from={}, to={}".format(block_from, block_to))
+        logging.info("syncing from={}, to={}".format(block_from, block_to))
         self.__sync_new_order(block_from, block_to)
         self.__sync_cancel_order(block_from, block_to)
         self.__sync_agree(block_from, block_to)
@@ -216,13 +189,11 @@ class Processor:
     def __sync_new_order(self, block_from, block_to):
         for exchange_contract in self.exchange_list:
             try:
-                event_filter = exchange_contract.eventFilter(
-                    'NewOrder', {
-                        'fromBlock': block_from,
-                        'toBlock': block_to,
-                    }
+                events = exchange_contract.events.NewOrder.getLogs(
+                    fromBlock=block_from,
+                    toBlock=block_to
                 )
-                for event in event_filter.get_all_entries():
+                for event in events:
                     args = event['args']
                     if args['price'] > sys.maxsize or args['amount'] > sys.maxsize:
                         pass
@@ -237,7 +208,6 @@ class Processor:
                             amount=args['amount'],
                             agent_address=args['agentAddress'],
                         )
-                web3.eth.uninstallFilter(event_filter.filter_id)
             except Exception as e:
                 logging.error(e)
 
@@ -245,18 +215,15 @@ class Processor:
     def __sync_cancel_order(self, block_from, block_to):
         for exchange_contract in self.exchange_list:
             try:
-                event_filter = exchange_contract.eventFilter(
-                    'CancelOrder', {
-                        'fromBlock': block_from,
-                        'toBlock': block_to,
-                    }
+                events = exchange_contract.events.CancelOrder.getLogs(
+                    fromBlock=block_from,
+                    toBlock=block_to
                 )
-                for event in event_filter.get_all_entries():
+                for event in events:
                     self.sink.on_cancel_order(
                         exchange_address=exchange_contract.address,
                         order_id=event['args']['orderId']
                     )
-                web3.eth.uninstallFilter(event_filter.filter_id)
             except Exception as e:
                 logging.error(e)
 
@@ -264,13 +231,11 @@ class Processor:
     def __sync_agree(self, block_from, block_to):
         for exchange_contract in self.exchange_list:
             try:
-                event_filter = exchange_contract.eventFilter(
-                    'Agree', {
-                        'fromBlock': block_from,
-                        'toBlock': block_to,
-                    }
+                events = exchange_contract.events.Agree.getLogs(
+                    fromBlock=block_from,
+                    toBlock=block_to
                 )
-                for event in event_filter.get_all_entries():
+                for event in events:
                     args = event['args']
                     if args['amount'] > sys.maxsize:
                         pass
@@ -283,17 +248,16 @@ class Processor:
                             order_id=event['args']['orderId'],
                             order_amount=order_amount
                         )
-                web3.eth.uninstallFilter(event_filter.filter_id)
             except Exception as e:
                 logging.error(e)
 
 
 _sink = Sinks()
-_sink.register(ConsoleSink())
 _sink.register(DBSink(db_session))
 processor = Processor(sink=_sink, db=db_session)
+logging.info("Service started successfully")
 
 processor.initial_sync()
 while True:
     processor.sync_new_logs()
-    time.sleep(1)
+    time.sleep(Config.INTERVAL_INDEXER_ORDER)

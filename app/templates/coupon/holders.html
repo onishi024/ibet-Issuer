@@ -8,12 +8,12 @@
 {% endblock %}
 {% set active_page = "coupon_list" %}
 
-{% block title %}クーポン保有者一覧 - {% endblock %}
-{% block page_header %}クーポン保有者一覧 <span class="badge bg-secondary">クーポン</span>{% endblock %}
+{% block title %}保有者一覧 - {% endblock %}
+{% block page_header %}保有者一覧 <span class="badge bg-secondary">COUPON</span>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
 <li><a href="{{ url_for('index.index') }}">トップ</a></li>
-<li><a href="{{ url_for('coupon.list') }}">クーポン一覧</a></li>
+<li><a href="{{ url_for('coupon.list') }}">発行済一覧</a></li>
 <li class="active">保有者一覧</li>
 {% endblock %}
 
@@ -102,12 +102,12 @@
                 </thead>
                 <tbody>
                 <tr>
-                    <td>クーポン名</td>
+                    <td>トークン名</td>
                     <td>ibetクーポン</td>
                     <td></td>
                 </tr>
                 <tr>
-                    <td>クーポンアドレス</td>
+                    <td>トークンアドレス</td>
                     <td>0xF37aF18966609eCaDe3E4D1831996853c637cfF3</td>
                     <td></td>
                 </tr>

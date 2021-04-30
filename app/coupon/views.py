@@ -46,7 +46,7 @@ from eth_utils import to_checksum_address
 from web3.middleware import geth_poa_middleware
 
 web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
-web3.middleware_stack.inject(geth_poa_middleware, layer=0)
+web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
 from logging import getLogger
 
@@ -914,7 +914,7 @@ def transfer():
         if form.validate():
             # Addressフォーマットチェック（token_address）
             if not Web3.isAddress(form.token_address.data):
-                flash('クーポンアドレスは有効なアドレスではありません。', 'error')
+                flash('トークンアドレスは有効なアドレスではありません。', 'error')
                 return render_template('coupon/transfer.html', form=form)
 
             # Addressフォーマットチェック（send_address）
@@ -927,7 +927,7 @@ def transfer():
             if token is None or \
                     token.template_id != Config.TEMPLATE_ID_COUPON or \
                     token.admin_address != session['eth_account'].lower():
-                flash('無効なクーポンアドレスです。', 'error')
+                flash('無効なトークンアドレスです。', 'error')
                 return render_template('coupon/transfer.html', form=form)
             token_abi = json.loads(token.abi.replace("'", '"').replace('True', 'true').replace('False', 'false'))
             TokenContract = web3.eth.contract(address=token.token_address, abi=token_abi)
@@ -1097,7 +1097,7 @@ def get_usage_history(token_address):
     if token is None:
         abort(404)
 
-    # クーポントークンの消費イベント（Consume）を検索
+    # トークンの消費イベント（Consume）を検索
     # Note: token_addressに対して、Couponトークンのものであるかはチェックしていない。
     entries = Consume.query.filter(Consume.token_address == token_address).all()
 
@@ -1131,7 +1131,7 @@ def used_csv_download():
 
     token_name = json.loads(get_token_name(token_address).data)
 
-    # クーポントークンの消費イベント（Consume）を検索
+    # トークンの消費イベント（Consume）を検索
     entries = Consume.query.filter(Consume.token_address == token_address).all()
 
     # リスト作成
@@ -1206,38 +1206,43 @@ def holders_csv_download():
     logger.info(f'[{current_user.login_id}] coupon/holders_csv_download')
 
     token_address = request.form.get('token_address')
-    holders = json.loads(get_holders(token_address).data)
+    _holders = json.loads(get_holders(token_address).data)
     token_name = json.loads(get_token_name(token_address).data)
 
     f = io.StringIO()
 
     # ヘッダー行
-    data_header = \
-        'token_name,' + \
-        'token_address,' + \
-        'account_address,' + \
-        'balance,' + \
-        'used_amount,' + \
-        'name,' + \
-        'birth_date,' + \
-        'postal_code,' + \
-        'address,' + \
-        'email\n'
+    data_header = f"token_name," \
+                  f"token_address," \
+                  f"account_address," \
+                  f"balance," \
+                  f"used_amount," \
+                  f"name," \
+                  f"birth_date," \
+                  f"postal_code," \
+                  f"address," \
+                  f"email" \
+                  f"\n"
     f.write(data_header)
 
-    for holder in holders:
+    for _holder in _holders:
         # Unicodeの各種ハイフン文字を半角ハイフン（U+002D）に変換する
         try:
-            holder_address = re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', holder["address"])
+            holder_address = re.sub('\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\u2212|\uff0d', '-', _holder["address"])
         except TypeError:
             holder_address = ""
         # データ行
-        data_row = \
-            token_name + ',' + token_address + ',' + holder["account_address"] + ',' + \
-            str(holder["balance"]) + ',' + str(holder["used"]) + ',' + \
-            holder["name"] + ',' + holder["birth_date"] + ',' + \
-            holder["postal_code"] + ',' + holder_address + ',' + \
-            holder["email"] + '\n'
+        data_row = f"{token_name}," \
+                   f"{token_address}," \
+                   f"{_holder['account_address']}," \
+                   f"{str(_holder['balance'])}," \
+                   f"{str(_holder['used'])}," \
+                   f"{_holder['name']}," \
+                   f"{_holder['birth_date']}," \
+                   f"{_holder['postal_code']}," \
+                   f"{holder_address}," \
+                   f"{_holder['email']}" \
+                   f"\n"
         f.write(data_row)
 
     now = datetime.now(tz=JST)

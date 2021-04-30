@@ -16,25 +16,39 @@ limitations under the License.
 
 SPDX-License-Identifier: Apache-2.0
 """
-
 import base64
 import json
-from datetime import datetime, timezone
+from datetime import (
+    datetime,
+    timezone
+)
 
 import pytest
-import time
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
 from eth_utils import to_checksum_address
 
 from config import Config
+from app.models import (
+    Token,
+    HolderList
+)
 from .conftest import TestBase
 from .utils.account_config import eth_account
-from .utils.contract_utils_common import processor_issue_event, index_transfer_event, clean_issue_event
+from .utils.contract_utils_common import (
+    processor_issue_event,
+    index_transfer_event,
+    clean_issue_event
+)
 from .utils.contract_utils_personal_info import register_personal_info
-from .utils.contract_utils_share import create_order, get_latest_orderid, get_latest_agreementid, take_buy, \
-    confirm_agreement, apply_for_offering
-from ..models import Token, HolderList
+from .utils.contract_utils_share import (
+    create_order,
+    get_latest_orderid,
+    get_latest_agreementid,
+    take_buy,
+    confirm_agreement,
+    apply_for_offering
+)
 
 
 class TestShare(TestBase):
@@ -100,7 +114,7 @@ class TestShare(TestBase):
             cipher.encrypt(json.dumps(trader_personal_info_json).encode('utf-8')))
 
     #############################################################################
-    # テスト用株式トークン情報
+    # テスト用トークン情報
     #############################################################################
     # Token_1：最初に新規発行されるトークン。
     token_data1 = {
@@ -108,11 +122,13 @@ class TestShare(TestBase):
         'symbol': 'SHARE',
         'totalSupply': 1000000,
         'issuePrice': 1000,
+        'principalValue': 1000,
         'dividends': 100.25,
         'dividendRecordDate': '20200401',
         'dividendPaymentDate': '20200501',
         'cancellationDate': '20200601',
         'transferable': 'True',
+        'transferApprovalRequired': 'False',
         'memo': 'メモ1234',
         'referenceUrls_1': 'http://example.com',
         'referenceUrls_2': 'http://image.png',
@@ -120,17 +136,20 @@ class TestShare(TestBase):
         'contact_information': '問い合わせ先ABCDEFG',
         'privacy_policy': 'プライバシーポリシーXYZ'
     }
-    # Token_2：2番目に発行されるトークン。必須項目のみ, transferable:False
+    # Token_2：2番目に発行されるトークン。
+    # 必須項目のみ, transferable:False, transferApprovalRequired:True
     token_data2 = {
         'name': '2件目株式',
         'symbol': '2KENME',
         'totalSupply': 2000000,
         'issuePrice': 2000,
+        'principalValue': 1000,
         'dividends': '',
         'dividendRecordDate': '',
         'dividendPaymentDate': '',
         'cancellationDate': '',
         'transferable': 'False',
+        'transferApprovalRequired': 'True',
         'memo': '',
         'referenceUrls_1': '',
         'referenceUrls_2': '',
@@ -144,11 +163,13 @@ class TestShare(TestBase):
         'symbol': '3KENME',
         'totalSupply': 3000000,
         'issuePrice': 3000,
+        'principalValue': 3000,
         'dividends': 30.75,
         'dividendRecordDate': '20230412',
         'dividendPaymentDate': '20230512',
         'cancellationDate': '20230612',
         'transferable': 'False',
+        'transferApprovalRequired': 'True',
         'memo': '3memo',
         'referenceUrls_1': 'http://hoge3.co.jp/foo',
         'referenceUrls_2': '',
@@ -204,18 +225,18 @@ class TestShare(TestBase):
     # テスト（正常系）
     #############################################################################
     # ＜正常系1_1＞
-    # ＜株式の0件確認＞
-    #   株式一覧の参照(0件)
+    # ＜トークンの0件確認＞
+    #   トークン一覧の参照(0件)
     def test_normal_1_1(self, app):
         # 証券一覧
         client = self.client_with_admin_login(app)
         response = client.get(self.url_list)
         assert response.status_code == 200
-        assert '<title>株式一覧'.encode('utf-8') in response.data
+        assert '<title>発行済一覧'.encode('utf-8') in response.data
         assert 'データが存在しません'.encode('utf-8') in response.data
 
     # ＜正常系1_2＞
-    # ＜株式の0件確認＞
+    # ＜トークンの0件確認＞
     #   新規発行画面表示
     def test_normal_1_2(self, app, db, shared_contract):
         client = self.client_with_admin_login(app)
@@ -223,10 +244,10 @@ class TestShare(TestBase):
         response = client.get(self.url_issue)
 
         assert response.status_code == 200
-        assert '<title>株式新規発行'.encode('utf-8') in response.data
+        assert '<title>新規発行'.encode('utf-8') in response.data
 
     # ＜正常系2_1＞
-    # ＜株式の1件確認＞
+    # ＜トークンの1件確認＞
     #   新規発行　→　詳細設定画面の参照
     def test_normal_2_1(self, app, db, shared_contract):
         client = self.client_with_admin_login(app)
@@ -238,8 +259,6 @@ class TestShare(TestBase):
         assert response.status_code == 302
         assert response.headers.get('Location').endswith(self.url_list)
 
-        time.sleep(10)
-
         # DB登録処理
         processor_issue_event(db)
 
@@ -247,15 +266,15 @@ class TestShare(TestBase):
         token = TestShare.get_token(0)
         response = client.get(self.url_setting + token.token_address)
         assert response.status_code == 200
-        assert '<title>株式詳細設定'.encode('utf-8') in response.data
+        assert '<title>詳細設定'.encode('utf-8') in response.data
         for value in self.token_data1.values():
             assert str(value).encode('utf-8') in response.data
         # セレクトボックスのassert（譲渡制限）
         assert '<option selected value="True">なし</option>'.encode('utf-8') in response.data
 
     # ＜正常系2_2＞
-    # ＜株式の1件確認＞
-    #   株式一覧の参照(1件)
+    # ＜トークンの1件確認＞
+    #   トークン一覧の参照(1件)
     def test_normal_2_2(self, app):
         token = TestShare.get_token(0)
 
@@ -263,14 +282,14 @@ class TestShare(TestBase):
         client = self.client_with_admin_login(app)
         response = client.get(self.url_list)
         assert response.status_code == 200
-        assert '<title>株式一覧'.encode('utf-8') in response.data
+        assert '<title>発行済一覧'.encode('utf-8') in response.data
         assert self.token_data1['name'].encode('utf-8') in response.data
         assert self.token_data1['symbol'].encode('utf-8') in response.data
         assert token.token_address.encode('utf-8') in response.data
         assert '取扱中'.encode('utf-8') in response.data
 
     # ＜正常系3_1＞
-    # ＜株式一覧（複数件）＞
+    # ＜トークン一覧（複数件）＞
     #   新規発行（必須項目のみ）　→　詳細設定画面の参照
     def test_normal_3_1(self, app, db):
         client = self.client_with_admin_login(app)
@@ -282,8 +301,6 @@ class TestShare(TestBase):
         )
         assert response.status_code == 302
 
-        time.sleep(10)
-
         # DB登録処理
         processor_issue_event(db)
 
@@ -291,7 +308,7 @@ class TestShare(TestBase):
         token = TestShare.get_token(1)
         response = client.get(self.url_setting + token.token_address)
         assert response.status_code == 200
-        assert '<title>株式詳細設定'.encode('utf-8') in response.data
+        assert '<title>詳細設定'.encode('utf-8') in response.data
         for value in self.token_data2.values():
             if value != '':
                 assert str(value).encode('utf-8') in response.data
@@ -310,7 +327,7 @@ class TestShare(TestBase):
         assert '<option selected value="False">あり</option>'.encode('utf-8') in response.data
 
     # ＜正常系3_2＞
-    # ＜株式一覧（複数件）＞
+    # ＜トークン一覧（複数件）＞
     #   発行済一覧画面の参照（複数件）
     def test_normal_3_2(self, app):
         token1 = TestShare.get_token(0)
@@ -320,7 +337,7 @@ class TestShare(TestBase):
         client = self.client_with_admin_login(app)
         response = client.get(self.url_list)
         assert response.status_code == 200
-        assert '<title>株式一覧'.encode('utf-8') in response.data
+        assert '<title>発行済一覧'.encode('utf-8') in response.data
 
         # Token_1
         assert self.token_data1['name'].encode('utf-8') in response.data
@@ -348,12 +365,11 @@ class TestShare(TestBase):
             data=self.token_data3
         )
         assert response.status_code == 302
-        time.sleep(10)
 
         # 詳細設定画面の参照
         response = client.get(url_setting)
         assert response.status_code == 200
-        assert '<title>株式詳細設定'.encode('utf-8') in response.data
+        assert '<title>詳細設定'.encode('utf-8') in response.data
         assert str(self.token_data3['dividends']).encode('utf-8') in response.data
         assert str(self.token_data3['dividendRecordDate']).encode('utf-8') in response.data
         assert str(self.token_data3['dividendPaymentDate']).encode('utf-8') in response.data
@@ -375,7 +391,6 @@ class TestShare(TestBase):
             data=self.token_data1
         )
         assert response.status_code == 302
-        time.sleep(10)
 
     # ＜正常系4_2＞
     # ＜詳細設定＞
@@ -391,12 +406,11 @@ class TestShare(TestBase):
             data=self.token_data1
         )
         assert response.status_code == 302
-        time.sleep(10)
 
         # 詳細設定画面の参照
         response = client.get(url_setting)
         assert response.status_code == 200
-        assert '<title>株式詳細設定'.encode('utf-8') in response.data
+        assert '<title>詳細設定'.encode('utf-8') in response.data
         for value in self.token_data1.values():
             assert str(value).encode('utf-8') in response.data
         # セレクトボックスのassert（譲渡制限）
@@ -425,7 +439,7 @@ class TestShare(TestBase):
         url_setting = self.url_setting + token.token_address
         response = client.get(url_setting)
         assert response.status_code == 200
-        assert '<title>株式詳細設定'.encode('utf-8') in response.data
+        assert '<title>詳細設定'.encode('utf-8') in response.data
         assert '公開済'.encode('utf-8') in response.data
 
     # ＜正常系4_4＞
@@ -449,7 +463,7 @@ class TestShare(TestBase):
         url_setting = self.url_setting + token.token_address
         response = client.get(url_setting)
         assert response.status_code == 200
-        assert '<title>株式詳細設定'.encode('utf-8') in response.data
+        assert '<title>詳細設定'.encode('utf-8') in response.data
         assert '公開済'.encode('utf-8') in response.data
         assert '取扱開始'.encode('utf-8') in response.data
 
@@ -479,7 +493,7 @@ class TestShare(TestBase):
         url_setting = self.url_setting + token.token_address
         response = client.get(url_setting)
         assert response.status_code == 200
-        assert '<title>株式詳細設定'.encode('utf-8') in response.data
+        assert '<title>詳細設定'.encode('utf-8') in response.data
         assert '取扱停止'.encode('utf-8') in response.data
 
         # 発行済一覧画面の参照
@@ -508,13 +522,12 @@ class TestShare(TestBase):
             }
         )
         assert response.status_code == 302
-        time.sleep(10)
 
         # 詳細設定画面の参照
         url_setting = self.url_setting + token.token_address
         response = client.get(url_setting)
         assert response.status_code == 200
-        assert '<title>株式詳細設定'.encode('utf-8') in response.data
+        assert '<title>詳細設定'.encode('utf-8') in response.data
         assert str(self.token_data1['totalSupply'] + 10).encode('utf-8') in response.data
 
     # ＜正常系5_1＞
@@ -537,7 +550,7 @@ class TestShare(TestBase):
         # 保有者一覧の参照
         response = client.get(self.url_holders + token.token_address)
         assert response.status_code == 200
-        assert '<title>株式保有者一覧'.encode('utf-8') in response.data
+        assert '<title>保有者一覧'.encode('utf-8') in response.data
 
         # 保有者一覧APIの参照
         response = client.get(self.url_get_holders + token.token_address)
@@ -566,7 +579,7 @@ class TestShare(TestBase):
         client = self.client_with_admin_login(app)
         token = TestShare.get_token(0)
 
-        # 株式の売出
+        # トークンの売出
         exchange = shared_contract['IbetShareExchange']
         price = 100
         amount = 20
@@ -598,7 +611,7 @@ class TestShare(TestBase):
         # 保有者一覧の参照
         response = client.get(self.url_holders + token.token_address)
         assert response.status_code == 200
-        assert '<title>株式保有者一覧'.encode('utf-8') in response.data
+        assert '<title>保有者一覧'.encode('utf-8') in response.data
 
         # 保有者一覧APIの参照
         response = client.get(self.url_get_holders + token.token_address)
@@ -639,7 +652,7 @@ class TestShare(TestBase):
         # 保有者詳細画面の参照
         response = client.get(self.url_holder + token.token_address + '/' + eth_account['issuer']['account_address'])
         assert response.status_code == 200
-        assert '<title>株式保有者詳細'.encode('utf-8') in response.data
+        assert '<title>保有者詳細'.encode('utf-8') in response.data
         assert eth_account['issuer']['account_address'].encode('utf-8') in response.data
         assert '株式会社１'.encode('utf-8') in response.data
         assert '1234567'.encode('utf-8') in response.data
@@ -700,7 +713,7 @@ class TestShare(TestBase):
         # 保有者一覧の参照
         response = client.get(self.url_holders + token.token_address)
         assert response.status_code == 200
-        assert '<title>株式保有者一覧'.encode('utf-8') in response.data
+        assert '<title>保有者一覧'.encode('utf-8') in response.data
 
         # 保有者一覧APIの参照
         response = client.get(self.url_get_holders + token.token_address)
@@ -782,7 +795,7 @@ class TestShare(TestBase):
         url_setting = self.url_setting + token.token_address
         response = client.get(url_setting)
         assert response.status_code == 200
-        assert '<title>株式詳細設定'.encode('utf-8') in response.data
+        assert '<title>詳細設定'.encode('utf-8') in response.data
         assert '募集申込開始'.encode('utf-8') in response.data
 
     # ＜正常系7_2＞
@@ -806,7 +819,7 @@ class TestShare(TestBase):
         url_setting = self.url_setting + token.token_address
         response = client.get(url_setting)
         assert response.status_code == 200
-        assert '<title>株式詳細設定'.encode('utf-8') in response.data
+        assert '<title>詳細設定'.encode('utf-8') in response.data
         assert '募集申込停止'.encode('utf-8') in response.data
 
     # ＜正常系7_3＞
@@ -830,7 +843,7 @@ class TestShare(TestBase):
         url_setting = self.url_setting + token.token_address
         response = client.get(url_setting)
         assert response.status_code == 200
-        assert '<title>株式詳細設定'.encode('utf-8') in response.data
+        assert '<title>詳細設定'.encode('utf-8') in response.data
         assert '募集申込開始'.encode('utf-8') in response.data
 
         # 募集申込状態に戻す
@@ -990,7 +1003,7 @@ class TestShare(TestBase):
         # 保有者一覧の参照
         response = client.get(self.url_holders + token_address)
         assert response.status_code == 200
-        assert '<title>株式保有者一覧'.encode('utf-8') in response.data
+        assert '<title>保有者一覧'.encode('utf-8') in response.data
 
         # 保有者一覧APIの参照
         response = client.get(self.url_get_holders + token.token_address)
@@ -1030,7 +1043,7 @@ class TestShare(TestBase):
         # 保有者一覧の参照
         response = client.get(self.url_holders_csv_history + token.token_address)
         assert response.status_code == 200
-        assert '<title>株式保有者リスト履歴'.encode('utf-8') in response.data
+        assert '<title>保有者リスト履歴'.encode('utf-8') in response.data
         assert token.token_address.encode('utf-8') in response.data
 
     # ＜正常系11-2＞
@@ -1100,7 +1113,7 @@ class TestShare(TestBase):
 
     # ＜エラー系1_1＞
     # ＜入力値チェック＞
-    #   株式新規発行（必須エラー）
+    #   新規発行（必須エラー）
     def test_error_1_1(self, app):
         client = self.client_with_admin_login(app)
         # 新規発行
@@ -1110,7 +1123,7 @@ class TestShare(TestBase):
             }
         )
         assert response.status_code == 200
-        assert '<title>株式新規発行'.encode('utf-8') in response.data
+        assert '<title>新規発行'.encode('utf-8') in response.data
         assert '名称は必須です。'.encode('utf-8') in response.data
         assert '略称は必須です。'.encode('utf-8') in response.data
         assert '総発行量は必須です。'.encode('utf-8') in response.data
@@ -1138,7 +1151,7 @@ class TestShare(TestBase):
 
     # ＜エラー系2_1＞
     # ＜入力値チェック＞
-    #   株式新規発行（アドレスのフォーマットエラー）
+    #   新規発行（アドレスのフォーマットエラー）
     def test_error_2_1(self, app):
         error_address = '0xc94b0d702422587e361dd6cd08b55dfe1961181f1'
 
@@ -1153,7 +1166,7 @@ class TestShare(TestBase):
             }
         )
         assert response.status_code == 200
-        assert '<title>株式新規発行'.encode('utf-8') in response.data
+        assert '<title>新規発行'.encode('utf-8') in response.data
         assert 'DEXアドレスは有効なアドレスではありません。'.encode('utf-8') in response.data
         assert '個人情報コントラクトアドレスは有効なアドレスではありません。'.encode('utf-8') in response.data
 

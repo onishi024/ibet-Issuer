@@ -16,38 +16,40 @@ limitations under the License.
 
 SPDX-License-Identifier: Apache-2.0
 """
-
+import logging
+from logging.config import dictConfig
 import os
 import sys
 import time
-import logging
-from logging.config import dictConfig
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy.orm import (
+    sessionmaker,
+    scoped_session
+)
+from web3 import Web3
+from web3.middleware import geth_poa_middleware
 
 path = os.path.join(os.path.dirname(__file__), '../')
 sys.path.append(path)
 
-from web3 import Web3
-from app.models import Token, Agreement, AgreementStatus, Order
+from app.models import (
+    Token,
+    Agreement,
+    AgreementStatus,
+    Order
+)
 from app.utils import ContractUtils
 from config import Config
-from web3.middleware import geth_poa_middleware
 
-# NOTE:ログフォーマットはメッセージ監視が出来るように設定する必要がある。
 dictConfig(Config.LOG_CONFIG)
 log_fmt = '[%(asctime)s] [INDEXER-Agreement] [%(process)d] [%(levelname)s] %(message)s'
 logging.basicConfig(format=log_fmt)
 
-# 設定の取得
-WEB3_HTTP_PROVIDER = Config.WEB3_HTTP_PROVIDER
-URI = Config.SQLALCHEMY_DATABASE_URI
+web3 = Web3(Web3.HTTPProvider(Config.WEB3_HTTP_PROVIDER))
+web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
-# 初期化
-web3 = Web3(Web3.HTTPProvider(WEB3_HTTP_PROVIDER))
-web3.middleware_stack.inject(geth_poa_middleware, layer=0)
-engine = create_engine(URI, echo=False)
+engine = create_engine(Config.SQLALCHEMY_DATABASE_URI, echo=False)
 db_session = scoped_session(sessionmaker())
 db_session.configure(bind=engine)
 
@@ -76,42 +78,13 @@ class Sinks:
             sink.flush(*args, **kwargs)
 
 
-class ConsoleSink:
-    @staticmethod
-    def on_agree(token_address, exchange_address, order_id, agreement_id,
-                 buyer_address, seller_address, price, amount, agent_address):
-        logging.info(
-            "Agree: exchange_address={}, order_id={}, agreement_id={}".format(
-                exchange_address, order_id, agreement_id
-            )
-        )
-
-    @staticmethod
-    def on_settlement_ok(exchange_address, order_id, agreement_id):
-        logging.info(
-            "SettlementOK: exchange_address={}, orderId={}, agreementId={}".format(
-                exchange_address, order_id, agreement_id
-            )
-        )
-
-    @staticmethod
-    def on_settlement_ng(exchange_address, order_id, agreement_id, order_amount):
-        logging.info(
-            "SettlementNG: exchange_address={}, orderId={}, agreementId={}".format(
-                exchange_address, order_id, agreement_id
-            )
-        )
-
-    def flush(self):
-        return
-
-
 class DBSink:
     def __init__(self, db):
         self.db = db
 
     def on_agree(self, token_address, exchange_address, order_id, agreement_id,
                  buyer_address, seller_address, price, amount, agent_address):
+        logging.debug(f"Agree: exchange_address={exchange_address}, order_id={order_id}, agreement_id={agreement_id}")
         agreement = self.__get_agreement(exchange_address, order_id, agreement_id)
         if agreement is None:
             agreement = Agreement()
@@ -129,11 +102,13 @@ class DBSink:
             self.db.merge(agreement)
 
     def on_settlement_ok(self, exchange_address, order_id, agreement_id):
+        logging.debug(f"SettlementOK: exchange_address={exchange_address}, orderId={order_id}, agreementId={agreement_id}")
         agreement = self.__get_agreement(exchange_address, order_id, agreement_id)
         if agreement is not None:
             agreement.status = AgreementStatus.DONE.value
 
     def on_settlement_ng(self, exchange_address, order_id, agreement_id, order_amount):
+        logging.debug(f"SettlementNG: exchange_address={exchange_address}, orderId={order_id}, agreementId={agreement_id}")
         agreement = self.__get_agreement(exchange_address, order_id, agreement_id)
         if agreement is not None:
             agreement.status = AgreementStatus.CANCELED.value
@@ -176,15 +151,15 @@ class Processor:
                 continue
             if exchange_address not in exchange_address_list:
                 exchange_address_list.append(exchange_address)
-                if token.template_id == 1:  # 債券トークン
+                if token.template_id == 1:  # BONDトークン
                     self.exchange_list.append(
                         ContractUtils.get_contract('IbetStraightBondExchange', exchange_address)
                     )
-                elif token.template_id == 2:  # クーポントークン
+                elif token.template_id == 2:  # COUPONトークン
                     self.exchange_list.append(
                         ContractUtils.get_contract('IbetCouponExchange', exchange_address)
                     )
-                elif token.template_id == 3:  # 会員権トークン
+                elif token.template_id == 3:  # MEMBERSHIPトークン
                     self.exchange_list.append(
                         ContractUtils.get_contract('IbetMembershipExchange', exchange_address)
                     )
@@ -214,7 +189,7 @@ class Processor:
         self.latest_block = blockTo
 
     def __sync_all(self, block_from, block_to):
-        logging.debug("syncing from={}, to={}".format(block_from, block_to))
+        logging.info("syncing from={}, to={}".format(block_from, block_to))
         self.__sync_agree(block_from, block_to)
         self.__sync_settlement_ok(block_from, block_to)
         self.__sync_settlement_ng(block_from, block_to)
@@ -224,13 +199,11 @@ class Processor:
     def __sync_agree(self, block_from, block_to):
         for exchange_contract in self.exchange_list:
             try:
-                event_filter = exchange_contract.eventFilter(
-                    'Agree', {
-                        'fromBlock': block_from,
-                        'toBlock': block_to,
-                    }
+                events = exchange_contract.events.Agree.getLogs(
+                    fromBlock=block_from,
+                    toBlock=block_to
                 )
-                for event in event_filter.get_all_entries():
+                for event in events:
                     args = event['args']
                     if args['amount'] > sys.maxsize:
                         pass
@@ -246,7 +219,6 @@ class Processor:
                             amount=args['amount'],
                             agent_address=args['agentAddress']
                         )
-                web3.eth.uninstallFilter(event_filter.filter_id)
             except Exception as e:
                 logging.error(e)
 
@@ -254,20 +226,17 @@ class Processor:
     def __sync_settlement_ok(self, block_from, block_to):
         for exchange_contract in self.exchange_list:
             try:
-                event_filter = exchange_contract.eventFilter(
-                    'SettlementOK', {
-                        'fromBlock': block_from,
-                        'toBlock': block_to,
-                    }
+                events = exchange_contract.events.SettlementOK.getLogs(
+                    fromBlock=block_from,
+                    toBlock=block_to
                 )
-                for event in event_filter.get_all_entries():
+                for event in events:
                     args = event['args']
                     self.sink.on_settlement_ok(
                         exchange_address=exchange_contract.address,
                         order_id=args['orderId'],
                         agreement_id=args['agreementId']
                     )
-                web3.eth.uninstallFilter(event_filter.filter_id)
             except Exception as e:
                 logging.error(e)
 
@@ -275,15 +244,13 @@ class Processor:
     def __sync_settlement_ng(self, block_from, block_to):
         for exchange_contract in self.exchange_list:
             try:
-                event_filter = exchange_contract.eventFilter(
-                    'SettlementNG', {
-                        'fromBlock': block_from,
-                        'toBlock': block_to,
-                    }
+                events = exchange_contract.events.SettlementNG.getLogs(
+                    fromBlock=block_from,
+                    toBlock=block_to
                 )
-                for event in event_filter.get_all_entries():
+                for event in events:
                     args = event['args']
-                    order_id=args['orderId']
+                    order_id = args['orderId']
                     order = exchange_contract.functions.getOrder(order_id).call()
                     self.sink.on_settlement_ng(
                         exchange_address=exchange_contract.address,
@@ -291,17 +258,16 @@ class Processor:
                         agreement_id=args['agreementId'],
                         order_amount=order[2]
                     )
-                web3.eth.uninstallFilter(event_filter.filter_id)
             except Exception as e:
                 logging.error(e)
 
 
 _sink = Sinks()
-_sink.register(ConsoleSink())
 _sink.register(DBSink(db_session))
 processor = Processor(sink=_sink, db=db_session)
+logging.info("Service started successfully")
 
 processor.initial_sync()
 while True:
     processor.sync_new_logs()
-    time.sleep(1)
+    time.sleep(Config.INTERVAL_INDEXER_AGREEMENT)

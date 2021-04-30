@@ -7,12 +7,12 @@
 {% set active_page = "share_list" %}
 
 {% block title %}追加発行 - {% endblock %}
-{% block page_header %}追加発行 <span class="badge bg-secondary">株式</span>{% endblock %}
+{% block page_header %}追加発行 <span class="badge bg-secondary">SHARE</span>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
     <li><a href="{{ url_for('index.index') }}">トップ</a></li>
-    <li><a href="{{ url_for('share.list') }}">株式一覧</a></li>
-    <li class="active">株式追加発行</li>
+    <li><a href="{{ url_for('share.list') }}">発行済一覧</a></li>
+    <li class="active">追加発行</li>
 {% endblock %}
 
 {% block page_content %}

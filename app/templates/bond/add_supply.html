@@ -7,11 +7,11 @@
 {% set active_page = "bond_list" %}
 
 {% block title %}追加発行 - {% endblock %}
-{% block page_header %}追加発行 <span class="badge bg-secondary">債券</span>{% endblock %}
+{% block page_header %}追加発行 <span class="badge bg-secondary">BOND</span>{% endblock %}
 {% block page_description %}{% endblock %}
 {% block breadcrumb %}
     <li><a href="{{ url_for('index.index') }}">トップ</a></li>
-    <li><a href="{{ url_for('bond.list') }}">債券一覧</a></li>
+    <li><a href="{{ url_for('bond.list') }}">発行済一覧</a></li>
     <li class="active">追加発行</li>
 {% endblock %}
 
